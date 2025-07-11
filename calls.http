@@ -4,7 +4,7 @@ POST http://localhost:8081/api/portfolios
 Content-Type: application/json
 
 {
-  "ownerName": "Francisco José Rivera"
+  "ownerName": "Rachel Green"
 }
 > {%
     client.log(response.body);
