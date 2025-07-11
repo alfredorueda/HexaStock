@@ -1,0 +1,74 @@
+### This file contains HTTP requests for testing the portfolio management API.
+###
+POST http://localhost:8081/api/portfolios
+Content-Type: application/json
+
+{
+  "ownerName": "Francisco José Rivera"
+}
+> {%
+    client.log(response.body);
+    try {
+        // Check if response.body is already an object or a string
+        const responseBody = typeof response.body === 'string'
+            ? JSON.parse(response.body)
+            : response.body;
+
+        client.global.set("portfolioId", responseBody.id);
+        client.log("Portfolio ID set to: " + responseBody.id);
+    } catch (e) {
+        client.log("Error handling response: " + e.message);
+        client.log("Response type: " + typeof response.body);
+    }
+%}
+###
+GET http://localhost:8081/api/portfolios/{{portfolioId}}
+
+###
+POST http://localhost:8081/api/portfolios/{{portfolioId}}/deposits
+Content-Type: application/json
+
+{
+  "amount": "1000000"
+}
+
+###
+POST http://localhost:8081/api/portfolios/{{portfolioId}}/withdrawals
+Content-Type: application/json
+
+{
+  "amount": "900000"
+}
+
+###
+POST http://localhost:8081/api/portfolios/{{portfolioId}}/purchase
+Content-Type: application/json
+
+{
+  "ticker": "GRF",
+  "quantity": 20
+}
+
+###
+POST http://localhost:8081/api/portfolios/{{portfolioId}}/purchase
+Content-Type: application/json
+
+{
+  "ticker": "AAPL",
+  "quantity": 10
+}
+
+
+###
+POST http://localhost:8081/api/portfolios/{{portfolioId}}/sales
+Content-Type: application/json
+
+{
+  "ticker": "AAPL",
+  "quantity": 10
+}
+
+###
+GET http://localhost:8081/api/portfolios/{{portfolioId}}/transactions
+
+
