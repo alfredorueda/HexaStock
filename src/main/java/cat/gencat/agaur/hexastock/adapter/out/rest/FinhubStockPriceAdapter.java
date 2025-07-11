@@ -20,10 +20,6 @@ public class FinhubStockPriceAdapter implements StockPriceProviderPort {
 
         FinnhubClient client = new FinnhubClient.Builder().token("d141qr9r01qs7glkje10d141qr9r01qs7glkje1g").build();
 
-        //CompanyProfile2 companyProfile = client.companyProfile("TSLA");
-
-        //System.out.println("companyProfile = " + companyProfile);
-
         Quote quote = null;
         try {
             quote = client.quote(ticker.value());
@@ -31,11 +27,7 @@ public class FinhubStockPriceAdapter implements StockPriceProviderPort {
             throw new RuntimeException(e);
         }
 
-//        System.out.println("quote = " + quote);
-
         var currentPrice = quote.getC();
-
-  //      System.out.println("currentPrice = " + currentPrice);
 
         return new StockPrice(ticker, currentPrice, LocalDateTime.now()
                 .atZone(ZoneId.of("Europe/Madrid")) .toInstant(), "USD");

@@ -11,7 +11,7 @@ import java.util.Set;
 import static jakarta.persistence.CascadeType.ALL;
 
 @Entity
-@Table(name = "portfolio_bananero")
+@Table(name = "portfolio")
 public class PortfolioJpaEntity {
     @Id
     private String id;
