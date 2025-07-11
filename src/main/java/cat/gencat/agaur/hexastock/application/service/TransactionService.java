@@ -28,8 +28,8 @@ public class TransactionService implements TransactionUseCase {
     @Override
     public List<TransactionDTO> getTransactions(String portfolioId, Optional<String> type) {
 
-        List<Transaction> lTransactions = transactionPort.getTransactionsByPortfolioId(portfolioId);
+        List<Transaction> transactions = transactionPort.getTransactionsByPortfolioId(portfolioId);
 
-        return lTransactions.stream().map(TransactionDTO::new).toList();
+        return transactions.stream().map(TransactionDTO::new).toList();
     }
 }
