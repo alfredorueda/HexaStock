@@ -70,7 +70,7 @@ Records all financial activities within a portfolio:
 ## How to Run
 
 ### Prerequisites
-- JDK 17 or higher
+- JDK 21 or higher
 - Maven
 - MySQL (or Docker for running the database)
 
@@ -127,7 +127,7 @@ When retrieving a portfolio, the system uses pessimistic locking to prevent conc
 Optional<PortfolioJpaEntity> findByIdForUpdate(@Param("id") String id);
 ```
 
-This ensures that when multiple users attempt to operate on the same portfolio (e.g., buying/selling stocks), one operation completes fully before the next begins.
+This ensures that when multiple requests attempt to operate on the same portfolio (e.g., buying/selling stocks), one operation completes fully before the next begins.
 
 ### Transactional Boundaries
 All services that modify portfolio data are annotated with `@Transactional`, ensuring that operations either complete fully or roll back completely, maintaining database consistency:
@@ -152,7 +152,7 @@ HexaStock uses a comprehensive testing approach:
 - Tests verify business rules and invariants without any infrastructure dependencies
 - Each domain concept has dedicated test classes (e.g., `PortfolioTest`, `HoldingTest`, `LotTest`)
 
-### Integration Tests
+### Integration Tests (TODO)
 - Test the interaction between the application and its adapters
 - Verify that persistence mechanisms work correctly
 - Ensure API endpoints function as expected
