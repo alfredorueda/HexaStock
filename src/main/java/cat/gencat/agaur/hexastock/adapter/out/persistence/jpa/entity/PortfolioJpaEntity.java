@@ -20,7 +20,7 @@ public class PortfolioJpaEntity {
     private BigDecimal balance;
     private LocalDateTime createdAt;
 
-    @OneToMany(cascade = ALL, orphanRemoval = true, fetch = FetchType.EAGER)
+    @OneToMany(cascade = ALL, orphanRemoval = true)
     @JoinColumn(name = "portfolio_id")
     private Set<HoldingJpaEntity> holdings = new HashSet<>();
 
