@@ -3,16 +3,27 @@ package cat.gencat.agaur.hexastock.model;
 import java.util.Objects;
 
 /**
- * Value Object representing a stock ticker symbol.
- * Immutable and validated against domain rules.
+ * Ticker represents a stock ticker symbol used to uniquely identify a publicly traded company.
+ * 
+ * <p>In DDD terms, this is a Value Object that encapsulates a stock ticker symbol
+ * with immutability and value semantics. Ticker objects are immutable and their
+ * equality is based on their string value.</p>
+ * 
+ * <p>This class enforces domain rules for valid ticker symbols:</p>
+ * <ul>
+ *   <li>Must not be null or empty</li>
+ *   <li>Must contain 1-5 uppercase letters (matching standard stock exchange formats)</li>
+ * </ul>
+ * 
+ * <p>Examples of valid tickers: "AAPL" (Apple), "MSFT" (Microsoft), "AMZN" (Amazon)</p>
  */
 public record Ticker(String value) {
 
     /**
-     * Compact canonical constructor with validation rules.
-     *
-     * @param value the raw ticker symbol string
-     * @throws IllegalArgumentException if the value is null, blank, or does not match ticker format
+     * Constructs a Ticker instance with validation.
+     * 
+     * @param value The string representation of the ticker symbol
+     * @throws IllegalArgumentException if the value is null, blank, or does not match the required format
      */
     public Ticker {
         if (value == null || value.trim().isEmpty()) {
@@ -25,10 +36,13 @@ public record Ticker(String value) {
     }
 
     /**
-     * Factory method for clearer construction.
+     * Factory method for creating a Ticker instance.
+     * 
+     * <p>This method provides a more readable way to create a Ticker than using the constructor directly.</p>
      *
-     * @param value the ticker string
-     * @return a validated Ticker instance
+     * @param value The string representation of the ticker symbol
+     * @return A validated Ticker instance
+     * @throws IllegalArgumentException if the value is invalid
      */
     public static Ticker of(String value) {
         return new Ticker(value);

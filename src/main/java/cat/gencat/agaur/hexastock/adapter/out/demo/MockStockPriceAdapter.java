@@ -12,13 +12,48 @@ import java.util.Map;
 import java.util.Random;
 import java.util.concurrent.ConcurrentHashMap;
 
+/**
+ * MockStockPriceAdapter provides mock stock price data for testing and demonstration purposes.
+ * 
+ * <p>In hexagonal architecture terms, this is a <strong>secondary adapter</strong> (driven adapter)
+ * that implements a secondary port ({@link StockPriceProviderPort}) to provide stock price data
+ * without requiring an actual external market data service.</p>
+ * 
+ * <p>This adapter:</p>
+ * <ul>
+ *   <li>Maintains an in-memory database of mock stock prices for popular companies</li>
+ *   <li>Adds small random variations to simulate real market fluctuations</li>
+ *   <li>Returns consistent data in the domain's {@link StockPrice} format</li>
+ * </ul>
+ * 
+ * <p>The mock adapter is only active when the "mock" Spring profile is enabled,
+ * allowing the application to run in environments without external API access,
+ * or for testing and demonstration purposes where real market data is not needed.</p>
+ * 
+ * <p>This implementation demonstrates the power of hexagonal architecture, where
+ * we can completely swap out the source of stock price data without changing any
+ * of the application's core business logic.</p>
+ */
 @Component
 @Profile("mock")
 public class MockStockPriceAdapter implements StockPriceProviderPort {
 
+    /**
+     * In-memory database of mock stock prices for popular companies.
+     */
     private final Map<String, Double> mockPrices = new ConcurrentHashMap<>();
+    
+    /**
+     * Random number generator for simulating price variations.
+     */
     private final Random random = new Random();
 
+    /**
+     * Constructs a new MockStockPriceAdapter with pre-populated stock prices.
+     * 
+     * <p>Initializes the mock database with a set of popular stocks and
+     * realistic price points to simulate a real market environment.</p>
+     */
     public MockStockPriceAdapter() {
         mockPrices.put("AAPL", 201.45);
         mockPrices.put("MSFT", 472.75);
@@ -34,6 +69,21 @@ public class MockStockPriceAdapter implements StockPriceProviderPort {
         mockPrices.put("GRFS", 8.83);
     }
 
+    /**
+     * Fetches a mock price for a given stock ticker.
+     * 
+     * <p>This method:</p>
+     * <ol>
+     *   <li>Validates the ticker symbol</li>
+     *   <li>Retrieves the base price from the mock database</li>
+     *   <li>Adds a small random variation (±1%) to simulate market fluctuations</li>
+     *   <li>Creates and returns a domain StockPrice object</li>
+     * </ol>
+     * 
+     * @param ticker The ticker symbol of the stock to get the price for
+     * @return A StockPrice object containing the mock price and related information
+     * @throws IllegalArgumentException if the ticker is null or not found in the mock database
+     */
     @Override
     public StockPrice fetchStockPrice(Ticker ticker) {
         if (ticker == null) {

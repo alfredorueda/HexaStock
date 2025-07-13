@@ -11,13 +11,45 @@ import org.springframework.stereotype.Component;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 
+/**
+ * FinhubStockPriceAdapter implements the stock price provider port by connecting to the Finnhub API.
+ * 
+ * <p>In hexagonal architecture terms, this is a <strong>secondary adapter</strong> (driven adapter)
+ * that implements a secondary port ({@link StockPriceProviderPort}) to connect the application
+ * core with an external service - in this case, the Finnhub financial API.</p>
+ * 
+ * <p>This adapter:</p>
+ * <ul>
+ *   <li>Connects to the Finnhub API using the Finnhub Java client library</li>
+ *   <li>Retrieves real-time stock quotes for requested ticker symbols</li>
+ *   <li>Converts the external API response into the domain's {@link StockPrice} model</li>
+ * </ul>
+ * 
+ * <p>The adapter is only active when the "finhub" Spring profile is enabled,
+ * allowing the application to switch between different stock price providers
+ * (like this one or a mock implementation) based on the runtime environment.</p>
+ */
 @Component
 @Profile("finhub")
 public class FinhubStockPriceAdapter implements StockPriceProviderPort {
 
+    /**
+     * Fetches the current price for a given stock ticker from the Finnhub API.
+     * 
+     * <p>This method:</p>
+     * <ol>
+     *   <li>Creates a Finnhub client with the API token</li>
+     *   <li>Requests a quote for the specified ticker symbol</li>
+     *   <li>Extracts the current price from the response</li>
+     *   <li>Creates and returns a domain StockPrice object</li>
+     * </ol>
+     * 
+     * @param ticker The ticker symbol of the stock to get the price for
+     * @return A StockPrice object containing the current price and related information
+     * @throws RuntimeException if there is an error communicating with the Finnhub API
+     */
     @Override
     public StockPrice fetchStockPrice(Ticker ticker) {
-
         FinnhubClient client = new FinnhubClient.Builder().token("d141qr9r01qs7glkje10d141qr9r01qs7glkje1g").build();
 
         Quote quote = null;

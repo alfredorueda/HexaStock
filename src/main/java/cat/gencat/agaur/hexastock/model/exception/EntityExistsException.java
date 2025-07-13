@@ -1,17 +1,27 @@
 package cat.gencat.agaur.hexastock.model.exception;
 
 /**
- * InsufficientFundsException indicates that a financial operation cannot be completed
- * due to insufficient cash balance in the portfolio.
+ * EntityExistsException indicates that an attempt was made to create or add an entity
+ * that already exists in the system.
  * 
- * This domain exception is thrown when:
- * - A withdrawal amount exceeds the available balance
- * - A stock purchase requires more cash than is available
+ * <p>In DDD terms, this domain exception enforces the uniqueness constraint for entities.
+ * It ensures that duplicate entities are not created or added to aggregates.</p>
  * 
- * It represents a business rule that ensures financial operations maintain
- * the portfolio's cash balance integrity, preventing overdrafts.
+ * <p>This exception is thrown when:</p>
+ * <ul>
+ *   <li>A Holding with the same ticker is being added to a Portfolio that already contains it</li>
+ *   <li>A Lot with the same ID is being added to a Holding that already contains it</li>
+ * </ul>
+ * 
+ * <p>It represents a business rule that maintains data integrity by preventing duplicate
+ * entities within aggregates.</p>
  */
 public class EntityExistsException extends DomainException {
+    /**
+     * Constructs a new EntityExistsException with the specified detail message.
+     * 
+     * @param message The detail message explaining which entity already exists
+     */
     public EntityExistsException(String message) {
         super(message);
     }
