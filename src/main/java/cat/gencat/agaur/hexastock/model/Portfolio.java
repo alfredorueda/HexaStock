@@ -66,14 +66,11 @@ public class Portfolio {
      */
     private final Map<Ticker, Holding> holdings = new HashMap<>();
 
-    /**
-     * Protected no-args constructor for ORM frameworks.
-     */
     protected Portfolio() {}
     
     /**
      * Constructs a Portfolio with the specified attributes.
-     * 
+     *
      * @param id The unique identifier for the portfolio
      * @param ownerName The name of the portfolio owner
      * @param balance The initial cash balance

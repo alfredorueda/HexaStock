@@ -54,9 +54,6 @@ public class Holding {
      */
     private final List<Lot> lots = new ArrayList<>();
 
-    /**
-     * Protected no-args constructor for ORM frameworks.
-     */
     protected Holding() {}
     
     /**

@@ -67,9 +67,6 @@ public class Lot {
      */
     private LocalDateTime purchasedAt;
 
-    /**
-     * Protected no-args constructor for ORM frameworks.
-     */
     protected Lot() {}
 
     /**
