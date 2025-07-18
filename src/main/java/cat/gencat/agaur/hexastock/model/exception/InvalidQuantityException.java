@@ -1,4 +1,4 @@
-package cat.gencat.agaur.hexastock.application.port.in;
+package cat.gencat.agaur.hexastock.model.exception;
 
 /**
  * InvalidQuantityException indicates that a stock operation was attempted with an invalid quantity of shares.

@@ -71,4 +71,6 @@ Content-Type: application/json
 ###
 GET http://localhost:8081/api/portfolios/{{portfolioId}}/transactions
 
+###
+GET http://localhost:8081/api/portfolios/{{portfolioId}}/holdings
 

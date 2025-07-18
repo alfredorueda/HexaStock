@@ -1,8 +1,6 @@
 package cat.gencat.agaur.hexastock.model;
 
-import cat.gencat.agaur.hexastock.application.port.in.ConflictQuantityException;
-import cat.gencat.agaur.hexastock.application.port.in.InvalidAmountException;
-import cat.gencat.agaur.hexastock.application.port.in.InvalidQuantityException;
+import cat.gencat.agaur.hexastock.model.exception.ConflictQuantityException;
 import cat.gencat.agaur.hexastock.model.exception.EntityExistsException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;

@@ -8,9 +8,13 @@ import org.springframework.stereotype.Component;
 
 import java.time.LocalDateTime;
 import java.time.ZoneId;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Random;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 /**
  * MockStockPriceAdapter provides mock stock price data for testing and demonstration purposes.
@@ -109,5 +113,14 @@ public class MockStockPriceAdapter implements StockPriceProviderPort {
 
         return new StockPrice(ticker, currentPrice, LocalDateTime.now()
                 .atZone(ZoneId.of("Europe/Madrid")) .toInstant(), "USD");
+    }
+
+    @Override
+    public Map<Ticker, StockPrice> fetchStockPrice(Set<Ticker> sTickers) {
+        return sTickers.stream()
+                .collect(Collectors.toMap(
+                        Function.identity(),
+                        this::fetchStockPrice
+                ));
     }
 }

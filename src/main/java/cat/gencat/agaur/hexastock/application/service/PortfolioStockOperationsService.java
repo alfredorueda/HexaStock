@@ -1,7 +1,8 @@
 package cat.gencat.agaur.hexastock.application.service;
 
-import cat.gencat.agaur.hexastock.adapter.in.webmodel.SaleResponseDTO;
-import cat.gencat.agaur.hexastock.application.port.in.PortfolioManagmentUseCase;
+import cat.gencat.agaur.hexastock.model.exception.ConflictQuantityException;
+import cat.gencat.agaur.hexastock.model.exception.InvalidQuantityException;
+import cat.gencat.agaur.hexastock.model.exception.PortfolioNotFoundException;
 import cat.gencat.agaur.hexastock.application.port.in.PortfolioStockOperationsUseCase;
 import cat.gencat.agaur.hexastock.application.port.out.PortfolioPort;
 import cat.gencat.agaur.hexastock.application.port.out.StockPriceProviderPort;
@@ -11,8 +12,6 @@ import jakarta.transaction.Transactional;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
-import java.time.LocalDateTime;
-import java.util.concurrent.locks.ReentrantLock;
 
 /**
  * PortfolioStockOperationsService implements the core use cases for stock trading operations.
@@ -85,13 +84,13 @@ public class PortfolioStockOperationsService implements PortfolioStockOperations
      * @param portfolioId The ID of the portfolio to buy stock for
      * @param ticker The ticker symbol of the stock to buy
      * @param quantity The number of shares to buy
-     * @throws cat.gencat.agaur.hexastock.application.port.in.PortfolioNotFoundException if the portfolio is not found
-     * @throws cat.gencat.agaur.hexastock.application.port.in.InvalidQuantityException if the quantity is not positive
+     * @throws PortfolioNotFoundException if the portfolio is not found
+     * @throws InvalidQuantityException if the quantity is not positive
      * @throws cat.gencat.agaur.hexastock.model.exception.InsufficientFundsException if there are insufficient funds for the purchase
      */
     @Override
     public void buyStock(String portfolioId, Ticker ticker, int quantity) {
-        Portfolio portfolio = portfolioPort.getPortfolioById(portfolioId);
+        Portfolio portfolio = portfolioPort.getPortfolioById(portfolioId).orElseThrow(() -> new PortfolioNotFoundException(portfolioId));
 
         StockPrice stockPrice = stockPriceProviderPort.fetchStockPrice(ticker);
 
@@ -125,14 +124,14 @@ public class PortfolioStockOperationsService implements PortfolioStockOperations
      * @param ticker The ticker symbol of the stock to sell
      * @param quantity The number of shares to sell
      * @return A SellResult containing proceeds, cost basis, and profit information
-     * @throws cat.gencat.agaur.hexastock.application.port.in.PortfolioNotFoundException if the portfolio is not found
-     * @throws cat.gencat.agaur.hexastock.application.port.in.InvalidQuantityException if the quantity is not positive
+     * @throws PortfolioNotFoundException if the portfolio is not found
+     * @throws InvalidQuantityException if the quantity is not positive
      * @throws cat.gencat.agaur.hexastock.model.exception.DomainException if the ticker is not found in holdings
-     * @throws cat.gencat.agaur.hexastock.application.port.in.ConflictQuantityException if trying to sell more shares than owned
+     * @throws ConflictQuantityException if trying to sell more shares than owned
      */
     @Override
     public SellResult sellStock(String portfolioId, Ticker ticker, int quantity) {
-        Portfolio portfolio = portfolioPort.getPortfolioById(portfolioId);
+        Portfolio portfolio = portfolioPort.getPortfolioById(portfolioId).orElseThrow(() -> new PortfolioNotFoundException(portfolioId));
 
         StockPrice stockPrice = stockPriceProviderPort.fetchStockPrice(ticker);
 

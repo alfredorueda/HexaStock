@@ -1,10 +1,10 @@
 package cat.gencat.agaur.hexastock.adapter.in;
 
-import cat.gencat.agaur.hexastock.application.port.in.ConflictQuantityException;
-import cat.gencat.agaur.hexastock.application.port.in.InvalidAmountException;
-import cat.gencat.agaur.hexastock.application.port.in.InvalidQuantityException;
-import cat.gencat.agaur.hexastock.application.port.in.PortfolioNotFoundException;
-import cat.gencat.agaur.hexastock.model.exception.DomainException;
+import cat.gencat.agaur.hexastock.model.exception.ConflictQuantityException;
+import cat.gencat.agaur.hexastock.model.exception.InvalidAmountException;
+import cat.gencat.agaur.hexastock.model.exception.InvalidQuantityException;
+import cat.gencat.agaur.hexastock.model.exception.PortfolioNotFoundException;
+import cat.gencat.agaur.hexastock.model.exception.HoldingNotFoundException;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -14,14 +14,14 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 @ControllerAdvice
 public class ExceptionHandlingAdvice {
 
-    @ExceptionHandler(PortfolioNotFoundException.class)
+    @ExceptionHandler({PortfolioNotFoundException.class, HoldingNotFoundException.class})
     @ResponseStatus(HttpStatus.NOT_FOUND)
     @ResponseBody
     String notFoundExceptionHandler(Exception ex) {
         return ex.getMessage();
     }
 
-    @ExceptionHandler({InvalidAmountException.class, InvalidQuantityException.class, DomainException.class})
+    @ExceptionHandler({InvalidAmountException.class, InvalidQuantityException.class})
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     @ResponseBody
     String badRequestExceptionHandler(Exception ex) { return ex.getMessage(); }
@@ -34,4 +34,3 @@ public class ExceptionHandlingAdvice {
     }
 
 }
-

@@ -1,10 +1,6 @@
 package cat.gencat.agaur.hexastock.model;
 
-import cat.gencat.agaur.hexastock.application.port.in.InvalidAmountException;
-import cat.gencat.agaur.hexastock.application.port.in.InvalidQuantityException;
-import cat.gencat.agaur.hexastock.model.exception.DomainException;
-import cat.gencat.agaur.hexastock.model.exception.EntityExistsException;
-import cat.gencat.agaur.hexastock.model.exception.InsufficientFundsException;
+import cat.gencat.agaur.hexastock.model.exception.*;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -254,7 +250,7 @@ class PortfolioTest {
             portfolio.buy(APPLE, 10, new BigDecimal("50.00"));
             
             // Then
-            assertThrows(cat.gencat.agaur.hexastock.application.port.in.ConflictQuantityException.class, 
+            assertThrows(ConflictQuantityException.class,
                     () -> portfolio.sell(APPLE, 15, new BigDecimal("60.00")));
         }
     }

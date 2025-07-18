@@ -3,17 +3,20 @@ package cat.gencat.agaur.hexastock.adapter.in;
 import cat.gencat.agaur.hexastock.adapter.in.webmodel.*;
 import cat.gencat.agaur.hexastock.application.port.in.PortfolioManagmentUseCase;
 import cat.gencat.agaur.hexastock.application.port.in.PortfolioStockOperationsUseCase;
+import cat.gencat.agaur.hexastock.application.port.in.ReportingUseCase;
 import cat.gencat.agaur.hexastock.application.port.in.TransactionUseCase;
 import cat.gencat.agaur.hexastock.model.Money;
 import cat.gencat.agaur.hexastock.model.Portfolio;
 import cat.gencat.agaur.hexastock.model.SellResult;
 import cat.gencat.agaur.hexastock.model.Ticker;
+import cat.gencat.agaur.hexastock.model.exception.ConflictQuantityException;
+import cat.gencat.agaur.hexastock.model.exception.InvalidAmountException;
+import cat.gencat.agaur.hexastock.model.exception.InvalidQuantityException;
+import cat.gencat.agaur.hexastock.model.exception.PortfolioNotFoundException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.math.BigDecimal;
-import java.time.LocalDate;
 import java.util.Currency;
 import java.util.List;
 import java.util.Optional;
@@ -45,19 +48,9 @@ import java.util.Optional;
 @RequestMapping("/api/portfolios")
 public class PortfolioRestController {
     
-    /**
-     * Port for portfolio creation and cash management operations.
-     */
     private final PortfolioManagmentUseCase portfolioManagmentUseCase;
-    
-    /**
-     * Port for stock buying and selling operations.
-     */
+    private final ReportingUseCase reportingUseCase;
     private final PortfolioStockOperationsUseCase portfolioStockOperationsUseCase;
-    
-    /**
-     * Port for transaction history retrieval.
-     */
     private final TransactionUseCase transactionUseCase;
 
     /**
@@ -67,10 +60,12 @@ public class PortfolioRestController {
      * @param portfolioStockOperationsUseCase Port for stock operations
      * @param transactionUseCase Port for transaction history
      */
-    public PortfolioRestController(PortfolioManagmentUseCase portfolioManagmentUseCase, PortfolioStockOperationsUseCase portfolioStockOperationsUseCase, TransactionUseCase transactionUseCase) {
+    public PortfolioRestController(PortfolioManagmentUseCase portfolioManagmentUseCase, PortfolioStockOperationsUseCase portfolioStockOperationsUseCase,
+                                   TransactionUseCase transactionUseCase, ReportingUseCase reportingUseCase) {
         this.portfolioManagmentUseCase = portfolioManagmentUseCase;
         this.portfolioStockOperationsUseCase = portfolioStockOperationsUseCase;
         this.transactionUseCase = transactionUseCase;
+        this.reportingUseCase = reportingUseCase;
     }
     
     /**
@@ -94,7 +89,7 @@ public class PortfolioRestController {
      * 
      * @param id The unique identifier of the portfolio
      * @return The requested portfolio with HTTP 200 OK status
-     * @throws cat.gencat.agaur.hexastock.application.port.in.PortfolioNotFoundException if the portfolio is not found
+     * @throws PortfolioNotFoundException if the portfolio is not found
      */
     @GetMapping("/{id}")
     public ResponseEntity<Portfolio> getPortfolio(@PathVariable String id) {
@@ -110,7 +105,7 @@ public class PortfolioRestController {
      * @param id The ID of the portfolio to deposit into
      * @param request DTO containing the deposit amount
      * @return HTTP 200 OK with no content
-     * @throws cat.gencat.agaur.hexastock.application.port.in.PortfolioNotFoundException if the portfolio is not found
+     * @throws PortfolioNotFoundException if the portfolio is not found
      * @throws cat.gencat.agaur.hexastock.model.exception.InsufficientFundsException if the deposit amount is not positive
      */
     @PostMapping("/{id}/deposits")
@@ -127,8 +122,8 @@ public class PortfolioRestController {
      * @param id The ID of the portfolio to withdraw from
      * @param request DTO containing the withdrawal amount
      * @return HTTP 200 OK with no content
-     * @throws cat.gencat.agaur.hexastock.application.port.in.PortfolioNotFoundException if the portfolio is not found
-     * @throws cat.gencat.agaur.hexastock.application.port.in.InvalidAmountException if the withdrawal amount is not positive
+     * @throws PortfolioNotFoundException if the portfolio is not found
+     * @throws InvalidAmountException if the withdrawal amount is not positive
      * @throws cat.gencat.agaur.hexastock.model.exception.InsufficientFundsException if there are insufficient funds
      */
     @PostMapping("/{id}/withdrawals")
@@ -153,8 +148,8 @@ public class PortfolioRestController {
      * @param id The ID of the portfolio to buy stock for
      * @param request DTO containing the ticker symbol and quantity
      * @return HTTP 200 OK with no content
-     * @throws cat.gencat.agaur.hexastock.application.port.in.PortfolioNotFoundException if the portfolio is not found
-     * @throws cat.gencat.agaur.hexastock.application.port.in.InvalidQuantityException if the quantity is not positive
+     * @throws PortfolioNotFoundException if the portfolio is not found
+     * @throws InvalidQuantityException if the quantity is not positive
      * @throws cat.gencat.agaur.hexastock.model.exception.InsufficientFundsException if there are insufficient funds
      */
     @PostMapping("/{id}/purchase")
@@ -180,10 +175,10 @@ public class PortfolioRestController {
      * @param id The ID of the portfolio to sell stock from
      * @param request DTO containing the ticker symbol and quantity
      * @return The sale result information with HTTP 200 OK status
-     * @throws cat.gencat.agaur.hexastock.application.port.in.PortfolioNotFoundException if the portfolio is not found
-     * @throws cat.gencat.agaur.hexastock.application.port.in.InvalidQuantityException if the quantity is not positive
+     * @throws PortfolioNotFoundException if the portfolio is not found
+     * @throws InvalidQuantityException if the quantity is not positive
      * @throws cat.gencat.agaur.hexastock.model.exception.DomainException if the ticker is not found in holdings
-     * @throws cat.gencat.agaur.hexastock.application.port.in.ConflictQuantityException if trying to sell more shares than owned
+     * @throws ConflictQuantityException if trying to sell more shares than owned
      */
     @PostMapping("/{id}/sales")
     public ResponseEntity<SaleResponseDTO> sellStock(@PathVariable String id, @RequestBody SaleRequestDTO request) {
@@ -199,7 +194,7 @@ public class PortfolioRestController {
      * @param id The ID of the portfolio to get transactions for
      * @param type Optional transaction type to filter by (e.g., "DEPOSIT", "WITHDRAWAL", "PURCHASE", "SALE")
      * @return A list of transactions with HTTP 200 OK status
-     * @throws cat.gencat.agaur.hexastock.application.port.in.PortfolioNotFoundException if the portfolio is not found
+     * @throws PortfolioNotFoundException if the portfolio is not found
      */
     @GetMapping("/{id}/transactions")
     public ResponseEntity<List<TransactionDTO>> getTransactions(
@@ -213,5 +208,13 @@ public class PortfolioRestController {
         );
 
         return ResponseEntity.ok(transactions);
+    }
+
+    @GetMapping("/{id}/holdings")
+    public ResponseEntity<List<HoldingDTO>> getHoldings(@PathVariable String id) {
+
+        List<HoldingDTO> lHoldings = reportingUseCase.getHoldingsPerfomance(id);
+
+        return ResponseEntity.ok(lHoldings);
     }
 }

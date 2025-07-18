@@ -3,6 +3,10 @@ package cat.gencat.agaur.hexastock.application.port.out;
 import cat.gencat.agaur.hexastock.model.StockPrice;
 import cat.gencat.agaur.hexastock.model.Ticker;
 
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
+
 /**
  * StockPriceProviderPort defines the secondary port for retrieving stock price information.
  * 
@@ -37,4 +41,16 @@ public interface StockPriceProviderPort {
      * @throws RuntimeException if the price cannot be retrieved for any reason
      */
     StockPrice fetchStockPrice(Ticker ticker);
+
+    /**
+     * Fetches the current price for each given stock ticker.
+     *
+     * <p>This method retrieves the latest available price information for the
+     * specified stock from an external data source.</p>
+     *
+     * @param sTickers The list of ticker's symbol of the stock to get the price for
+     * @return A Map<StockPrice> containing the current price and related information for each Ticker
+     * @throws RuntimeException if the price cannot be retrieved for any reason
+     */
+    Map<Ticker, StockPrice> fetchStockPrice(Set<Ticker> sTickers);
 }

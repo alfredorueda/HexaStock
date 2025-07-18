@@ -1,11 +1,10 @@
 package cat.gencat.agaur.hexastock.model;
 
-import cat.gencat.agaur.hexastock.application.port.in.ConflictQuantityException;
-import cat.gencat.agaur.hexastock.application.port.in.InvalidAmountException;
-import cat.gencat.agaur.hexastock.application.port.in.InvalidQuantityException;
+import cat.gencat.agaur.hexastock.model.exception.ConflictQuantityException;
+import cat.gencat.agaur.hexastock.model.exception.InvalidAmountException;
+import cat.gencat.agaur.hexastock.model.exception.InvalidQuantityException;
 
 import java.math.BigDecimal;
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 /**
