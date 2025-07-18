@@ -1,13 +1,8 @@
 package cat.gencat.agaur.hexastock.model;
 
-import cat.gencat.agaur.hexastock.application.port.in.InvalidAmountException;
-import cat.gencat.agaur.hexastock.application.port.in.InvalidQuantityException;
-import cat.gencat.agaur.hexastock.model.exception.DomainException;
-import cat.gencat.agaur.hexastock.model.exception.EntityExistsException;
-import cat.gencat.agaur.hexastock.model.exception.InsufficientFundsException;
+import cat.gencat.agaur.hexastock.model.exception.*;
 
 import java.math.BigDecimal;
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.*;
 
@@ -186,16 +181,14 @@ public class Portfolio {
      * @throws DomainException if the ticker is not found in holdings
      */
     public SellResult sell(Ticker ticker, int quantity, BigDecimal price) {
-        if (quantity <= 0) {
+        if (quantity <= 0)
             throw new InvalidQuantityException("Quantity must be positive");
-        }
-        if (price.compareTo(BigDecimal.ZERO) <= 0) {
-            throw new InvalidAmountException("Price must be positive");
-        }
 
-        if (!holdings.containsKey(ticker)) {
-            throw new DomainException("Ticker not found in Holdings: " + ticker);
-        }
+        if (price.compareTo(BigDecimal.ZERO) <= 0)
+            throw new InvalidAmountException("Price must be positive");
+
+        if (!holdings.containsKey(ticker))
+            throw new HoldingNotFoundException("Holding not found in portfolio: " + ticker);
 
         Holding holding = holdings.get(ticker);
 
@@ -255,9 +248,11 @@ public class Portfolio {
      * Gets a list of all stock holdings in this portfolio.
      * 
      * @return A list of all Holdings
+     *
+     * TODO: Deberíamos devolver no el Holding, si no una copia de él
      */
     public List<Holding> getHoldings() {
-        return new ArrayList<>(holdings.values());
+        return List.copyOf(holdings.values());
     }
 
     /**
@@ -275,4 +270,9 @@ public class Portfolio {
         holdings.put(holding.getTicker(), holding);
     }
 
+    public Holding getHolding(Ticker key) {
+        if(!holdings.containsKey(key))
+            throw new HoldingNotFoundException("Holding " + key + " not exists");
+        return holdings.get(key);
+    }
 }

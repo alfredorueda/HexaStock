@@ -1,6 +1,8 @@
 package cat.gencat.agaur.hexastock.application.service;
 
 import cat.gencat.agaur.hexastock.application.port.in.PortfolioManagmentUseCase;
+import cat.gencat.agaur.hexastock.model.exception.InvalidAmountException;
+import cat.gencat.agaur.hexastock.model.exception.PortfolioNotFoundException;
 import cat.gencat.agaur.hexastock.application.port.out.PortfolioPort;
 import cat.gencat.agaur.hexastock.application.port.out.TransactionPort;
 import cat.gencat.agaur.hexastock.model.Money;
@@ -8,8 +10,6 @@ import cat.gencat.agaur.hexastock.model.Portfolio;
 import cat.gencat.agaur.hexastock.model.Transaction;
 import jakarta.transaction.Transactional;
 import org.springframework.stereotype.Service;
-
-import java.util.concurrent.locks.ReentrantLock;
 
 /**
  * PortfolioManagmentService implements the core use cases for portfolio creation and cash management.
@@ -82,13 +82,13 @@ public class PortfolioManagmentService implements PortfolioManagmentUseCase {
     /**
      * Retrieves a portfolio by its unique identifier.
      * 
-     * @param id The unique identifier of the portfolio to retrieve
+     * @param portfolioId The unique identifier of the portfolio to retrieve
      * @return The requested Portfolio
-     * @throws cat.gencat.agaur.hexastock.application.port.in.PortfolioNotFoundException if the portfolio is not found
+     * @throws PortfolioNotFoundException if the portfolio is not found
      */
     @Override
-    public Portfolio getPortfolio(String id) {
-        return portfolioPort.getPortfolioById(id);
+    public Portfolio getPortfolio(String portfolioId) {
+        return portfolioPort.getPortfolioById(portfolioId).orElseThrow(() -> new PortfolioNotFoundException(portfolioId));
     }
 
     /**
@@ -105,7 +105,7 @@ public class PortfolioManagmentService implements PortfolioManagmentUseCase {
      * 
      * @param portfolioId The ID of the portfolio to deposit into
      * @param amount The amount of money to deposit
-     * @throws cat.gencat.agaur.hexastock.application.port.in.PortfolioNotFoundException if the portfolio is not found
+     * @throws PortfolioNotFoundException if the portfolio is not found
      * @throws cat.gencat.agaur.hexastock.model.exception.InsufficientFundsException if the deposit amount is not positive
      */
     @Override
@@ -132,8 +132,8 @@ public class PortfolioManagmentService implements PortfolioManagmentUseCase {
      * 
      * @param portfolioId The ID of the portfolio to withdraw from
      * @param amount The amount of money to withdraw
-     * @throws cat.gencat.agaur.hexastock.application.port.in.PortfolioNotFoundException if the portfolio is not found
-     * @throws cat.gencat.agaur.hexastock.application.port.in.InvalidAmountException if the withdrawal amount is not positive
+     * @throws PortfolioNotFoundException if the portfolio is not found
+     * @throws InvalidAmountException if the withdrawal amount is not positive
      * @throws cat.gencat.agaur.hexastock.model.exception.InsufficientFundsException if there are insufficient funds for the withdrawal
      */
     @Override

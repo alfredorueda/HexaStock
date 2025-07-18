@@ -10,6 +10,11 @@ import org.springframework.stereotype.Component;
 
 import java.time.LocalDateTime;
 import java.time.ZoneId;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 /**
  * FinhubStockPriceAdapter implements the stock price provider port by connecting to the Finnhub API.
@@ -63,5 +68,16 @@ public class FinhubStockPriceAdapter implements StockPriceProviderPort {
 
         return new StockPrice(ticker, currentPrice, LocalDateTime.now()
                 .atZone(ZoneId.of("Europe/Madrid")) .toInstant(), "USD");
+    }
+
+    @Override
+    public Map<Ticker, StockPrice> fetchStockPrice(Set<Ticker> sTickers) {
+
+        return sTickers.stream()
+                .collect(Collectors.toMap(
+                        Function.identity(),
+                        this::fetchStockPrice
+                ));
+
     }
 }

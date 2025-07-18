@@ -1,8 +1,9 @@
 package cat.gencat.agaur.hexastock.application.port.out;
 
 import cat.gencat.agaur.hexastock.model.Portfolio;
-import jakarta.persistence.LockModeType;
-import org.springframework.data.jpa.repository.Lock;
+import cat.gencat.agaur.hexastock.model.exception.PortfolioNotFoundException;
+
+import java.util.Optional;
 
 /**
  * PortfolioPort defines the secondary port for portfolio persistence operations.
@@ -32,9 +33,9 @@ public interface PortfolioPort {
      * 
      * @param id The unique identifier of the portfolio to retrieve
      * @return The requested Portfolio domain object
-     * @throws cat.gencat.agaur.hexastock.application.port.in.PortfolioNotFoundException if the portfolio is not found
+     * @throws PortfolioNotFoundException if the portfolio is not found
      */
-    Portfolio getPortfolioById(String id);
+    Optional<Portfolio> getPortfolioById(String id);
     
     /**
      * Creates a new portfolio in the persistence store.

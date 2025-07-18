@@ -1,4 +1,4 @@
-package cat.gencat.agaur.hexastock.application.port.in;
+package cat.gencat.agaur.hexastock.model.exception;
 
 /**
  * PortfolioNotFoundException indicates that a requested portfolio could not be found.
@@ -15,7 +15,7 @@ package cat.gencat.agaur.hexastock.application.port.in;
  * <p>This exception helps maintain the integrity of operations by ensuring they are only
  * performed on existing portfolios.</p>
  */
-public class PortfolioNotFoundException extends RuntimeException {
+public class PortfolioNotFoundException extends DomainException {
 
     /**
      * Constructs a new PortfolioNotFoundException with a message indicating which portfolio ID was not found.

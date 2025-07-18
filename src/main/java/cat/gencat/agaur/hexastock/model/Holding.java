@@ -1,7 +1,6 @@
 package cat.gencat.agaur.hexastock.model;
 
-import cat.gencat.agaur.hexastock.application.port.in.ConflictQuantityException;
-import cat.gencat.agaur.hexastock.application.port.in.InvalidQuantityException;
+import cat.gencat.agaur.hexastock.model.exception.ConflictQuantityException;
 import cat.gencat.agaur.hexastock.model.exception.EntityExistsException;
 
 import java.math.BigDecimal;
@@ -112,9 +111,8 @@ public class Holding {
      * @throws ConflictQuantityException if there are not enough shares to sell
      */
     public SellResult sell(int quantity, BigDecimal sellPrice) {
-        if (getTotalShares() < quantity) {
+        if (getTotalShares() < quantity)
             throw new ConflictQuantityException("Not enough shares to sell. Available: " + getTotalShares() + ", Requested: " + quantity);
-        }
 
         int remainingToSell = quantity;
         BigDecimal costBasis = BigDecimal.ZERO;
@@ -199,5 +197,26 @@ public class Holding {
             throw new EntityExistsException("Lot " + lot.getId() + " already exists");
 
         lots.add(lot);
+    }
+
+    public BigDecimal getRemainingSharesPurchasePrice() {
+
+        return this.lots.parallelStream()
+                .filter(l -> l.getRemaining() > 0)
+                .map(l -> l.getUnitPrice().multiply(BigDecimal.valueOf(l.getRemaining())))
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+    }
+
+    public BigDecimal getTheoricSalePrice(BigDecimal currentPrice) {
+
+        return this.lots.parallelStream()
+                .filter(l -> l.getRemaining() > 0)
+                .map(l -> currentPrice.multiply(BigDecimal.valueOf(l.getRemaining())))
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+    }
+
+    public BigDecimal getUnrealizedGain(BigDecimal currentPrice) {
+
+        return getTheoricSalePrice(currentPrice).subtract(getRemainingSharesPurchasePrice());
     }
 }

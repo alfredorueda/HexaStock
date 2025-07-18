@@ -22,6 +22,59 @@ import java.util.UUID;
  * 
  * Transactions are created through factory methods that ensure all required data
  * for each type of transaction is properly recorded.
+ *
+ * #########
+ *
+ * Why Separating Transactions from the Portfolio Aggregate is Better
+ * Looking at the implemented model with Transaction as a separate aggregate from Portfolio, there are several significant benefits to this approach compared to including transactions directly within the Portfolio aggregate:
+ *
+ *
+ * Key Benefits of Separate Transaction Aggregate
+ * Performance and Memory Efficiency
+ *
+ *
+ * A portfolio with 20,000+ transactions would create a massive aggregate if loaded entirely
+ * The current approach allows loading just the portfolio with its positions (current state) without the entire transaction history
+ * Memory usage is significantly reduced for common operations that don't need transaction details
+ * Transactional Boundaries
+ *
+ *
+ * Each portfolio operation doesn't need to lock the entire transaction history
+ * Transaction creation/modification can happen independently of other portfolio operations
+ * Reduced contention in high-throughput systems with many concurrent users
+ * Scalability
+ *
+ *
+ * The system can scale to handle portfolios with unlimited transaction history
+ * Historical transactions can be archived or stored differently from active positions
+ * Specialized queries can be optimized for different access patterns
+ * Flexibility in Data Access
+ *
+ *
+ * The PerformanceMetricsService can load transactions in batches, with pagination, or filtered
+ * Different read models can be created for different calculation needs
+ * Time-series or date-range queries become more efficient
+ * Maintains Domain Invariants
+ *
+ *
+ * The Portfolio still enforces critical invariants through the applyTransaction method
+ * Position-related consistency (can't sell more than you own) is maintained
+ * The domain model accurately reflects the business reality: a portfolio's current state (positions) vs. its history (transactions)
+ * Improved Testability
+ *
+ *
+ * Easier to test portfolio operations without setting up extensive transaction history
+ * Performance tests can be conducted with realistic transaction volumes
+ * Different components can be tested in isolation
+ * The code implements a pattern where:
+ *
+ *
+ * Portfolio maintains the current state (positions)
+ * Transaction records historical events that led to the current state
+ * PerformanceMetricsService handles complex calculations across both entities
+ * This separation follows the Command-Query Responsibility Segregation (CQRS) pattern naturally, where commands update the portfolio state while queries use specialized models for efficient reporting.
+ *
+ * In DDD terms, this design respects aggregate boundaries based on consistency requirements while optimizing for the reality of large transaction volumes in financial systems.
  */
 public class Transaction {
 

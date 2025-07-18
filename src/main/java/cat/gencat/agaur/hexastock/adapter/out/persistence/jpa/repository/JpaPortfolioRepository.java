@@ -3,12 +3,13 @@ package cat.gencat.agaur.hexastock.adapter.out.persistence.jpa.repository;
 import cat.gencat.agaur.hexastock.adapter.out.persistence.jpa.entity.PortfolioJpaEntity;
 import cat.gencat.agaur.hexastock.adapter.out.persistence.jpa.mapper.PortfolioMapper;
 import cat.gencat.agaur.hexastock.adapter.out.persistence.jpa.springDataRepository.JpaPortfolioSpringDataRepository;
-import cat.gencat.agaur.hexastock.application.port.in.PortfolioNotFoundException;
+import cat.gencat.agaur.hexastock.model.exception.PortfolioNotFoundException;
 import cat.gencat.agaur.hexastock.application.port.out.PortfolioPort;
 import cat.gencat.agaur.hexastock.model.Portfolio;
-import jakarta.transaction.Transactional;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
+
+import java.util.Optional;
 
 /**
  * JpaPortfolioRepository implements the portfolio persistence port using JPA.
@@ -64,10 +65,27 @@ public class JpaPortfolioRepository implements PortfolioPort {
      * @return The Portfolio domain object
      * @throws PortfolioNotFoundException if no portfolio with the ID exists
      */
+    /**
+     * Retrieves a portfolio by its unique identifier.
+     *
+     * <p>This method:</p>
+     * <ol>
+     *   <li>Queries the database for the portfolio with the specified ID using a pessimistic lock</li>
+     *   <li>Converts the JPA entity to a domain model if found</li>
+     *   <li>Throws an exception if no portfolio with the ID exists</li>
+     * </ol>
+     *
+     * @param portFolioId The unique identifier of the portfolio to retrieve
+     * @return The Portfolio domain object
+     * @throws PortfolioNotFoundException if no portfolio with the ID exists
+     */
     @Override
-    public Portfolio getPortfolioById(String id) {
-        PortfolioJpaEntity jpaEntity = jpaSpringDataRepository.findByIdForUpdate(id).orElseThrow(() -> new PortfolioNotFoundException(id));
-        return PortfolioMapper.toModelEntity(jpaEntity);
+    public Optional<Portfolio> getPortfolioById(String portFolioId) {
+        Optional<Portfolio> opPortfolio = Optional.empty();
+        Optional<PortfolioJpaEntity> jpaEntity = jpaSpringDataRepository.findByIdForUpdate(portFolioId);
+        if (jpaEntity.isPresent())
+            opPortfolio = Optional.of(PortfolioMapper.toModelEntity(jpaEntity.get()));
+        return opPortfolio;
     }
 
     /**

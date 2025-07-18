@@ -2,6 +2,8 @@ package cat.gencat.agaur.hexastock.application.port.in;
 
 import cat.gencat.agaur.hexastock.model.Money;
 import cat.gencat.agaur.hexastock.model.Portfolio;
+import cat.gencat.agaur.hexastock.model.exception.InvalidAmountException;
+import cat.gencat.agaur.hexastock.model.exception.PortfolioNotFoundException;
 
 /**
  * PortfolioManagmentUseCase defines the primary port for portfolio creation and cash management.
