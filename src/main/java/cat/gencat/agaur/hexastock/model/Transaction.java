@@ -26,7 +26,9 @@ import java.util.UUID;
  * #########
  *
  * Why Separating Transactions from the Portfolio Aggregate is Better
- * Looking at the implemented model with Transaction as a separate aggregate from Portfolio, there are several significant benefits to this approach compared to including transactions directly within the Portfolio aggregate:
+ *
+ * There are several significant benefits to this approach compared to including
+ * transactions directly within the Portfolio aggregate:
  *
  *
  * Key Benefits of Separate Transaction Aggregate
@@ -74,7 +76,8 @@ import java.util.UUID;
  * PerformanceMetricsService handles complex calculations across both entities
  * This separation follows the Command-Query Responsibility Segregation (CQRS) pattern naturally, where commands update the portfolio state while queries use specialized models for efficient reporting.
  *
- * In DDD terms, this design respects aggregate boundaries based on consistency requirements while optimizing for the reality of large transaction volumes in financial systems.
+ * In DDD terms, this design respects aggregate boundaries based on consistency
+ * requirements while optimizing for the reality of large transaction volumes in financial systems.
  */
 public class Transaction {
 

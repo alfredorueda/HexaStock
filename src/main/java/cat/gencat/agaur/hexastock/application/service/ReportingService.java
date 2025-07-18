@@ -20,11 +20,6 @@ import java.util.stream.Collectors;
 
 /*
 
-Analysis of Your Situation
-Your question touches on an important architectural decision point in domain-driven systems. Let me provide a thoughtful recommendation based on my experience with similar financial systems.
-
-
-Recommendation
 For 20,000 transactions, in-memory processing with Java Streams is likely the best approach for your hexagonal architecture. This keeps your business logic in the domain layer where it belongs while maintaining reasonable performance.
 
 Here's why:
@@ -46,6 +41,7 @@ The threshold where in-memory processing becomes problematic typically occurs ar
 100,000-500,000 transactions depending on transaction complexity
 When total memory consumption exceeds ~25% of available heap space
 When calculation time exceeds acceptable response times for your use case
+
 Hybrid Approach for Scalability
 As your system grows, consider these optimizations:
 
@@ -87,44 +83,4 @@ public class ReportingService implements ReportingUseCase {
         return holdingPerformanceCalculator.getHoldingsPerfomance(portfolio, lTransactions, mTickerPrices);
     }
 
-    private BigDecimal getQuantity(List<Transaction> lTransactions) {
-        return lTransactions.parallelStream()
-                .filter(t -> t.getType() == TransactionType.PURCHASE)
-                .map(Transaction::getQuantity)
-                .map(BigDecimal::valueOf)
-                .reduce(BigDecimal.ZERO, BigDecimal::add);
-    }
-
-    private BigDecimal getRemaining(Holding holding) {
-        return BigDecimal.valueOf(holding.getTotalShares());
-    }
-
-    private BigDecimal getAvaragePurchasePrice(List<Transaction> lTransactions) {
-
-        return lTransactions.parallelStream()
-                .filter(t -> t.getType() == TransactionType.PURCHASE)
-                .map(t -> t.getUnitPrice().multiply(BigDecimal.valueOf(t.getQuantity())))
-                .reduce(BigDecimal.ZERO, BigDecimal::add)
-                .divide(getQuantity(lTransactions), 2, RoundingMode.HALF_UP);
-    }
-
-    private BigDecimal getCurrentPrice(Ticker ticker) {
-
-        StockPrice stockPrice = stockPriceProviderPort.fetchStockPrice(ticker);
-
-        return BigDecimal.valueOf(stockPrice.getPrice());
-    }
-
-    private BigDecimal getUnRealizedGain(Holding holding) {
-
-        return holding.getUnrealizedGain(getCurrentPrice(holding.getTicker()));
-    }
-
-    private BigDecimal getRealizedGain(List<Transaction> lTransactions) {
-
-         return lTransactions.parallelStream()
-                .filter(t -> t.getType() == TransactionType.SALE)
-                .map(Transaction::getProfit)
-                .reduce(BigDecimal.ZERO, BigDecimal::add);
-    }
 }
