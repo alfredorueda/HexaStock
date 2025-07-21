@@ -172,8 +172,7 @@ class HoldingPerformanceCalculatorTest {
             // Sell 22 shares at $150 each
             // This should sell:
             // - All 10 shares from Lot 1
-            // - All 15 shares from Lot 2
-            // - 2 shares from Lot 3
+            // - 12 shares from Lot 2
             SellResult sellResult = portfolio.sell(AMAZON, 22, PRICE_150);
             
             // Expected results of the sale:
@@ -211,7 +210,7 @@ class HoldingPerformanceCalculatorTest {
             // Total quantity purchased: 10 + 15 + 5 = 30
             assertEquals(new BigDecimal("30"), holdingDTO.quantity());
             
-            // Remaining shares: 30 - 22 = 8 (should be 3 from Lot 3)
+            // Remaining shares: 30 - 22 = 8
             assertEquals(new BigDecimal("8"), holdingDTO.remaining());
             
             // Average purchase price for all 30 shares:
