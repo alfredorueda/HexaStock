@@ -17,10 +17,10 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 /*
-Servicio para el cálculo de rendimento
+Service for performance calculation
  */
 
-@Service // TODO: Añadimos provisionalmente el @Service
+@Service // TODO: Provisionally added the @Service annotation
 public class HoldingPerformanceCalculator {
 
     public List<HoldingDTO> getHoldingsPerfomance(Portfolio portfolio, List<Transaction> lTransactions,
