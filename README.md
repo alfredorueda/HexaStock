@@ -67,6 +67,9 @@ Records all financial activities within a portfolio:
 - Stores details like price, quantity, and timestamp
 - For sales, includes profit/loss calculations
 
+- <img width="1693" height="1576" alt="image" src="https://github.com/user-attachments/assets/85a5e57f-86dc-4b44-b221-fb7a4e3d3e6c" />
+
+
 ## How to Run
 
 ### Prerequisites
