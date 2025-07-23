@@ -16,20 +16,20 @@ import java.util.*;
 import static org.junit.jupiter.api.Assertions.*;
 
 /**
- * Test unitario para la clase HoldingPerformanceCalculator.
- * Valida los cálculos de rendimiento de las inversiones en acciones.
+ * Unit test for the HoldingPerformanceCalculator class.
+ * Validates the calculation of stock investment performance.
  */
 @DisplayName("HoldingPerformanceCalculator Tests")
 class HoldingPerformanceCalculatorTest {
 
     private HoldingPerformanceCalculator calculator;
     
-    // Tickers comunes para los tests
+    // Common tickers for tests
     private static final Ticker APPLE = Ticker.of("AAPL");
     private static final Ticker MICROSOFT = Ticker.of("MSFT");
     private static final Ticker AMAZON = Ticker.of("AMZN");
     
-    // Precios comunes para los tests
+    // Common prices for tests
     private static final BigDecimal PRICE_90 = new BigDecimal("90.00");
     private static final BigDecimal PRICE_100 = new BigDecimal("100.00");
     private static final BigDecimal PRICE_110 = new BigDecimal("110.00");
@@ -38,7 +38,7 @@ class HoldingPerformanceCalculatorTest {
     private static final BigDecimal PRICE_140 = new BigDecimal("140.00");
     private static final BigDecimal PRICE_150 = new BigDecimal("150.00");
     
-    // Moneda para las operaciones
+    // Currency for operations
     private static final Currency USD = Currency.getInstance("USD");
     
     @BeforeEach
@@ -55,7 +55,7 @@ class HoldingPerformanceCalculatorTest {
         void shouldCalculateCorrectPerformanceForSinglePurchase() {
             // Given
             Portfolio portfolio = Portfolio.create("Test Owner");
-            // Depositar fondos suficientes antes de comprar
+            // Deposit enough funds before buying
             portfolio.deposit(Money.of(USD, new BigDecimal("1500.00")));
             
             portfolio.buy(APPLE, 10, PRICE_100);
@@ -79,7 +79,7 @@ class HoldingPerformanceCalculatorTest {
             assertEquals(new BigDecimal("10"), holdingDTO.remaining());
             assertEquals(PRICE_100, holdingDTO.averagePurchasePrice());
             
-            // Comparamos valores con la misma escala (2 decimales)
+            // Compare values with the same scale (2 decimals)
             BigDecimal expectedCurrentPrice = new BigDecimal("110.00");
             BigDecimal actualCurrentPrice = holdingDTO.currentPrice().setScale(2, RoundingMode.HALF_UP);
             assertEquals(expectedCurrentPrice, actualCurrentPrice);
@@ -93,22 +93,22 @@ class HoldingPerformanceCalculatorTest {
         void shouldCalculateCorrectPerformanceForMultipleTransactions() {
             // Given
             Portfolio portfolio = Portfolio.create("Test Owner");
-            // Depositar fondos suficientes antes de comprar
+            // Deposit enough funds before buying
             portfolio.deposit(Money.of(USD, new BigDecimal("3000.00")));
             
-            // Compra 10 acciones a $100
+            // Buy 10 shares at $100
             portfolio.buy(MICROSOFT, 10, PRICE_100);
             
-            // Compra 5 acciones a $120
+            // Buy 5 shares at $120
             portfolio.buy(MICROSOFT, 5, PRICE_120);
             
-            // Vende 8 acciones a $110 (FIFO - primero se venden las más antiguas)
+            // Sell 8 shares at $110 (FIFO - the oldest shares are sold first)
             SellResult sellResult = portfolio.sell(MICROSOFT, 8, PRICE_110);
             
             StockPrice msftPrice = new StockPrice(MICROSOFT, 120.00, Instant.now(), "USD");
             Map<Ticker, StockPrice> tickerPrices = Map.of(MICROSOFT, msftPrice);
             
-            // Creamos transacciones manualmente para reflejar las operaciones
+            // Manually create transactions to reflect the operations
             Transaction purchase1 = Transaction.createPurchase(
                     portfolio.getId(), MICROSOFT, 10, PRICE_100);
             Transaction purchase2 = Transaction.createPurchase(
@@ -127,21 +127,21 @@ class HoldingPerformanceCalculatorTest {
             HoldingDTO holdingDTO = result.get(0);
             
             assertEquals("MSFT", holdingDTO.ticker());
-            assertEquals(new BigDecimal("15"), holdingDTO.quantity());  // Total comprado: 10 + 5 = 15
-            assertEquals(new BigDecimal("7"), holdingDTO.remaining());  // Restante: 15 - 8 = 7
-            
-            // Precio medio de compra: (10*100 + 5*120) / 15 = 1600/15 = 106.67
+            assertEquals(new BigDecimal("15"), holdingDTO.quantity());  // Total bought: 10 + 5 = 15
+            assertEquals(new BigDecimal("7"), holdingDTO.remaining());  // Remaining: 15 - 8 = 7
+
+            // Average purchase price: (10*100 + 5*120) / 15 = 1600/15 = 106.67
             assertEquals(new BigDecimal("106.67"), holdingDTO.averagePurchasePrice());
             
-            // Comparamos valores con la misma escala (2 decimales)
+            // Compare values with the same scale (2 decimals)
             BigDecimal expectedCurrentPrice = new BigDecimal("120.00");
             BigDecimal actualCurrentPrice = holdingDTO.currentPrice().setScale(2, RoundingMode.HALF_UP);
             assertEquals(expectedCurrentPrice, actualCurrentPrice);
             
-            // Basándonos en la salida real, la ganancia no realizada es 40.00
+            // Based on the actual output, the unrealized gain is 40.00
             assertEquals(new BigDecimal("40.00"), holdingDTO.unrealizedGain());
             
-            // Ganancia realizada: (110-100)*8 = 80.00
+            // Realized gain: (110-100)*8 = 80.00
             assertEquals(new BigDecimal("80.00"), holdingDTO.realizedGain());
         }
         
@@ -257,14 +257,14 @@ class HoldingPerformanceCalculatorTest {
             // Given
             Portfolio portfolio = Portfolio.create("Test Owner");
             
-            // Depositar fondos suficientes antes de comprar
+            // Deposit enough funds before buying
             portfolio.deposit(Money.of(USD, new BigDecimal("1000.00")));
             
-            // Crear transacciones de depósito y retiro (no tienen ticker)
+            // Create deposit and withdrawal transactions (no ticker)
             Transaction deposit = Transaction.createDeposit(portfolio.getId(), new BigDecimal("1000.00"));
             Transaction withdrawal = Transaction.createWithdrawal(portfolio.getId(), new BigDecimal("500.00"));
             
-            // Crear una transacción de compra con ticker
+            // Create a purchase transaction with ticker
             portfolio.buy(APPLE, 5, PRICE_100);
             Transaction purchase = Transaction.createPurchase(portfolio.getId(), APPLE, 5, PRICE_100);
             
@@ -287,7 +287,7 @@ class HoldingPerformanceCalculatorTest {
             // Given
             Portfolio portfolio = Portfolio.create("Test Owner");
             
-            // No añadimos el holding al portfolio pero sí creamos transacciones
+            // We do not add the holding to the portfolio but we do create transactions
             Transaction purchase = Transaction.createPurchase(
                     portfolio.getId(), APPLE, 10, PRICE_100);
             List<Transaction> transactions = List.of(purchase);
@@ -302,3 +302,4 @@ class HoldingPerformanceCalculatorTest {
         }
     }
 }
+
