@@ -1,0 +1,184 @@
+@startuml "HexaStock Domain Model"
+
+' Style definitions
+skinparam classAttributeIconSize 0
+skinparam class {
+  BackgroundColor White
+  BorderColor Black
+  ArrowColor Black
+}
+
+' Packages
+package "cat.gencat.agaur.hexastock.model" as model {
+  ' Core Entities
+  class Portfolio {
+    -id: String
+    -ownerName: String
+    -balance: BigDecimal
+    -createdAt: LocalDateTime
+    -holdings: Map<Ticker, Holding>
+    +deposit(money: Money): void
+    +withdraw(money: Money): void
+    +buy(ticker: Ticker, quantity: int, price: BigDecimal): void
+    +sell(ticker: Ticker, quantity: int, price: BigDecimal): SellResult
+    +getHoldings(): List<Holding>
+    +getHolding(ticker: Ticker): Holding
+    +addHolding(holding: Holding): void
+    +getId(): String
+    +getOwnerName(): String
+    +getBalance(): BigDecimal
+    +getCreatedAt(): LocalDateTime
+  }
+
+  class Holding {
+    -id: String
+    -ticker: Ticker
+    -lots: List<Lot>
+    +buy(quantity: int, unitPrice: BigDecimal): void
+    +sell(quantity: int, sellPrice: BigDecimal): SellResult
+    +getTotalShares(): int
+    +getRemainingSharesPurchasePrice(): BigDecimal
+    +getTheoreticSalePrice(currentPrice: BigDecimal): BigDecimal
+    +getUnrealizedGain(currentPrice: BigDecimal): BigDecimal
+    +addLot(lot: Lot): void
+    +getId(): String
+    +getTicker(): Ticker
+    +getLots(): List<Lot>
+  }
+
+  class Lot {
+    -id: String
+    -initialStocks: int
+    -remaining: int
+    -unitPrice: BigDecimal
+    -purchasedAt: LocalDateTime
+    +reduce(qty: int): void
+    +getId(): String
+    +getInitialStocks(): int
+    +getRemaining(): int
+    +getUnitPrice(): BigDecimal
+    +getPurchasedAt(): LocalDateTime
+  }
+
+  class Transaction {
+    -id: String
+    -portfolioId: String
+    -type: TransactionType
+    -ticker: Ticker
+    -quantity: int
+    -unitPrice: BigDecimal
+    -totalAmount: BigDecimal
+    -profit: BigDecimal
+    -createdAt: LocalDateTime
+    +{static} createDeposit(portfolioId: String, amount: BigDecimal): Transaction
+    +{static} createWithdrawal(portfolioId: String, amount: BigDecimal): Transaction
+    +{static} createPurchase(portfolioId: String, ticker: Ticker, quantity: int, unitPrice: BigDecimal): Transaction
+    +{static} createSale(portfolioId: String, ticker: Ticker, quantity: int, unitPrice: BigDecimal, totalAmount: BigDecimal, profit: BigDecimal): Transaction
+    +getId(): String
+    +getPortfolioId(): String
+    +getType(): TransactionType
+    +getTicker(): Ticker
+    +getQuantity(): int
+    +getUnitPrice(): BigDecimal
+    +getTotalAmount(): BigDecimal
+    +getProfit(): BigDecimal
+    +getCreatedAt(): LocalDateTime
+  }
+
+  ' Value Objects
+  class Money <<record>> {
+    -currency: Currency
+    -amount: BigDecimal
+    +multiply(multiplicand: int): Money
+    +add(augend: Money): Money
+    +{static} of(currency: Currency, value: BigDecimal): Money
+    +{static} of(currency: Currency, mayor: int, minor: int): Money
+  }
+
+  class Ticker <<record>> {
+    -value: String
+    +{static} of(value: String): Ticker
+  }
+
+  class SellResult <<record>> {
+    -proceeds: BigDecimal
+    -costBasis: BigDecimal
+    -profit: BigDecimal
+  }
+
+  class StockPrice {
+    -ticker: Ticker
+    -price: double
+    -time: Instant
+    -currency: String
+    +getTicker(): Ticker
+    +getPrice(): double
+    +getTime(): Instant
+    +getCurrency(): String
+    +setTicker(ticker: Ticker): void
+    +setPrice(price: double): void
+    +setTime(time: Instant): void
+    +setCurrency(currency: String): void
+  }
+
+  enum TransactionType {
+    DEPOSIT
+    WITHDRAWAL
+    PURCHASE
+    SALE
+  }
+
+  ' Domain Services
+  class HoldingPerformanceCalculator {
+    +getHoldingsPerfomance(portfolio: Portfolio, lTransactions: List<Transaction>, mTickerPrices: Map<Ticker, StockPrice>): List<HoldingDTO>
+    -getQuantity(lTransactions: List<Transaction>): BigDecimal
+    -getRemaining(holding: Holding): BigDecimal
+    -getAvaragePurchasePrice(lTransactions: List<Transaction>): BigDecimal
+    -getCurrentPrice(ticker: Ticker, mTickerPrices: Map<Ticker, StockPrice>): BigDecimal
+    -getUnRealizedGain(holding: Holding, mTickerPrices: Map<Ticker, StockPrice>): BigDecimal
+    -getRealizedGain(lTransactions: List<Transaction>): BigDecimal
+  }
+}
+
+' Exceptions package
+package "cat.gencat.agaur.hexastock.model.exception" as exceptions {
+  abstract class DomainException {
+  }
+  
+  class InvalidAmountException extends DomainException {
+  }
+  
+  class InvalidQuantityException extends DomainException {
+  }
+  
+  class InsufficientFundsException extends DomainException {
+  }
+  
+  class PortfolioNotFoundException extends DomainException {
+  }
+  
+  class ConflictQuantityException extends DomainException {
+  }
+  
+  class HoldingNotFoundException extends DomainException {
+  }
+  
+  class EntityExistsException extends DomainException {
+  }
+}
+
+' Relationships
+Portfolio "1" *--> "0..*" Holding : contains
+Holding "1" *--> "0..*" Lot : contains
+Portfolio ..> SellResult : returns
+Holding ..> SellResult : returns
+Transaction --> TransactionType : has
+Transaction --> Ticker : references
+Holding --> Ticker : identifies
+StockPrice --> Ticker : for
+HoldingPerformanceCalculator ..> Portfolio : uses
+HoldingPerformanceCalculator ..> Transaction : uses
+HoldingPerformanceCalculator ..> StockPrice : uses
+HoldingPerformanceCalculator ..> Holding : uses
+
+@enduml
