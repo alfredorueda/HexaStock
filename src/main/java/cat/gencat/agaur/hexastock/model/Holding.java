@@ -207,7 +207,7 @@ public class Holding {
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
     }
 
-    public BigDecimal getTheoricSalePrice(BigDecimal currentPrice) {
+    public BigDecimal getTheoreticSalePrice(BigDecimal currentPrice) {
 
         return this.lots.parallelStream()
                 .filter(l -> l.getRemaining() > 0)
@@ -217,6 +217,6 @@ public class Holding {
 
     public BigDecimal getUnrealizedGain(BigDecimal currentPrice) {
 
-        return getTheoricSalePrice(currentPrice).subtract(getRemainingSharesPurchasePrice());
+        return getTheoreticSalePrice(currentPrice).subtract(getRemainingSharesPurchasePrice());
     }
 }
