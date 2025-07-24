@@ -21,7 +21,7 @@ import cat.gencat.agaur.hexastock.model.exception.PortfolioNotFoundException;
  * <p>This interface is implemented by application services in the domain layer and
  * used by driving adapters (like REST controllers) in the infrastructure layer.</p>
  */
-public interface PortfolioManagmentUseCase {
+public interface PortfolioManagementUseCase {
 
     /**
      * Creates a new portfolio for the specified owner.

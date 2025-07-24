@@ -1,6 +1,6 @@
 package cat.gencat.agaur.hexastock.application.service;
 
-import cat.gencat.agaur.hexastock.application.port.in.PortfolioManagmentUseCase;
+import cat.gencat.agaur.hexastock.application.port.in.PortfolioManagementUseCase;
 import cat.gencat.agaur.hexastock.model.exception.InvalidAmountException;
 import cat.gencat.agaur.hexastock.model.exception.PortfolioNotFoundException;
 import cat.gencat.agaur.hexastock.application.port.out.PortfolioPort;
@@ -9,14 +9,13 @@ import cat.gencat.agaur.hexastock.model.Money;
 import cat.gencat.agaur.hexastock.model.Portfolio;
 import cat.gencat.agaur.hexastock.model.Transaction;
 import jakarta.transaction.Transactional;
-import org.springframework.stereotype.Service;
 
 /**
  * PortfolioManagmentService implements the core use cases for portfolio creation and cash management.
  * 
  * <p>In hexagonal architecture terms, this is an <strong>application service</strong> that:
  * <ul>
- *   <li>Implements a primary port ({@link PortfolioManagmentUseCase}) to be used by driving adapters</li>
+ *   <li>Implements a primary port ({@link PortfolioManagementUseCase}) to be used by driving adapters</li>
  *   <li>Uses secondary ports ({@link PortfolioPort} and {@link TransactionPort}) to communicate with driven adapters</li>
  * </ul>
  * </p>
@@ -33,9 +32,8 @@ import org.springframework.stereotype.Service;
  * <p>The service ensures that all operations are transactional, maintaining data consistency
  * between the portfolio state and transaction records.</p>
  */
-@Service
 @Transactional
-public class PortfolioManagmentService implements PortfolioManagmentUseCase {
+public class PortfolioManagementService implements PortfolioManagementUseCase {
 
     /**
      * The secondary port used to persist and retrieve portfolios.
@@ -53,7 +51,7 @@ public class PortfolioManagmentService implements PortfolioManagmentUseCase {
      * @param portfolioPort The port for portfolio persistence operations
      * @param transactionPort The port for transaction recording operations
      */
-    public PortfolioManagmentService(PortfolioPort portfolioPort, TransactionPort transactionPort) {
+    public PortfolioManagementService(PortfolioPort portfolioPort, TransactionPort transactionPort) {
         this.portfolioPort = portfolioPort;
         this.transactionPort = transactionPort;
     }

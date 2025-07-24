@@ -1,5 +1,6 @@
 package cat.gencat.agaur.hexastock;
 
+import cat.gencat.agaur.hexastock.adapter.SpringAppConfig;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
@@ -20,7 +21,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
  * @see org.springframework.boot.SpringApplication
  * @see org.springframework.boot.autoconfigure.SpringBootApplication
  */
-@SpringBootApplication
+
 public class HexaStockApplication {
     /**
      * The main method that serves as the entry point for the HexaStock application.
@@ -28,6 +29,6 @@ public class HexaStockApplication {
      * @param args Command line arguments passed to the application
      */
     public static void main(String[] args) {
-        SpringApplication.run(HexaStockApplication.class, args);
+        SpringApplication.run(SpringAppConfig.class, args);
     }
 }
