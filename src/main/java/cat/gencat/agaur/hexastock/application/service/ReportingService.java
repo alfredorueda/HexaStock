@@ -9,10 +9,7 @@ import cat.gencat.agaur.hexastock.application.port.out.TransactionPort;
 import cat.gencat.agaur.hexastock.model.*;
 import cat.gencat.agaur.hexastock.model.service.HoldingPerformanceCalculator;
 import jakarta.transaction.Transactional;
-import org.springframework.stereotype.Service;
 
-import java.math.BigDecimal;
-import java.math.RoundingMode;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -79,7 +76,7 @@ public class ReportingService implements ReportingUseCase {
 
         Map<Ticker, StockPrice> mTickerPrices = stockPriceProviderPort.fetchStockPrice(tickers);
 
-        return holdingPerformanceCalculator.getHoldingsPerfomance(portfolio, lTransactions, mTickerPrices);
+        return holdingPerformanceCalculator.getHoldingsPerformance(portfolio, lTransactions, mTickerPrices);
     }
 
 }

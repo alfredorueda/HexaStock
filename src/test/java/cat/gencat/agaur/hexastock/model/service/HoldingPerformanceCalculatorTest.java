@@ -10,7 +10,6 @@ import org.junit.jupiter.api.Nested;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.Instant;
-import java.time.LocalDateTime;
 import java.util.*;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -68,7 +67,7 @@ class HoldingPerformanceCalculatorTest {
             List<Transaction> transactions = List.of(purchase);
             
             // When
-            List<HoldingDTO> result = calculator.getHoldingsPerfomance(portfolio, transactions, tickerPrices);
+            List<HoldingDTO> result = calculator.getHoldingsPerformance(portfolio, transactions, tickerPrices);
             
             // Then
             assertEquals(1, result.size());
@@ -120,7 +119,7 @@ class HoldingPerformanceCalculatorTest {
             List<Transaction> transactions = List.of(purchase1, purchase2, sale);
             
             // When
-            List<HoldingDTO> result = calculator.getHoldingsPerfomance(portfolio, transactions, tickerPrices);
+            List<HoldingDTO> result = calculator.getHoldingsPerformance(portfolio, transactions, tickerPrices);
             
             // Then
             assertEquals(1, result.size());
@@ -198,7 +197,7 @@ class HoldingPerformanceCalculatorTest {
             List<Transaction> transactions = List.of(purchase1, purchase2, purchase3, sale);
             
             // When
-            List<HoldingDTO> result = calculator.getHoldingsPerfomance(portfolio, transactions, tickerPrices);
+            List<HoldingDTO> result = calculator.getHoldingsPerformance(portfolio, transactions, tickerPrices);
             
             // Then
             assertEquals(1, result.size());
@@ -245,7 +244,7 @@ class HoldingPerformanceCalculatorTest {
             Map<Ticker, StockPrice> tickerPrices = Collections.emptyMap();
             
             // When
-            List<HoldingDTO> result = calculator.getHoldingsPerfomance(portfolio, transactions, tickerPrices);
+            List<HoldingDTO> result = calculator.getHoldingsPerformance(portfolio, transactions, tickerPrices);
             
             // Then
             assertTrue(result.isEmpty());
@@ -274,7 +273,7 @@ class HoldingPerformanceCalculatorTest {
             Map<Ticker, StockPrice> tickerPrices = Map.of(APPLE, applePrice);
             
             // When
-            List<HoldingDTO> result = calculator.getHoldingsPerfomance(portfolio, transactions, tickerPrices);
+            List<HoldingDTO> result = calculator.getHoldingsPerformance(portfolio, transactions, tickerPrices);
             
             // Then
             assertEquals(1, result.size());
@@ -297,7 +296,7 @@ class HoldingPerformanceCalculatorTest {
             
             // When & Then
             assertThrows(Exception.class, () -> {
-                calculator.getHoldingsPerfomance(portfolio, transactions, tickerPrices);
+                calculator.getHoldingsPerformance(portfolio, transactions, tickerPrices);
             });
         }
     }

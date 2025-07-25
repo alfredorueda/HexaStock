@@ -1,13 +1,7 @@
 package cat.gencat.agaur.hexastock.model.service;
 
 import cat.gencat.agaur.hexastock.adapter.in.webmodel.HoldingDTO;
-import cat.gencat.agaur.hexastock.application.port.in.ReportingUseCase;
-import cat.gencat.agaur.hexastock.application.port.out.PortfolioPort;
-import cat.gencat.agaur.hexastock.application.port.out.StockPriceProviderPort;
-import cat.gencat.agaur.hexastock.application.port.out.TransactionPort;
 import cat.gencat.agaur.hexastock.model.*;
-import cat.gencat.agaur.hexastock.model.exception.PortfolioNotFoundException;
-import jakarta.transaction.Transactional;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
@@ -23,8 +17,8 @@ Service for performance calculation
 @Service // TODO: Provisionally added the @Service annotation
 public class HoldingPerformanceCalculator {
 
-    public List<HoldingDTO> getHoldingsPerfomance(Portfolio portfolio, List<Transaction> lTransactions,
-                                                  Map<Ticker, StockPrice> mTickerPrices) {
+    public List<HoldingDTO> getHoldingsPerformance(Portfolio portfolio, List<Transaction> lTransactions,
+                                                   Map<Ticker, StockPrice> mTickerPrices) {
 
         Map<Ticker, List<Transaction>> mapTickerTrans = lTransactions.stream()
                 .filter(t -> t.getTicker() != null)
