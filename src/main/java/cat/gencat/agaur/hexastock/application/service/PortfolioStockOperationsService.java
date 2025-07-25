@@ -36,7 +36,7 @@ import java.math.BigDecimal;
  * <p>The service ensures that all operations are transactional, maintaining data consistency
  * between the portfolio state, stock prices, and transaction records.</p>
  */
-@Service
+
 @Transactional
 public class PortfolioStockOperationsService implements PortfolioStockOperationsUseCase {
 

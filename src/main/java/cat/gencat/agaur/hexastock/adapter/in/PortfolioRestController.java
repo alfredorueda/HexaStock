@@ -1,7 +1,7 @@
 package cat.gencat.agaur.hexastock.adapter.in;
 
 import cat.gencat.agaur.hexastock.adapter.in.webmodel.*;
-import cat.gencat.agaur.hexastock.application.port.in.PortfolioManagmentUseCase;
+import cat.gencat.agaur.hexastock.application.port.in.PortfolioManagementUseCase;
 import cat.gencat.agaur.hexastock.application.port.in.PortfolioStockOperationsUseCase;
 import cat.gencat.agaur.hexastock.application.port.in.ReportingUseCase;
 import cat.gencat.agaur.hexastock.application.port.in.TransactionUseCase;
@@ -48,7 +48,7 @@ import java.util.Optional;
 @RequestMapping("/api/portfolios")
 public class PortfolioRestController {
     
-    private final PortfolioManagmentUseCase portfolioManagmentUseCase;
+    private final PortfolioManagementUseCase portfolioManagementUseCase;
     private final ReportingUseCase reportingUseCase;
     private final PortfolioStockOperationsUseCase portfolioStockOperationsUseCase;
     private final TransactionUseCase transactionUseCase;
@@ -56,13 +56,13 @@ public class PortfolioRestController {
     /**
      * Constructs a new PortfolioRestController with the required application ports.
      * 
-     * @param portfolioManagmentUseCase Port for portfolio and cash management
+     * @param portfolioManagementUseCase Port for portfolio and cash management
      * @param portfolioStockOperationsUseCase Port for stock operations
      * @param transactionUseCase Port for transaction history
      */
-    public PortfolioRestController(PortfolioManagmentUseCase portfolioManagmentUseCase, PortfolioStockOperationsUseCase portfolioStockOperationsUseCase,
+    public PortfolioRestController(PortfolioManagementUseCase portfolioManagementUseCase, PortfolioStockOperationsUseCase portfolioStockOperationsUseCase,
                                    TransactionUseCase transactionUseCase, ReportingUseCase reportingUseCase) {
-        this.portfolioManagmentUseCase = portfolioManagmentUseCase;
+        this.portfolioManagementUseCase = portfolioManagementUseCase;
         this.portfolioStockOperationsUseCase = portfolioStockOperationsUseCase;
         this.transactionUseCase = transactionUseCase;
         this.reportingUseCase = reportingUseCase;
@@ -78,7 +78,7 @@ public class PortfolioRestController {
      */
     @PostMapping
     public ResponseEntity<Portfolio> createPortfolio(@RequestBody CreatePortfolioDTO request) {
-        Portfolio portfolio = portfolioManagmentUseCase.createPortfolio(request.ownerName());
+        Portfolio portfolio = portfolioManagementUseCase.createPortfolio(request.ownerName());
         return new ResponseEntity<>(portfolio, HttpStatus.CREATED);
     }
     
@@ -93,7 +93,7 @@ public class PortfolioRestController {
      */
     @GetMapping("/{id}")
     public ResponseEntity<Portfolio> getPortfolio(@PathVariable String id) {
-        Portfolio portfolio = portfolioManagmentUseCase.getPortfolio(id);
+        Portfolio portfolio = portfolioManagementUseCase.getPortfolio(id);
         return ResponseEntity.ok(portfolio);
     }
 
@@ -110,7 +110,7 @@ public class PortfolioRestController {
      */
     @PostMapping("/{id}/deposits")
     public ResponseEntity<Void> deposit(@PathVariable String id, @RequestBody DepositRequestDTO request) {
-        portfolioManagmentUseCase.deposit(id, Money.of(Currency.getInstance("USD"), request.amount()));
+        portfolioManagementUseCase.deposit(id, Money.of(Currency.getInstance("USD"), request.amount()));
         return ResponseEntity.ok().build();
     }
 
@@ -128,7 +128,7 @@ public class PortfolioRestController {
      */
     @PostMapping("/{id}/withdrawals")
     public ResponseEntity<Void> withdraw(@PathVariable String id, @RequestBody WithdrawalRequestDTO request) {
-        portfolioManagmentUseCase.withdraw(id, Money.of(Currency.getInstance("USD"), request.amount()));
+        portfolioManagementUseCase.withdraw(id, Money.of(Currency.getInstance("USD"), request.amount()));
         return ResponseEntity.ok().build();
     }
     

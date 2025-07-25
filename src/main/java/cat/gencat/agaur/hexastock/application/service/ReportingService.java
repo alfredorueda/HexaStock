@@ -51,7 +51,6 @@ Create specialized read models for performance-critical calculations
 Consider pagination or windowing for extremely large portfolios
  */
 
-@Service
 @Transactional
 public class ReportingService implements ReportingUseCase {
 

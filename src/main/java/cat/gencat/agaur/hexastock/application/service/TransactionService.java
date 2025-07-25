@@ -41,7 +41,7 @@ import java.util.stream.Collectors;
  * </ul>
  * </p>
  */
-@Service
+
 @Transactional
 public class TransactionService implements TransactionUseCase {
 
