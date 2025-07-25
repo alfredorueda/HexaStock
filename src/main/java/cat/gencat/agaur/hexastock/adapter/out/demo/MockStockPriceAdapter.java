@@ -115,12 +115,5 @@ public class MockStockPriceAdapter implements StockPriceProviderPort {
                 .atZone(ZoneId.of("Europe/Madrid")) .toInstant(), "USD");
     }
 
-    @Override
-    public Map<Ticker, StockPrice> fetchStockPrice(Set<Ticker> sTickers) {
-        return sTickers.stream()
-                .collect(Collectors.toMap(
-                        Function.identity(),
-                        this::fetchStockPrice
-                ));
-    }
+
 }

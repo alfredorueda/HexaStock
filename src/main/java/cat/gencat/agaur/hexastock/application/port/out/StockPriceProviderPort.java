@@ -6,6 +6,8 @@ import cat.gencat.agaur.hexastock.model.Ticker;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 /**
  * StockPriceProviderPort defines the secondary port for retrieving stock price information.
@@ -52,5 +54,13 @@ public interface StockPriceProviderPort {
      * @return A Map<StockPrice> containing the current price and related information for each Ticker
      * @throws RuntimeException if the price cannot be retrieved for any reason
      */
-    Map<Ticker, StockPrice> fetchStockPrice(Set<Ticker> sTickers);
+    default Map<Ticker, StockPrice> fetchStockPrice(Set<Ticker> sTickers) {
+
+        return sTickers.stream()
+                .collect(Collectors.toMap(
+                        Function.identity(),
+                        this::fetchStockPrice
+                ));
+
+    }
 }
