@@ -59,4 +59,10 @@ public class SpringAppConfig {
     return new TransactionService(transactionPort);
   }
 
+  @Bean
+  HoldingPerformanceCalculator getHoldingPerformanceCalculator() {
+    return new HoldingPerformanceCalculator();
+  }
+
+
 }

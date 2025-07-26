@@ -10,21 +10,37 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-/*
-Service for performance calculation
+/**
+ * HoldingPerformanceCalculator provides methods to calculate the performance of holdings in a portfolio.
+ *
+ * <p>In DDD terms, this is a <strong>Domain Service</strong> that encapsulates
+ * business logic related to calculating the performance of financial holdings.</p>
+ *
+ * <p>This service:</p>
+ * <ul>
+ *   <li>Calculates the total quantity of shares held for each ticker</li>
+ *   <li>Computes the average purchase price of shares</li>
+ *   <li>Determines the current market price of shares</li>
+ *   <li>Calculates unrealized and realized gains for each holding</li>
+ * </ul>
+ *
+ * <p>The service operates on domain models such as {@link Portfolio}, {@link Transaction}, and {@link StockPrice},
+ * and returns results in the form of {@link HoldingDTO} objects.</p>
  */
-
-@Service // TODO: Provisionally added the @Service annotation
 public class HoldingPerformanceCalculator {
 
-    public List<HoldingDTO> getHoldingsPerformance(Portfolio portfolio, List<Transaction> lTransactions,
+    public List<HoldingDTO> getHoldingsPerformance(Portfolio portfolio,
+                                                   List<Transaction> transactions,
                                                    Map<Ticker, StockPrice> mTickerPrices) {
 
-        Map<Ticker, List<Transaction>> mapTickerTrans = lTransactions.stream()
+        Map<Ticker, List<Transaction>> mapTickerTrans = transactions.stream()
                 .filter(t -> t.getTicker() != null)
                 .collect(Collectors.groupingBy(Transaction::getTicker));
 
-        return mapTickerTrans.entrySet().stream().map(tickerTransactions ->
+        return mapTickerTrans.entrySet()
+                .stream()
+                .map(tickerTransactions ->
+
                 new HoldingDTO(tickerTransactions.getKey().value(),
                         getQuantity(tickerTransactions.getValue()),
                         getRemaining(portfolio.getHolding(tickerTransactions.getKey())),
@@ -66,9 +82,9 @@ public class HoldingPerformanceCalculator {
         return holding.getUnrealizedGain(getCurrentPrice(holding.getTicker(), mTickerPrices));
     }
 
-    private BigDecimal getRealizedGain(List<Transaction> lTransactions) {
+    private BigDecimal getRealizedGain(List<Transaction> transactions) {
 
-         return lTransactions.parallelStream()
+         return transactions.parallelStream()
                 .filter(t -> t.getType() == TransactionType.SALE)
                 .map(Transaction::getProfit)
                 .reduce(BigDecimal.ZERO, BigDecimal::add);

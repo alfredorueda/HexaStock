@@ -56,7 +56,12 @@ public class ReportingService implements ReportingUseCase {
     private final PortfolioPort portfolioPort;
     private final HoldingPerformanceCalculator holdingPerformanceCalculator;
 
-    public ReportingService(TransactionPort<Transaction> transactionPort, StockPriceProviderPort stockPriceProviderPort, PortfolioPort portfolioPort, HoldingPerformanceCalculator holdingPerformanceCalculator) {
+    public ReportingService(TransactionPort<Transaction> transactionPort,
+                            StockPriceProviderPort stockPriceProviderPort,
+                            PortfolioPort portfolioPort,
+                            HoldingPerformanceCalculator holdingPerformanceCalculator) {
+        // Constructor injection for required ports and services
+        // This ensures that the service has all dependencies it needs to function correctly
         this.transactionPort = transactionPort;
         this.stockPriceProviderPort = stockPriceProviderPort;
         this.portfolioPort = portfolioPort;
@@ -68,15 +73,15 @@ public class ReportingService implements ReportingUseCase {
 
         Portfolio portfolio = portfolioPort.getPortfolioById(portfolioId).orElseThrow(() -> new PortfolioNotFoundException(portfolioId));
 
-        List<Transaction> lTransactions = transactionPort.getTransactionsByPortfolioId(portfolioId);
+        List<Transaction> transactions = transactionPort.getTransactionsByPortfolioId(portfolioId);
 
         var tickers = portfolio.getHoldings().stream()
                 .map(Holding::getTicker)
                 .collect(Collectors.toSet());
 
-        Map<Ticker, StockPrice> mTickerPrices = stockPriceProviderPort.fetchStockPrice(tickers);
+        Map<Ticker, StockPrice> tickerStockPriceMap = stockPriceProviderPort.fetchStockPrice(tickers);
 
-        return holdingPerformanceCalculator.getHoldingsPerformance(portfolio, lTransactions, mTickerPrices);
+        return holdingPerformanceCalculator.getHoldingsPerformance(portfolio, transactions, tickerStockPriceMap);
     }
 
 }
