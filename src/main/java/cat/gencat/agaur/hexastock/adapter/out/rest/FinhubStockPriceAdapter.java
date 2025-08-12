@@ -55,7 +55,7 @@ public class FinhubStockPriceAdapter implements StockPriceProviderPort {
      */
     @Override
     public StockPrice fetchStockPrice(Ticker ticker) {
-        FinnhubClient client = new FinnhubClient.Builder().token("d141qr9r01qs7glkje10d141qr9r01qs7glkje1g").build();
+        FinnhubClient client = new FinnhubClient.Builder().token("Your API Key Here").build();
 
         Quote quote = null;
         try {
