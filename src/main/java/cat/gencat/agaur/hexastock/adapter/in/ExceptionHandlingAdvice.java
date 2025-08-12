@@ -5,6 +5,7 @@ import cat.gencat.agaur.hexastock.model.exception.InvalidAmountException;
 import cat.gencat.agaur.hexastock.model.exception.InvalidQuantityException;
 import cat.gencat.agaur.hexastock.model.exception.PortfolioNotFoundException;
 import cat.gencat.agaur.hexastock.model.exception.HoldingNotFoundException;
+import cat.gencat.agaur.hexastock.model.exception.ExternalApiException;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -30,6 +31,13 @@ public class ExceptionHandlingAdvice {
     @ResponseStatus(HttpStatus.CONFLICT)
     @ResponseBody
     String conflictExceptionHandler(Exception ex) {
+        return ex.getMessage();
+    }
+
+    @ExceptionHandler(ExternalApiException.class)
+    @ResponseStatus(HttpStatus.SERVICE_UNAVAILABLE)
+    @ResponseBody
+    String externalApiExceptionHandler(ExternalApiException ex) {
         return ex.getMessage();
     }
 

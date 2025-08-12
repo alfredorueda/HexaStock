@@ -3,6 +3,7 @@ package cat.gencat.agaur.hexastock.adapter.out.rest;
 import cat.gencat.agaur.hexastock.application.port.out.StockPriceProviderPort;
 import cat.gencat.agaur.hexastock.model.StockPrice;
 import cat.gencat.agaur.hexastock.model.Ticker;
+import cat.gencat.agaur.hexastock.model.exception.ExternalApiException;
 import com.github.oscerd.finnhub.client.FinnhubClient;
 import com.github.oscerd.finnhub.models.Quote;
 import org.springframework.beans.factory.annotation.Value;
@@ -60,7 +61,8 @@ public class FinhubStockPriceAdapter implements StockPriceProviderPort {
         try {
             quote = client.quote(ticker.value());
         } catch (Exception e) {
-            throw new RuntimeException(e);
+            throw new ExternalApiException("Error communicating with Finnhub API. Please check the value for finhubApiKey in" +
+                    " application.properties ", e);
         }
 
         var currentPrice = quote.getC();
