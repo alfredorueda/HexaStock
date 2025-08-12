@@ -5,16 +5,12 @@ import cat.gencat.agaur.hexastock.model.StockPrice;
 import cat.gencat.agaur.hexastock.model.Ticker;
 import com.github.oscerd.finnhub.client.FinnhubClient;
 import com.github.oscerd.finnhub.models.Quote;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
 
 import java.time.LocalDateTime;
 import java.time.ZoneId;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
-import java.util.function.Function;
-import java.util.stream.Collectors;
 
 /**
  * FinhubStockPriceAdapter implements the stock price provider port by connecting to the Finnhub API.
@@ -38,6 +34,9 @@ import java.util.stream.Collectors;
 @Profile("finhub")
 public class FinhubStockPriceAdapter implements StockPriceProviderPort {
 
+    @Value("${finhub.api.key}")
+    private String finhubApiKey;
+
     /**
      * Fetches the current price for a given stock ticker from the Finnhub API.
      * 
@@ -55,7 +54,7 @@ public class FinhubStockPriceAdapter implements StockPriceProviderPort {
      */
     @Override
     public StockPrice fetchStockPrice(Ticker ticker) {
-        FinnhubClient client = new FinnhubClient.Builder().token("Your API Key Here").build();
+        FinnhubClient client = new FinnhubClient.Builder().token(finhubApiKey).build();
 
         Quote quote = null;
         try {
