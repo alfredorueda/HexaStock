@@ -130,6 +130,9 @@ public class Holding {
             remainingToSell -= sharesSoldFromLot;
         }
 
+        // Remove lots with zero remaining after selling
+        lots.removeIf(lot -> lot.getRemaining() == 0);
+
         BigDecimal proceeds = sellPrice.multiply(BigDecimal.valueOf(quantity));
         BigDecimal profit = proceeds.subtract(costBasis);
         

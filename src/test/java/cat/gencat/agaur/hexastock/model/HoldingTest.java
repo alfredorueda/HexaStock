@@ -147,8 +147,11 @@ class HoldingTest {
             
             // Then
             assertEquals(3, holding.getTotalShares());
-            assertEquals(0, holding.getLots().get(0).getRemaining());
-            assertEquals(3, holding.getLots().get(1).getRemaining());
+            assertEquals(1, holding.getLots().size()); // Only one active lot should remain
+            
+            Lot remainingLot = holding.getLots().get(0);
+            assertEquals(3, remainingLot.getRemaining());
+            assertEquals(PRICE_120, remainingLot.getUnitPrice());
             
             // Proceeds calculation: 12 shares * $110 = $1320
             assertEquals(new BigDecimal("1320.00"), result.proceeds());
@@ -207,29 +210,17 @@ class HoldingTest {
             BigDecimal sellPrice = new BigDecimal("130.00");
             SellResult result = holding.sell(sharesToSell, sellPrice);
 
-            // Expected profit calculation (FIFO):
-            // Lot 1: 10 * (130-100) = 300
-            // Lot 2: 15 * (130-105) = 375
-            // Lot 3: 20 * (130-110) = 400
-            // Lot 4: 5 * (130-115) = 75
-            // Total expected profit = 300 + 375 + 400 + 75 = 1150
             BigDecimal expectedProfit = new BigDecimal("1150.00");
 
-            // Assert: All lots are present, with correct remaining values
-            assertAll("After selling shares with FIFO, all lots should be present and have correct remaining shares",
-                () -> assertEquals(5, holding.getLots().size(), "All 5 lots should be present (historical preservation)"),
-                () -> assertEquals(0, holding.getLots().get(0).getRemaining(), "Lot 1 should have 0 shares remaining"),
-                () -> assertEquals(new BigDecimal("100.00"), holding.getLots().get(0).getUnitPrice(), "Lot 1 price should be $100.00"),
-                () -> assertEquals(0, holding.getLots().get(1).getRemaining(), "Lot 2 should have 0 shares remaining"),
-                () -> assertEquals(new BigDecimal("105.00"), holding.getLots().get(1).getUnitPrice(), "Lot 2 price should be $105.00"),
-                () -> assertEquals(0, holding.getLots().get(2).getRemaining(), "Lot 3 should have 0 shares remaining"),
-                () -> assertEquals(new BigDecimal("110.00"), holding.getLots().get(2).getUnitPrice(), "Lot 3 price should be $110.00"),
-                () -> assertEquals(20, holding.getLots().get(3).getRemaining(), "Lot 4 should have 20 shares left"),
-                () -> assertEquals(new BigDecimal("115.00"), holding.getLots().get(3).getUnitPrice(), "Lot 4 price should be $115.00"),
-                () -> assertEquals(30, holding.getLots().get(4).getRemaining(), "Lot 5 should have 30 shares left"),
-                () -> assertEquals(new BigDecimal("120.00"), holding.getLots().get(4).getUnitPrice(), "Lot 5 price should be $120.00"),
-                () -> assertEquals(expectedProfit, result.profit(), "Profit should match expected FIFO calculation")
-            );
+            // Assert: Only lots with remaining > 0 should be present
+            assertEquals(2, holding.getLots().size(), "Only lots with remaining shares should be present");
+            Lot lot4 = holding.getLots().get(0);
+            Lot lot5 = holding.getLots().get(1);
+            assertEquals(20, lot4.getRemaining(), "Lot 4 should have 20 shares left");
+            assertEquals(new BigDecimal("115.00"), lot4.getUnitPrice(), "Lot 4 price should be $115.00");
+            assertEquals(30, lot5.getRemaining(), "Lot 5 should have 30 shares left");
+            assertEquals(new BigDecimal("120.00"), lot5.getUnitPrice(), "Lot 5 price should be $120.00");
+            assertEquals(expectedProfit, result.profit(), "Profit should match expected FIFO calculation");
         }
     }
     
