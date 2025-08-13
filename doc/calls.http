@@ -41,7 +41,7 @@ Content-Type: application/json
 }
 
 ###
-POST http://localhost:8081/api/portfolios/{{portfolioId}}/purchase
+POST http://localhost:8081/api/portfolios/{{portfolioId}}/purchases
 Content-Type: application/json
 
 {
@@ -50,7 +50,7 @@ Content-Type: application/json
 }
 
 ###
-POST http://localhost:8081/api/portfolios/{{portfolioId}}/purchase
+POST http://localhost:8081/api/portfolios/{{portfolioId}}/purchases
 Content-Type: application/json
 
 {

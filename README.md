@@ -113,7 +113,7 @@ http://localhost:8081/swagger-ui.html
 | `/api/portfolios/{id}` | GET | Get portfolio details | - | Portfolio details |
 | `/api/portfolios/{id}/deposits` | POST | Deposit cash | `{"amount":1000.00}` | Status 200 |
 | `/api/portfolios/{id}/withdrawals` | POST | Withdraw cash | `{"amount":500.00}` | Status 200 |
-| `/api/portfolios/{id}/purchase` | POST | Buy stock | `{"ticker":"AAPL","quantity":10}` | Status 200 |
+| `/api/portfolios/{id}/purchases` | POST | Buy stock | `{"ticker":"AAPL","quantity":10}` | Status 200 |
 | `/api/portfolios/{id}/sales` | POST | Sell stock | `{"ticker":"AAPL","quantity":5}` | Sale result with profit/loss |
 | `/api/portfolios/{id}/transactions` | GET | Get transaction history | - | List of transactions |
 | `/api/stocks/{symbol}` | GET | Get current stock price | - | Stock price information |

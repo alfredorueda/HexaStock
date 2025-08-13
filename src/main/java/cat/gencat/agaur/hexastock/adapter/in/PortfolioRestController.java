@@ -135,7 +135,7 @@ public class PortfolioRestController {
     /**
      * Buys shares of a stock for a portfolio.
      * 
-     * <p>POST /api/portfolios/{id}/purchase</p>
+     * <p>POST /api/portfolios/{id}/purchases</p>
      * 
      * <p>This endpoint:</p>
      * <ol>
@@ -152,7 +152,7 @@ public class PortfolioRestController {
      * @throws InvalidQuantityException if the quantity is not positive
      * @throws cat.gencat.agaur.hexastock.model.exception.InsufficientFundsException if there are insufficient funds
      */
-    @PostMapping("/{id}/purchase")
+    @PostMapping("/{id}/purchases")
     public ResponseEntity<Void> buyStock(@PathVariable String id, @RequestBody PurchaseDTO request) {
         portfolioStockOperationsUseCase.buyStock(id, Ticker.of(request.ticker()), request.quantity());
         return ResponseEntity.ok().build();
