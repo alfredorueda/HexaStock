@@ -196,7 +196,7 @@ class HoldingTest {
         }
         
         @Test
-        @DisplayName("Should correctly sell shares across multiple lots with FIFO and update lots and profit, preserving all lots")
+        @DisplayName("Should correctly sell shares across multiple lots with FIFO")
         void testSellStockWithMultipleLots() {
             // Arrange: 5 lots of the same stock at different prices
             holding.buy(10, new BigDecimal("100.00")); // Lot 1
