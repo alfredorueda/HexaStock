@@ -4,11 +4,11 @@ import cat.gencat.agaur.hexastock.application.port.out.StockPriceProviderPort;
 import cat.gencat.agaur.hexastock.model.StockPrice;
 import cat.gencat.agaur.hexastock.model.Ticker;
 import cat.gencat.agaur.hexastock.model.exception.ExternalApiException;
-import com.github.oscerd.finnhub.client.FinnhubClient;
-import com.github.oscerd.finnhub.models.Quote;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
+import com.fasterxml.jackson.databind.JsonNode;
+import org.springframework.web.client.RestClient;
 
 import java.time.LocalDateTime;
 import java.time.ZoneId;
@@ -38,6 +38,9 @@ public class FinhubStockPriceAdapter implements StockPriceProviderPort {
     @Value("${finhub.api.key}")
     private String finhubApiKey;
 
+    @Value("${finhub.api.url}")
+    private String finhubApiUrl;
+
     /**
      * Fetches the current price for a given stock ticker from the Finnhub API.
      * 
@@ -55,20 +58,23 @@ public class FinhubStockPriceAdapter implements StockPriceProviderPort {
      */
     @Override
     public StockPrice fetchStockPrice(Ticker ticker) {
-        FinnhubClient client = new FinnhubClient.Builder().token(finhubApiKey).build();
-
-        Quote quote = null;
+        String url = String.format("%s/quote?symbol=%s&token=%s", finhubApiUrl, ticker.value(), finhubApiKey);
+        RestClient restClient = RestClient.builder().build();
+        JsonNode quoteJson;
         try {
-            quote = client.quote(ticker.value());
+            quoteJson = restClient.get()
+                .uri(url)
+                .retrieve()
+                .body(JsonNode.class);
+            if (quoteJson == null || quoteJson.get("c") == null || !quoteJson.get("c").isNumber()) {
+                throw new ExternalApiException("Invalid response from Finnhub API: missing or malformed price data");
+            }
         } catch (Exception e) {
-            throw new ExternalApiException("Error communicating with Finnhub API. Please check the value for finhubApiKey in" +
-                    " application.properties ", e);
+            throw new ExternalApiException("Error communicating with Finnhub API. Please check the value for finhubApiKey in application.properties ", e);
         }
-
-        var currentPrice = quote.getC();
-
+        double currentPrice = quoteJson.get("c").asDouble();
         return new StockPrice(ticker, currentPrice, LocalDateTime.now()
-                .atZone(ZoneId.of("Europe/Madrid")) .toInstant(), "USD");
+                .atZone(ZoneId.of("Europe/Madrid")).toInstant(), "USD");
     }
 
 }
