@@ -14,19 +14,21 @@ import java.time.LocalDateTime;
 import java.time.ZoneId;
 
 /**
- * FinhubStockPriceAdapter implements the stock price provider port by connecting to the Finnhub API.
- * 
+ * FinhubStockPriceAdapter implements the stock price provider port by connecting to the Finnhub API using Spring Boot's RestClient.
+ *
  * <p>In hexagonal architecture terms, this is a <strong>secondary adapter</strong> (driven adapter)
  * that implements a secondary port ({@link StockPriceProviderPort}) to connect the application
  * core with an external service - in this case, the Finnhub financial API.</p>
- * 
+ *
  * <p>This adapter:</p>
  * <ul>
- *   <li>Connects to the Finnhub API using the Finnhub Java client library</li>
- *   <li>Retrieves real-time stock quotes for requested ticker symbols</li>
+ *   <li>Connects to the Finnhub API using Spring Boot's RestClient (no external Finnhub client library)</li>
+ *   <li>Retrieves real-time stock quotes for requested ticker symbols synchronously</li>
+ *   <li>Uses configuration properties for the API base URL and key</li>
  *   <li>Converts the external API response into the domain's {@link StockPrice} model</li>
+ *   <li>Handles errors and invalid responses gracefully</li>
  * </ul>
- * 
+ *
  * <p>The adapter is only active when the "finhub" Spring profile is enabled,
  * allowing the application to switch between different stock price providers
  * (like this one or a mock implementation) based on the runtime environment.</p>
@@ -43,18 +45,18 @@ public class FinhubStockPriceAdapter implements StockPriceProviderPort {
 
     /**
      * Fetches the current price for a given stock ticker from the Finnhub API.
-     * 
+     *
      * <p>This method:</p>
      * <ol>
-     *   <li>Creates a Finnhub client with the API token</li>
-     *   <li>Requests a quote for the specified ticker symbol</li>
-     *   <li>Extracts the current price from the response</li>
+     *   <li>Builds the Finnhub API URL using the ticker symbol and API key, with the base URL from configuration</li>
+     *   <li>Uses Spring's RestClient to synchronously request a quote for the specified ticker symbol</li>
+     *   <li>Parses the JSON response and extracts the current price</li>
      *   <li>Creates and returns a domain StockPrice object</li>
      * </ol>
-     * 
+     *
      * @param ticker The ticker symbol of the stock to get the price for
      * @return A StockPrice object containing the current price and related information
-     * @throws RuntimeException if there is an error communicating with the Finnhub API
+     * @throws ExternalApiException if there is an error communicating with the Finnhub API or the response is invalid
      */
     @Override
     public StockPrice fetchStockPrice(Ticker ticker) {
