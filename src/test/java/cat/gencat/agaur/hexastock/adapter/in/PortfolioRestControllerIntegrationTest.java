@@ -74,7 +74,7 @@ class PortfolioRestControllerIntegrationTest {
     }
 
     @Test
-    void happyPath_multipleBuysAndSells_profitIsZero() {
+    void happyPath_multipleBuysAndSells() {
         String ownerName = "MultiBuyUser";
         ValidatableResponse createResp = RestAssured.given()
             .contentType(ContentType.JSON)
