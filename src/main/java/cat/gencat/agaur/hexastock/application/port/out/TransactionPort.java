@@ -28,7 +28,7 @@ import java.util.List;
  * <p>The generic type parameter &lt;T&gt; allows flexibility in how transactions are represented
  * when retrieved from persistence, while ensuring type safety.</p>
  */
-public interface TransactionPort <T> {
+public interface TransactionPort {
 
     /**
      * Retrieves all transactions for a specific portfolio.
@@ -39,7 +39,7 @@ public interface TransactionPort <T> {
      * @param portFolioId The unique identifier of the portfolio to get transactions for
      * @return A list of transaction records of type T
      */
-    List<T> getTransactionsByPortfolioId(String portFolioId);
+    List<Transaction> getTransactionsByPortfolioId(String portFolioId);
     
     /**
      * Saves a new transaction record to the persistence store.

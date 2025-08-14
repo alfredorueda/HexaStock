@@ -51,12 +51,12 @@ Consider pagination or windowing for extremely large portfolios
 @Transactional
 public class ReportingService implements ReportingUseCase {
 
-    private final TransactionPort<Transaction> transactionPort;
+    private final TransactionPort transactionPort;
     private final StockPriceProviderPort stockPriceProviderPort;
     private final PortfolioPort portfolioPort;
     private final HoldingPerformanceCalculator holdingPerformanceCalculator;
 
-    public ReportingService(TransactionPort<Transaction> transactionPort,
+    public ReportingService(TransactionPort transactionPort,
                             StockPriceProviderPort stockPriceProviderPort,
                             PortfolioPort portfolioPort,
                             HoldingPerformanceCalculator holdingPerformanceCalculator) {

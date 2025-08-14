@@ -48,14 +48,14 @@ public class TransactionService implements TransactionUseCase {
     /**
      * The secondary port used to retrieve transaction records.
      */
-    private final TransactionPort<Transaction> transactionPort;
+    private final TransactionPort transactionPort;
 
     /**
      * Constructs a new TransactionService with the required secondary port.
      * 
      * @param transactionPort The port for transaction data access operations
      */
-    public TransactionService(TransactionPort<Transaction> transactionPort) {
+    public TransactionService(TransactionPort transactionPort) {
         this.transactionPort = transactionPort;
     }
 
