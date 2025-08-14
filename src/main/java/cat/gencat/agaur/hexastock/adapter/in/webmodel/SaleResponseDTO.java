@@ -1,6 +1,7 @@
 package cat.gencat.agaur.hexastock.adapter.in.webmodel;
 
 import cat.gencat.agaur.hexastock.model.SellResult;
+import java.math.BigDecimal;
 
 /**
  * SaleResponseDTO is a Data Transfer Object for returning stock sale results in the REST API.
@@ -22,5 +23,12 @@ import cat.gencat.agaur.hexastock.model.SellResult;
  * <p>As a record, this class is immutable and provides built-in value semantics,
  * which is ideal for DTOs that should not be modified after creation.</p>
  */
-public record SaleResponseDTO(SellResult sellResult) {
+public record SaleResponseDTO(
+    BigDecimal proceeds,
+    BigDecimal costBasis,
+    BigDecimal profit
+) {
+    public SaleResponseDTO(SellResult sellResult) {
+        this(sellResult.proceeds(), sellResult.costBasis(), sellResult.profit());
+    }
 }
