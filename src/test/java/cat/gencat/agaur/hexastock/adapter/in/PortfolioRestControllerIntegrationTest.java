@@ -94,10 +94,10 @@ class PortfolioRestControllerIntegrationTest {
 
         String[] tickers = {"AAPL", "MSFT", "GOOG"};
         int[] buyQuantities = {5, 7};
-        int sellQuantity = 12;
 
         for (String ticker : tickers) {
             // Buy shares twice for each company
+            int totalBought = 0;
             for (int qty : buyQuantities) {
                 RestAssured.given()
                     .contentType(ContentType.JSON)
@@ -105,17 +105,24 @@ class PortfolioRestControllerIntegrationTest {
                     .post("/api/portfolios/" + portfolioId + "/purchases")
                     .then()
                     .statusCode(200);
+                totalBought += qty;
             }
-            // Sell all shares at the same price and check profit rounded to 0.0
-            float profit = RestAssured.given()
+            // Sell a smaller quantity than purchased
+            int sellQty = totalBought - 3;
+            RestAssured.given()
                 .contentType(ContentType.JSON)
-                .body("{\"ticker\": \"" + ticker + "\", \"quantity\": " + sellQuantity + "}")
+                .body("{\"ticker\": \"" + ticker + "\", \"quantity\": " + sellQty + "}")
                 .post("/api/portfolios/" + portfolioId + "/sales")
+                .then()
+                .statusCode(200);
+            // Check remaining shares in portfolio
+            int remaining = RestAssured.given()
+                .get("/api/portfolios/" + portfolioId + "/holdings")
                 .then()
                 .statusCode(200)
                 .extract()
-                .path("profit");
-            assertEquals(0.0f, Math.round(profit * 10) / 10.0f);
+                .path("find { it.ticker == '" + ticker + "' }.remaining");
+            assertEquals(3, remaining);
         }
     }
 }
