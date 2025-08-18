@@ -81,8 +81,8 @@ class PortfolioTest {
             Money negativeDeposit = Money.of(USD, new BigDecimal("-100.00"));
             
             // Then
-            assertThrows(InsufficientFundsException.class, () -> portfolio.deposit(zeroDeposit));
-            assertThrows(InsufficientFundsException.class, () -> portfolio.deposit(negativeDeposit));
+            assertThrows(InvalidAmountException.class, () -> portfolio.deposit(zeroDeposit));
+            assertThrows(InvalidAmountException.class, () -> portfolio.deposit(negativeDeposit));
         }
         
         @Test
