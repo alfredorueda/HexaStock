@@ -96,11 +96,7 @@ public class Portfolio {
      */
     public void deposit(Money money) {
         if (money.amount().compareTo(BigDecimal.ZERO) <= 0) {
-            // TODO: Throw correct exception for invalid deposit amount, this
-            // ensures that only positive amounts can be deposited.
-            // InsufficientFundsException is not appropriate here
-            // since it implies a lack of funds, not an invalid deposit.
-            throw new InsufficientFundsException("Deposit amount must be positive");
+            throw new InvalidAmountException("Deposit amount must be positive");
         }
         this.balance = this.balance.add(money.amount());
     }

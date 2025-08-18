@@ -263,4 +263,75 @@ class PortfolioRestControllerIntegrationTest {
             .then()
             .statusCode(404);
     }
+
+    @Test
+    void error_depositNegativeAmount() {
+        String ownerName = "ErrorDepositNegative";
+        String portfolioId = RestAssured.given()
+            .contentType(ContentType.JSON)
+            .body("{\"ownerName\": \"" + ownerName + "\"}")
+            .post("/api/portfolios")
+            .then()
+            .statusCode(201)
+            .extract().path("id");
+        RestAssured.given()
+            .contentType(ContentType.JSON)
+            .body("{\"amount\": -100}")
+            .post("/api/portfolios/" + portfolioId + "/deposits")
+            .then()
+            .statusCode(400);
+    }
+
+    @Test
+    void error_withdrawNegativeAmount() {
+        String ownerName = "ErrorWithdrawNegative";
+        String portfolioId = RestAssured.given()
+            .contentType(ContentType.JSON)
+            .body("{\"ownerName\": \"" + ownerName + "\"}")
+            .post("/api/portfolios")
+            .then()
+            .statusCode(201)
+            .extract().path("id");
+        RestAssured.given()
+            .contentType(ContentType.JSON)
+            .body("{\"amount\": -50}")
+            .post("/api/portfolios/" + portfolioId + "/withdrawals")
+            .then()
+            .statusCode(400);
+    }
+
+    @Test
+    void error_withdrawMoreThanBalance() {
+        String ownerName = "ErrorWithdrawExcess";
+        String portfolioId = RestAssured.given()
+            .contentType(ContentType.JSON)
+            .body("{\"ownerName\": \"" + ownerName + "\"}")
+            .post("/api/portfolios")
+            .then()
+            .statusCode(201)
+            .extract().path("id");
+        RestAssured.given()
+            .contentType(ContentType.JSON)
+            .body("{\"amount\": 100}")
+            .post("/api/portfolios/" + portfolioId + "/deposits")
+            .then()
+            .statusCode(200);
+        RestAssured.given()
+            .contentType(ContentType.JSON)
+            .body("{\"amount\": 200}")
+            .post("/api/portfolios/" + portfolioId + "/withdrawals")
+            .then()
+            .statusCode(409);
+    }
+
+    @Test
+    void error_depositToNonExistentPortfolio() {
+        String fakePortfolioId = "non-existent-id";
+        RestAssured.given()
+            .contentType(ContentType.JSON)
+            .body("{\"amount\": 100}")
+            .post("/api/portfolios/" + fakePortfolioId + "/deposits")
+            .then()
+            .statusCode(404);
+    }
 }
