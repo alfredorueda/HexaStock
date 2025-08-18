@@ -1,5 +1,6 @@
 package cat.gencat.agaur.hexastock.model;
 
+import cat.gencat.agaur.hexastock.model.exception.InvalidTickerException;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -49,15 +50,15 @@ class TickerTest {
     @DisplayName("Should throw exception when ticker is null")
     void shouldThrowExceptionWhenTickerIsNull() {
         // Then
-        assertThrows(IllegalArgumentException.class, () -> new Ticker(null));
+        assertThrows(InvalidTickerException.class, () -> new Ticker(null));
     }
     
     @Test
     @DisplayName("Should throw exception when ticker is empty")
     void shouldThrowExceptionWhenTickerIsEmpty() {
         // Then
-        assertThrows(IllegalArgumentException.class, () -> new Ticker(""));
-        assertThrows(IllegalArgumentException.class, () -> new Ticker("  "));
+        assertThrows(InvalidTickerException.class, () -> new Ticker(""));
+        assertThrows(InvalidTickerException.class, () -> new Ticker("  "));
     }
     
     @ParameterizedTest
@@ -65,7 +66,7 @@ class TickerTest {
     @DisplayName("Should throw exception for invalid ticker format")
     void shouldThrowExceptionForInvalidTickerFormat(String invalidSymbol) {
         // Then
-        assertThrows(IllegalArgumentException.class, () -> new Ticker(invalidSymbol));
+        assertThrows(InvalidTickerException.class, () -> new Ticker(invalidSymbol));
     }
     
     @Test
