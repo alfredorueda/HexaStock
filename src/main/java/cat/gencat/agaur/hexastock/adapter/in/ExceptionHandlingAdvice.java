@@ -7,11 +7,13 @@ import cat.gencat.agaur.hexastock.model.exception.PortfolioNotFoundException;
 import cat.gencat.agaur.hexastock.model.exception.HoldingNotFoundException;
 import cat.gencat.agaur.hexastock.model.exception.ExternalApiException;
 import cat.gencat.agaur.hexastock.model.exception.InsufficientFundsException;
+import cat.gencat.agaur.hexastock.model.exception.InvalidTickerException;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
+import org.springframework.http.ProblemDetail;
 
 @ControllerAdvice
 public class ExceptionHandlingAdvice {
@@ -47,6 +49,16 @@ public class ExceptionHandlingAdvice {
     @ResponseBody
     String externalApiExceptionHandler(ExternalApiException ex) {
         return ex.getMessage();
+    }
+
+    @ExceptionHandler(InvalidTickerException.class)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    @ResponseBody
+    public ProblemDetail invalidTickerExceptionHandler(InvalidTickerException ex) {
+        ProblemDetail pd = ProblemDetail.forStatus(HttpStatus.BAD_REQUEST);
+        pd.setTitle("Invalid Ticker");
+        pd.setDetail(ex.getMessage());
+        return pd;
     }
 
 }

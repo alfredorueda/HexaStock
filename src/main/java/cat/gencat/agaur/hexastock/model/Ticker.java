@@ -1,6 +1,6 @@
 package cat.gencat.agaur.hexastock.model;
 
-import java.util.Objects;
+import cat.gencat.agaur.hexastock.model.exception.InvalidTickerException;
 
 /**
  * Ticker represents a stock ticker symbol used to uniquely identify a publicly traded company.
@@ -23,15 +23,15 @@ public record Ticker(String value) {
      * Constructs a Ticker instance with validation.
      * 
      * @param value The string representation of the ticker symbol
-     * @throws IllegalArgumentException if the value is null, blank, or does not match the required format
+     * @throws InvalidTickerException if the value is null, blank, or does not match the required format
      */
     public Ticker {
         if (value == null || value.trim().isEmpty()) {
-            throw new IllegalArgumentException("El ticker no puede estar vacío");
+            throw new InvalidTickerException("Ticker cannot be empty");
         }
 
         if (!value.matches("^[A-Z]{1,5}$")) {
-            throw new IllegalArgumentException("Ticker inválido: " + value);
+            throw new InvalidTickerException("Invalid ticker: " + value);
         }
     }
 
@@ -42,7 +42,7 @@ public record Ticker(String value) {
      *
      * @param value The string representation of the ticker symbol
      * @return A validated Ticker instance
-     * @throws IllegalArgumentException if the value is invalid
+     * @throws InvalidTickerException if the value is invalid
      */
     public static Ticker of(String value) {
         return new Ticker(value);

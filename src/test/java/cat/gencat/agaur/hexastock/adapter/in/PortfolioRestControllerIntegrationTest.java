@@ -359,4 +359,42 @@ class PortfolioRestControllerIntegrationTest {
             .body("balance", notNullValue())
             .body("createdAt", notNullValue());
     }
+
+    @Test
+    void error_buyWithInvalidTicker() {
+        String ownerName = "ErrorInvalidTickerUser";
+        ValidatableResponse createResp = RestAssured.given()
+            .contentType(ContentType.JSON)
+            .body("{\"ownerName\": \"" + ownerName + "\"}")
+            .post("/api/portfolios")
+            .then()
+            .statusCode(201)
+            .body("id", notNullValue());
+        String portfolioId = createResp.extract().path("id");
+
+        RestAssured.given()
+            .contentType(ContentType.JSON)
+            .body("{\"amount\": 10000}")
+            .post("/api/portfolios/" + portfolioId + "/deposits")
+            .then()
+            .statusCode(200);
+
+        // Attempt to buy with an invalid ticker
+        RestAssured.given()
+            .contentType(ContentType.JSON)
+            .body("{\"ticker\": \"ZZZZ_INVALID\", \"quantity\": 5}")
+            .post("/api/portfolios/" + portfolioId + "/purchases")
+            .then()
+            .statusCode(400)
+            .body("title", equalTo("Invalid Ticker"))
+            .body("detail", containsString("ZZZZ_INVALID"))
+            .body("status", equalTo(400));
+
+        // Assert no holdings were created
+        RestAssured.given()
+            .get("/api/portfolios/" + portfolioId + "/holdings")
+            .then()
+            .statusCode(200)
+            .body("size()", equalTo(0));
+    }
 }
