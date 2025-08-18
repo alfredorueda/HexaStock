@@ -156,7 +156,7 @@ HexaStock uses a comprehensive testing approach:
 - Tests verify business rules and invariants without any infrastructure dependencies
 - Each domain concept has dedicated test classes (e.g., `PortfolioTest`, `HoldingTest`, `LotTest`)
 
-### Integration Tests (TODO)
+### Integration Tests
 - Test the interaction between the application and its adapters
 - Verify that persistence mechanisms work correctly
 - Ensure API endpoints function as expected
