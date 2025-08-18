@@ -185,7 +185,7 @@ public class PortfolioRestController {
     @PostMapping("/{id}/sales")
     public ResponseEntity<SaleResponseDTO> sellStock(@PathVariable String id, @RequestBody SaleRequestDTO request) {
         SellResult result = portfolioStockOperationsUseCase.sellStock(id, Ticker.of(request.ticker()), request.quantity());
-        return ResponseEntity.ok(new SaleResponseDTO(result));
+        return ResponseEntity.ok(new SaleResponseDTO(id, request.ticker(), request.quantity(), result));
     }
 
     /**

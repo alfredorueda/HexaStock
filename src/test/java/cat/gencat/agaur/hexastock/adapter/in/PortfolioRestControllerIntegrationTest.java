@@ -63,6 +63,9 @@ class PortfolioRestControllerIntegrationTest {
             .post("/api/portfolios/" + portfolioId + "/sales")
             .then()
             .statusCode(200)
+            .body("portfolioId", equalTo(portfolioId))
+            .body("ticker", equalTo("AAPL"))
+            .body("quantity", equalTo(5))
             .body("proceeds", greaterThan(0f));
 
         // 5. Withdraw

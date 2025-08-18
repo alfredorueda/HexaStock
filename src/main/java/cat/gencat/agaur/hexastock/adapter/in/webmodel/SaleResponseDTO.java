@@ -15,6 +15,9 @@ import java.math.BigDecimal;
  *   <li>The proceeds from the sale (total money received)</li>
  *   <li>The cost basis (original purchase cost of the sold shares)</li>
  *   <li>The profit or loss from the sale</li>
+ *   <li>The portfolio ID associated with the sale</li>
+ *   <li>The ticker symbol of the stock</li>
+ *   <li>The quantity of shares sold</li>
  * </ul>
  * 
  * <p>This information is crucial for users to understand the financial impact of their stock sales,
@@ -24,11 +27,14 @@ import java.math.BigDecimal;
  * which is ideal for DTOs that should not be modified after creation.</p>
  */
 public record SaleResponseDTO(
+    String portfolioId,
+    String ticker,
+    int quantity,
     BigDecimal proceeds,
     BigDecimal costBasis,
     BigDecimal profit
 ) {
-    public SaleResponseDTO(SellResult sellResult) {
-        this(sellResult.proceeds(), sellResult.costBasis(), sellResult.profit());
+    public SaleResponseDTO(String portfolioId, String ticker, int quantity, SellResult sellResult) {
+        this(portfolioId, ticker, quantity, sellResult.proceeds(), sellResult.costBasis(), sellResult.profit());
     }
 }
