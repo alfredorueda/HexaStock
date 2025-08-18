@@ -92,11 +92,9 @@ public class PortfolioRestController {
      * @throws PortfolioNotFoundException if the portfolio is not found
      */
     @GetMapping("/{id}")
-    // TODO: Return DTO instead of domain model entity, only with the necessary fields
-    public ResponseEntity<Portfolio> getPortfolio(@PathVariable String id) {
+    public ResponseEntity<PortfolioResponseDTO> getPortfolio(@PathVariable String id) {
         Portfolio portfolio = portfolioManagementUseCase.getPortfolio(id);
-
-        return ResponseEntity.ok(portfolio);
+        return ResponseEntity.ok(PortfolioResponseDTO.from(portfolio));
     }
 
     /**

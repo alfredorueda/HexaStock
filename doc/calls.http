@@ -23,6 +23,13 @@ Content-Type: application/json
 %}
 ###
 GET http://localhost:8081/api/portfolios/{{portfolioId}}
+# Expected response (PortfolioResponseDTO):
+# {
+#   "id": "abc123",
+#   "ownerName": "Rachel Green",
+#   "balance": 1000000.00,
+#   "createdAt": "2024-06-01T12:34:56"
+# }
 
 ###
 POST http://localhost:8081/api/portfolios/{{portfolioId}}/deposits

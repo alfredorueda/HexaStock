@@ -337,4 +337,26 @@ class PortfolioRestControllerIntegrationTest {
             .then()
             .statusCode(404);
     }
+
+    @Test
+    void getPortfolio_returnsDtoWithBasicFields() {
+        String ownerName = "TestUser";
+        ValidatableResponse createResp = RestAssured.given()
+            .contentType(ContentType.JSON)
+            .body("{\"ownerName\": \"" + ownerName + "\"}")
+            .post("/api/portfolios")
+            .then()
+            .statusCode(201)
+            .body("id", notNullValue());
+        String portfolioId = createResp.extract().path("id");
+
+        RestAssured.given()
+            .get("/api/portfolios/" + portfolioId)
+            .then()
+            .statusCode(200)
+            .body("id", equalTo(portfolioId))
+            .body("ownerName", equalTo(ownerName))
+            .body("balance", notNullValue())
+            .body("createdAt", notNullValue());
+    }
 }
