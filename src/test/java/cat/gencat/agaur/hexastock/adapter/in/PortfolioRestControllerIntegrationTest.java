@@ -144,4 +144,141 @@ class PortfolioRestControllerIntegrationTest {
             assertEquals(3, remaining);
         }
     }
+
+    @Test
+    void error_buyWithInsufficientFunds() {
+        String ownerName = "ErrorFundsUser";
+        String portfolioId = RestAssured.given()
+            .contentType(ContentType.JSON)
+            .body("{\"ownerName\": \"" + ownerName + "\"}")
+            .post("/api/portfolios")
+            .then()
+            .statusCode(201)
+            .extract().path("id");
+        // No deposit, try to buy
+        RestAssured.given()
+            .contentType(ContentType.JSON)
+            .body("{\"ticker\": \"AAPL\", \"quantity\": 10}")
+            .post("/api/portfolios/" + portfolioId + "/purchases")
+            .then()
+            .statusCode(409);
+    }
+
+    @Test
+    void error_sellMoreThanOwned() {
+        String ownerName = "ErrorSellUser";
+        String portfolioId = RestAssured.given()
+            .contentType(ContentType.JSON)
+            .body("{\"ownerName\": \"" + ownerName + "\"}")
+            .post("/api/portfolios")
+            .then()
+            .statusCode(201)
+            .extract().path("id");
+        RestAssured.given()
+            .contentType(ContentType.JSON)
+            .body("{\"amount\": 10000}")
+            .post("/api/portfolios/" + portfolioId + "/deposits")
+            .then()
+            .statusCode(200);
+        RestAssured.given()
+            .contentType(ContentType.JSON)
+            .body("{\"ticker\": \"AAPL\", \"quantity\": 2}")
+            .post("/api/portfolios/" + portfolioId + "/purchases")
+            .then()
+            .statusCode(200);
+        // Try to sell more than owned
+        RestAssured.given()
+            .contentType(ContentType.JSON)
+            .body("{\"ticker\": \"AAPL\", \"quantity\": 10}")
+            .post("/api/portfolios/" + portfolioId + "/sales")
+            .then()
+            .statusCode(409);
+    }
+
+    @Test
+    void error_buyWithInvalidQuantity() {
+        String ownerName = "ErrorInvalidQtyUser";
+        String portfolioId = RestAssured.given()
+            .contentType(ContentType.JSON)
+            .body("{\"ownerName\": \"" + ownerName + "\"}")
+            .post("/api/portfolios")
+            .then()
+            .statusCode(201)
+            .extract().path("id");
+        RestAssured.given()
+                .contentType(ContentType.JSON)
+                .body("{\"amount\": 10000}")
+                .post("/api/portfolios/" + portfolioId + "/deposits")
+                .then()
+                .statusCode(200);
+        RestAssured.given()
+            .contentType(ContentType.JSON)
+            .body("{\"ticker\": \"AAPL\", \"quantity\": 0}")
+            .post("/api/portfolios/" + portfolioId + "/purchases")
+            .then()
+            .statusCode(400);
+        RestAssured.given()
+            .contentType(ContentType.JSON)
+            .body("{\"ticker\": \"AAPL\", \"quantity\": -5}")
+            .post("/api/portfolios/" + portfolioId + "/purchases")
+            .then()
+            .statusCode(400);
+    }
+
+    @Test
+    void error_sellWithInvalidQuantity() {
+        String ownerName = "ErrorInvalidSellQtyUser";
+        String portfolioId = RestAssured.given()
+            .contentType(ContentType.JSON)
+            .body("{\"ownerName\": \"" + ownerName + "\"}")
+            .post("/api/portfolios")
+            .then()
+            .statusCode(201)
+            .extract().path("id");
+
+        RestAssured.given()
+            .contentType(ContentType.JSON)
+            .body("{\"amount\": 10000}")
+            .post("/api/portfolios/" + portfolioId + "/deposits")
+            .then()
+            .statusCode(200);
+
+        RestAssured.given()
+            .contentType(ContentType.JSON)
+            .body("{\"ticker\": \"AAPL\", \"quantity\": 5}")
+            .post("/api/portfolios/" + portfolioId + "/purchases")
+            .then()
+            .statusCode(200);
+
+        RestAssured.given()
+            .contentType(ContentType.JSON)
+            .body("{\"ticker\": \"AAPL\", \"quantity\": 0}")
+            .post("/api/portfolios/" + portfolioId + "/sales")
+            .then()
+            .statusCode(400);
+
+        RestAssured.given()
+            .contentType(ContentType.JSON)
+            .body("{\"ticker\": \"AAPL\", \"quantity\": -3}")
+            .post("/api/portfolios/" + portfolioId + "/sales")
+            .then()
+            .statusCode(400);
+    }
+
+    @Test
+    void error_operateOnNonExistentPortfolio() {
+        String fakePortfolioId = "non-existent-id";
+        RestAssured.given()
+            .contentType(ContentType.JSON)
+            .body("{\"ticker\": \"AAPL\", \"quantity\": 5}")
+            .post("/api/portfolios/" + fakePortfolioId + "/purchases")
+            .then()
+            .statusCode(404);
+        RestAssured.given()
+            .contentType(ContentType.JSON)
+            .body("{\"ticker\": \"AAPL\", \"quantity\": 5}")
+            .post("/api/portfolios/" + fakePortfolioId + "/sales")
+            .then()
+            .statusCode(404);
+    }
 }
