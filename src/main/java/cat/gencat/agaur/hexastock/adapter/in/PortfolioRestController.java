@@ -98,6 +98,22 @@ public class PortfolioRestController {
     }
 
     /**
+     * Retrieves all portfolios in the system.
+     *
+     * <p>GET /api/portfolios</p>
+     *
+     * @return List of PortfolioResponseDTOs for all portfolios
+     */
+    @GetMapping
+    public ResponseEntity<List<PortfolioResponseDTO>> getAllPortfolios() {
+        List<Portfolio> portfolios = portfolioManagementUseCase.getAllPortfolios();
+        List<PortfolioResponseDTO> dtos = portfolios.stream()
+            .map(PortfolioResponseDTO::from)
+            .toList();
+        return ResponseEntity.ok(dtos);
+    }
+
+    /**
      * Deposits funds into a portfolio.
      * 
      * <p>POST /api/portfolios/{id}/deposits</p>

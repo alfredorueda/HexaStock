@@ -4,6 +4,7 @@ import cat.gencat.agaur.hexastock.model.Money;
 import cat.gencat.agaur.hexastock.model.Portfolio;
 import cat.gencat.agaur.hexastock.model.exception.InvalidAmountException;
 import cat.gencat.agaur.hexastock.model.exception.PortfolioNotFoundException;
+import java.util.List;
 
 /**
  * PortfolioManagmentUseCase defines the primary port for portfolio creation and cash management.
@@ -39,6 +40,13 @@ public interface PortfolioManagementUseCase {
      * @throws PortfolioNotFoundException if the portfolio is not found
      */
     Portfolio getPortfolio(String id);
+    
+    /**
+     * Retrieves all portfolios in the system.
+     *
+     * @return List of all Portfolio domain objects
+     */
+    List<Portfolio> getAllPortfolios();
     
     /**
      * Deposits money into a portfolio's cash balance.

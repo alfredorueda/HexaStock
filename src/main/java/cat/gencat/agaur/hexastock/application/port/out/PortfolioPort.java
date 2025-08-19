@@ -3,6 +3,7 @@ package cat.gencat.agaur.hexastock.application.port.out;
 import cat.gencat.agaur.hexastock.model.Portfolio;
 import cat.gencat.agaur.hexastock.model.exception.PortfolioNotFoundException;
 
+import java.util.List;
 import java.util.Optional;
 
 /**
@@ -54,4 +55,11 @@ public interface PortfolioPort {
      * @param portfolio The Portfolio domain object with updated state
      */
     void savePortfolio(Portfolio portfolio);
+
+    /**
+     * Retrieves all portfolios from the persistence store.
+     *
+     * @return List of Portfolio domain objects
+     */
+    List<Portfolio> getAllPortfolios();
 }

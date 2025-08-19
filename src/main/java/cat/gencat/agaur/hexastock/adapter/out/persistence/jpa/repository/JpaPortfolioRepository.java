@@ -9,6 +9,7 @@ import cat.gencat.agaur.hexastock.model.Portfolio;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
 
+import java.util.List;
 import java.util.Optional;
 
 /**
@@ -86,6 +87,17 @@ public class JpaPortfolioRepository implements PortfolioPort {
         if (jpaEntity.isPresent())
             opPortfolio = Optional.of(PortfolioMapper.toModelEntity(jpaEntity.get()));
         return opPortfolio;
+    }
+
+    /**
+     * Retrieves all portfolios from the database.
+     *
+     * @return List of Portfolio domain objects
+     */
+    public List<Portfolio> getAllPortfolios() {
+        return jpaSpringDataRepository.findAll().stream()
+            .map(PortfolioMapper::toModelEntity)
+            .toList();
     }
 
     /**

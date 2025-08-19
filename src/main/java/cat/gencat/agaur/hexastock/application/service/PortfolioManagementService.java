@@ -9,6 +9,7 @@ import cat.gencat.agaur.hexastock.model.Money;
 import cat.gencat.agaur.hexastock.model.Portfolio;
 import cat.gencat.agaur.hexastock.model.Transaction;
 import jakarta.transaction.Transactional;
+import java.util.List;
 
 /**
  * PortfolioManagmentService implements the core use cases for portfolio creation and cash management.
@@ -142,5 +143,15 @@ public class PortfolioManagementService implements PortfolioManagementUseCase {
 
         Transaction transaction = Transaction.createWithdrawal(portfolioId, amount.amount());
         transactionPort.save(transaction);
+    }
+
+    /**
+     * Retrieves all portfolios.
+     * 
+     * @return A list of all portfolios
+     */
+    @Override
+    public List<Portfolio> getAllPortfolios() {
+        return portfolioPort.getAllPortfolios();
     }
 }
