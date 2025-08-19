@@ -25,7 +25,17 @@ public class ExceptionHandlingAdvice {
         return ex.getMessage();
     }
 
-    @ExceptionHandler({InvalidAmountException.class, InvalidQuantityException.class})
+    @ExceptionHandler(InvalidAmountException.class)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    @ResponseBody
+    public ProblemDetail invalidAmountExceptionHandler(InvalidAmountException ex) {
+        ProblemDetail pd = ProblemDetail.forStatus(HttpStatus.BAD_REQUEST);
+        pd.setTitle("Invalid Amount");
+        pd.setDetail(ex.getMessage());
+        return pd;
+    }
+
+    @ExceptionHandler(InvalidQuantityException.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     @ResponseBody
     String badRequestExceptionHandler(Exception ex) { return ex.getMessage(); }

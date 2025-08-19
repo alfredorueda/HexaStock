@@ -332,7 +332,10 @@ class PortfolioRestControllerIntegrationTest {
             .body("{\"amount\": -100}")
             .post("/api/portfolios/" + portfolioId + "/deposits")
             .then()
-            .statusCode(400);
+            .statusCode(400)
+            .body("title", equalTo("Invalid Amount"))
+            .body("detail", containsString("amount"))
+            .body("status", equalTo(400));
     }
 
     @Test
@@ -350,7 +353,10 @@ class PortfolioRestControllerIntegrationTest {
             .body("{\"amount\": -50}")
             .post("/api/portfolios/" + portfolioId + "/withdrawals")
             .then()
-            .statusCode(400);
+            .statusCode(400)
+            .body("title", equalTo("Invalid Amount"))
+            .body("detail", containsString("amount"))
+            .body("status", equalTo(400));
     }
 
     @Test
