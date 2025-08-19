@@ -68,8 +68,11 @@ public class ExceptionHandlingAdvice {
     @ExceptionHandler(InsufficientFundsException.class)
     @ResponseStatus(HttpStatus.CONFLICT)
     @ResponseBody
-    String insufficientFundsExceptionHandler(InsufficientFundsException ex) {
-        return ex.getMessage();
+    public ProblemDetail insufficientFundsExceptionHandler(InsufficientFundsException ex) {
+        ProblemDetail pd = ProblemDetail.forStatus(HttpStatus.CONFLICT);
+        pd.setTitle("Insufficient Funds");
+        pd.setDetail(ex.getMessage());
+        return pd;
     }
 
     @ExceptionHandler(ExternalApiException.class)

@@ -196,7 +196,10 @@ class PortfolioRestControllerIntegrationTest {
             .body("{\"ticker\": \"AAPL\", \"quantity\": 10}")
             .post("/api/portfolios/" + portfolioId + "/purchases")
             .then()
-            .statusCode(409);
+            .statusCode(409)
+            .body("title", equalTo("Insufficient Funds"))
+            .body("detail", containsString("Insufficient funds"))
+            .body("status", equalTo(409));
     }
 
     @Test
@@ -398,7 +401,10 @@ class PortfolioRestControllerIntegrationTest {
             .body("{\"amount\": 200}")
             .post("/api/portfolios/" + portfolioId + "/withdrawals")
             .then()
-            .statusCode(409);
+            .statusCode(409)
+            .body("title", equalTo("Insufficient Funds"))
+            .body("detail", containsString("Insufficient funds"))
+            .body("status", equalTo(409));
     }
 
     @Test
