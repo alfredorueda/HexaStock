@@ -230,7 +230,10 @@ class PortfolioRestControllerIntegrationTest {
             .body("{\"ticker\": \"AAPL\", \"quantity\": 10}")
             .post("/api/portfolios/" + portfolioId + "/sales")
             .then()
-            .statusCode(409);
+            .statusCode(409)
+            .body("title", equalTo("Conflict Quantity"))
+            .body("detail", containsString("Not enough shares to sell"))
+            .body("status", equalTo(409));
     }
 
     @Test

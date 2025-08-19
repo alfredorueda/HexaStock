@@ -61,8 +61,11 @@ public class ExceptionHandlingAdvice {
     @ExceptionHandler(ConflictQuantityException.class)
     @ResponseStatus(HttpStatus.CONFLICT)
     @ResponseBody
-    String conflictExceptionHandler(Exception ex) {
-        return ex.getMessage();
+    public ProblemDetail conflictQuantityExceptionHandler(ConflictQuantityException ex) {
+        ProblemDetail pd = ProblemDetail.forStatus(HttpStatus.CONFLICT);
+        pd.setTitle("Conflict Quantity");
+        pd.setDetail(ex.getMessage());
+        return pd;
     }
 
     @ExceptionHandler(InsufficientFundsException.class)
