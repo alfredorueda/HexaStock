@@ -320,13 +320,19 @@ class PortfolioRestControllerIntegrationTest {
             .body("{\"ticker\": \"AAPL\", \"quantity\": 5}")
             .post("/api/portfolios/" + fakePortfolioId + "/purchases")
             .then()
-            .statusCode(404);
+            .statusCode(404)
+            .body("title", equalTo("Portfolio Not Found"))
+            .body("detail", containsString(fakePortfolioId))
+            .body("status", equalTo(404));
         RestAssured.given()
             .contentType(ContentType.JSON)
             .body("{\"ticker\": \"AAPL\", \"quantity\": 5}")
             .post("/api/portfolios/" + fakePortfolioId + "/sales")
             .then()
-            .statusCode(404);
+            .statusCode(404)
+            .body("title", equalTo("Portfolio Not Found"))
+            .body("detail", containsString(fakePortfolioId))
+            .body("status", equalTo(404));
     }
 
     @Test

@@ -18,11 +18,24 @@ import org.springframework.http.ProblemDetail;
 @ControllerAdvice
 public class ExceptionHandlingAdvice {
 
-    @ExceptionHandler({PortfolioNotFoundException.class, HoldingNotFoundException.class})
+    @ExceptionHandler(PortfolioNotFoundException.class)
     @ResponseStatus(HttpStatus.NOT_FOUND)
     @ResponseBody
-    String notFoundExceptionHandler(Exception ex) {
-        return ex.getMessage();
+    public ProblemDetail portfolioNotFoundExceptionHandler(PortfolioNotFoundException ex) {
+        ProblemDetail pd = ProblemDetail.forStatus(HttpStatus.NOT_FOUND);
+        pd.setTitle("Portfolio Not Found");
+        pd.setDetail(ex.getMessage());
+        return pd;
+    }
+
+    @ExceptionHandler(HoldingNotFoundException.class)
+    @ResponseStatus(HttpStatus.NOT_FOUND)
+    @ResponseBody
+    public ProblemDetail holdingNotFoundExceptionHandler(HoldingNotFoundException ex) {
+        ProblemDetail pd = ProblemDetail.forStatus(HttpStatus.NOT_FOUND);
+        pd.setTitle("Holding Not Found");
+        pd.setDetail(ex.getMessage());
+        return pd;
     }
 
     @ExceptionHandler(InvalidAmountException.class)
