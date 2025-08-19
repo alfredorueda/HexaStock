@@ -13,9 +13,59 @@ import org.testcontainers.junit.jupiter.Testcontainers;
 import static org.hamcrest.Matchers.*;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
+/**
+ * Integration Test for Portfolio REST API.
+ *
+ * <b>Overview</b>
+ * By default, this project uses a mocked finhub adapter (same interface as the real one) that returns random yet reasonable stock prices.
+ * This allows contributors to clone the repository and run tests without configuring a real finhub API key.
+ * Testcontainers automatically starts a MySQL database if Docker is available and running.
+ *
+ * <b>Quick Start (CLI)</b>
+ * To get started, follow these steps:
+ *
+ * <pre>
+ * # 1) Clone the repository
+ * git clone https://github.com/<org>/<repo>.git
+ * cd <repo>
+ *
+ * # 2) Ensure Java 21+ is available
+ * java -version
+ * # (If needed, set JAVA_HOME to a JDK 21+)
+ *
+ * # 3) Ensure Docker is running (required by Testcontainers)
+ * #   - Docker Desktop (macOS/Windows) or Docker Engine (Linux)
+ * #   - Verify with:
+ * docker info
+ *
+ * # 4) Run the test suite (uses the mocked finhub adapter by default)
+ * ./mvnw clean verify
+ * # (or to run just tests)
+ * ./mvnw test
+ * </pre>
+ *
+ * <b>Active Profiles and Switching to the Real finhub Adapter</b>
+ * - By default, the mocked finhub adapter (profile: mockfinhub) is used for tests and local development.
+ * - To use the real finhub adapter, switch the active Spring profile and provide a valid API key.
+ *
+ * <pre>
+ * # application.properties (or application.yml):
+ * finhub.api-key=<your-api-key>
+ * </pre>
+ *
+ * <b>Why a Mocked Adapter?</b>
+ * - Ensures a smooth out-of-the-box experience: no external credentials required to run tests.
+ * - Testcontainers handles the database lifecycle automatically.
+ * - Keeps CI stable and fast while still exercising the application’s ports/adapters and domain logic.
+ *
+ * <b>Troubleshooting</b>
+ * - If tests fail with messages from Testcontainers, confirm Docker is installed and running.
+ * - Verify Java 21+ is on PATH.
+ * - If switching to the real adapter, ensure the API key property is correctly set and the finhub profile is active.
+ */
 @Testcontainers
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
-@ActiveProfiles({"test", "jpa", "finhub"})
+@ActiveProfiles({"test", "jpa", "mockfinhub"})
 class PortfolioRestControllerIntegrationTest {
 
     @LocalServerPort
