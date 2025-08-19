@@ -38,7 +38,12 @@ public class ExceptionHandlingAdvice {
     @ExceptionHandler(InvalidQuantityException.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     @ResponseBody
-    String badRequestExceptionHandler(Exception ex) { return ex.getMessage(); }
+    public ProblemDetail invalidQuantityExceptionHandler(InvalidQuantityException ex) {
+        ProblemDetail pd = ProblemDetail.forStatus(HttpStatus.BAD_REQUEST);
+        pd.setTitle("Invalid Quantity");
+        pd.setDetail(ex.getMessage());
+        return pd;
+    }
 
     @ExceptionHandler(ConflictQuantityException.class)
     @ResponseStatus(HttpStatus.CONFLICT)

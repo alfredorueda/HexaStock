@@ -93,7 +93,7 @@ class PortfolioRestControllerIntegrationTest {
         // 2. Deposit
         RestAssured.given()
             .contentType(ContentType.JSON)
-            .body("{\"amount\": 10000}")
+            .body("{\"amount\": 100000}")
             .post("/api/portfolios/" + portfolioId + "/deposits")
             .then()
             .statusCode(200);
@@ -251,13 +251,19 @@ class PortfolioRestControllerIntegrationTest {
             .body("{\"ticker\": \"AAPL\", \"quantity\": 0}")
             .post("/api/portfolios/" + portfolioId + "/purchases")
             .then()
-            .statusCode(400);
+            .statusCode(400)
+            .body("title", equalTo("Invalid Quantity"))
+            .body("detail", containsString("Quantity must be positive"))
+            .body("status", equalTo(400));
         RestAssured.given()
             .contentType(ContentType.JSON)
             .body("{\"ticker\": \"AAPL\", \"quantity\": -5}")
             .post("/api/portfolios/" + portfolioId + "/purchases")
             .then()
-            .statusCode(400);
+            .statusCode(400)
+            .body("title", equalTo("Invalid Quantity"))
+            .body("detail", containsString("Quantity must be positive"))
+            .body("status", equalTo(400));
     }
 
     @Test
@@ -290,14 +296,20 @@ class PortfolioRestControllerIntegrationTest {
             .body("{\"ticker\": \"AAPL\", \"quantity\": 0}")
             .post("/api/portfolios/" + portfolioId + "/sales")
             .then()
-            .statusCode(400);
+            .statusCode(400)
+            .body("title", equalTo("Invalid Quantity"))
+            .body("detail", containsString("Quantity must be positive"))
+            .body("status", equalTo(400));
 
         RestAssured.given()
             .contentType(ContentType.JSON)
             .body("{\"ticker\": \"AAPL\", \"quantity\": -3}")
             .post("/api/portfolios/" + portfolioId + "/sales")
             .then()
-            .statusCode(400);
+            .statusCode(400)
+            .body("title", equalTo("Invalid Quantity"))
+            .body("detail", containsString("Quantity must be positive"))
+            .body("status", equalTo(400));
     }
 
     @Test
