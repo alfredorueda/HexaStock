@@ -5,11 +5,14 @@ import cat.gencat.agaur.hexastock.model.StockPrice;
 import cat.gencat.agaur.hexastock.model.Ticker;
 import cat.gencat.agaur.hexastock.model.exception.ExternalApiException;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.http.client.ClientHttpRequestFactorySettings;
 import org.springframework.context.annotation.Profile;
+import org.springframework.http.client.SimpleClientHttpRequestFactory;
 import org.springframework.stereotype.Component;
 import com.fasterxml.jackson.databind.JsonNode;
 import org.springframework.web.client.RestClient;
 
+import java.time.Duration;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 
@@ -61,7 +64,18 @@ public class FinhubStockPriceAdapter implements StockPriceProviderPort {
     @Override
     public StockPrice fetchStockPrice(Ticker ticker) {
         String url = String.format("%s/quote?symbol=%s&token=%s", finhubApiUrl, ticker.value(), finhubApiKey);
-        RestClient restClient = RestClient.builder().build();
+
+        SimpleClientHttpRequestFactory factory = new SimpleClientHttpRequestFactory();
+        factory.setConnectTimeout(5_000); // milliseconds
+        factory.setReadTimeout(5_000);    // milliseconds
+
+        RestClient restClient = RestClient.builder()
+                .baseUrl(finhubApiUrl)
+                .requestFactory(factory)
+                .build();
+
+        // Fetch the quote from the Finnhub API
+
         JsonNode quoteJson;
         try {
             quoteJson = restClient.get()
