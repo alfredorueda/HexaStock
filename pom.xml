@@ -102,6 +102,147 @@
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>
             </plugin>
+            <plugin>
+                <groupId>org.jacoco</groupId>
+                <artifactId>jacoco-maven-plugin</artifactId>
+                <version>0.8.10</version>
+                <executions>
+                    <!-- Prepare agent for unit tests (Surefire) -->
+                    <execution>
+                        <id>prepare-agent</id>
+                        <goals>
+                            <goal>prepare-agent</goal>
+                        </goals>
+                        <configuration>
+                            <!-- Sets jacocoArgLine property for Surefire -->
+                            <propertyName>jacocoArgLine</propertyName>
+                        </configuration>
+                    </execution>
+                    <!-- Prepare agent for integration tests (Failsafe) -->
+                    <execution>
+                        <id>prepare-agent-integration</id>
+                        <goals>
+                            <goal>prepare-agent</goal>
+                        </goals>
+                        <phase>pre-integration-test</phase>
+                        <configuration>
+                            <!-- Sets jacocoITArgLine property for Failsafe, writes to separate file -->
+                            <propertyName>jacocoITArgLine</propertyName>
+                            <destFile>${project.build.directory}/jacoco-it.exec</destFile>
+                        </configuration>
+                    </execution>
+                    <!-- Merge unit and integration .exec files after tests -->
+                    <execution>
+                        <id>merge-results</id>
+                        <phase>verify</phase>
+                        <goals>
+                            <goal>merge</goal>
+                        </goals>
+                        <configuration>
+                            <fileSets>
+                                <fileSet>
+                                    <directory>${project.build.directory}</directory>
+                                    <includes>
+                                        <include>jacoco.exec</include>
+                                        <include>jacoco-it.exec</include>
+                                    </includes>
+                                </fileSet>
+                            </fileSets>
+                            <destFile>${project.build.directory}/jacoco-merged.exec</destFile>
+                        </configuration>
+                    </execution>
+                    <!-- Generate HTML and XML report from merged data -->
+                    <execution>
+                        <id>report-merged</id>
+                        <phase>verify</phase>
+                        <goals>
+                            <goal>report</goal>
+                        </goals>
+                        <configuration>
+                            <dataFile>${project.build.directory}/jacoco-merged.exec</dataFile>
+                            <outputDirectory>${project.build.directory}/site/jacoco-merged</outputDirectory>
+                            <reports>
+                                <xml>true</xml>
+                                <html>true</html>
+                            </reports>
+                            <!-- Optional: Exclude generated code, DTOs, configs, records from coverage -->
+                            <!--
+                            <excludes>
+                              <exclude>**/generated/**</exclude>
+                              <exclude>**/dto/**</exclude>
+                              <exclude>**/config/**</exclude>
+                              <exclude>**/*Record.class</exclude>
+                            </excludes>
+                            -->
+                        </configuration>
+                    </execution>
+                    <!-- Enforce coverage thresholds on verify -->
+                    <execution>
+                        <id>check-coverage</id>
+                        <phase>verify</phase>
+                        <goals>
+                            <goal>check</goal>
+                        </goals>
+                        <configuration>
+                            <dataFile>${project.build.directory}/jacoco-merged.exec</dataFile>
+                            <rules>
+                                <rule>
+                                    <element>BUNDLE</element>
+                                    <limits>
+                                        <limit>
+                                            <counter>INSTRUCTION</counter>
+                                            <value>COVEREDRATIO</value>
+                                            <minimum>0.85</minimum>
+                                        </limit>
+                                        <limit>
+                                            <counter>BRANCH</counter>
+                                            <value>COVEREDRATIO</value>
+                                            <minimum>0.75</minimum>
+                                        </limit>
+                                    </limits>
+                                </rule>
+                            </rules>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+
+            <!-- Surefire Plugin: runs unit tests, picks *Test.java and *Tests.java, uses jacocoArgLine for coverage -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <version>3.1.2</version>
+                <configuration>
+                    <includes>
+                        <include>**/*Test.java</include>
+                        <include>**/*Tests.java</include>
+                    </includes>
+                    <argLine>${jacocoArgLine}</argLine>
+                    <!-- JUnit 5 config is already present -->
+                </configuration>
+            </plugin>
+
+            <!-- Failsafe Plugin: runs integration tests, picks *IT.java, uses jacocoITArgLine for coverage -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-failsafe-plugin</artifactId>
+                <version>3.1.2</version>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>integration-test</goal>
+                            <goal>verify</goal>
+                        </goals>
+                    </execution>
+                </executions>
+                <configuration>
+                    <includes>
+                        <include>**/*IT.java</include>
+                    </includes>
+                    <argLine>${jacocoITArgLine}</argLine>
+                    <!-- JUnit 5 config is already present -->
+                </configuration>
+            </plugin>
         </plugins>
     </build>
 
