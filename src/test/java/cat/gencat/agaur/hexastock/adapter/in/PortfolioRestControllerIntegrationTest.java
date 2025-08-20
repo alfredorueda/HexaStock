@@ -480,4 +480,73 @@ class PortfolioRestControllerIntegrationTest {
             .statusCode(200)
             .body("size()", equalTo(0));
     }
+
+    @Test
+    void getAllPortfolios_returnsAllCreatedPortfoliosWithBalances() {
+        // Create portfolios
+        String owner1 = "Alice";
+        String owner2 = "Bob";
+        String owner3 = "Charlie";
+
+        String id1 = RestAssured.given()
+            .contentType(ContentType.JSON)
+            .body("{\"ownerName\": \"" + owner1 + "\"}")
+            .post("/api/portfolios")
+            .then()
+            .statusCode(201)
+            .extract().path("id");
+        String id2 = RestAssured.given()
+            .contentType(ContentType.JSON)
+            .body("{\"ownerName\": \"" + owner2 + "\"}")
+            .post("/api/portfolios")
+            .then()
+            .statusCode(201)
+            .extract().path("id");
+        String id3 = RestAssured.given()
+            .contentType(ContentType.JSON)
+            .body("{\"ownerName\": \"" + owner3 + "\"}")
+            .post("/api/portfolios")
+            .then()
+            .statusCode(201)
+            .extract().path("id");
+
+        // Make deposits
+        RestAssured.given()
+            .contentType(ContentType.JSON)
+            .body("{\"amount\": 1000}")
+            .post("/api/portfolios/" + id1 + "/deposits")
+            .then()
+            .statusCode(200);
+        RestAssured.given()
+            .contentType(ContentType.JSON)
+            .body("{\"amount\": 2500}")
+            .post("/api/portfolios/" + id2 + "/deposits")
+            .then()
+            .statusCode(200);
+        // The third portfolio has no deposit
+
+        // Verify balances by truncating decimals from API response
+        float balance1 = RestAssured.given()
+            .get("/api/portfolios")
+            .then()
+            .statusCode(200)
+            .extract()
+            .path("find { it.id == '" + id1 + "' }.balance");
+        float balance2 = RestAssured.given()
+            .get("/api/portfolios")
+            .then()
+            .statusCode(200)
+            .extract()
+            .path("find { it.id == '" + id2 + "' }.balance");
+        float balance3 = RestAssured.given()
+            .get("/api/portfolios")
+            .then()
+            .statusCode(200)
+            .extract()
+            .path("find { it.id == '" + id3 + "' }.balance");
+
+        assertEquals(1000, (int) balance1);
+        assertEquals(2500, (int) balance2);
+        assertEquals(0, (int) balance3);
+    }
 }
