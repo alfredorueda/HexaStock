@@ -19,7 +19,7 @@ import java.util.Optional;
  * <p>This repository:</p>
  * <ul>
  *   <li>Extends Spring Data's JpaRepository to get standard CRUD operations</li>
- *   <li>Provides optimistic locking to handle concurrent portfolio modifications</li>
+ *   <li>Provides locking to handle concurrent portfolio modifications</li>
  *   <li>Serves as the database access layer for the JpaPortfolioRepository adapter</li>
  * </ul>
  * 
