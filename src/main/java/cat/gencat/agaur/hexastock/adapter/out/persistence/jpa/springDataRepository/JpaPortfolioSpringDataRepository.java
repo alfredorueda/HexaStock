@@ -37,8 +37,8 @@ public interface JpaPortfolioSpringDataRepository extends JpaRepository <Portfol
      * concurrent modifications, which is essential for maintaining data integrity
      * during financial operations like stock trades or cash management.</p>
      * 
-     * <p>The pessimistic lock ensures that when multiple users try to modify the same
-     * portfolio simultaneously (e.g., two users trying to buy stocks from the same
+     * <p>The pessimistic lock ensures that when multiple transactions try to modify the same
+     * portfolio simultaneously (e.g., two transactions trying to buy stocks from the same
      * portfolio), one transaction will wait for the other to complete, preventing
      * race conditions that could lead to incorrect balances or holdings.</p>
      * 
