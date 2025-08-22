@@ -37,10 +37,10 @@ public record StockPriceDTO(
      */
     public static StockPriceDTO fromDomainModel(StockPrice stockPrice) { 
         return new StockPriceDTO(
-            stockPrice.getTicker().value(), 
-            stockPrice.getPrice(), 
-            stockPrice.getTime(), 
-            stockPrice.getCurrency()
-        ); 
+            stockPrice.ticker().value(),
+            stockPrice.price(),
+            stockPrice.time(),
+            stockPrice.currency()
+        );
     }
 }

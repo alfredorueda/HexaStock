@@ -94,12 +94,12 @@ public class PortfolioStockOperationsService implements PortfolioStockOperations
 
         StockPrice stockPrice = stockPriceProviderPort.fetchStockPrice(ticker);
 
-        portfolio.buy(ticker, quantity, BigDecimal.valueOf(stockPrice.getPrice()));
+        portfolio.buy(ticker, quantity, BigDecimal.valueOf(stockPrice.price()));
 
         portfolioPort.savePortfolio(portfolio);
 
         Transaction transaction = Transaction.createPurchase(
-                portfolioId, ticker, quantity, BigDecimal.valueOf(stockPrice.getPrice()));
+                portfolioId, ticker, quantity, BigDecimal.valueOf(stockPrice.price()));
         transactionPort.save(transaction);
     }
 
@@ -135,12 +135,12 @@ public class PortfolioStockOperationsService implements PortfolioStockOperations
 
         StockPrice stockPrice = stockPriceProviderPort.fetchStockPrice(ticker);
 
-        SellResult sellResult = portfolio.sell(ticker, quantity, BigDecimal.valueOf(stockPrice.getPrice()));
+        SellResult sellResult = portfolio.sell(ticker, quantity, BigDecimal.valueOf(stockPrice.price()));
 
         portfolioPort.savePortfolio(portfolio);
 
         Transaction transaction = Transaction.createSale(
-                portfolioId, ticker, quantity, BigDecimal.valueOf(stockPrice.getPrice()), sellResult.proceeds(), sellResult.profit());
+                portfolioId, ticker, quantity, BigDecimal.valueOf(stockPrice.price()), sellResult.proceeds(), sellResult.profit());
         transactionPort.save(transaction);
 
         return sellResult;

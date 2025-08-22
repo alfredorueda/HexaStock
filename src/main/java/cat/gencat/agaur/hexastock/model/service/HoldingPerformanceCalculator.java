@@ -73,8 +73,7 @@ public class HoldingPerformanceCalculator {
     }
 
     private BigDecimal getCurrentPrice(Ticker ticker, Map<Ticker, StockPrice> mTickerPrices) {
-
-        return BigDecimal.valueOf(mTickerPrices.get(ticker).getPrice());
+        return BigDecimal.valueOf(mTickerPrices.get(ticker).price());
     }
 
     private BigDecimal getUnRealizedGain(Holding holding, Map<Ticker, StockPrice> mTickerPrices) {
