@@ -19,6 +19,8 @@ import java.time.ZoneId;
 /**
  * FinhubStockPriceAdapter implements the stock price provider port by connecting to the Finnhub API using Spring Boot's RestClient.
  *
+ * <p>This project is pedagogical and demonstrates Domain-Driven Design (DDD) and Hexagonal Architecture. The domain use cases only need to know "what" (getting a stock price) without caring "how" (HTTP, JSON/XML, which provider). These adapters belong to the infrastructure layer and implement the port to fetch stock prices from external providers. Spring profiles make it easy to switch between providers without changing domain logic. Separating domain needs from infrastructure details improves maintainability, testability, and flexibility.</p>
+ *
  * <p>In hexagonal architecture terms, this is a <strong>secondary adapter</strong> (driven adapter)
  * that implements a secondary port ({@link StockPriceProviderPort}) to connect the application
  * core with an external service - in this case, the Finnhub financial API.</p>
@@ -46,6 +48,21 @@ public class FinhubStockPriceAdapter implements StockPriceProviderPort {
     @Value("${finhub.api.url}")
     private String finhubApiUrl;
 
+    // Throttles outbound API calls to avoid hitting free-tier rate limits.
+    // We intentionally sleep the current thread before performing the request.
+    // NOTE: If you move to reactive/non-blocking I/O in the future, replace this with a non-blocking delay.
+    private static final long THROTTLE_MS = 500L;
+
+    private void throttle() {
+        try {
+            Thread.sleep(THROTTLE_MS);
+        } catch (InterruptedException ie) {
+            // Restore the interrupted status so higher-level code can react if needed.
+            Thread.currentThread().interrupt();
+            // Optionally log the interruption; we do NOT rethrow to avoid breaking the call path.
+        }
+    }
+
     /**
      * Fetches the current price for a given stock ticker from the Finnhub API.
      *
@@ -63,6 +80,9 @@ public class FinhubStockPriceAdapter implements StockPriceProviderPort {
      */
     @Override
     public StockPrice fetchStockPrice(Ticker ticker) {
+        // Throttle to stay within free-tier rate limits (Finhub).
+        throttle();
+
         String url = String.format("%s/quote?symbol=%s&token=%s", finhubApiUrl, ticker.value(), finhubApiKey);
 
         SimpleClientHttpRequestFactory factory = new SimpleClientHttpRequestFactory();
