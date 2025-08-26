@@ -197,3 +197,8 @@ HexaStock could be enhanced with:
 ---
 
 This project demonstrates the power of Domain-Driven Design and Hexagonal Architecture in creating maintainable, testable applications for complex domains like finance. By separating concerns and focusing on the business core, HexaStock provides a solid foundation that can evolve with changing requirements.
+
+JaCoCo
+
+<img width="1287" height="420" alt="image" src="https://github.com/user-attachments/assets/267beb7f-dfc1-4db0-8337-7b690848b5e5" />
+
