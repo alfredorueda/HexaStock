@@ -4,6 +4,8 @@
 [![Bugs](https://sonarcloud.io/api/project_badges/measure?project=${SONAR_PROJECT_KEY}&metric=bugs)](https://sonarcloud.io/summary/new_code?id=${SONAR_PROJECT_KEY})
 [![Code Smells](https://sonarcloud.io/api/project_badges/measure?project=${SONAR_PROJECT_KEY}&metric=code_smells)](https://sonarcloud.io/summary/new_code?id=${SONAR_PROJECT_KEY})
 
+> **Note**: The SonarCloud badges above use placeholder URLs. After setting up SonarCloud, replace `${SONAR_PROJECT_KEY}` with your actual project key in these badge URLs.
+
 # HexaStock
 
 HexaStock is a financial portfolio management system built with Spring Boot, Domain-Driven Design (DDD), and Hexagonal Architecture. This educational project demonstrates best practices for building a robust, maintainable financial application using modern software architecture patterns.
