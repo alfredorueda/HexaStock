@@ -1,3 +1,9 @@
+[![CI](https://github.com/alfredorueda/HexaStock/actions/workflows/build.yml/badge.svg?branch=main)](https://github.com/alfredorueda/HexaStock/actions/workflows/build.yml)
+[![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=${SONAR_PROJECT_KEY}&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=${SONAR_PROJECT_KEY})
+[![Coverage](https://sonarcloud.io/api/project_badges/measure?project=${SONAR_PROJECT_KEY}&metric=coverage)](https://sonarcloud.io/summary/new_code?id=${SONAR_PROJECT_KEY})
+[![Bugs](https://sonarcloud.io/api/project_badges/measure?project=${SONAR_PROJECT_KEY}&metric=bugs)](https://sonarcloud.io/summary/new_code?id=${SONAR_PROJECT_KEY})
+[![Code Smells](https://sonarcloud.io/api/project_badges/measure?project=${SONAR_PROJECT_KEY}&metric=code_smells)](https://sonarcloud.io/summary/new_code?id=${SONAR_PROJECT_KEY})
+
 # HexaStock
 
 HexaStock is a financial portfolio management system built with Spring Boot, Domain-Driven Design (DDD), and Hexagonal Architecture. This educational project demonstrates best practices for building a robust, maintainable financial application using modern software architecture patterns.
