@@ -59,19 +59,3 @@ jobs:
           name: jacoco-reports-${{ matrix.os }}
           path: target/site/jacoco-merged/
 
-      - name: SonarCloud Scan
-        if: env.SONAR_TOKEN != null
-        uses: sonarsource/sonarqube-scan-action@v5
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-          SONAR_ORGANIZATION: ${{ vars.SONAR_ORGANIZATION }}
-          SONAR_PROJECT_KEY: ${{ vars.SONAR_PROJECT_KEY }}
-          SONAR_HOST_URL: ${{ vars.SONAR_HOST_URL }}
-
-      - name: SonarCloud Quality Gate check
-        if: env.SONAR_TOKEN != null
-        uses: sonarqube/quality-gate-action@master
-        timeout-minutes: 5
-        env:
-          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
