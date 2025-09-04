@@ -1,3 +1,4 @@
+[![Build Status](https://github.com/alfredorueda/HexaStock/workflows/CI/badge.svg)](https://github.com/alfredorueda/HexaStock/actions)
 
 # HexaStock
 
