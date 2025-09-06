@@ -23,7 +23,7 @@ HexaStock implements Hexagonal Architecture (also known as Ports and Adapters), 
 The core of the application contains business entities and logic with no dependencies on external frameworks:
 - **Entities**: Portfolio, Holding, Lot, Transaction
 - **Value Objects**: Money, Ticker
-- **Domain Services**: Business rules for buying, selling, and portfolio management
+- **Domain Services**: Business rules for portfolio reporting.
 
 ### Application Layer
 Defines use cases and orchestrates the domain objects:
