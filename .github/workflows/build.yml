@@ -14,6 +14,12 @@ permissions:
 jobs:
   build-and-test:
     runs-on: ubuntu-latest
+    timeout-minutes: 20   # reasonable margin in CI
+
+    # Environment tweaks for CI only (no code changes)
+    env:
+      TESTCONTAINERS_CHECKS_DISABLE: "false"
+      MAVEN_OPTS: "-Xmx2g"
 
     strategy:
       matrix:
@@ -23,8 +29,7 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
         with:
-          # Shallow clones should be disabled for better SonarCloud analysis
-          fetch-depth: 0
+          fetch-depth: 0   # better for SonarCloud and history
 
       - name: Set up JDK 21
         uses: actions/setup-java@v4
@@ -33,6 +38,8 @@ jobs:
           distribution: 'temurin'
           cache: maven
 
+      # Optional: this extra cache step is redundant because setup-java already caches Maven.
+      # You can remove it if you prefer.
       - name: Cache Maven dependencies
         uses: actions/cache@v4
         with:
@@ -40,8 +47,28 @@ jobs:
           key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
           restore-keys: ${{ runner.os }}-m2
 
+      # --- WARM UP DOCKER AND PRE-PULL IMAGES ---
+      - name: Docker info
+        run: docker info
+
+      - name: Warm up Docker daemon
+        run: docker run --rm hello-world
+
+      # Pre-pull the MySQL version used by Testcontainers (from your logs: mysql:8.0.32)
+      - name: Pre-pull MySQL & Ryuk images
+        run: |
+          docker pull mysql:8.0.32
+          docker pull testcontainers/ryuk:0.6.0 || true
+
+      # --- BUILD & TEST with Hikari shutdown-safe flags ---
       - name: Run clean build and tests
-        run: ./mvnw -B -U -ntp clean verify
+        run: |
+          ./mvnw -B -U -ntp -T1C clean verify \
+            -Dspring.datasource.hikari.minimum-idle=0 \
+            -Dspring.datasource.hikari.maximum-pool-size=1 \
+            -Dspring.datasource.hikari.keepalive-time=0 \
+            -Dspring.datasource.hikari.idle-timeout=30000 \
+            -Dsurefire.exitTimeout=120
 
       - name: Upload test results
         uses: actions/upload-artifact@v4
@@ -58,4 +85,3 @@ jobs:
         with:
           name: jacoco-reports-${{ matrix.os }}
           path: target/site/jacoco-merged/
-
