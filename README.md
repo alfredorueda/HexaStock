@@ -17,7 +17,7 @@ What makes this project particularly interesting is its implementation of DDD ta
 
 ## Architecture
 
-HexaStock implements Hexagonal Architecture (also known as Ports and Adapters), which separates the application into distinct layers:
+HexaStock applies Hexagonal Architecture and Domain-Driven Design (DDD) to structure the application into clear layers, making it easier to evolve, test, and integrate with external systems:
 
 ### Domain Layer
 The core of the application contains business entities and logic with no dependencies on external frameworks:
