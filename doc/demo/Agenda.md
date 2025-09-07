@@ -22,7 +22,6 @@
 - Value Objects: **Money**, **Ticker**, **Quantity** enforce correctness
 - Business rules (cash checks, FIFO, transactions) live inside the model:
   - https://deepwiki.com/alfredorueda/HexaStock/3.1-core-entities#fifo-accounting-implementation
-  - 
 - Show the **UML Class Diagram** to illustrate relationships in the domain
 
 <img src="UML Class Diagram without exceptions.png" width="90%">
