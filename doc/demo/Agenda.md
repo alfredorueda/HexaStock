@@ -11,7 +11,7 @@
 - Same business request, different provider behind the scenes
 - Demonstrates true decoupling of domain from infrastructure
 
-<img src="img.png" width="60%">
+<img src="Hexagonal%20Architecture%20Diagram.png" width="60%">
 
 *Source: [HappyCoders – Hexagonal Architecture with Spring Boot](https://www.happycoders.eu/software-craftsmanship/hexagonal-architecture-spring-boot/)*
 
@@ -21,6 +21,9 @@
 - Entities: **Portfolio**, **Holding**, **Transaction** with embedded logic
 - Value Objects: **Money**, **Ticker**, **Quantity** enforce correctness
 - Business rules (cash checks, FIFO, transactions) live inside the model
+- Show the **UML Class Diagram** to illustrate relationships in the domain
+
+<img src="UML Class Diagram without exceptions.png" width="90%">
 
 ---
 
