@@ -20,10 +20,16 @@
 ## 02. Rich Domain Model
 - Entities: **Portfolio**, **Holding**, **Transaction** with embedded logic
 - Value Objects: **Money**, **Ticker**, **Quantity** enforce correctness
-- Business rules (cash checks, FIFO, transactions) live inside the model
+- Business rules (cash checks, FIFO, transactions) live inside the model:
+  - https://deepwiki.com/alfredorueda/HexaStock/3.1-core-entities#fifo-accounting-implementation
+  - 
 - Show the **UML Class Diagram** to illustrate relationships in the domain
 
 <img src="UML Class Diagram without exceptions.png" width="90%">
+
+- This diagram shows the purchase flow within the domain model, starting from the Portfolio aggregate root. The Portfolio validates the purchase, finds or creates a Holding for the ticker, and the Holding creates a new Lot to track the purchase.
+<img src="Buy Stocks Use Case.png" width="70%">
+
 
 ---
 
