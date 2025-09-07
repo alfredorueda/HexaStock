@@ -4,6 +4,8 @@
 ---
 
 ## 01. Introduction & Adapter Swap in Action
+🎥 [Watch the video on Vimeo](https://vimeo.com/1116578989/3c3f04591c)
+
 - Quick look at the **Hexagonal Architecture diagram**
 - Present HexaStock: a financial portfolio app built with DDD
 - Switch smoothly between **FinHub** and **AlphaVantage**
@@ -11,7 +13,7 @@
 - Same business request, different provider behind the scenes
 - Demonstrates true decoupling of domain from infrastructure
 
-<img src="Hexagonal%20Architecture%20Diagram.png" width="60%">
+<img src="Hexagonal%20Architecture%20Diagram.png" width="60%">  
 
 *Source: [HappyCoders – Hexagonal Architecture with Spring Boot](https://www.happycoders.eu/software-craftsmanship/hexagonal-architecture-spring-boot/)*
 
