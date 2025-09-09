@@ -126,7 +126,7 @@ public class Holding {
             BigDecimal lotCostBasis = lot.getUnitPrice().multiply(BigDecimal.valueOf(sharesSoldFromLot));
             
             costBasis = costBasis.add(lotCostBasis);
-            lot.reduce(sharesSoldFromLot);
+            //lot.reduce(sharesSoldFromLot);
             remainingToSell -= sharesSoldFromLot;
         }
 
