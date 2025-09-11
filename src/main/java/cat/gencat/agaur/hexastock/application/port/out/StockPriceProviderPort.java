@@ -3,7 +3,6 @@ package cat.gencat.agaur.hexastock.application.port.out;
 import cat.gencat.agaur.hexastock.model.StockPrice;
 import cat.gencat.agaur.hexastock.model.Ticker;
 
-import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.function.Function;
