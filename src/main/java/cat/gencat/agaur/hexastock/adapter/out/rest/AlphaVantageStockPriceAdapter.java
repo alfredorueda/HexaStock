@@ -5,13 +5,11 @@ import cat.gencat.agaur.hexastock.model.StockPrice;
 import cat.gencat.agaur.hexastock.model.Ticker;
 import cat.gencat.agaur.hexastock.model.exception.ExternalApiException;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.boot.http.client.ClientHttpRequestFactorySettings;
 import org.springframework.context.annotation.Profile;
 import org.springframework.http.client.SimpleClientHttpRequestFactory;
 import org.springframework.stereotype.Component;
 import com.fasterxml.jackson.databind.JsonNode;
 import org.springframework.web.client.RestClient;
-import java.time.Duration;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 
@@ -51,6 +49,8 @@ public class AlphaVantageStockPriceAdapter implements StockPriceProviderPort {
         }
     }
 
+    private static final String GLOBAL_QUOTE_FIELD = "Global Quote";
+
     /**
      * Fetches the current price for a given stock ticker from the Alpha Vantage API.
      *
@@ -78,7 +78,7 @@ public class AlphaVantageStockPriceAdapter implements StockPriceProviderPort {
                 .uri(url)
                 .retrieve()
                 .body(JsonNode.class);
-            if (responseJson == null || responseJson.get("Global Quote") == null || responseJson.get("Global Quote").get("05. price") == null) {
+            if (responseJson == null || responseJson.get(GLOBAL_QUOTE_FIELD) == null || responseJson.get(GLOBAL_QUOTE_FIELD).get("05. price") == null) {
                 throw new ExternalApiException("Invalid response from Alpha Vantage API: missing or malformed price data");
             }
         } catch (Exception e) {
@@ -86,11 +86,10 @@ public class AlphaVantageStockPriceAdapter implements StockPriceProviderPort {
         }
         double currentPrice;
         try {
-            currentPrice = Double.parseDouble(responseJson.get("Global Quote").get("05. price").asText());
+            currentPrice = Double.parseDouble(responseJson.get(GLOBAL_QUOTE_FIELD).get("05. price").asText());
         } catch (Exception e) {
             throw new ExternalApiException("Could not parse price from Alpha Vantage response", e);
         }
         return new StockPrice(ticker, currentPrice, LocalDateTime.now().atZone(ZoneId.of("Europe/Madrid")).toInstant(), "USD");
     }
 }
-

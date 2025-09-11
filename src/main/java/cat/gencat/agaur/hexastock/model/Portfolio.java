@@ -249,7 +249,7 @@ public class Portfolio {
      * 
      * @return A list of all Holdings
      *
-     * TODO: Deberíamos devolver no el Holding, si no una copia de él
+     *
      */
     public List<Holding> getHoldings() {
         return List.copyOf(holdings.values());

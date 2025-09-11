@@ -3,7 +3,6 @@ package cat.gencat.agaur.hexastock.adapter.out.persistence.jpa.entity;
 import jakarta.persistence.*;
 
 import java.math.BigDecimal;
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.HashSet;
 import java.util.Set;

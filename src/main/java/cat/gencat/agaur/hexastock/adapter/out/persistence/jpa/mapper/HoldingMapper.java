@@ -1,9 +1,7 @@
 package cat.gencat.agaur.hexastock.adapter.out.persistence.jpa.mapper;
 
 import cat.gencat.agaur.hexastock.adapter.out.persistence.jpa.entity.HoldingJpaEntity;
-import cat.gencat.agaur.hexastock.adapter.out.persistence.jpa.entity.PortfolioJpaEntity;
 import cat.gencat.agaur.hexastock.model.Holding;
-import cat.gencat.agaur.hexastock.model.Portfolio;
 import cat.gencat.agaur.hexastock.model.Ticker;
 
 import java.util.stream.Collectors;

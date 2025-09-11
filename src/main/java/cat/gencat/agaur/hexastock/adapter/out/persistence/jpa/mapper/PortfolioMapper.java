@@ -1,6 +1,5 @@
 package cat.gencat.agaur.hexastock.adapter.out.persistence.jpa.mapper;
 
-import cat.gencat.agaur.hexastock.adapter.out.persistence.jpa.entity.HoldingJpaEntity;
 import cat.gencat.agaur.hexastock.adapter.out.persistence.jpa.entity.PortfolioJpaEntity;
 import cat.gencat.agaur.hexastock.model.Portfolio;
 

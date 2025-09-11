@@ -150,12 +150,7 @@ public class Holding {
                 .sum();
     }
 
-    /*
-    public boolean isEmpty() {
-        return lots.isEmpty() || getTotalShares() == 0;
-    }
-    */
-    
+
     /**
      * Gets the unique identifier of this holding.
      * 

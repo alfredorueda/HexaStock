@@ -115,12 +115,7 @@ public class Lot {
         remaining -= qty;
     }
 
-    /*
-    public boolean isEmpty() {
-        return remaining <= 0;
-    }
-    */
-    
+
     /**
      * Gets the unique identifier of this lot.
      * 

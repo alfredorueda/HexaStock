@@ -2,7 +2,6 @@ package cat.gencat.agaur.hexastock.model.service;
 
 import cat.gencat.agaur.hexastock.adapter.in.webmodel.HoldingDTO;
 import cat.gencat.agaur.hexastock.model.*;
-import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;

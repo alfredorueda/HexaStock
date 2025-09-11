@@ -1,12 +1,7 @@
 package cat.gencat.agaur.hexastock.adapter.out.persistence.jpa.mapper;
 
-import cat.gencat.agaur.hexastock.adapter.out.persistence.jpa.entity.HoldingJpaEntity;
 import cat.gencat.agaur.hexastock.adapter.out.persistence.jpa.entity.LotJpaEntity;
-import cat.gencat.agaur.hexastock.model.Holding;
 import cat.gencat.agaur.hexastock.model.Lot;
-import cat.gencat.agaur.hexastock.model.Ticker;
-
-import java.util.stream.Collectors;
 
 public class LotMapper {
 

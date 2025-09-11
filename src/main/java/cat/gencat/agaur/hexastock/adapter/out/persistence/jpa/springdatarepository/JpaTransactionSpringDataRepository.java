@@ -1,4 +1,4 @@
-package cat.gencat.agaur.hexastock.adapter.out.persistence.jpa.springDataRepository;
+package cat.gencat.agaur.hexastock.adapter.out.persistence.jpa.springdatarepository;
 
 import cat.gencat.agaur.hexastock.adapter.out.persistence.jpa.entity.TransactionJpaEntity;
 import org.springframework.data.jpa.repository.JpaRepository;
