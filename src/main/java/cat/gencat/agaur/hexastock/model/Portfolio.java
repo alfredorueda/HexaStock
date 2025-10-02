@@ -9,8 +9,8 @@ import java.util.*;
 /**
  * Portfolio represents an investment portfolio owned by an individual.
  * 
- * <p>In DDD terms, this is an <strong>Aggregate Root</strong> that encapsulates a collection of stocks
- * (Holdings) and provides operations to manage investments. As an Aggregate Root, Portfolio
+ * <p>In DDD terms, this is an <strong>Aggregate Root</strong> that encapsulates a collection of Holdings
+ * and provides operations to manage investments. As an Aggregate Root, Portfolio
  * ensures that all changes to its contained Holdings happen through its methods, maintaining
  * consistency across the entire aggregate.</p>
  * 

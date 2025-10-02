@@ -116,7 +116,8 @@ public class Holding {
 
         int remainingToSell = quantity;
         BigDecimal costBasis = BigDecimal.ZERO;
-        
+
+        // TODO: Refactor to use Iterator to avoid break and continue in the same loop.
         for (Lot lot : lots) {
             if (remainingToSell <= 0) break;
 
