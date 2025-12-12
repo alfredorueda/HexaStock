@@ -4,7 +4,6 @@
 ---
 
 ## 01. Introduction & Adapter Swap in Action
-🎥 [Watch the video on Vimeo](https://vimeo.com/1116578989/3c3f04591c)
 
 - Quick look at the **Hexagonal Architecture diagram**
 - Present HexaStock: a financial portfolio app built with DDD
