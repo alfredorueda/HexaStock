@@ -938,39 +938,6 @@ The following exercises form a progressive learning path designed to deepen your
 
 ---
 
-### Exercise 13: Evaluate Aggregate Redesign for Scalability
-**Type:** Advanced Reasoning / Architecture
-
-**Goal:** Critically analyze when aggregate boundaries should change.
-
-**Scenario:** The portfolio system is growing. Some portfolios have 1000+ holdings with 10,000+ lots. Loading the entire aggregate is slow.
-
-**What to deliver:**
-
-1. **Problem Analysis (written):**
-   - Why is the current aggregate design problematic at scale?
-   - What specific operations become slow?
-   - How does the aggregate boundary contribute to the problem?
-
-2. **Alternative Design (written):**
-   - Propose splitting `Portfolio` into multiple aggregates
-   - Define new aggregate roots and their boundaries
-   - Explain how cross-aggregate operations (e.g., selling from multiple holdings) would work
-   - Discuss eventual consistency trade-offs
-
-3. **Decision Framework (written):**
-   - Under what conditions should you keep the current design?
-   - At what scale would you recommend the redesign?
-   - How would you migrate existing data?
-   - What tests would you write to ensure the redesign preserves correctness?
-
-4. **DDD Reflection (written):**
-   - Is it acceptable to change aggregate boundaries based on technical concerns?
-   - How do you balance DDD purity with pragmatic performance needs?
-   - What would Eric Evans say about this decision?
-
----
-
 **End of Exercises**
 
 Work through these exercises in order. Each builds on concepts from earlier exercises. Discuss your solutions with peers and instructors to deepen your understanding of Hexagonal Architecture and Domain-Driven Design.
