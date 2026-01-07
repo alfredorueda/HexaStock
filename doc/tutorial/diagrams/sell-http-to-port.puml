@@ -1,0 +1,45 @@
+@startuml sell-http-to-port
+!theme plain
+skinparam backgroundColor #FEFEFE
+skinparam handwritten false
+
+actor Client
+participant "PortfolioRestController\n(Driving Adapter)" as Controller
+participant "PortfolioStockOperationsUseCase\n(Primary Port)" as Port
+participant "PortfolioStockOperationsService\n(Application Service)" as Service
+
+Client -> Controller: POST /api/portfolios/{id}/sales\n{"ticker":"AAPL", "quantity":5}
+activate Controller
+
+Controller -> Controller: Extract path variable: id
+Controller -> Controller: Parse request body: SaleRequestDTO
+Controller -> Controller: Create domain object: Ticker.of("AAPL")
+
+Controller -> Port: sellStock(id, ticker, quantity)
+note right
+  Controller depends on the
+  **interface**, not the implementation.
+  This is Dependency Inversion.
+end note
+activate Port
+
+Port -> Service: sellStock(id, ticker, quantity)
+activate Service
+
+Service --> Port: SellResult
+deactivate Service
+
+Port --> Controller: SellResult
+deactivate Port
+
+Controller -> Controller: Convert to DTO:\nSaleResponseDTO
+Controller --> Client: HTTP 200 OK\n{"proceeds":750, "costBasis":625, "profit":125}
+deactivate Controller
+
+note over Controller
+  The controller is a **Driving Adapter**.
+  It translates HTTP into use case calls.
+  It has no business logic.
+end note
+
+@enduml

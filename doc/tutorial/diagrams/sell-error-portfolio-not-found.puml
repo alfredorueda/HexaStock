@@ -1,0 +1,48 @@
+@startuml sell-error-portfolio-not-found
+!theme plain
+skinparam backgroundColor #FEFEFE
+
+actor Client
+participant "PortfolioRestController" as Controller
+participant "PortfolioStockOperationsService" as Service
+participant "PortfolioPort" as Port
+participant "GlobalExceptionHandler\n(@RestControllerAdvice)" as Handler
+
+Client -> Controller: POST /api/portfolios/xyz-999/sales\n{"ticker":"AAPL", "quantity":5}
+activate Controller
+
+Controller -> Service: sellStock("xyz-999", ticker, 5)
+activate Service
+
+Service -> Port: getPortfolioById("xyz-999")
+activate Port
+Port --> Service: Optional.empty()
+deactivate Port
+
+Service -> Service: orElseThrow()
+Service --> Controller: throw PortfolioNotFoundException("xyz-999")
+deactivate Service
+
+Controller -> Handler: handle exception
+activate Handler
+note right of Handler
+  Exception handler
+  translates domain
+  exceptions to HTTP
+  responses
+end note
+
+Handler -> Handler: create ProblemDetail:\n- status: 404\n- title: "Portfolio Not Found"\n- detail: "Portfolio with ID xyz-999 not found"
+
+Handler --> Controller: ResponseEntity<ProblemDetail>
+deactivate Handler
+
+Controller --> Client: HTTP 404 NOT FOUND\n{\n  "title": "Portfolio Not Found",\n  "detail": "Portfolio with ID xyz-999 not found",\n  "status": 404\n}
+deactivate Controller
+
+note over Client, Handler
+  **Domain Exception → HTTP Status**
+  PortfolioNotFoundException → 404 Not Found
+end note
+
+@enduml

@@ -1,0 +1,67 @@
+@startuml sell-domain-fifo
+!theme plain
+skinparam backgroundColor #FEFEFE
+
+participant "Portfolio\n(Aggregate Root)" as Portfolio
+participant "Holding\n(Entity)" as Holding
+participant "Lot 1\n(Entity)\nPurchased: 2024-01-15\nRemaining: 10" as Lot1
+participant "Lot 2\n(Entity)\nPurchased: 2024-02-20\nRemaining: 5" as Lot2
+
+activate Portfolio
+
+Portfolio -> Portfolio: validate quantity > 0
+Portfolio -> Portfolio: validate price > 0
+Portfolio -> Portfolio: check holdings.containsKey(ticker)
+
+Portfolio -> Holding: sell(quantity=7, sellPrice=150)
+activate Holding
+
+Holding -> Holding: check getTotalShares() >= 7
+note right
+  Total: 10 + 5 = 15 shares
+  Selling: 7 shares
+  OK to proceed
+end note
+
+Holding -> Holding: calculate proceeds:\n7 * 150 = 1050
+Holding -> Holding: costBasis = 0\nremaining = 7
+
+note over Holding
+  **FIFO Algorithm**
+  Sell from oldest lot first
+end note
+
+Holding -> Lot1: reduce(toSell=7)
+activate Lot1
+Lot1 -> Lot1: validate qty <= remaining
+Lot1 -> Lot1: remaining -= 7\n(10 → 3)
+Lot1 --> Holding: void
+deactivate Lot1
+
+Holding -> Holding: costBasis += 7 * Lot1.unitPrice\ncostBasis = 7 * 100 = 700
+
+note right of Holding
+  Only needed 7 shares.
+  Lot1 had enough.
+  Lot2 remains untouched.
+end note
+
+Holding -> Holding: profit = proceeds - costBasis\n= 1050 - 700 = 350
+
+Holding --> Portfolio: SellResult(proceeds=1050,\ncostBasis=700, profit=350)
+deactivate Holding
+
+Portfolio -> Portfolio: balance += proceeds\nbalance += 1050
+
+Portfolio --> : SellResult
+deactivate Portfolio
+
+note over Portfolio, Lot2
+  **Key Invariants Protected:**
+  1. Cannot sell more than owned
+  2. FIFO order strictly enforced
+  3. Balance updated consistently
+  4. Lot quantities remain non-negative
+end note
+
+@enduml

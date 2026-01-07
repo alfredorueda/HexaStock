@@ -1,0 +1,56 @@
+@startuml sell-error-invalid-quantity
+!theme plain
+skinparam backgroundColor #FEFEFE
+
+actor Client
+participant "PortfolioRestController" as Controller
+participant "PortfolioStockOperationsService" as Service
+participant "Portfolio" as Portfolio
+participant "GlobalExceptionHandler" as Handler
+
+Client -> Controller: POST /api/portfolios/abc-123/sales\n{"ticker":"AAPL", "quantity":0}
+activate Controller
+
+Controller -> Service: sellStock("abc-123", ticker, 0)
+activate Service
+
+Service -> Service: fetch portfolio
+Service -> Service: fetch price
+
+Service -> Portfolio: sell(ticker, 0, price)
+activate Portfolio
+
+Portfolio -> Portfolio: validate quantity
+note right of Portfolio
+  Business rule:
+  quantity must be > 0
+end note
+
+Portfolio -> Portfolio: if (quantity <= 0)\n  throw InvalidQuantityException()
+
+Portfolio --> Service: throw InvalidQuantityException("Quantity must be positive")
+deactivate Portfolio
+
+Service --> Controller: throw InvalidQuantityException
+deactivate Service
+
+Controller -> Handler: handle exception
+activate Handler
+
+Handler -> Handler: create ProblemDetail:\n- status: 400\n- title: "Invalid Quantity"\n- detail: "Quantity must be positive"
+
+Handler --> Controller: ResponseEntity<ProblemDetail>
+deactivate Handler
+
+Controller --> Client: HTTP 400 BAD REQUEST\n{\n  "title": "Invalid Quantity",\n  "detail": "Quantity must be positive",\n  "status": 400\n}
+deactivate Controller
+
+note over Client, Handler
+  **Domain Exception → HTTP Status**
+  InvalidQuantityException → 400 Bad Request
+  
+  The domain model enforces this rule,
+  not the controller or service!
+end note
+
+@enduml

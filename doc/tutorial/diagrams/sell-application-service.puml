@@ -1,0 +1,53 @@
+@startuml sell-application-service
+!theme plain
+skinparam backgroundColor #FEFEFE
+
+participant "PortfolioStockOperationsService\n(Application Service)" as Service
+participant "PortfolioPort\n(Secondary Port)" as PortfolioPort
+participant "StockPriceProviderPort\n(Secondary Port)" as PricePort
+participant "Portfolio\n(Aggregate Root)" as Portfolio
+participant "TransactionPort\n(Secondary Port)" as TransactionPort
+
+activate Service
+
+Service -> PortfolioPort: getPortfolioById(portfolioId)
+activate PortfolioPort
+PortfolioPort --> Service: Optional<Portfolio>
+deactivate PortfolioPort
+
+Service -> Service: portfolio = optional.orElseThrow()
+
+Service -> PricePort: fetchStockPrice(ticker)
+activate PricePort
+PricePort --> Service: StockPrice
+deactivate PricePort
+
+note right of Service
+  The service **orchestrates**:
+  1. Fetch data from ports
+  2. Call the aggregate root
+  3. Save results
+  
+  It does NOT contain
+  business logic!
+end note
+
+Service -> Portfolio: sell(ticker, quantity, price)
+activate Portfolio
+Portfolio --> Service: SellResult
+deactivate Portfolio
+
+Service -> PortfolioPort: savePortfolio(portfolio)
+activate PortfolioPort
+PortfolioPort --> Service: void
+deactivate PortfolioPort
+
+Service -> TransactionPort: save(transaction)
+activate TransactionPort
+TransactionPort --> Service: void
+deactivate TransactionPort
+
+Service --> : SellResult
+deactivate Service
+
+@enduml

@@ -1,0 +1,64 @@
+@startuml sell-persistence-adapter
+!theme plain
+skinparam backgroundColor #FEFEFE
+
+participant "PortfolioStockOperationsService" as Service
+participant "PortfolioPort\n(Interface)" as Port
+participant "JpaPortfolioAdapter\n(Driven Adapter)" as Adapter
+participant "PortfolioMapper" as Mapper
+participant "PortfolioRepository\n(JPA)" as Repo
+database "PostgreSQL" as DB
+
+Service -> Port: savePortfolio(portfolio)
+activate Port
+note right of Port
+  Service depends on
+  the **interface**,
+  not the implementation
+end note
+
+Port -> Adapter: savePortfolio(portfolio)
+activate Adapter
+note right of Adapter
+  Adapter implements
+  the port interface
+end note
+
+Adapter -> Mapper: toEntity(portfolio)
+activate Mapper
+note right of Mapper
+  Convert domain model
+  to JPA entity
+  
+  Portfolio → PortfolioEntity
+  Holding → HoldingEntity
+  Lot → LotEntity
+end note
+Mapper --> Adapter: PortfolioEntity
+deactivate Mapper
+
+Adapter -> Repo: save(portfolioEntity)
+activate Repo
+
+Repo -> DB: INSERT/UPDATE
+activate DB
+DB --> Repo: rows affected
+deactivate DB
+
+Repo --> Adapter: PortfolioEntity
+deactivate Repo
+
+Adapter --> Port: void
+deactivate Adapter
+
+Port --> Service: void
+deactivate Port
+
+note over Service, DB
+  **Hexagonal Architecture Benefit:**
+  The service doesn't know about JPA,
+  Hibernate, or SQL. It could be swapped
+  for MongoDB, Redis, or in-memory storage.
+end note
+
+@enduml

@@ -1,0 +1,87 @@
+@startuml sell-orchestrator-vs-aggregate
+!theme plain
+skinparam backgroundColor #FEFEFE
+title Orchestrator vs Aggregate Root: Who Calls What?
+
+participant "PortfolioStockOperationsService\n(Application Service)" as Service #LightBlue
+participant "Portfolio\n(Aggregate Root)" as Portfolio #LightGreen
+participant "Holding\n(Entity)" as Holding #LightYellow
+participant "Lot\n(Entity)" as Lot #LightYellow
+
+== ✅ Correct: Service calls Aggregate Root ==
+
+Service -> Portfolio: sell(ticker, quantity, price)
+activate Service
+activate Portfolio
+note right of Service
+  Application Service
+  **orchestrates** but
+  does NOT make
+  business decisions
+end note
+
+Portfolio -> Portfolio: validate inputs
+Portfolio -> Portfolio: check holdings exist
+Portfolio -> Holding: sell(quantity, price)
+activate Holding
+note right of Portfolio
+  Aggregate Root
+  **protects invariants**
+  and delegates to
+  controlled entities
+end note
+
+Holding -> Holding: check total shares
+Holding -> Lot: reduce(qty)
+activate Lot
+Lot -> Lot: validate & update
+Lot --> Holding: void
+deactivate Lot
+
+Holding -> Holding: calculate profit
+Holding --> Portfolio: SellResult
+deactivate Holding
+
+Portfolio -> Portfolio: update balance
+Portfolio --> Service: SellResult
+deactivate Portfolio
+deactivate Service
+
+== ❌ WRONG: Service directly manipulating entities ==
+
+Service -[#red]x Holding: <font color=red>getLots()</font>
+activate Service
+activate Holding #Pink
+note right of Service #Pink
+  <font color=red>**ANTI-PATTERN!**</font>
+  
+  Service should NEVER
+  directly manipulate
+  entities inside the
+  aggregate!
+end note
+Holding -[#red]-> Service: <font color=red>List<Lot></font>
+deactivate Holding
+
+Service -[#red]x Lot: <font color=red>reduce(qty)</font>
+activate Lot #Pink
+note right of Service #Pink
+  This bypasses the
+  aggregate root!
+  
+  Invariants can be
+  violated!
+end note
+Lot -[#red]-> Service: <font color=red>void</font>
+deactivate Lot
+deactivate Service
+
+note over Service, Lot
+  **DDD Rule:**
+  External code (including application services)
+  must ONLY call methods on the aggregate root.
+  
+  Nested entities are **controlled** by the root.
+end note
+
+@enduml
