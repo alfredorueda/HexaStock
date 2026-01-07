@@ -912,57 +912,7 @@ The following exercises form a progressive learning path designed to deepen your
 
 ---
 
-### Exercise 12: Design a New Outbound Port for Market Data
-**Type:** Design + Reasoning
-
-**Goal:** Understand how outbound ports abstract external dependencies.
-
-**Scenario:** The business wants to support multiple stock price providers (Finnhub, AlphaVantage, Yahoo Finance) and switch between them at runtime.
-
-**What to deliver:**
-
-1. **Current Analysis (written):**
-   - How is `StockPriceProviderPort` currently implemented?
-   - What would need to change to support multiple providers?
-
-2. **Design Proposal (written + code interfaces):**
-   - Design a strategy pattern for multiple providers
-   - Define any new interfaces or classes needed
-   - Explain how to make the provider choice configurable (e.g., via application.properties)
-
-3. **Trade-off Analysis (written):**
-   - What are the benefits of this design?
-   - What are the costs (complexity, maintenance)?
-   - When would you NOT recommend this abstraction?
-
----
-
-### Exercise 13: Refactor to Remove Empty Lots
-**Type:** Coding + Domain Modeling
-
-**Goal:** Improve the domain model based on business requirements.
-
-**Business Requirement:** After selling all shares from a lot, the lot should be removed from the holding to avoid cluttering the database.
-
-**What to deliver:**
-
-1. **Implementation (code):**
-   - Modify `Holding.sell()` to remove lots with `remaining == 0`
-   - Ensure FIFO order is preserved
-
-2. **Testing (code):**
-   - Write a test that sells all shares from a holding across multiple lots
-   - Assert that empty lots are removed
-   - Assert that the holding itself is removed from the portfolio if all lots are gone
-
-3. **Impact Analysis (written):**
-   - Does this change affect the aggregate boundary? Why or why not?
-   - Could this operation be done by the application service instead? What would be the risks?
-   - How does this change affect transaction history queries?
-
----
-
-### Exercise 14: Add Tax Lot Identification
+### Exercise 12: Add Tax Lot Identification
 **Type:** Advanced Domain Modeling
 
 **Goal:** Extend the domain model with a more complex accounting method.
@@ -988,7 +938,7 @@ The following exercises form a progressive learning path designed to deepen your
 
 ---
 
-### Exercise 15: Evaluate Aggregate Redesign for Scalability
+### Exercise 13: Evaluate Aggregate Redesign for Scalability
 **Type:** Advanced Reasoning / Architecture
 
 **Goal:** Critically analyze when aggregate boundaries should change.
