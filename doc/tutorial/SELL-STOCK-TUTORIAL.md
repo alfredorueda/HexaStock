@@ -708,15 +708,322 @@ HTTP Response (SaleResponseDTO)
 
 ## 12. Exercises for Students
 
-1. **Trace the Buy Flow:** Using this tutorial as a template, trace the `buyStock` use case end-to-end.
+The following exercises form a progressive learning path designed to deepen your understanding of Hexagonal Architecture and Domain-Driven Design through hands-on work with the HexaStock codebase.
 
-2. **Add a New Invariant:** Add a business rule: "You cannot sell more than 50% of a holding in a single transaction." Where would you implement this rule? Why?
+---
 
-3. **Test the Domain Model:** Write a unit test for `Holding.sell()` that verifies FIFO works correctly when selling across multiple lots.
+### Exercise 1: Trace the Buy Flow
+**Type:** Execution Understanding / Documentation
 
-4. **Improve Encapsulation:** Refactor `Holding.getLots()` to return an unmodifiable list. Verify that the codebase still compiles and all tests pass.
+**Goal:** Understand how the `buyStock` use case mirrors the `sellStock` flow.
 
-5. **Add a New Adapter:** Create a `CommandLinePortfolioAdapter` that allows selling stocks via a terminal interface. Note how you reuse the same `PortfolioStockOperationsUseCase` port.
+**What to deliver:**
+- A written document (similar to section 5 of this tutorial) that traces the complete execution path for buying stocks
+- Include: REST endpoint → Controller → Inbound Port → Application Service → Domain Model → Persistence
+- Identify which classes validate business rules and where ACID guarantees are enforced
+- Note one key difference between buy and sell operations
+
+---
+
+### Exercise 2: Identify Aggregate Boundaries
+**Type:** Reasoning / Explanation
+
+**Goal:** Understand why Portfolio is the aggregate root and what it protects.
+
+**What to deliver:**
+- A written explanation (300-500 words) answering:
+  - Why is `Portfolio` the aggregate root instead of `Holding` or `Lot`?
+  - What invariants would break if `Holding` were exposed as a separate aggregate?
+  - Why must balance updates and holding modifications happen together atomically?
+- Use concrete examples from the sell operation to support your reasoning
+
+---
+
+### Exercise 3: Map Domain Exceptions to HTTP Status Codes
+**Type:** Reasoning / Design
+
+**Goal:** Understand how domain exceptions become HTTP responses.
+
+**What to deliver:**
+- A table mapping each domain exception to its appropriate HTTP status code
+- For each mapping, explain WHY that status code is correct (not just "because that's what the code does")
+- Identify one exception that you think has an incorrect mapping and propose an alternative with justification
+
+---
+
+### Exercise 4: Test FIFO Across Multiple Lots
+**Type:** Coding / Testing
+
+**Goal:** Verify that FIFO accounting works correctly in the domain model.
+
+**What to deliver:**
+- A unit test for `Holding.sell()` with the following scenario:
+  - Buy 10 shares at $100 on Jan 1
+  - Buy 5 shares at $120 on Feb 1
+  - Buy 8 shares at $110 on Mar 1
+  - Sell 12 shares at $150
+- Assert that:
+  - The correct lots are reduced
+  - Cost basis is calculated from the first two lots only
+  - Profit/loss is correct
+- The test must run without any infrastructure (no database, no Spring context)
+
+---
+
+### Exercise 5: Explain the Role of @Transactional
+**Type:** Reasoning / Explanation
+
+**Goal:** Understand when and why Spring transactions are needed.
+
+**What to deliver:**
+- A written explanation answering:
+  - Why is `@Transactional` on the application service, not the domain model?
+  - What would happen if `portfolioPort.savePortfolio()` succeeds but `transactionPort.save()` fails?
+  - Could the domain model enforce ACID guarantees itself? Why or why not?
+- Propose a scenario where transaction management might fail and explain the consequences
+
+---
+
+### Exercise 6: Add a Maximum Sell Percentage Invariant
+**Type:** Mixed (Design + Coding + Reasoning)
+
+**Goal:** Implement a critical business rule using DDD principles.
+
+**Business Rule:** A portfolio cannot sell more than 50% of the shares of a holding in a single transaction.
+
+**What to deliver:**
+
+1. **Design Decision (written explanation):**
+   - WHERE should this rule be implemented? Options:
+     - In `PortfolioRestController`
+     - In `PortfolioStockOperationsService`
+     - In `Portfolio.sell()`
+     - In `Holding.sell()`
+   - Justify your choice using DDD concepts: aggregate boundaries, invariants, encapsulation
+   - Explain what could go wrong if implemented in the application service instead
+
+2. **Implementation (code):**
+   - Add the validation to the appropriate class
+   - Throw a new domain exception: `ExcessiveSaleException`
+   - Ensure the rule is enforced BEFORE any state changes
+
+3. **Test (code):**
+   - Write at least one domain-level unit test verifying:
+     - Selling 50% or less succeeds
+     - Selling 51% fails with `ExcessiveSaleException`
+     - The test runs without infrastructure
+
+4. **Reflection (written):**
+   - How would you handle a requirement to make the percentage configurable per portfolio?
+   - Would that change where the rule lives? Why or why not?
+
+---
+
+### Exercise 7: Improve Encapsulation in Holding
+**Type:** Coding / Refactoring
+
+**Goal:** Fix the encapsulation violation identified in section 6.C of this tutorial.
+
+**What to deliver:**
+- Refactor `Holding.getLots()` to return an unmodifiable list
+- Verify that all existing tests still pass
+- Identify any code that directly calls `getLots()` and assess whether it violates aggregate boundaries
+- If violations exist, propose a refactoring strategy (you don't need to implement it, just describe it)
+
+---
+
+### Exercise 8: Mock Ports to Test the Application Service
+**Type:** Coding / Testing
+
+**Goal:** Test the orchestration logic in isolation.
+
+**What to deliver:**
+- A unit test for `PortfolioStockOperationsService.sellStock()` that:
+  - Mocks `PortfolioPort`, `StockPriceProviderPort`, and `TransactionPort`
+  - Verifies the service calls each port in the correct order
+  - Verifies the service delegates to `portfolio.sell()` with the fetched price
+  - Verifies the service saves both the portfolio and the transaction
+- Use Mockito or a similar mocking framework
+- The test must NOT start a Spring context
+
+---
+
+### Exercise 9: Distinguish Value Objects from Entities
+**Type:** Reasoning / Explanation
+
+**Goal:** Understand the difference between entities and value objects in DDD.
+
+**What to deliver:**
+- A written explanation (400-600 words) analyzing:
+  - Why is `Ticker` a value object while `Lot` is an entity?
+  - Why is `Money` a value object while `Portfolio` is an entity?
+  - What would happen if `SellResult` had an ID and was persisted as an entity?
+- Propose converting `Ticker` into an entity with validation rules (e.g., must be uppercase, 1-5 characters). Would this be a good design? Why or why not?
+
+---
+
+### Exercise 10: Add a New Inbound Port for Bulk Operations
+**Type:** Design + Coding
+
+**Goal:** Extend the hexagonal architecture with a new use case.
+
+**Business Requirement:** Support selling shares of multiple tickers in a single API call.
+
+**What to deliver:**
+
+1. **Port Definition (code):**
+   - Create `BulkStockOperationsUseCase` interface with:
+     ```java
+     Map<Ticker, SellResult> sellMultiple(String portfolioId, Map<Ticker, Integer> sales);
+     ```
+
+2. **Service Implementation (code):**
+   - Implement the port in a new application service
+   - Reuse the existing `Portfolio.sell()` method for each ticker
+   - Ensure the entire operation is transactional (all succeed or all fail)
+
+3. **REST Endpoint (code):**
+   - Add a new controller method: `POST /api/portfolios/{id}/bulk-sales`
+   - Request body: `{"sales": [{"ticker": "AAPL", "quantity": 5}, ...]}`
+
+4. **Design Reflection (written):**
+   - Why is it better to create a new port rather than modify `PortfolioStockOperationsUseCase`?
+   - How does this demonstrate the Open/Closed Principle?
+
+---
+
+### Exercise 11: Add a Command-Line Adapter
+**Type:** Coding / Hexagonal Architecture
+
+**Goal:** Demonstrate that ports enable multiple adapters.
+
+**What to deliver:**
+- Create a `CommandLinePortfolioAdapter` class that:
+  - Uses `PortfolioStockOperationsUseCase` (the same port used by the REST controller)
+  - Reads commands from `System.in` (e.g., "sell abc-123 AAPL 5")
+  - Prints results to `System.out`
+  - Handles exceptions gracefully
+- Write a main method that demonstrates:
+  - Creating a portfolio
+  - Depositing funds
+  - Buying stocks
+  - Selling stocks
+- Explain in a comment: How many lines of business logic did you need to write? Why so few?
+
+---
+
+### Exercise 12: Design a New Outbound Port for Market Data
+**Type:** Design + Reasoning
+
+**Goal:** Understand how outbound ports abstract external dependencies.
+
+**Scenario:** The business wants to support multiple stock price providers (Finnhub, AlphaVantage, Yahoo Finance) and switch between them at runtime.
+
+**What to deliver:**
+
+1. **Current Analysis (written):**
+   - How is `StockPriceProviderPort` currently implemented?
+   - What would need to change to support multiple providers?
+
+2. **Design Proposal (written + code interfaces):**
+   - Design a strategy pattern for multiple providers
+   - Define any new interfaces or classes needed
+   - Explain how to make the provider choice configurable (e.g., via application.properties)
+
+3. **Trade-off Analysis (written):**
+   - What are the benefits of this design?
+   - What are the costs (complexity, maintenance)?
+   - When would you NOT recommend this abstraction?
+
+---
+
+### Exercise 13: Refactor to Remove Empty Lots
+**Type:** Coding + Domain Modeling
+
+**Goal:** Improve the domain model based on business requirements.
+
+**Business Requirement:** After selling all shares from a lot, the lot should be removed from the holding to avoid cluttering the database.
+
+**What to deliver:**
+
+1. **Implementation (code):**
+   - Modify `Holding.sell()` to remove lots with `remaining == 0`
+   - Ensure FIFO order is preserved
+
+2. **Testing (code):**
+   - Write a test that sells all shares from a holding across multiple lots
+   - Assert that empty lots are removed
+   - Assert that the holding itself is removed from the portfolio if all lots are gone
+
+3. **Impact Analysis (written):**
+   - Does this change affect the aggregate boundary? Why or why not?
+   - Could this operation be done by the application service instead? What would be the risks?
+   - How does this change affect transaction history queries?
+
+---
+
+### Exercise 14: Add Tax Lot Identification
+**Type:** Advanced Domain Modeling
+
+**Goal:** Extend the domain model with a more complex accounting method.
+
+**Business Requirement:** Support "specific identification" accounting where investors can choose which lots to sell (instead of FIFO).
+
+**What to deliver:**
+
+1. **Design Proposal (written):**
+   - How would you modify the aggregate to support both FIFO and specific lot selection?
+   - Should the choice be per-portfolio, per-sale, or globally configured?
+   - How would you represent "which lots to sell" in the API?
+
+2. **Domain Model Changes (code or pseudocode):**
+   - Modify `Portfolio.sell()` or create a new method `sellSpecificLots()`
+   - Show how the method signature would change
+   - Sketch the validation logic (you don't need to implement the full algorithm)
+
+3. **Trade-off Discussion (written):**
+   - What invariants become harder to enforce?
+   - How does this affect testability?
+   - Would you recommend this feature? Under what conditions?
+
+---
+
+### Exercise 15: Evaluate Aggregate Redesign for Scalability
+**Type:** Advanced Reasoning / Architecture
+
+**Goal:** Critically analyze when aggregate boundaries should change.
+
+**Scenario:** The portfolio system is growing. Some portfolios have 1000+ holdings with 10,000+ lots. Loading the entire aggregate is slow.
+
+**What to deliver:**
+
+1. **Problem Analysis (written):**
+   - Why is the current aggregate design problematic at scale?
+   - What specific operations become slow?
+   - How does the aggregate boundary contribute to the problem?
+
+2. **Alternative Design (written):**
+   - Propose splitting `Portfolio` into multiple aggregates
+   - Define new aggregate roots and their boundaries
+   - Explain how cross-aggregate operations (e.g., selling from multiple holdings) would work
+   - Discuss eventual consistency trade-offs
+
+3. **Decision Framework (written):**
+   - Under what conditions should you keep the current design?
+   - At what scale would you recommend the redesign?
+   - How would you migrate existing data?
+   - What tests would you write to ensure the redesign preserves correctness?
+
+4. **DDD Reflection (written):**
+   - Is it acceptable to change aggregate boundaries based on technical concerns?
+   - How do you balance DDD purity with pragmatic performance needs?
+   - What would Eric Evans say about this decision?
+
+---
+
+**End of Exercises**
+
+Work through these exercises in order. Each builds on concepts from earlier exercises. Discuss your solutions with peers and instructors to deepen your understanding of Hexagonal Architecture and Domain-Driven Design.
 
 ---
 
