@@ -258,4 +258,134 @@ class HoldingTest {
             assertThrows(EntityExistsException.class, () -> holding.addLot(lot2));
         }
     }
+
+    @Nested
+    @DisplayName("Holding Equality and HashCode")
+    class HoldingEquality {
+
+        @Test
+        @DisplayName("Should be equal when IDs are the same")
+        void shouldBeEqualWhenIdsAreSame() {
+            // Given
+            String id = UUID.randomUUID().toString();
+            Holding holding1 = new Holding(id, GOOGLE);
+            Holding holding2 = new Holding(id, new Ticker("AAPL")); // Different ticker
+
+            holding1.buy(10, PRICE_100);
+            holding2.buy(20, PRICE_120);
+
+            // Then - Same ID means equal, regardless of ticker or lots
+            assertEquals(holding1, holding2);
+            assertEquals(holding2, holding1);
+        }
+
+        @Test
+        @DisplayName("Should not be equal when IDs are different")
+        void shouldNotBeEqualWhenIdsAreDifferent() {
+            // Given
+            Holding holding1 = Holding.create(GOOGLE);
+            Holding holding2 = Holding.create(GOOGLE); // Same ticker, different ID
+
+            // Then
+            assertNotEquals(holding1, holding2);
+            assertNotEquals(holding2, holding1);
+        }
+
+        @Test
+        @DisplayName("Should be equal to itself (reflexive)")
+        void shouldBeEqualToItself() {
+            // Then
+            assertEquals(holding, holding);
+        }
+
+        @Test
+        @DisplayName("Should not be equal to null")
+        void shouldNotBeEqualToNull() {
+            // Then
+            assertNotEquals(null, holding);
+        }
+
+        @Test
+        @DisplayName("Should not be equal to different type")
+        void shouldNotBeEqualToDifferentType() {
+            // Given
+            String notAHolding = "not a holding";
+
+            // Then
+            assertNotEquals(holding, notAHolding);
+        }
+
+        @Test
+        @DisplayName("Should have same hashCode when equal")
+        void shouldHaveSameHashCodeWhenEqual() {
+            // Given
+            String id = UUID.randomUUID().toString();
+            Holding holding1 = new Holding(id, GOOGLE);
+            Holding holding2 = new Holding(id, new Ticker("AAPL"));
+
+            holding1.buy(10, PRICE_100);
+            holding2.buy(20, PRICE_120);
+
+            // Then
+            assertEquals(holding1.hashCode(), holding2.hashCode());
+        }
+
+        @Test
+        @DisplayName("Should maintain equality after state changes")
+        void shouldMaintainEqualityAfterStateChanges() {
+            // Given
+            String id = UUID.randomUUID().toString();
+            Holding holding1 = new Holding(id, GOOGLE);
+            Holding holding2 = new Holding(id, GOOGLE);
+
+            // When - Modify state of holding1
+            holding1.buy(10, PRICE_100);
+            holding1.sell(5, PRICE_110);
+
+            // Then - Still equal because ID hasn't changed
+            assertEquals(holding1, holding2);
+            assertEquals(holding1.hashCode(), holding2.hashCode());
+        }
+
+        @Test
+        @DisplayName("Should work correctly in HashSet")
+        void shouldWorkCorrectlyInHashSet() {
+            // Given
+            String id = UUID.randomUUID().toString();
+            Holding holding1 = new Holding(id, GOOGLE);
+            Holding holding2 = new Holding(id, new Ticker("AAPL"));
+
+            java.util.Set<Holding> holdingSet = new java.util.HashSet<>();
+
+            // When
+            holdingSet.add(holding1);
+            holdingSet.add(holding2); // Same ID, should not add duplicate
+
+            // Then
+            assertEquals(1, holdingSet.size());
+            assertTrue(holdingSet.contains(holding1));
+            assertTrue(holdingSet.contains(holding2)); // Both should be found
+        }
+
+        @Test
+        @DisplayName("Should work correctly in HashMap")
+        void shouldWorkCorrectlyInHashMap() {
+            // Given
+            String id = UUID.randomUUID().toString();
+            Holding holding1 = new Holding(id, GOOGLE);
+            Holding holding2 = new Holding(id, new Ticker("AAPL"));
+
+            java.util.Map<Holding, String> holdingMap = new java.util.HashMap<>();
+
+            // When
+            holdingMap.put(holding1, "First");
+            holdingMap.put(holding2, "Second"); // Same ID, should replace value
+
+            // Then
+            assertEquals(1, holdingMap.size());
+            assertEquals("Second", holdingMap.get(holding1));
+            assertEquals("Second", holdingMap.get(holding2));
+        }
+    }
 }
+

@@ -176,7 +176,34 @@ public class Holding {
         return List.copyOf(lots);
     }
 
-    // TODO: @Override equals and hashCode methods for proper entity comparison
+    /**
+     * Compares this holding to another object for equality.
+     * Two holdings are considered equal if they have the same ID.
+     *
+     * <p>This implements entity equality semantics: holdings with the same ID
+     * represent the same stock position, regardless of their current state (lots, shares count, etc.).</p>
+     *
+     * @param o The object to compare with
+     * @return true if the holdings have the same ID, false otherwise
+     */
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof Holding)) return false;
+        Holding holding = (Holding) o;
+        return Objects.equals(id, holding.id);
+    }
+
+    /**
+     * Returns a hash code value for this holding.
+     * The hash code is based solely on the holding's ID to maintain consistency with equals().
+     *
+     * @return A hash code value for this holding
+     */
+    @Override
+    public int hashCode() {
+        return Objects.hashCode(id);
+    }
 
     /**
      * Adds a pre-existing Lot to this holding.

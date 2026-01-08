@@ -158,4 +158,114 @@ class LotTest {
             assertEquals(1, lot.getRemaining());
         }
     }
+
+    @Nested
+    @DisplayName("Lot Equality and HashCode")
+    class LotEquality {
+
+        @Test
+        @DisplayName("Should be equal when IDs are the same")
+        void shouldBeEqualWhenIdsAreSame() {
+            // Given
+            String id = UUID.randomUUID().toString();
+            Lot lot1 = new Lot(id, 10, 10, VALID_PRICE, NOW, true);
+            Lot lot2 = new Lot(id, 20, 15, new BigDecimal("200.00"), NOW.plusDays(1), true);
+
+            // Then - Same ID means equal, regardless of other fields
+            assertEquals(lot1, lot2);
+            assertEquals(lot2, lot1);
+        }
+
+        @Test
+        @DisplayName("Should not be equal when IDs are different")
+        void shouldNotBeEqualWhenIdsAreDifferent() {
+            // Given
+            Lot lot1 = new Lot(UUID.randomUUID().toString(), 10, 10, VALID_PRICE, NOW, true);
+            Lot lot2 = new Lot(UUID.randomUUID().toString(), 10, 10, VALID_PRICE, NOW, true);
+
+            // Then - Different IDs means not equal, even if other fields match
+            assertNotEquals(lot1, lot2);
+            assertNotEquals(lot2, lot1);
+        }
+
+        @Test
+        @DisplayName("Should be equal to itself (reflexive)")
+        void shouldBeEqualToItself() {
+            // Given
+            Lot lot = new Lot(UUID.randomUUID().toString(), 10, 10, VALID_PRICE, NOW, true);
+
+            // Then
+            assertEquals(lot, lot);
+        }
+
+        @Test
+        @DisplayName("Should not be equal to null")
+        void shouldNotBeEqualToNull() {
+            // Given
+            Lot lot = new Lot(UUID.randomUUID().toString(), 10, 10, VALID_PRICE, NOW, true);
+
+            // Then
+            assertNotEquals(null, lot);
+        }
+
+        @Test
+        @DisplayName("Should not be equal to different type")
+        void shouldNotBeEqualToDifferentType() {
+            // Given
+            Lot lot = new Lot(UUID.randomUUID().toString(), 10, 10, VALID_PRICE, NOW, true);
+            String notALot = "not a lot";
+
+            // Then
+            assertNotEquals(lot, notALot);
+        }
+
+        @Test
+        @DisplayName("Should have same hashCode when equal")
+        void shouldHaveSameHashCodeWhenEqual() {
+            // Given
+            String id = UUID.randomUUID().toString();
+            Lot lot1 = new Lot(id, 10, 10, VALID_PRICE, NOW, true);
+            Lot lot2 = new Lot(id, 20, 15, new BigDecimal("200.00"), NOW.plusDays(1), true);
+
+            // Then
+            assertEquals(lot1.hashCode(), lot2.hashCode());
+        }
+
+        @Test
+        @DisplayName("Should maintain equality after state changes")
+        void shouldMaintainEqualityAfterStateChanges() {
+            // Given
+            String id = UUID.randomUUID().toString();
+            Lot lot1 = new Lot(id, 10, 10, VALID_PRICE, NOW, true);
+            Lot lot2 = new Lot(id, 10, 10, VALID_PRICE, NOW, true);
+
+            // When - Modify state of lot1
+            lot1.reduce(5);
+
+            // Then - Still equal because ID hasn't changed
+            assertEquals(lot1, lot2);
+            assertEquals(lot1.hashCode(), lot2.hashCode());
+        }
+
+        @Test
+        @DisplayName("Should work correctly in HashSet")
+        void shouldWorkCorrectlyInHashSet() {
+            // Given
+            String id = UUID.randomUUID().toString();
+            Lot lot1 = new Lot(id, 10, 10, VALID_PRICE, NOW, true);
+            Lot lot2 = new Lot(id, 20, 15, new BigDecimal("200.00"), NOW.plusDays(1), true);
+
+            java.util.Set<Lot> lotSet = new java.util.HashSet<>();
+
+            // When
+            lotSet.add(lot1);
+            lotSet.add(lot2); // Same ID, should not add duplicate
+
+            // Then
+            assertEquals(1, lotSet.size());
+            assertTrue(lotSet.contains(lot1));
+            assertTrue(lotSet.contains(lot2)); // Both should be found
+        }
+    }
 }
+

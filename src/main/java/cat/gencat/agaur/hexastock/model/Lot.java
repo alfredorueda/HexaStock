@@ -6,6 +6,7 @@ import cat.gencat.agaur.hexastock.model.exception.InvalidQuantityException;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.Objects;
 
 /**
  * Lot represents a specific purchase of shares for a particular stock.
@@ -166,6 +167,35 @@ public class Lot {
      */
     public boolean isEmpty() {
         return remaining == 0;
+    }
+
+    /**
+     * Compares this lot to another object for equality.
+     * Two lots are considered equal if they have the same ID.
+     *
+     * <p>This implements entity equality semantics: lots with the same ID
+     * represent the same purchase transaction, regardless of their current state.</p>
+     *
+     * @param o The object to compare with
+     * @return true if the lots have the same ID, false otherwise
+     */
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof Lot)) return false;
+        Lot lot = (Lot) o;
+        return Objects.equals(id, lot.id);
+    }
+
+    /**
+     * Returns a hash code value for this lot.
+     * The hash code is based solely on the lot's ID to maintain consistency with equals().
+     *
+     * @return A hash code value for this lot
+     */
+    @Override
+    public int hashCode() {
+        return Objects.hashCode(id);
     }
 
 }
