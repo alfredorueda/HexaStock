@@ -805,14 +805,13 @@ When selling **more than 10 shares** in a single transaction, the portfolio **ca
 
 The percentage is calculated using the number of shares **held before the sale**.
 
-> Formal rule:
+> **Formal rule:**
 >
-> * If `sharesToSell ≤ 10` → allowed
-> * If `sharesToSell > 10` → must satisfy
-    >
-    >   ```
->   sharesToSell ≤ holdingSharesBefore × 0.50
->   ```
+> - If `sharesToSell <= 10` -> allowed
+> - If `sharesToSell > 10` -> must satisfy: 
+>   sharesToSell <= holdingSharesBefore * 0.50
+>   
+
 
 ---
 
