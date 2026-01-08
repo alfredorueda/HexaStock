@@ -938,6 +938,190 @@ The following exercises form a progressive learning path designed to deepen your
 
 ---
 
+### Exercise 13: Add a Third Stock Price Provider Adapter (Prove the Hexagon Works)
+
+**Type:** Coding + Architecture Validation (Driven Adapter / Outbound Port)
+**Goal:** Implement a **new outbound adapter** for market data that plugs into the existing port:
+
+* `cat/gencat/agaur/hexastock/application/port/out/StockPriceProviderPort.java`
+
+…and demonstrate that the **core of the system (domain + application services + REST controllers)** remains unchanged.
+
+---
+
+#### Context (what already exists in HexaStock)
+
+HexaStock already has **two** implementations of the same outbound port (`StockPriceProviderPort`), each calling a different external provider:
+
+* **Finnhub adapter**
+* **AlphaVantage adapter**
+
+They are both **driven adapters** (outbound): the application calls them through the port, and the adapter calls an external HTTP API.
+
+Your task is to add a **third adapter**, using a different provider, with the same contract and behavior.
+
+---
+
+## Provider Options (examples)
+
+Pick **one** provider that offers a free tier or freemium plan. You may choose any provider you find online, but here are common options:
+
+* **Twelve Data**
+* **Marketstack**
+* **Financial Modeling Prep (FMP)**
+* **IEX Cloud** (often limited free tier)
+* **Alpaca Market Data**
+
+You can also pick another provider not listed here, as long as:
+
+* it exposes a “latest price” endpoint,
+* it authenticates via API key,
+* it returns data you can map to your domain `StockPrice` model.
+
+---
+
+## What to deliver
+
+### 1) Implement the new adapter class (and its package)
+
+Create a new package under `adapter.out`, for example:
+
+* `cat.gencat.agaur.hexastock.adapter.out.twelvedata`
+* or `...adapter.out.marketstack`
+* or `...adapter.out.fmp`
+
+Then implement the port:
+
+```java
+package cat.gencat.agaur.hexastock.adapter.out.twelvedata;
+
+import cat.gencat.agaur.hexastock.application.port.out.StockPriceProviderPort;
+import cat.gencat.agaur.hexastock.model.Ticker;
+import cat.gencat.agaur.hexastock.model.StockPrice;
+
+public class TwelveDataStockPriceProviderAdapter implements StockPriceProviderPort {
+
+    @Override
+    public StockPrice fetchStockPrice(Ticker ticker) {
+        // 1) Call provider HTTP API
+        // 2) Parse JSON response
+        // 3) Map to domain object StockPrice
+        // 4) Handle errors/rate limits in a consistent way
+        throw new UnsupportedOperationException("TODO");
+    }
+}
+```
+
+**Strict rule:**
+✅ You may add new classes in the adapter layer
+❌ You must NOT change the port interface
+❌ You must NOT change the use case (`PortfolioStockOperationsService`)
+❌ You must NOT change the domain (`Portfolio`, `Holding`, `Lot`)
+❌ You must NOT change the REST controller
+
+This is the point of the exercise: **only infrastructure changes**.
+
+---
+
+### 2) Add configuration to select the provider
+
+Make it possible to switch providers without touching the core code. Use one of these approaches:
+
+**Option A: Spring Profiles (recommended for teaching)**
+
+* `application-finnhub.properties`
+* `application-alphavantage.properties`
+* `application-twelvedata.properties`
+
+Then activate via:
+
+* `-Dspring.profiles.active=twelvedata`
+
+**Option B: Property-based selection**
+
+* `stock.price.provider=twelvedata`
+
+Then create conditional beans.
+
+Your final result must allow:
+
+* Finnhub (existing)
+* AlphaVantage (existing)
+* Your new provider (new)
+
+---
+
+### 3) API key management (free-tier ready)
+
+* Store the API key outside code:
+
+    * environment variable, or
+    * profile properties file.
+* If the key is missing, fail fast with a clear error message.
+
+---
+
+### 4) Error handling contract (keep behavior consistent)
+
+Your adapter must handle, at minimum:
+
+* invalid ticker / symbol not found,
+* rate limit exceeded (HTTP 429 or provider-specific message),
+* provider downtime or network error.
+
+**Deliverable:** a short note describing how your adapter translates those cases into exceptions used by the application (or a consistent exception strategy already present in the codebase).
+
+---
+
+### 5) Tests (prove the adapter works without breaking the hexagon)
+
+Write one of these:
+
+**Option A (strongly recommended): Adapter unit test with mocked HTTP**
+
+* Use WireMock / MockWebServer
+* Verify:
+
+    * correct URL is called,
+    * ticker is passed correctly,
+    * response JSON is mapped correctly to `StockPrice`.
+
+**Option B: Run the existing sell integration test with your adapter**
+
+* Run `PortfolioRestControllerIntegrationTest` (or equivalent)
+* Switch profile to your adapter
+* Show that the **same sell flow works** (controller → service → domain → port → adapter)
+
+---
+
+## Proof of Hexagonal Architecture (mandatory explanation)
+
+Write a short explanation (8–12 lines) answering:
+
+1. What changed in the codebase?
+2. What did not change? (name concrete packages/classes)
+3. Why does the port make this possible?
+
+**Expected conclusion:**
+
+> We replaced a driven adapter (infrastructure) while keeping the domain and application core intact, proving that Hexagonal Architecture isolates the core from external dependencies.
+
+---
+
+## Extra Challenge (optional)
+
+Add a small “provider comparison” markdown note:
+
+* which endpoint you used,
+* whether the free tier provides real-time or delayed price,
+* what the call limits are.
+
+---
+
+**Success criteria:** You can sell stocks using your new provider by changing only configuration (profile/property). The use case and domain behave exactly the same because they depend only on `StockPriceProviderPort`, not on the external API.
+
+---
+
 **End of Exercises**
 
 Work through these exercises in order. Each builds on concepts from earlier exercises. Discuss your solutions with peers and instructors to deepen your understanding of Hexagonal Architecture and Domain-Driven Design.
