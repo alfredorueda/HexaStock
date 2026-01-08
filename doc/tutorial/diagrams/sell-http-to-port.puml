@@ -1,7 +1,6 @@
 @startuml sell-http-to-port
 !theme plain
 skinparam backgroundColor #FEFEFE
-skinparam handwritten false
 
 actor Client
 participant "PortfolioRestController\n(Driving Adapter)" as Controller
