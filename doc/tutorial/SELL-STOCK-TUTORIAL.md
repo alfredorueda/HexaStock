@@ -1055,7 +1055,7 @@ Your task is to add a **third adapter**, using a different provider, with the sa
 ## Provider Options (examples)
 
 Pick **one** provider that offers a free tier or freemium plan. You may choose any provider you find online, but here are common options:
-
+* **https://site.financialmodelingprep.com/**
 * **Twelve Data**
 * **Marketstack**
 * **Financial Modeling Prep (FMP)**
