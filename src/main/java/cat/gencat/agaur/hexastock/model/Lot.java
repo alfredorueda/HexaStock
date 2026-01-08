@@ -159,4 +159,13 @@ public class Lot {
         return purchasedAt;
     }
 
+    /**
+     * Checks if this lot has no remaining shares.
+     *
+     * @return true if there are no remaining shares in this lot, false otherwise
+     */
+    public boolean isEmpty() {
+        return remaining == 0;
+    }
+
 }

@@ -117,12 +117,9 @@ public class Holding {
         int remainingToSell = quantity;
         BigDecimal costBasis = BigDecimal.ZERO;
 
-        // TODO: Refactor to use Iterator to avoid break and continue in the same loop.
-        for (Lot lot : lots) {
+        for (var lot : lots) {
             if (remainingToSell <= 0) break;
 
-            if (lot.getRemaining() == 0) continue;
-            
             int sharesSoldFromLot = Math.min(lot.getRemaining(), remainingToSell);
             BigDecimal lotCostBasis = lot.getUnitPrice().multiply(BigDecimal.valueOf(sharesSoldFromLot));
             
@@ -132,7 +129,7 @@ public class Holding {
         }
 
         // Remove lots with zero remaining after selling
-        lots.removeIf(lot -> lot.getRemaining() == 0);
+        lots.removeIf(Lot::isEmpty);
 
         BigDecimal proceeds = sellPrice.multiply(BigDecimal.valueOf(quantity));
         BigDecimal profit = proceeds.subtract(costBasis);
