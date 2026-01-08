@@ -791,7 +791,7 @@ The following exercises form a progressive learning path designed to deepen your
 
 ---
 
-## Business Rules (Final and Corrected)
+## Business Rules
 
 In a single sell transaction, a portfolio must respect the following rules **per holding (per ticker)**:
 
