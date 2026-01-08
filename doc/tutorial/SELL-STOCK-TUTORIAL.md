@@ -784,38 +784,129 @@ The following exercises form a progressive learning path designed to deepen your
 
 ---
 
-### Exercise 6: Add a Maximum Sell Percentage Invariant
+## Exercise 6: Add a Maximum Sell Percentage Invariant
+
 **Type:** Mixed (Design + Coding + Reasoning)
+**Goal:** Implement a non-trivial business invariant using Domain-Driven Design principles.
 
-**Goal:** Implement a critical business rule using DDD principles.
+---
 
-**Business Rule:** A portfolio cannot sell more than 50% of the shares of a holding in a single transaction.
+## Business Rules (Final and Corrected)
 
-**What to deliver:**
+In a single sell transaction, a portfolio must respect the following rules **per holding (per ticker)**:
 
-1. **Design Decision (written explanation):**
-   - WHERE should this rule be implemented? Options:
-     - In `PortfolioRestController`
-     - In `PortfolioStockOperationsService`
-     - In `Portfolio.sell()`
-     - In `Holding.sell()`
-   - Justify your choice using DDD concepts: aggregate boundaries, invariants, encapsulation
-   - Explain what could go wrong if implemented in the application service instead
+### Rule 1 — Small sells are always allowed
 
-2. **Implementation (code):**
-   - Add the validation to the appropriate class
-   - Throw a new domain exception: `ExcessiveSaleException`
-   - Ensure the rule is enforced BEFORE any state changes
+A portfolio may sell **up to 10 shares** of a holding **without any percentage restriction**, as long as enough shares exist.
 
-3. **Test (code):**
-   - Write at least one domain-level unit test verifying:
-     - Selling 50% or less succeeds
-     - Selling 51% fails with `ExcessiveSaleException`
-     - The test runs without infrastructure
+### Rule 2 — Large sells are limited
 
-4. **Reflection (written):**
-   - How would you handle a requirement to make the percentage configurable per portfolio?
-   - Would that change where the rule lives? Why or why not?
+When selling **more than 10 shares** in a single transaction, the portfolio **cannot sell more than 50% of the shares of the affected holding**.
+
+The percentage is calculated using the number of shares **held before the sale**.
+
+> Formal rule:
+>
+> * If `sharesToSell ≤ 10` → allowed
+> * If `sharesToSell > 10` → must satisfy
+    >
+    >   ```
+>   sharesToSell ≤ holdingSharesBefore × 0.50
+>   ```
+
+---
+
+## Clarifications
+
+* The rule applies **per holding (per ticker)**, not to the whole portfolio.
+* The rule is **not** evaluated per lot.
+* The invariant must be checked **before any state change occurs**.
+
+---
+
+## Examples (AAPL)
+
+### Example 1 — Valid (✅ small sell)
+
+* AAPL holding has **3 shares**
+* Sell request: **1 share**
+
+Result: allowed.
+
+---
+
+### Example 2 — Valid (✅ boundary case)
+
+* AAPL holding has **12 shares**
+* Sell request: **10 shares**
+
+Result: allowed.
+
+---
+
+### Example 3 — Valid (✅ large sell within limit)
+
+* AAPL holding has **22 shares**
+* Sell request: **11 shares**
+
+50% of 22 = 11 → allowed.
+
+---
+
+### Example 4 — Invalid (❌ large sell exceeding limit)
+
+* AAPL holding has **20 shares**
+* Sell request: **11 shares**
+
+50% of 20 = 10 → not allowed.
+
+Result: throw `ExcessiveSaleException`.
+No state must change.
+
+---
+
+## What to Deliver
+
+### 1. Design Decision (written explanation)
+
+Decide **where this invariant should be implemented**:
+
+* `PortfolioRestController`
+* `PortfolioStockOperationsService`
+* `Portfolio.sell()`
+* `Holding.sell()`
+
+Justify your choice using DDD concepts:
+
+* Aggregate boundaries
+* Invariants
+* Encapsulation of business rules
+
+---
+
+### 2. Implementation (code)
+
+* Enforce the rule in the appropriate domain class
+* Introduce a new domain exception: `ExcessiveSaleException`
+* Ensure the invariant is validated **before any mutation**
+
+---
+
+### 3. Test (code)
+
+Write at least some tests proving:
+
+* Selling **10 or fewer** shares always succeeds (if shares exist)
+* Selling **more than 10** shares succeeds only if it is **≤ 50%** of the holding
+* Selling **more than 10** shares and **exceeding 50%** fails with `ExcessiveSaleException`
+* Tests run **without infrastructure**
+
+---
+
+### 4. Reflection (written)
+
+* How would you support a future requirement where the 50% limit is **configurable per portfolio**?
+* Would that change **where the invariant lives**? Why or why not?
 
 ---
 
