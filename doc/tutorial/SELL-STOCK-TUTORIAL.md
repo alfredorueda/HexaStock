@@ -169,6 +169,9 @@ public SellResult sellStock(String portfolioId, Ticker ticker, int quantity) {
 
 **Diagram Reference:** See `diagrams/sell-application-service.puml`
 
+<img width="2086" height="1300" alt="image" src="https://github.com/user-attachments/assets/b10eb9a9-2adf-4cc8-93b5-9f6ea682cbef" />
+
+
 ### Step 4: Domain Model Enforces Invariants
 
 **File:** `model.Portfolio` (Aggregate Root)
@@ -252,11 +255,17 @@ The Lot:
 
 **Diagram Reference:** See `diagrams/sell-domain-fifo.puml`
 
+<img width="1831" height="2343" alt="image" src="https://github.com/user-attachments/assets/d9a1aa88-1f1c-4d37-99a1-d7e2c37aae38" />
+
+
 ### Step 5: Persistence Adapter Saves Changes
 
 The `PortfolioPort` implementation (a JPA adapter) converts the domain `Portfolio` into JPA entities and persists them.
 
 **Diagram Reference:** See `diagrams/sell-persistence-adapter.puml`
+
+<img width="2154" height="1562" alt="image" src="https://github.com/user-attachments/assets/67813333-e842-4b65-9887-861056e36d31" />
+
 
 ### Step 6: Response Returns to Client
 
@@ -435,68 +444,7 @@ The `Portfolio` aggregate:
 
 ---
 
-### C) Codebase Reality Check: Is Encapsulation Properly Enforced?
-
-Let me inspect the actual domain model:
-
-**File:** `model.Portfolio`
-
-```java
-public List<Holding> getHoldings() {
-    return new ArrayList<>(holdings.values());
-}
-```
-
-✅ **Good:** Returns a **copy** of the holdings list, not the internal map. External code cannot modify the portfolio's holdings directly.
-
-**File:** `model.Holding`
-
-```java
-public List<Lot> getLots() {
-    return lots;
-}
-```
-
-⚠️ **Potential Issue:** This returns the **actual internal list**, not a copy. External code could theoretically modify the lot list directly:
-
-```java
-holding.getLots().clear();  // Would break the holding!
-```
-
-#### Possible Improvements
-
-**Option 1: Return an unmodifiable view**
-```java
-public List<Lot> getLots() {
-    return Collections.unmodifiableList(lots);
-}
-```
-
-**Option 2: Return a defensive copy**
-```java
-public List<Lot> getLots() {
-    return new ArrayList<>(lots);
-}
-```
-
-**Option 3: Encapsulate completely (best for strict DDD)**
-```java
-// Remove getLots() entirely
-// Add domain-specific query methods instead:
-public int getTotalShares() {
-    return lots.stream().mapToInt(Lot::getRemaining).sum();
-}
-
-public boolean hasEnoughShares(int quantity) {
-    return getTotalShares() >= quantity;
-}
-```
-
-**Current Risk Level:** **Low**. The application service in this codebase does not call `getLots()` to manipulate lots. It correctly delegates to `portfolio.sell()`. However, for teaching purposes, this is a good example of how even in a well-designed system, there's room for improvement.
-
----
-
-### D) Sequence Diagram: Orchestrator vs Aggregate Root
+### C) Sequence Diagram: Orchestrator vs Aggregate Root
 
 **Diagram Reference:** See `diagrams/sell-orchestrator-vs-aggregate.puml`
 
@@ -509,7 +457,7 @@ This diagram explicitly shows:
 
 ---
 
-### E) Teaching Note
+### D) Teaching Note
 
 > **💡 Key Principle**
 >
@@ -566,6 +514,9 @@ This inversion of dependencies is the essence of Hexagonal Architecture: the dom
 
 **Diagram Reference:** See `diagrams/sell-persistence-adapter.puml`
 
+<img width="2154" height="1562" alt="image" src="https://github.com/user-attachments/assets/4d8b0c91-e936-41aa-b020-8b7a39c539c0" />
+
+
 ---
 
 ## 9. Error Flows
@@ -596,6 +547,9 @@ HTTP 404 Not Found
 
 **Diagram Reference:** See `diagrams/sell-error-portfolio-not-found.puml`
 
+<img width="2897" height="1570" alt="image" src="https://github.com/user-attachments/assets/6e4cba0e-a52d-4c1c-85f8-9b3ee85e5e5a" />
+
+
 ---
 
 ### Error 2: Invalid Quantity
@@ -622,6 +576,9 @@ HTTP 400 Bad Request
 ```
 
 **Diagram Reference:** See `diagrams/sell-error-invalid-quantity.puml`
+
+<img width="3078" height="1890" alt="image" src="https://github.com/user-attachments/assets/87832f18-b11f-4ba4-960f-0582de36a7ef" />
+
 
 ---
 
@@ -650,6 +607,9 @@ HTTP 409 Conflict
 ```
 
 **Diagram Reference:** See `diagrams/sell-error-sell-more-than-owned.puml`
+
+<img width="3582" height="2370" alt="image" src="https://github.com/user-attachments/assets/889f9305-297a-49dd-8004-6fe4a34cd928" />
+
 
 ---
 
