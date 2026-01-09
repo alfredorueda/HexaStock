@@ -16,6 +16,8 @@ This tutorial reverse-engineers a **real use case** from the HexaStock codebase:
 
 ## 2. Domain Context: What "Selling Stocks" Means in HexaStock
 
+<img width="1693" height="1576" alt="image" src="https://github.com/user-attachments/assets/dcc5c599-319d-48ae-838d-c6be7800d952" />
+
 In this system:
 
 - A **Portfolio** represents an investor's account containing cash and stock holdings
