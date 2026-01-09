@@ -70,6 +70,9 @@ public ResponseEntity<SaleResponseDTO> sellStock(@PathVariable String id,
 
 This controller **drives** the application by calling its use cases. It does not contain business logic.
 
+<img width="2168" height="1434" alt="image" src="https://github.com/user-attachments/assets/a9ffd45a-46d5-4406-bb6c-28af84482f96" />
+
+
 ---
 
 ## 4. Hexagonal Architecture Map for the SELL Use Case
