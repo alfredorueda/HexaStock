@@ -34,16 +34,10 @@
   - [Exercise 1: Trace the Buy Flow](#exercise-1-trace-the-buy-flow)
   - [Exercise 2: Identify Aggregate Boundaries](#exercise-2-identify-aggregate-boundaries)
   - [Exercise 3: Map Domain Exceptions to HTTP Status Codes](#exercise-3-map-domain-exceptions-to-http-status-codes)
-  - [Exercise 4: Test FIFO Across Multiple Lots](#exercise-4-test-fifo-across-multiple-lots)
-  - [Exercise 5: Explain the Role of @Transactional](#exercise-5-explain-the-role-of-transactional)
-  - [Exercise 6: Add a Maximum Sell Percentage Invariant](#exercise-6-add-a-maximum-sell-percentage-invariant)
-  - [Exercise 7: Improve Encapsulation in Holding](#exercise-7-improve-encapsulation-in-holding)
-  - [Exercise 8: Mock Ports to Test the Application Service](#exercise-8-mock-ports-to-test-the-application-service)
-  - [Exercise 9: Distinguish Value Objects from Entities](#exercise-9-distinguish-value-objects-from-entities)
-  - [Exercise 10: Add a New Inbound Port for Bulk Operations](#exercise-10-add-a-new-inbound-port-for-bulk-operations)
-  - [Exercise 11: Add a Command-Line Adapter](#exercise-11-add-a-command-line-adapter)
-  - [Exercise 12: Add Tax Lot Identification](#exercise-12-add-tax-lot-identification)
-  - [Exercise 13: Add a Third Stock Price Provider Adapter (Prove the Hexagon Works)](#exercise-13-add-a-third-stock-price-provider-adapter-prove-the-hexagon-works)
+  - [Exercise 4: Explain the Role of @Transactional](#exercise-4-explain-the-role-of-transactional)
+  - [Exercise 5: Add a Maximum Sell Percentage Invariant](#exercise-5-add-a-maximum-sell-percentage-invariant)
+  - [Exercise 6: Distinguish Value Objects from Entities](#exercise-6-distinguish-value-objects-from-entities)
+  - [Exercise 7: Add a Third Stock Price Provider Adapter (Prove the Hexagon Works)](#exercise-7-add-a-third-stock-price-provider-adapter-prove-the-hexagon-works)
 - [13. References](#13-references)
 
 > **💡 How to use this Table of Contents:**  
@@ -767,26 +761,7 @@ The following exercises form a progressive learning path designed to deepen your
 
 ---
 
-### Exercise 4: Test FIFO Across Multiple Lots
-**Type:** Coding / Testing
-
-**Goal:** Verify that FIFO accounting works correctly in the domain model.
-
-**What to deliver:**
-- A unit test for `Holding.sell()` with the following scenario:
-  - Buy 10 shares at $100 on Jan 1
-  - Buy 5 shares at $120 on Feb 1
-  - Buy 8 shares at $110 on Mar 1
-  - Sell 12 shares at $150
-- Assert that:
-  - The correct lots are reduced
-  - Cost basis is calculated from the first two lots only
-  - Profit/loss is correct
-- The test must run without any infrastructure (no database, no Spring context)
-
----
-
-### Exercise 5: Explain the Role of @Transactional
+### Exercise 4: Explain the Role of @Transactional
 **Type:** Reasoning / Explanation
 
 **Goal:** Understand when and why Spring transactions are needed.
@@ -800,7 +775,7 @@ The following exercises form a progressive learning path designed to deepen your
 
 ---
 
-## Exercise 6: Add a Maximum Sell Percentage Invariant
+## Exercise 5: Add a Maximum Sell Percentage Invariant
 
 **Type:** Mixed (Design + Coding + Reasoning)
 **Goal:** Implement a non-trivial business invariant using Domain-Driven Design principles.
@@ -925,36 +900,7 @@ Write at least some tests proving:
 
 ---
 
-### Exercise 7: Improve Encapsulation in Holding
-**Type:** Coding / Refactoring
-
-**Goal:** Fix the encapsulation violation identified in section 6.C of this tutorial.
-
-**What to deliver:**
-- Refactor `Holding.getLots()` to return an unmodifiable list
-- Verify that all existing tests still pass
-- Identify any code that directly calls `getLots()` and assess whether it violates aggregate boundaries
-- If violations exist, propose a refactoring strategy (you don't need to implement it, just describe it)
-
----
-
-### Exercise 8: Mock Ports to Test the Application Service
-**Type:** Coding / Testing
-
-**Goal:** Test the orchestration logic in isolation.
-
-**What to deliver:**
-- A unit test for `PortfolioStockOperationsService.sellStock()` that:
-  - Mocks `PortfolioPort`, `StockPriceProviderPort`, and `TransactionPort`
-  - Verifies the service calls each port in the correct order
-  - Verifies the service delegates to `portfolio.sell()` with the fetched price
-  - Verifies the service saves both the portfolio and the transaction
-- Use Mockito or a similar mocking framework
-- The test must NOT start a Spring context
-
----
-
-### Exercise 9: Distinguish Value Objects from Entities
+### Exercise 6: Distinguish Value Objects from Entities
 **Type:** Reasoning / Explanation
 
 **Goal:** Understand the difference between entities and value objects in DDD.
@@ -968,83 +914,7 @@ Write at least some tests proving:
 
 ---
 
-### Exercise 10: Add a New Inbound Port for Bulk Operations
-**Type:** Design + Coding
-
-**Goal:** Extend the hexagonal architecture with a new use case.
-
-**Business Requirement:** Support selling shares of multiple tickers in a single API call.
-
-**What to deliver:**
-
-1. **Port Definition (code):**
-   - Create `BulkStockOperationsUseCase` interface with:
-     ```java
-     Map<Ticker, SellResult> sellMultiple(String portfolioId, Map<Ticker, Integer> sales);
-     ```
-
-2. **Service Implementation (code):**
-   - Implement the port in a new application service
-   - Reuse the existing `Portfolio.sell()` method for each ticker
-   - Ensure the entire operation is transactional (all succeed or all fail)
-
-3. **REST Endpoint (code):**
-   - Add a new controller method: `POST /api/portfolios/{id}/bulk-sales`
-   - Request body: `{"sales": [{"ticker": "AAPL", "quantity": 5}, ...]}`
-
-4. **Design Reflection (written):**
-   - Why is it better to create a new port rather than modify `PortfolioStockOperationsUseCase`?
-   - How does this demonstrate the Open/Closed Principle?
-
----
-
-### Exercise 11: Add a Command-Line Adapter
-**Type:** Coding / Hexagonal Architecture
-
-**Goal:** Demonstrate that ports enable multiple adapters.
-
-**What to deliver:**
-- Create a `CommandLinePortfolioAdapter` class that:
-  - Uses `PortfolioStockOperationsUseCase` (the same port used by the REST controller)
-  - Reads commands from `System.in` (e.g., "sell abc-123 AAPL 5")
-  - Prints results to `System.out`
-  - Handles exceptions gracefully
-- Write a main method that demonstrates:
-  - Creating a portfolio
-  - Depositing funds
-  - Buying stocks
-  - Selling stocks
-- Explain in a comment: How many lines of business logic did you need to write? Why so few?
-
----
-
-### Exercise 12: Add Tax Lot Identification
-**Type:** Advanced Domain Modeling
-
-**Goal:** Extend the domain model with a more complex accounting method.
-
-**Business Requirement:** Support "specific identification" accounting where investors can choose which lots to sell (instead of FIFO).
-
-**What to deliver:**
-
-1. **Design Proposal (written):**
-   - How would you modify the aggregate to support both FIFO and specific lot selection?
-   - Should the choice be per-portfolio, per-sale, or globally configured?
-   - How would you represent "which lots to sell" in the API?
-
-2. **Domain Model Changes (code or pseudocode):**
-   - Modify `Portfolio.sell()` or create a new method `sellSpecificLots()`
-   - Show how the method signature would change
-   - Sketch the validation logic (you don't need to implement the full algorithm)
-
-3. **Trade-off Discussion (written):**
-   - What invariants become harder to enforce?
-   - How does this affect testability?
-   - Would you recommend this feature? Under what conditions?
-
----
-
-### Exercise 13: Add a Third Stock Price Provider Adapter (Prove the Hexagon Works)
+### Exercise 7: Add a Third Stock Price Provider Adapter (Prove the Hexagon Works)
 
 **Type:** Coding + Architecture Validation (Driven Adapter / Outbound Port)
 **Goal:** Implement a **new outbound adapter** for market data that plugs into the existing port:
@@ -1080,7 +950,7 @@ Pick **one** provider that offers a free tier or freemium plan. You may choose a
 
 You can also pick another provider not listed here, as long as:
 
-* it exposes a “latest price” endpoint,
+* it exposes a "latest price" endpoint,
 * it authenticates via API key,
 * it returns data you can map to your domain `StockPrice` model.
 
@@ -1216,7 +1086,7 @@ Write a short explanation (8–12 lines) answering:
 
 ## Extra Challenge (optional)
 
-Add a small “provider comparison” markdown note:
+Add a small "provider comparison" markdown note:
 
 * which endpoint you used,
 * whether the free tier provides real-time or delayed price,
