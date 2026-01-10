@@ -31,7 +31,7 @@ This use case demonstrates:
 
 By understanding this use case thoroughly, students will be able to progress confidently through the rest of the practice and apply the same patterns to other use cases.
 
-For a comprehensive deep dive into the sell stock execution flow, including step-by-step traces, architectural decisions, and hands-on exercises, refer to the dedicated tutorial: `doc/tutorial/SELL-STOCK-TUTORIAL.md`.
+For a comprehensive deep dive into the sell stock execution flow, including step-by-step traces, architectural decisions, and hands-on exercises, refer to the dedicated [Sell Stock Tutorial](doc/tutorial/SELL-STOCK-TUTORIAL.md).
 
 ## Prerequisites
 
@@ -302,11 +302,7 @@ Now that you have the application running and understand the basic structure, ex
 
 ### Deep Dive Tutorial
 
-Read the comprehensive tutorial on the sell stock use case:
-
-```
-doc/tutorial/SELL-STOCK-TUTORIAL.md
-```
+Read the comprehensive [tutorial on the sell stock use case](doc/tutorial/SELL-STOCK-TUTORIAL.md).
 
 This document traces the execution path from HTTP request to domain logic to persistence, explaining why application services orchestrate while aggregates protect invariants. It includes hands-on exercises to reinforce your understanding.
 
