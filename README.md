@@ -198,18 +198,14 @@ Replace the placeholder values with your actual API keys. Alternatively, you can
 
 HexaStock provides pre-configured HTTP requests for testing the REST API manually. These requests are located in:
 
-```
-doc/calls.http
-```
+[doc/calls.http](doc/calls.http)
 
 #### Opening the HTTP Client in IntelliJ IDEA
 
-1. Navigate to `doc/calls.http`
+1. Navigate to [doc/calls.http](doc/calls.http)
 2. Open the file in the editor
 3. Ensure the application is running
 4. Click the green "Run" arrow next to any request to execute it
-
-The HTTP client allows you to interact with the running application without needing external tools like Postman or curl.
 
 #### Example Workflow
 
