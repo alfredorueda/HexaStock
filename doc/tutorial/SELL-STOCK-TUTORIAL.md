@@ -1,5 +1,56 @@
 # Selling Stocks in HexaStock: A Hexagonal Architecture and DDD Tutorial
 
+## Table of Contents
+
+- [1. Purpose and Learning Objectives](#1-purpose-and-learning-objectives)
+- [2. Domain Context: What "Selling Stocks" Means in HexaStock](#2-domain-context-what-selling-stocks-means-in-hexastock)
+- [3. Entry Point: The REST Endpoint (Driving Adapter)](#3-entry-point-the-rest-endpoint-driving-adapter)
+- [4. Hexagonal Architecture Map for the SELL Use Case](#4-hexagonal-architecture-map-for-the-sell-use-case)
+- [5. Step-by-Step Execution Trace: Happy Path](#5-step-by-step-execution-trace-happy-path)
+  - [Step 1: Controller Receives Request](#step-1-controller-receives-request)
+  - [Step 2: Controller Calls Inbound Port](#step-2-controller-calls-inbound-port)
+  - [Step 3: Application Service Orchestrates](#step-3-application-service-orchestrates)
+  - [Step 4: Domain Model Enforces Invariants](#step-4-domain-model-enforces-invariants)
+  - [Step 5: Persistence Adapter Saves Changes](#step-5-persistence-adapter-saves-changes)
+  - [Step 6: Response Returns to Client](#step-6-response-returns-to-client)
+- [6. 🎯 Why Application Services Orchestrate and Aggregates Protect Invariants](#6--why-application-services-orchestrate-and-aggregates-protect-invariants)
+  - [A) Roles Explained with Real Code](#a-roles-explained-with-real-code)
+  - [B) Concrete Domain Example: Why Direct Manipulation Breaks Invariants](#b-concrete-domain-example-why-direct-manipulation-breaks-invariants)
+  - [C) Sequence Diagram: Orchestrator vs Aggregate Root](#c-sequence-diagram-orchestrator-vs-aggregate-root)
+  - [D) Teaching Note](#d-teaching-note)
+- [7. Transactionality and Consistency](#7-transactionality-and-consistency)
+- [8. Persistence Mapping](#8-persistence-mapping)
+  - [Domain Model → JPA Entities](#domain-model--jpa-entities)
+  - [Repositories](#repositories)
+- [9. Error Flows](#9-error-flows)
+  - [Error 1: Portfolio Not Found](#error-1-portfolio-not-found)
+  - [Error 2: Invalid Quantity](#error-2-invalid-quantity)
+  - [Error 3: Selling More Than Owned](#error-3-selling-more-than-owned)
+- [10. Key Takeaways](#10-key-takeaways)
+  - [About Hexagonal Architecture](#about-hexagonal-architecture)
+  - [About Domain-Driven Design](#about-domain-driven-design)
+- [11. Summary: The Complete Sell Flow](#11-summary-the-complete-sell-flow)
+- [12. Exercises for Students](#12-exercises-for-students)
+  - [Exercise 1: Trace the Buy Flow](#exercise-1-trace-the-buy-flow)
+  - [Exercise 2: Identify Aggregate Boundaries](#exercise-2-identify-aggregate-boundaries)
+  - [Exercise 3: Map Domain Exceptions to HTTP Status Codes](#exercise-3-map-domain-exceptions-to-http-status-codes)
+  - [Exercise 4: Test FIFO Across Multiple Lots](#exercise-4-test-fifo-across-multiple-lots)
+  - [Exercise 5: Explain the Role of @Transactional](#exercise-5-explain-the-role-of-transactional)
+  - [Exercise 6: Add a Maximum Sell Percentage Invariant](#exercise-6-add-a-maximum-sell-percentage-invariant)
+  - [Exercise 7: Improve Encapsulation in Holding](#exercise-7-improve-encapsulation-in-holding)
+  - [Exercise 8: Mock Ports to Test the Application Service](#exercise-8-mock-ports-to-test-the-application-service)
+  - [Exercise 9: Distinguish Value Objects from Entities](#exercise-9-distinguish-value-objects-from-entities)
+  - [Exercise 10: Add a New Inbound Port for Bulk Operations](#exercise-10-add-a-new-inbound-port-for-bulk-operations)
+  - [Exercise 11: Add a Command-Line Adapter](#exercise-11-add-a-command-line-adapter)
+  - [Exercise 12: Add Tax Lot Identification](#exercise-12-add-tax-lot-identification)
+  - [Exercise 13: Add a Third Stock Price Provider Adapter (Prove the Hexagon Works)](#exercise-13-add-a-third-stock-price-provider-adapter-prove-the-hexagon-works)
+- [13. References](#13-references)
+
+> **💡 How to use this Table of Contents:**  
+> Click any link to jump directly to that section. The structure follows the document's hierarchy: main sections (##) are at the top level, subsections (###) are indented once, and specific exercises or cases (####) are indented twice. Use your browser's back button or scroll to navigate between sections.
+
+---
+
 ## 1. Purpose and Learning Objectives
 
 This tutorial explains a **real use case** from the HexaStock codebase: **selling stocks from a portfolio**. By following the actual execution path through real code, you will learn:
