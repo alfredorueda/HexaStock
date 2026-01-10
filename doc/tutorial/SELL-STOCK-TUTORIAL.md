@@ -757,7 +757,6 @@ The following exercises form a progressive learning path designed to deepen your
 **What to deliver:**
 - A table mapping each domain exception to its appropriate HTTP status code
 - For each mapping, explain WHY that status code is correct (not just "because that's what the code does")
-- Identify one exception that you think has an incorrect mapping and propose an alternative with justification
 
 ---
 
