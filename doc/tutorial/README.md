@@ -1,6 +1,6 @@
 # HexaStock Tutorial: Selling Stocks Use Case
 
-## 📚 Tutorial Overview
+## Tutorial Overview
 
 This tutorial reverse-engineers the **SELL STOCK** use case from the HexaStock codebase to teach:
 - **Hexagonal Architecture (Ports & Adapters)**
@@ -12,7 +12,7 @@ This tutorial reverse-engineers the **SELL STOCK** use case from the HexaStock c
 
 ---
 
-## 📖 Main Document
+## Main Document
 
 **[SELL-STOCK-TUTORIAL.md](./SELL-STOCK-TUTORIAL.md)**
 
@@ -28,7 +28,7 @@ This is the comprehensive tutorial covering:
 
 ---
 
-## 📊 PlantUML Diagrams
+## PlantUML Diagrams
 
 All diagrams are in the `diagrams/` folder:
 
@@ -71,7 +71,7 @@ All diagrams are in the `diagrams/` folder:
 
 ---
 
-## 🎯 How to Use This Tutorial
+## How to Use This Tutorial
 
 ### For Students
 
@@ -91,7 +91,7 @@ All diagrams are in the `diagrams/` folder:
 
 ---
 
-## 🔍 Key Learning Points
+## Key Learning Points
 
 ### Hexagonal Architecture
 
@@ -116,7 +116,7 @@ All diagrams are in the `diagrams/` folder:
 
 ---
 
-## 🛠️ Viewing Diagrams
+## Viewing Diagrams
 
 ### Option 1: VS Code
 Install the "PlantUML" extension and preview `.puml` files.
@@ -142,7 +142,7 @@ plantuml -tsvg diagrams/sell-orchestrator-vs-aggregate.puml
 
 ---
 
-## 📁 File Structure
+## File Structure
 
 ```
 doc/tutorial/
@@ -161,7 +161,7 @@ doc/tutorial/
 
 ---
 
-## ✅ Verified Code References
+## Verified Code References
 
 All referenced code exists in:
 - `src/main/java/cat/gencat/agaur/hexastock/adapter/in/PortfolioRestController.java`
