@@ -17,6 +17,7 @@
 - [8. Evaluation Criteria](#8-evaluation-criteria)
 - [Pedagogical Closing](#pedagogical-closing)
 - [9. Optional Infrastructure Extension — Multiple Persistence Adapters (MySQL & MongoDB)](#9-optional-infrastructure-extension--multiple-persistence-adapters-mysql--mongodb)
+- [10. Deliverables](#10-deliverables)
 
 ---
 
@@ -310,5 +311,116 @@ This optional infrastructure extension reinforces the core learning objective of
 Each type of change is intentionally confined to its proper architectural layer.
 
 By working through both challenges, you will gain deep, practical understanding of how **Domain-Driven Design** and **Hexagonal Architecture** work together to create systems that are resilient to change—whether that change comes from evolving business requirements or from evolving technical infrastructure.
+
+---
+
+## 10. Deliverables
+
+### 1. Source Code (GitHub Repository)
+
+Students must submit the source code of their implementation through a **GitHub repository**.
+
+The repository must comply with all technical and organizational instructions provided by the instructors in the virtual campus.
+
+#### Contribution Requirements
+
+- **All group members** must contribute proportionally to the repository.
+- Contributions must be **clearly reflected in the Git commit history**.
+- Even if collaborative tools such as **IntelliJ IDEA Code With Me** are used for pair or group programming, the commit history must demonstrate **equitable participation** from all members.
+- Commit messages should be **meaningful** and reflect real development work, not placeholder or trivial commits.
+
+The Git history is part of the evaluation and must demonstrate genuine collaborative software development.
+
+---
+
+### 2. Video Presentation
+
+Students must submit a **video presentation** that explains and demonstrates their solution.
+
+The delivery format (platform, upload method, etc.) will be specified by the instructors in the virtual campus.
+
+#### Mandatory Requirements
+
+The video must comply with the following requirements:
+
+- **Language**: The video must be recorded in **English**.
+- **Team participation**: The video must include **all group members**.
+- **Visual support**: Use **diagrams** as visual support throughout the presentation.
+
+#### Content to Cover
+
+The video must clearly explain the following aspects:
+
+1. **Core Idea and Business Value**
+   - Explain the purpose of the project and its business value.
+   - Describe the problem being solved and the solution approach.
+
+2. **Architectural Decisions and Trade-offs**
+   - Explain key architectural decisions made during the implementation.
+   - Discuss trade-offs and alternative approaches considered.
+
+3. **Domain Design**
+   - Present the domain model and its evolution.
+   - Explain how domain rules are encapsulated and protected.
+
+4. **Ports and Adapters**
+   - Describe the ports (inbound and outbound) defined in the system.
+   - Explain the adapters implemented and their responsibilities.
+
+5. **Testing Strategy**
+   - Describe the testing approach used (unit tests, integration tests, etc.).
+   - Explain how tests validate domain behavior and architectural boundaries.
+
+#### Demonstration Requirements
+
+The video must include **live demonstrations** of the following:
+
+- **Execution of domain tests** that prove the correctness of the implemented extensions (LIFO, HIFO, and optional extensions).
+- **Execution of integration tests** related to those extensions.
+- **Evidence that all previously existing tests still pass successfully**.
+- **Explanation of any tests that needed to be repaired or adapted**, including the reasons why changes were necessary.
+
+#### Technical Presentation Requirements
+
+During the video:
+
+- **Source code** must be shown directly in **IntelliJ IDEA**.
+- Architectural and design diagrams must be created using **PlantUML**.
+- The **rendered results** of the PlantUML diagrams must be shown and explained.
+- Diagrams must be **clearly explained in English**.
+
+#### Understanding and Ownership
+
+Students must demonstrate **real understanding** of the code and diagrams presented, regardless of whether AI tools or IDE assistance were used during development.
+
+It must be evident that students **understand everything that has been generated or written**, not merely that it exists in the codebase. Superficial explanations or reading from generated documentation without comprehension will not be accepted.
+
+The video should reflect genuine mastery of the design, implementation, and architectural decisions.
+
+---
+
+### 3. Responsible Use of AI
+
+The use of **AI tools** (such as GitHub Copilot, ChatGPT, or similar) is **permitted and encouraged** as a learning and productivity aid.
+
+AI tools may be used to:
+
+- Explore design ideas and architectural patterns.
+- Draft initial implementations of code or diagrams.
+- Refactor and improve existing code.
+- Generate boilerplate code or repetitive structures.
+
+However, students remain **fully responsible** for:
+
+- **Correctness**: All code must be correct and free of defects.
+- **Clarity**: Code and design must be clear, readable, and well-structured.
+- **Quality**: Code must follow best practices and quality standards.
+- **Architectural soundness**: The solution must respect DDD and hexagonal architecture principles.
+
+AI-generated content must be **reviewed, understood, and validated** by the students before inclusion in the final submission.
+
+The **video presentation** must demonstrate genuine understanding of the final solution, independently of any AI assistance used during development. Students must be able to explain every design decision, every architectural choice, and every line of code presented.
+
+Use of AI is seen as a professional skill, but the responsibility for the quality and correctness of the work remains entirely with the students.
 
 ---
