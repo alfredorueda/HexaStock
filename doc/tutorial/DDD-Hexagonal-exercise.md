@@ -339,88 +339,265 @@ Students must submit a **video presentation** that explains and demonstrates the
 
 The delivery format (platform, upload method, etc.) will be specified by the instructors in the virtual campus.
 
-#### Mandatory Requirements
+---
+
+#### Mandatory General Requirements
 
 The video must comply with the following requirements:
 
 - **Language**: The video must be recorded in **English**.
-- **Team participation**: The video must include **all group members**.
+- **Team participation**: The video must include **all group members**, actively participating in the explanation.
 - **Visual support**: Use **diagrams** as visual support throughout the presentation.
 
-#### Content to Cover
+---
 
-The video must clearly explain the following aspects:
+#### Central Requirement: Complete End-to-End Use Case Execution
+
+The **core focus** of the video must be to explain and demonstrate **the complete execution flow of the stock selling use case using the HIFO strategy (Highest In, First Out)**.
+
+**HIFO is mandatory** for this demonstration. FIFO already exists in the system and must **not** be the focus of the architectural explanation.
+
+Students must demonstrate **deep architectural understanding** by explaining the full execution path, from the incoming HTTP request, through all hexagonal layers, until data is persisted and retrieved, and back to the HTTP response.
+
+This is **not a high-level overview**. Students must walk through the actual implementation, step by step, showing how each architectural component participates in the use case.
+
+---
+
+#### Architectural Components to Explain (Mandatory)
+
+The video must explain **all architectural components involved in the use case**, including:
+
+1. **Inbound Adapter (REST Controller)**
+   - How the HTTP request is received
+   - Input validation
+   - DTO-to-domain translation
+
+2. **Input Port (Use Case Interface)**
+   - The contract between the adapter and the application layer
+   - Port definition and purpose
+
+3. **Application Service (Use Case Service)**
+   - **Critical**: Explain the role of the application service as an **orchestrator**
+   - Demonstrate that the service **does not contain business logic**
+   - Show how the service **delegates business rules to rich domain entities**
+   - Explain how the service coordinates the flow and calls domain methods
+
+4. **Rich Domain Entities and Domain Logic**
+   - Show the domain model (e.g., Portfolio, Holding, Lot)
+   - Explain how business invariants and policies are enforced **within the domain**
+   - Demonstrate that the domain is **rich, not anemic**
+   - Show where the actual business logic lives
+
+5. **Domain Strategy Implementation (HIFO)**
+   - Explain the Strategy pattern implementation
+   - Show how the HIFO strategy is selected and applied
+   - Demonstrate the algorithm that selects lots based on highest purchase price
+   - Explain how the strategy is encapsulated in the domain
+
+6. **Output Ports (Repository Interfaces)**
+   - Explain the outbound port contracts
+   - Show how the domain defines its persistence needs without depending on infrastructure
+
+7. **Outbound Adapters (Persistence, Repositories, etc.)**
+   - Show the concrete implementation of the outbound ports
+   - Explain how the adapter translates domain entities to persistence models (JPA entities, documents, etc.)
+   - Demonstrate the separation between domain and infrastructure
+
+8. **Error Handling Paths and Exceptions**
+   - Explain how domain exceptions are defined and thrown
+   - Show how errors propagate through the layers
+   - Demonstrate how adapters translate domain exceptions to HTTP responses
+
+9. **Response Generation and DTO Mapping**
+   - Show how the domain result is mapped back to DTOs
+   - Explain how the HTTP response is constructed
+
+---
+
+#### Domain-Driven Design Understanding (Critical Evaluation Point)
+
+The video must **explicitly and clearly demonstrate** understanding of Domain-Driven Design principles:
+
+1. **Application Service as Orchestrator**
+   - Students must explain that the application service **orchestrates the use case flow** but does **not** contain business logic
+   - The service is a thin coordination layer
+
+2. **Delegation to Rich Domain Entities**
+   - Students must show how the service **delegates business decisions to domain entities**
+   - Business rules, invariants, and algorithms must live in the domain, not in the service
+
+3. **Avoiding Anemic Domain Model**
+   - The domain model must be **rich**: entities have behavior, not just data
+   - Students must demonstrate that domain entities enforce their own invariants and encapsulate business logic
+
+4. **Strategy Pattern in the Domain**
+   - The lot selection strategy (HIFO) must be a **domain concept**, not an infrastructure detail
+   - The Portfolio entity must use the strategy to make business decisions
+
+**Failure to demonstrate this understanding will significantly impact the evaluation**, even if the code works correctly.
+
+---
+
+#### Live Execution Demonstration (Mandatory)
+
+The video must demonstrate a **real, live execution** of the use case, not just slides or static diagrams.
+
+Required demonstrations:
+
+1. **Perform a real HTTP call** to the sell endpoint
+   - Use an HTTP client (e.g., IntelliJ's `.http` file, Postman, curl, etc.)
+   - Show the actual request being sent
+   - Show the response received
+
+2. **Show the application running**
+   - Start the HexaStock application
+   - Demonstrate that the system is actually executing, not simulated
+
+3. **Optional but highly recommended: Use the debugger**
+   - Set breakpoints in key components (controller, service, domain entity, strategy, adapter)
+   - Step through the execution flow
+   - Show how control passes from layer to layer
+   - Demonstrate the delegation from the application service to the domain entity
+   - Show the strategy being invoked within the domain
+   - Illustrate how the Portfolio entity uses the HIFO strategy to select lots
+
+This live demonstration will provide **concrete evidence** of architectural understanding and correct implementation.
+
+---
+
+#### Diagrams (Mandatory — PlantUML)
+
+The video must include and explain **architectural and design diagrams**, created using **PlantUML**.
+
+**Minimum required diagrams**:
+
+1. **Class Diagram**
+   - Show the domain model (Portfolio, Holding, Lot, etc.)
+   - Show the strategy pattern structure (LotSelectionStrategy interface, HIFO implementation, etc.)
+   - Show the ports (input and output port interfaces)
+   - Show the adapters (REST controller, repository adapter)
+   - The diagram must reflect the **actual implementation**
+
+2. **Sequence Diagram**
+   - Show the complete execution flow for the sell use case with HIFO
+   - **Critical**: The sequence diagram must clearly illustrate:
+     - The REST controller receiving the HTTP request
+     - The controller calling the input port (application service)
+     - **The application service as orchestrator**: coordinating the flow without business logic
+     - **The delegation of business logic to domain entities**: the service calling methods on Portfolio
+     - The Portfolio entity using the HIFO strategy to select lots
+     - The application service calling the output port (repository) to persist the updated portfolio
+     - The adapter translating and persisting the data
+     - The response being returned back through the layers
+   - The sequence diagram must demonstrate the **separation of concerns** and the **flow of control** through the hexagonal architecture
+
+**Presentation of diagrams**:
+
+- The **rendered results** of the PlantUML diagrams must be shown (PNG, SVG, or rendered in IDE)
+- Diagrams must be **clearly explained in English**
+- Students must explain each component and interaction shown in the diagrams
+- Diagrams must be **consistent** with the actual code shown
+
+---
+
+#### Code Demonstration (Mandatory)
+
+The video must show **relevant source code** directly in **IntelliJ IDEA**.
+
+Required code demonstrations:
+
+1. **Show the key classes involved in the use case**:
+   - REST controller
+   - Application service
+   - Domain entities (Portfolio, Holding, Lot)
+   - HIFO strategy implementation
+   - Repository adapter
+
+2. **Explain key methods and logic**:
+   - Walk through the code that implements the HIFO algorithm
+   - Show how the Portfolio entity delegates to the strategy
+   - Explain how the application service orchestrates the use case
+
+3. **Highlight architectural boundaries**:
+   - Show how the domain does not depend on infrastructure
+   - Show how adapters depend on ports, not the other way around
+
+---
+
+#### Test Execution and Explanation (Mandatory)
+
+The video must include **execution and explanation of tests**.
+
+Required test demonstrations:
+
+1. **Execute domain tests related to HIFO**
+   - Run unit tests that validate the HIFO strategy algorithm
+   - Run domain tests that validate the Portfolio behavior with HIFO
+   - Explain what each test validates
+
+2. **Execute integration tests**
+   - Run integration tests that validate the full use case with HIFO
+   - Explain how the integration tests validate the end-to-end flow
+
+3. **Demonstrate that all previously existing tests still pass**
+   - Run the full test suite
+   - Show that FIFO tests and other existing tests are still passing
+   - This demonstrates that the extension did not break existing functionality
+
+4. **Explain any tests that had to be adapted or fixed**
+   - If any existing tests needed to be modified, explain why
+   - Justify the changes based on the architectural evolution
+
+---
+
+#### Content to Cover (Beyond the Core Use Case)
+
+In addition to the core end-to-end execution demonstration, the video should briefly cover:
 
 1. **Core Idea and Business Value**
-   - Explain the purpose of the project and its business value.
-   - Describe the problem being solved and the solution approach.
+   - Explain the business context and the need for multiple lot selection strategies
+   - Describe the solution approach
 
 2. **Architectural Decisions and Trade-offs**
-   - Explain key architectural decisions made during the implementation.
-   - Discuss trade-offs and alternative approaches considered.
+   - Explain key design decisions (e.g., why Strategy pattern, where to place the strategy)
+   - Discuss trade-offs and alternative approaches considered
 
-3. **Domain Design**
-   - Present the domain model and its evolution.
-   - Explain how domain rules are encapsulated and protected.
+3. **Testing Strategy**
+   - Describe the overall testing approach (unit, integration, domain tests)
+   - Explain how tests validate domain behavior and architectural boundaries
 
-4. **Ports and Adapters**
-   - Describe the ports (inbound and outbound) defined in the system.
-   - Explain the adapters implemented and their responsibilities.
-
-5. **Testing Strategy**
-   - Describe the testing approach used (unit tests, integration tests, etc.).
-   - Explain how tests validate domain behavior and architectural boundaries.
-
-#### Demonstration Requirements
-
-The video must include **live demonstrations** of the following:
-
-- **Execution of domain tests** that prove the correctness of the implemented extensions (LIFO, HIFO, and optional extensions).
-- **Execution of integration tests** related to those extensions.
-- **Evidence that all previously existing tests still pass successfully**.
-- **Explanation of any tests that needed to be repaired or adapted**, including the reasons why changes were necessary.
-
-#### Technical Presentation Requirements
-
-During the video:
-
-- **Source code** must be shown directly in **IntelliJ IDEA**.
-- Architectural and design diagrams must be created using **PlantUML**.
-- The **rendered results** of the PlantUML diagrams must be shown and explained.
-- Diagrams must be **clearly explained in English**.
-
-#### Understanding and Ownership
-
-Students must demonstrate **real understanding** of the code and diagrams presented, regardless of whether AI tools or IDE assistance were used during development.
-
-It must be evident that students **understand everything that has been generated or written**, not merely that it exists in the codebase. Superficial explanations or reading from generated documentation without comprehension will not be accepted.
-
-The video should reflect genuine mastery of the design, implementation, and architectural decisions.
+4. **Optional Extensions (if implemented)**
+   - If LIFO, Specific Lot Identification, or MongoDB extension were implemented, provide a brief demonstration
 
 ---
 
-### 3. Responsible Use of AI
+#### Pedagogical Goal of the Video
 
-The use of **AI tools** (such as GitHub Copilot, ChatGPT, or similar) is **permitted and encouraged** as a learning and productivity aid.
+The video must demonstrate that students have achieved the **core learning objective** of the assignment:
 
-AI tools may be used to:
+- **Deep understanding** of Domain-Driven Design principles
+- **Deep understanding** of Hexagonal Architecture
+- **Practical ability** to implement and explain a business rule extension that respects architectural boundaries
+- **Demonstrated mastery** of the Strategy pattern in a DDD context
+- **Ability to articulate** how the application service orchestrates while the domain encapsulates business logic
 
-- Explore design ideas and architectural patterns.
-- Draft initial implementations of code or diagrams.
-- Refactor and improve existing code.
-- Generate boilerplate code or repetitive structures.
-
-However, students remain **fully responsible** for:
-
-- **Correctness**: All code must be correct and free of defects.
-- **Clarity**: Code and design must be clear, readable, and well-structured.
-- **Quality**: Code must follow best practices and quality standards.
-- **Architectural soundness**: The solution must respect DDD and hexagonal architecture principles.
-
-AI-generated content must be **reviewed, understood, and validated** by the students before inclusion in the final submission.
-
-The **video presentation** must demonstrate genuine understanding of the final solution, independently of any AI assistance used during development. Students must be able to explain every design decision, every architectural choice, and every line of code presented.
-
-Use of AI is seen as a professional skill, but the responsibility for the quality and correctness of the work remains entirely with the students.
+The objective is **not merely to show that the system works**, but to **prove that the system has been correctly designed and correctly extended** according to DDD and Hexagonal Architecture principles.
 
 ---
+
+#### Understanding and Ownership (Critical)
+
+Students must demonstrate **real, deep understanding** of the code, architecture, and design decisions presented, regardless of whether AI tools or IDE assistance were used during development.
+
+It must be evident that students **understand everything that has been generated or written**, not merely that it exists in the codebase.
+
+**Superficial explanations**, reading from generated documentation without comprehension, or inability to explain design decisions will **not be accepted** and will negatively impact the evaluation.
+
+The video should reflect **genuine mastery** of:
+- The architectural design
+- The domain model
+- The implementation details
+- The design patterns used
+- The flow of control through the system
+
+Students should be able to answer the question: **"Why did you design it this way?"** for every architectural decision shown.
