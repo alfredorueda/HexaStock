@@ -479,30 +479,22 @@ This live demonstration will provide **concrete evidence** of architectural unde
 
 ---
 
-#### Diagrams (Mandatory — PlantUML)
+#### Diagrams (PlantUML)
 
-The video must include and explain **architectural and design diagrams**, created using **PlantUML**.
+The video may include and explain **architectural and design diagrams**, created using **PlantUML**.
 
-**Minimum required diagrams**:
+**Suggested Diagrams**:
 
 1. **Class Diagram**
    - Show the domain model (Portfolio, Holding, Lot, etc.)
    - Show the strategy pattern structure (LotSelectionStrategy interface, HIFO implementation, etc.)
-   - Show the ports (input and output port interfaces)
-   - Show the adapters (REST controller, repository adapter)
    - The diagram must reflect the **actual implementation**
 
 2. **Sequence Diagram**
    - Show the complete execution flow for the sell use case with HIFO
    - **Critical**: The sequence diagram must clearly illustrate:
-     - The REST controller receiving the HTTP request
-     - The controller calling the input port (application service)
      - **The application service as orchestrator**: coordinating the flow without business logic
      - **The delegation of business logic to domain entities**: the service calling methods on Portfolio
-     - The Portfolio entity using the HIFO strategy to select lots
-     - The application service calling the output port (repository) to persist the updated portfolio
-     - The adapter translating and persisting the data
-     - The response being returned back through the layers
    - The sequence diagram must demonstrate the **separation of concerns** and the **flow of control** through the hexagonal architecture
 
 **Presentation of diagrams**:
