@@ -26,7 +26,7 @@
         - [Architectural Components to Explain (Mandatory)](#architectural-components-to-explain-mandatory)
         - [Domain-Driven Design Understanding (Critical Evaluation Point)](#domain-driven-design-understanding-critical-evaluation-point)
         - [Live Execution Demonstration (Mandatory)](#live-execution-demonstration-mandatory)
-        - [Diagrams (Mandatory — PlantUML)](#diagrams-mandatory--plantuml)
+        - [Diagrams (PlantUML)](#diagrams-plantuml)
         - [Code Demonstration (Mandatory)](#code-demonstration-mandatory)
         - [Test Execution and Explanation (Mandatory)](#test-execution-and-explanation-mandatory)
         - [Content to Cover (Beyond the Core Use Case)](#content-to-cover-beyond-the-core-use-case)
