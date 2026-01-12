@@ -581,7 +581,7 @@ In addition to the core end-to-end execution demonstration, the video should bri
    - Explain how tests validate domain behavior and architectural boundaries
 
 4. **Optional Extensions (if implemented)**
-   - If LIFO, Specific Lot Identification, or MongoDB extension were implemented, provide a brief demonstration
+   - If Specific Lot Identification or MongoDB extension were implemented, provide a brief demonstration
 
 ---
 
