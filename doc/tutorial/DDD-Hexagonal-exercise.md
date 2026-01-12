@@ -578,7 +578,7 @@ The video must demonstrate that students have achieved the **core learning objec
 - **Deep understanding** of Domain-Driven Design principles
 - **Deep understanding** of Hexagonal Architecture
 - **Practical ability** to implement and explain a business rule extension that respects architectural boundaries
-- **Demonstrated mastery** of the Strategy pattern in a DDD context
+- **Demonstrated proficiency** of the Strategy pattern in a DDD context
 - **Ability to articulate** how the application service orchestrates while the domain encapsulates business logic
 
 The objective is **not merely to show that the system works**, but to **prove that the system has been correctly designed and correctly extended** according to DDD and Hexagonal Architecture principles.
