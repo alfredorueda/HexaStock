@@ -18,6 +18,20 @@
 - [Pedagogical Closing](#pedagogical-closing)
 - [9. Optional Infrastructure Extension — Multiple Persistence Adapters (MySQL & MongoDB)](#9-optional-infrastructure-extension--multiple-persistence-adapters-mysql--mongodb)
 - [10. Deliverables](#10-deliverables)
+    - [1. Source Code (GitHub Repository)](#1-source-code-github-repository)
+        - [Contribution Requirements](#contribution-requirements)
+    - [2. Video Presentation](#2-video-presentation)
+        - [Mandatory General Requirements](#mandatory-general-requirements)
+        - [Central Requirement: Complete End-to-End Use Case Execution](#central-requirement-complete-end-to-end-use-case-execution)
+        - [Architectural Components to Explain (Mandatory)](#architectural-components-to-explain-mandatory)
+        - [Domain-Driven Design Understanding (Critical Evaluation Point)](#domain-driven-design-understanding-critical-evaluation-point)
+        - [Live Execution Demonstration (Mandatory)](#live-execution-demonstration-mandatory)
+        - [Diagrams (Mandatory — PlantUML)](#diagrams-mandatory--plantuml)
+        - [Code Demonstration (Mandatory)](#code-demonstration-mandatory)
+        - [Test Execution and Explanation (Mandatory)](#test-execution-and-explanation-mandatory)
+        - [Content to Cover (Beyond the Core Use Case)](#content-to-cover-beyond-the-core-use-case)
+        - [Pedagogical Goal of the Video](#pedagogical-goal-of-the-video)
+        - [Understanding and Ownership (Critical)](#understanding-and-ownership-critical)
 
 ---
 
