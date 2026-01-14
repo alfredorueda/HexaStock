@@ -55,8 +55,6 @@ This tutorial explains a **real use case** from the HexaStock codebase: **sellin
 - How FIFO accounting is implemented at the domain level
 - How domain exceptions translate to HTTP responses
 
-**Critical Note:** Everything in this tutorial references verified code. We do not invent or assume—every class, method, and responsibility described exists in this repository.
-
 ---
 
 ## 2. Domain Context: What "Selling Stocks" Means in HexaStock
