@@ -12,9 +12,6 @@
 - Same business request, different provider behind the scenes
 - Demonstrates true decoupling of domain from infrastructure
 
-<img src="Hexagonal%20Architecture%20Diagram.png" width="60%">  
-
-*Source: [HappyCoders – Hexagonal Architecture with Spring Boot](https://www.happycoders.eu/software-craftsmanship/hexagonal-architecture-spring-boot/)*
 
 ---
 
