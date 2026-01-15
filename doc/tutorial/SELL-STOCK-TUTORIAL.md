@@ -1,4 +1,4 @@
-# Selling Stocks in HexaStock: A Hexagonal Architecture and DDD Tutorial
+# Selling Stocks in HexaStock: Hexagonal Architecture and DDD Tutorial
 
 ## Table of Contents
 
