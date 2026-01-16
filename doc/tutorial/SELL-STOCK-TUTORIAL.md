@@ -135,7 +135,7 @@ Here is the complete architecture trace for selling stocks:
 | **Secondary Port** | Outbound Interface | Transaction Storage Contract | `application.port.out.TransactionPort` |
 | **Driven Adapters** | JPA Repositories | Application → Database | `adapter.out.jpa.*` |
 
-**Diagram Reference:** See `diagrams/sell-http-to-port.puml`
+**Diagram Reference:** See [`diagrams/sell-http-to-port.puml`](diagrams/sell-http-to-port.puml)
 
 ---
 
@@ -210,7 +210,7 @@ public SellResult sellStock(String portfolioId, Ticker ticker, int quantity) {
 - ❌ Does **NOT** contain domain rules
 - ❌ Does **NOT** manipulate nested entities directly
 
-**Diagram Reference:** See `diagrams/sell-application-service.puml`
+**Diagram Reference:** See [`diagrams/sell-application-service.puml`](diagrams/sell-application-service.puml)
 
 <img width="2086" height="1300" alt="image" src="https://github.com/user-attachments/assets/b10eb9a9-2adf-4cc8-93b5-9f6ea682cbef" />
 
@@ -296,7 +296,7 @@ The Lot:
 - Protects the invariant: "Remaining shares cannot go negative"
 - Updates its remaining quantity
 
-**Diagram Reference:** See `diagrams/sell-domain-fifo.puml`
+**Diagram Reference:** See [`diagrams/sell-domain-fifo.puml`](diagrams/sell-domain-fifo.puml)
 
 <img width="1831" height="2343" alt="image" src="https://github.com/user-attachments/assets/d9a1aa88-1f1c-4d37-99a1-d7e2c37aae38" />
 
@@ -305,7 +305,7 @@ The Lot:
 
 The `PortfolioPort` implementation (a JPA adapter) converts the domain `Portfolio` into JPA entities and persists them.
 
-**Diagram Reference:** See `diagrams/sell-persistence-adapter.puml`
+**Diagram Reference:** See [`diagrams/sell-persistence-adapter.puml`](diagrams/sell-persistence-adapter.puml)
 
 <img width="2154" height="1562" alt="image" src="https://github.com/user-attachments/assets/67813333-e842-4b65-9887-861056e36d31" />
 
@@ -489,7 +489,7 @@ The `Portfolio` aggregate:
 
 ### C) Sequence Diagram: Orchestrator vs Aggregate Root
 
-**Diagram Reference:** See `diagrams/sell-orchestrator-vs-aggregate.puml`
+**Diagram Reference:** See [`diagrams/sell-orchestrator-vs-aggregate.puml`](diagrams/sell-orchestrator-vs-aggregate.puml)
 
 This diagram explicitly shows:
 - The **Application Service** calling `Portfolio.sell()` (aggregate root)
@@ -555,7 +555,7 @@ PortfolioEntity jpaEntity = PortfolioMapper.toEntity(domainPortfolio);
 
 This inversion of dependencies is the essence of Hexagonal Architecture: the domain defines **what** it needs (ports), and adapters provide **how** (implementations).
 
-**Diagram Reference:** See `diagrams/sell-persistence-adapter.puml`
+**Diagram Reference:** See [`diagrams/sell-persistence-adapter.puml`](diagrams/sell-persistence-adapter.puml)
 
 <img width="2154" height="1562" alt="image" src="https://github.com/user-attachments/assets/4d8b0c91-e936-41aa-b020-8b7a39c539c0" />
 
@@ -588,7 +588,7 @@ HTTP 404 Not Found
 
 **Exception Handler:** The `@RestControllerAdvice` class catches `PortfolioNotFoundException` and converts it to HTTP 404.
 
-**Diagram Reference:** See `diagrams/sell-error-portfolio-not-found.puml`
+**Diagram Reference:** See [`diagrams/sell-error-portfolio-not-found.puml`](diagrams/sell-error-portfolio-not-found.puml)
 
 <img width="2897" height="1570" alt="image" src="https://github.com/user-attachments/assets/6e4cba0e-a52d-4c1c-85f8-9b3ee85e5e5a" />
 
@@ -618,7 +618,7 @@ HTTP 400 Bad Request
 }
 ```
 
-**Diagram Reference:** See `diagrams/sell-error-invalid-quantity.puml`
+**Diagram Reference:** See [`diagrams/sell-error-invalid-quantity.puml`](diagrams/sell-error-invalid-quantity.puml)
 
 <img width="3078" height="1890" alt="image" src="https://github.com/user-attachments/assets/87832f18-b11f-4ba4-960f-0582de36a7ef" />
 
@@ -649,7 +649,7 @@ HTTP 409 Conflict
 }
 ```
 
-**Diagram Reference:** See `diagrams/sell-error-sell-more-than-owned.puml`
+**Diagram Reference:** See [`diagrams/sell-error-sell-more-than-owned.puml`](diagrams/sell-error-sell-more-than-owned.puml)
 
 <img width="3582" height="2370" alt="image" src="https://github.com/user-attachments/assets/889f9305-297a-49dd-8004-6fe4a34cd928" />
 
