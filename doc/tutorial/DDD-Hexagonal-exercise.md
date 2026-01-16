@@ -359,7 +359,6 @@ The delivery format (platform, upload method, etc.) will be specified by the ins
 
 The video must comply with the following requirements:
 
-- **Language**: The video must be recorded in **English**.
 - **Team participation**: The video must include **all group members**, actively participating in the explanation.
 - **Visual support**: Use **diagrams** as visual support throughout the presentation.
 
