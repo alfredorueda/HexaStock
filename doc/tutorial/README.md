@@ -21,7 +21,7 @@ This is the comprehensive tutorial covering:
 2. REST endpoint analysis
 3. Hexagonal Architecture mapping
 4. Step-by-step execution trace
-5. **Why application services orchestrate and aggregates protect invariants** ⭐
+5. **Why application services orchestrate and aggregates protect invariants** 
 6. Transactionality and consistency
 7. Error flows and exception handling
 8. Key takeaways and exercises
@@ -53,7 +53,7 @@ All diagrams are in the `diagrams/` folder:
 
 ### DDD Core Concept
 
-5. **`sell-orchestrator-vs-aggregate.puml`** ⭐ **MOST IMPORTANT**
+5. **`sell-orchestrator-vs-aggregate.puml`**
    - Shows correct pattern: Service → Aggregate Root → Entities
    - Shows anti-pattern: Service directly manipulating entities
    - Visual explanation of DDD aggregate boundaries
@@ -153,7 +153,7 @@ doc/tutorial/
     ├── sell-application-service.puml
     ├── sell-domain-fifo.puml
     ├── sell-persistence-adapter.puml
-    ├── sell-orchestrator-vs-aggregate.puml ⭐
+    ├── sell-orchestrator-vs-aggregate.puml 
     ├── sell-error-portfolio-not-found.puml
     ├── sell-error-invalid-quantity.puml
     └── sell-error-sell-more-than-owned.puml
