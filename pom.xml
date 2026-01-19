@@ -213,7 +213,8 @@
                         <include>**/*Tests.java</include>
                     </includes>
                     <argLine>${jacocoArgLine}</argLine>
-                    <!-- JUnit 5 config is already present -->
+                    <!-- Exclude concurrency tests by default (they are opt-in via -Pconcurrency) -->
+                    <excludedGroups>concurrency</excludedGroups>
                 </configuration>
             </plugin>
 
@@ -240,5 +241,31 @@
             </plugin>
         </plugins>
     </build>
+
+    <profiles>
+        <!-- Profile to run concurrency tests: ./mvnw test -Pconcurrency -->
+        <profile>
+            <id>concurrency</id>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-surefire-plugin</artifactId>
+                        <version>3.1.2</version>
+                        <configuration>
+                            <includes>
+                                <include>**/*Test.java</include>
+                                <include>**/*Tests.java</include>
+                            </includes>
+                            <argLine>${jacocoArgLine}</argLine>
+                            <!-- Include ONLY concurrency tests when this profile is active -->
+                            <groups>concurrency</groups>
+                            <excludedGroups></excludedGroups>
+                        </configuration>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+    </profiles>
 
 </project>

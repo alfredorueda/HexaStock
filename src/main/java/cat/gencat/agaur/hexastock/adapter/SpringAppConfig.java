@@ -10,6 +10,7 @@ import cat.gencat.agaur.hexastock.model.service.HoldingPerformanceCalculator;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.Bean;
+import org.springframework.core.env.Environment;
 
 /**
  * Spring application configuration, making Spring beans from services defined in application
@@ -29,6 +30,9 @@ public class SpringAppConfig {
   @Autowired
   PortfolioPort portfolioPort;
 
+  @Autowired
+  Environment environment;
+
   @Bean
   ReportingUseCase getReportingUseCase() {
     return new ReportingService(transactionPort, stockPriceProviderPort, portfolioPort, holdingPerformanceCalculator() );
@@ -46,7 +50,7 @@ public class SpringAppConfig {
 
   @Bean
   PortfolioManagementUseCase getPortfolioManagementUseCase() {
-    return new PortfolioManagementService(portfolioPort, transactionPort);
+    return new PortfolioManagementService(portfolioPort, transactionPort, environment);
   }
 
   @Bean

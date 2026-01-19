@@ -9,6 +9,9 @@ import cat.gencat.agaur.hexastock.model.Money;
 import cat.gencat.agaur.hexastock.model.Portfolio;
 import cat.gencat.agaur.hexastock.model.Transaction;
 import jakarta.transaction.Transactional;
+import org.springframework.core.env.Environment;
+import org.springframework.core.env.Profiles;
+
 import java.util.List;
 
 /**
@@ -47,14 +50,21 @@ public class PortfolioManagementService implements PortfolioManagementUseCase {
     private final TransactionPort transactionPort;
 
     /**
+     * Spring Environment used to check active profiles for teaching instrumentation.
+     */
+    private final Environment environment;
+
+    /**
      * Constructs a new PortfolioManagmentService with the required secondary ports.
      * 
      * @param portfolioPort The port for portfolio persistence operations
      * @param transactionPort The port for transaction recording operations
+     * @param environment Spring Environment for profile checks
      */
-    public PortfolioManagementService(PortfolioPort portfolioPort, TransactionPort transactionPort) {
+    public PortfolioManagementService(PortfolioPort portfolioPort, TransactionPort transactionPort, Environment environment) {
         this.portfolioPort = portfolioPort;
         this.transactionPort = transactionPort;
+        this.environment = environment;
     }
 
     /**
@@ -138,6 +148,41 @@ public class PortfolioManagementService implements PortfolioManagementUseCase {
     @Override
     public void withdraw(String portfolioId, Money amount) {
         Portfolio portfolio = getPortfolio(portfolioId);
+
+        /*
+         * ============================================================================
+         * TEACHING-ONLY INSTRUMENTATION (test-concurrency profile)
+         * ============================================================================
+         * This sleep widens the race window so concurrent requests can reliably read
+         * the same portfolio state before any transaction commits. It simulates the
+         * timing conditions that expose concurrency bugs in real production systems.
+         *
+         * WHY THIS EXISTS:
+         * - Without this delay, the race window is too narrow to reliably demonstrate
+         *   concurrency issues in tests.
+         * - With pessimistic locking (SELECT ... FOR UPDATE), the second transaction
+         *   blocks at the database level until the first commits, making the sleep
+         *   irrelevant for correctness but useful for demonstrating blocking behavior.
+         * - Without pessimistic locking, both transactions read balance=1000 during
+         *   this window and both proceed incorrectly.
+         *
+         * WHY THIS IS NOT PRODUCTION BEST PRACTICE:
+         * - Artificial delays slow down the system and do not belong in production code.
+         * - Proper concurrency control (pessimistic or optimistic locking) handles
+         *   race conditions correctly without needing timing manipulation.
+         *
+         * WARNING: This code must never be merged into main or deployed to production.
+         * It exists solely to support the teaching/concurrency demonstration tests.
+         * ============================================================================
+         */
+        if (environment.acceptsProfiles(Profiles.of("test-concurrency"))) {
+            try {
+                Thread.sleep(200);
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+            }
+        }
+
         portfolio.withdraw(amount);
         portfolioPort.savePortfolio(portfolio);
 
