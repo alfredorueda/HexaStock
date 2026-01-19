@@ -13,7 +13,7 @@
   - [Step 4: Domain Model Enforces Invariants](#step-4-domain-model-enforces-invariants)
   - [Step 5: Persistence Adapter Saves Changes](#step-5-persistence-adapter-saves-changes)
   - [Step 6: Response Returns to Client](#step-6-response-returns-to-client)
-- [6. 🎯 Why Application Services Orchestrate and Aggregates Protect Invariants](#6--why-application-services-orchestrate-and-aggregates-protect-invariants)
+- [6. Why Application Services Orchestrate and Aggregates Protect Invariants](#6--why-application-services-orchestrate-and-aggregates-protect-invariants)
   - [A) Roles Explained with Real Code](#a-roles-explained-with-real-code)
   - [B) Concrete Domain Example: Why Direct Manipulation Breaks Invariants](#b-concrete-domain-example-why-direct-manipulation-breaks-invariants)
   - [C) Sequence Diagram: Orchestrator vs Aggregate Root](#c-sequence-diagram-orchestrator-vs-aggregate-root)
