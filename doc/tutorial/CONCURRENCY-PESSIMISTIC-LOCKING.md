@@ -401,5 +401,10 @@ If Docker is not running, start it and retry.
 2. Remove the lock temporarily → tests fail, balance corrupted.
 3. Revert the change → tests pass again.
 
-This experiment illustrates that in highly contended financial operations, pessimistic locking is one of the most reliable strategies to 
-guarantee correctness, even at the cost of reduced concurrency.
+In real-world financial systems, operations such as selling stocks from a portfolio are most commonly implemented using optimistic locking at the aggregate level, combined with short ACID transactions and controlled retries in case of concurrent updates.
+
+In this tutorial, we intentionally use pessimistic locking to make concurrency issues explicit and observable, and to clearly demonstrate the kinds of race conditions that can occur when correctness is not properly enforced.
+
+While pessimistic locking provides very strong guarantees and is easier to reason about in a learning context, optimistic locking is generally the more realistic choice in production systems, as it offers better scalability and performance under typical workloads.
+
+Understanding both approaches, and knowing when to apply each one, is a key skill in professional financial software engineering.
