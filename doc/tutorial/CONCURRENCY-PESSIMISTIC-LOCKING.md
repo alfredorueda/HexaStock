@@ -401,4 +401,3 @@ If Docker is not running, start it and retry.
 2. Remove the lock temporarily → tests fail, balance corrupted.
 3. Revert the change → tests pass again.
 
-This hands-on experiment demonstrates why pessimistic locking is non-negotiable for financial operations where correctness matters more than performance.
