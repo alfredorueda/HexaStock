@@ -217,7 +217,7 @@ public SellResult sellStock(String portfolioId, Ticker ticker, int quantity) {
 
 ### Step 4: Domain Model Enforces Invariants
 
-**File:** `model.Portfolio` (Aggregate Root)
+**File:** `model.Portfolio`
 
 ```java
 public SellResult sell(Ticker ticker, int quantity, BigDecimal price) {
@@ -524,13 +524,81 @@ public class PortfolioStockOperationsService
 }
 ```
 
-This ensures:
+### Why Transactions Matter for Stock Selling
+
+Selling stocks is a **critical financial operation** that must maintain strict consistency guarantees:
+
+1. **Multi-Step Operation:** A single sell involves multiple database writes:
+   - Update portfolio balance (add proceeds)
+   - Update holding lot quantities (reduce shares via FIFO)
+   - Record transaction for audit trail
+   
+   These changes must **all succeed or all fail together**. Partial updates would corrupt the portfolio state.
+
+2. **Consistency Across Aggregates:** Portfolio state and transaction history must remain synchronized. If the transaction record fails to save, the portfolio changes must be rolled back to prevent discrepancies in financial reporting.
+
+3. **Invariant Protection:** The domain model enforces business rules (e.g., "cannot sell more than you own"), but the transaction boundary ensures these validations and subsequent state changes happen atomically—no other thread can observe an intermediate state.
+
+### ACID Guarantees in Action
+
+Spring's `@Transactional` ensures:
+
 1. **Atomicity:** All database operations (save portfolio, save transaction) succeed or fail together
 2. **Consistency:** If the transaction record fails to save, the portfolio changes are rolled back
-3. **Isolation:** Concurrent sells on the same portfolio are serialized
+3. **Isolation:** Concurrent sells on the same portfolio are serialized (preventing race conditions)
 4. **Durability:** Once committed, the sale is permanent
 
-**ACID guarantees** are handled by Spring's transaction management, not by the domain model. This is correct separation of concerns: the domain enforces **business consistency**, while infrastructure enforces **technical consistency**.
+**Important separation of concerns:** The domain enforces **business consistency** (invariants, validations), while infrastructure enforces **technical consistency** (ACID properties, transaction boundaries).
+
+### Concurrency Risks in Financial Operations
+
+When multiple users (or concurrent requests from the same user) attempt to sell stocks from the same portfolio simultaneously, several problems can arise without proper synchronization:
+
+**Lost Update Problem:**
+- Request 1 reads balance = $1000
+- Request 2 reads balance = $1000 (stale)
+- Request 1 sells stock, adds $500 proceeds → balance = $1500, commits
+- Request 2 sells stock, adds $300 proceeds → calculates $1300 based on stale read, commits
+- **Result:** Final balance is $1300, but should be $1800. The first update is lost.
+
+**Double-Spending:**
+- Request 1 reads holding: 10 shares available
+- Request 2 reads holding: 10 shares available (stale)
+- Request 1 sells 10 shares, commits
+- Request 2 attempts to sell 10 shares, but only 0 remain
+- Without proper isolation, Request 2 might observe an inconsistent intermediate state.
+
+**FIFO Corruption:**
+- Two concurrent sells might both attempt to reduce the same lot simultaneously
+- Without serialization, lot quantities could become negative or inconsistent
+- The aggregate's invariants would be violated mid-operation
+
+### How HexaStock Handles Concurrency
+
+HexaStock uses **database-level transaction isolation** to prevent these issues:
+
+- The `@Transactional` annotation establishes a transaction boundary at the application service level
+- Database isolation (typically READ_COMMITTED or higher) ensures that concurrent transactions see consistent snapshots
+- For high-contention scenarios, **pessimistic locking** can be applied using JPA's `@Lock(LockModeType.PESSIMISTIC_WRITE)`, which serializes access to specific portfolio rows
+- This ensures that when Transaction 1 is processing a sale, Transaction 2 waits until Transaction 1 commits before reading the portfolio
+
+The transaction boundary is intentionally placed at the **application service**, not the domain model, because:
+- Domain objects should be technology-agnostic (pure business logic)
+- Transaction management is an infrastructure concern
+- The service coordinates multiple operations (fetch, execute domain logic, persist, audit) that must succeed or fail atomically
+
+---
+
+> **📖 Deep Dive: Concurrency and Locking**
+>
+> This tutorial focuses on the architectural and domain design aspects of stock selling. For a **detailed explanation of concurrency control mechanisms**, including:
+> - Pessimistic locking with `SELECT ... FOR UPDATE`
+> - Optimistic locking with version fields
+> - Transaction isolation levels and their trade-offs
+> - Race condition demonstrations with real tests
+> - When to use which strategy in production financial systems
+>
+> See the dedicated tutorial: **[Concurrency Control with Pessimistic Database Locking](CONCURRENCY-PESSIMISTIC-LOCKING.md)**
 
 ---
 
