@@ -2,6 +2,8 @@
 
 ## Table of Contents
 
+- [Architecture Overview (Hexagonal / Ports & Adapters)](#architecture-overview-hexagonal--ports--adapters)
+  - [How This Tutorial Maps to the Diagram](#how-this-tutorial-maps-to-the-diagram)
 - [1. Purpose and Learning Objectives](#1-purpose-and-learning-objectives)
 - [2. Domain Context: What "Selling Stocks" Means in HexaStock](#2-domain-context-what-selling-stocks-means-in-hexastock)
 - [3. Entry Point: The REST Endpoint (Driving Adapter)](#3-entry-point-the-rest-endpoint-driving-adapter)
@@ -42,6 +44,55 @@
 
 > **💡 How to use this Table of Contents:**  
 > Click any link to jump directly to that section. The structure follows the document's hierarchy: main sections (##) are at the top level, subsections (###) are indented once, and specific exercises or cases (####) are indented twice. Use your browser's back button or scroll to navigate between sections.
+
+---
+
+## Architecture Overview (Hexagonal / Ports & Adapters)
+
+Before diving into the execution flow of selling stocks, it's essential to understand the **architectural foundation** that shapes the entire codebase. HexaStock implements **Hexagonal Architecture** (also known as **Ports and Adapters**), a pattern designed to isolate business logic from external dependencies and infrastructure concerns.
+
+### Core Architectural Layers
+
+**Application Core** — The heart of the system, completely isolated from external technologies:
+- **Domain Layer:** Contains pure business logic (entities, value objects, domain services). This is where business rules like FIFO accounting, invariant protection, and portfolio consistency are enforced. Examples: `Portfolio`, `Holding`, `Lot`, `Ticker`.
+- **Application Layer:** Orchestrates use cases by coordinating domain objects and ports. Application services are thin coordinators with no business logic—they retrieve data, delegate decisions to the domain, and persist results. Examples: `PortfolioStockOperationsService`.
+
+**Ports** — Interfaces that define contracts between the core and the outside world:
+- **Inbound Ports (Primary/Driving):** Define what the application can do. These are use case interfaces implemented by application services. Examples: `PortfolioStockOperationsUseCase`.
+- **Outbound Ports (Secondary/Driven):** Define what the application needs from external systems. The core depends on these abstractions, not on concrete implementations. Examples: `PortfolioPort`, `StockPriceProviderPort`, `TransactionPort`.
+
+**Adapters** — Concrete implementations that connect the core to the real world:
+- **Inbound Adapters (Driving):** Receive requests from users or external systems and translate them into domain operations. Examples: `PortfolioRestController` (HTTP/REST), potential CLI or messaging adapters.
+- **Outbound Adapters (Driven):** Implement outbound ports to interact with databases, external APIs, or other infrastructure. Examples: JPA repositories for persistence, Finnhub/AlphaVantage clients for stock prices.
+
+**Dependency Direction:** All dependencies point **inward** toward the domain. Adapters depend on ports, ports are defined by the core, and the domain has zero dependencies on infrastructure. This is **Dependency Inversion** in action.
+
+### Why This Architecture Matters for This Tutorial
+
+Understanding this structure is critical because:
+- **Class diagrams** in this tutorial explicitly show ports (interfaces) and adapters (implementations)
+- **Sequence diagrams** trace execution across architectural boundaries (adapter → port → service → domain)
+- **Persistence mapping** explains how the domain model (technology-agnostic) is separated from JPA entities (infrastructure)
+- **Transaction management** is placed at the application service level (infrastructure concern), not in the domain (business logic)
+- **Error handling** demonstrates how domain exceptions (business language) are translated by adapters into HTTP responses (technical protocol)
+
+> *Image credit:*  
+> *The architectural diagram referenced in this tutorial is based on work by **Herberto Graça**.*  
+> *Source: [Explicit Architecture #01: DDD, Hexagonal, Onion, Clean, CQRS, … How I put it all together](https://herbertograca.com/2017/11/16/explicit-architecture-01-ddd-hexagonal-onion-clean-cqrs-how-i-put-it-all-together/)*  
+> *Used for educational purposes with proper attribution.*
+
+### How This Tutorial Maps to the Diagram
+
+The sell stock use case flows through these architectural layers:
+
+- **Primary (Driving) Adapters** → `PortfolioRestController` in package `adapter.in`
+- **Inbound Ports** → `PortfolioStockOperationsUseCase` interface in `application.port.in`
+- **Application Layer** → `PortfolioStockOperationsService` orchestrates the use case, manages transaction boundaries, and coordinates between ports
+- **Domain Layer** → `Portfolio` (aggregate root), `Holding`, `Lot` (entities), `Ticker`, `SellResult` (value objects), domain exceptions
+- **Outbound Ports** → `PortfolioPort` (persistence abstraction), `StockPriceProviderPort` (external price data), `TransactionPort` (audit log)
+- **Secondary (Driven) Adapters** → JPA repositories (`PortfolioJpaAdapter`), external API clients (`FinnhubStockPriceAdapter`, `AlphaVantageStockPriceAdapter`), transaction repositories
+
+As you read through sections 3–9, you'll trace a real HTTP request flowing through these layers, observing how each component fulfills its architectural role while maintaining strict separation of concerns.
 
 ---
 
