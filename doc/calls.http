@@ -52,7 +52,7 @@ POST http://localhost:8081/api/portfolios/{{portfolioId}}/purchases
 Content-Type: application/json
 
 {
-  "ticker": "GRF",
+  "ticker": "GOOGL",
   "quantity": 20
 }
 
