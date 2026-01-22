@@ -70,7 +70,7 @@ Before diving into the execution flow of selling stocks, it's essential to under
 ### Why This Architecture Matters for This Tutorial
 
 Understanding this structure is critical because:
-- **Class diagrams** in this tutorial explicitly show ports (interfaces) and adapters (implementations)
+- **Class diagrams** in this tutorial explicitly show domain model entities and their relationships
 - **Sequence diagrams** trace execution across architectural boundaries (adapter → port → service → domain)
 - **Persistence mapping** explains how the domain model (technology-agnostic) is separated from JPA entities (infrastructure)
 - **Transaction management** is placed at the application service level (infrastructure concern), not in the domain (business logic)
