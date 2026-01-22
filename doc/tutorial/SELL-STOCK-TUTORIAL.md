@@ -76,6 +76,9 @@ Understanding this structure is critical because:
 - **Transaction management** is placed at the application service level (infrastructure concern), not in the domain (business logic)
 - **Error handling** demonstrates how domain exceptions (business language) are translated by adapters into HTTP responses (technical protocol)
 
+<img width="876" height="657" alt="image" src="https://github.com/user-attachments/assets/91ddf125-0949-4251-87ac-ab0856698376" />
+
+
 > *Image credit:*  
 > *The architectural diagram referenced in this tutorial is based on work by **Herberto Graça**.*  
 > *Source: [Explicit Architecture #01: DDD, Hexagonal, Onion, Clean, CQRS, … How I put it all together](https://herbertograca.com/2017/11/16/explicit-architecture-01-ddd-hexagonal-onion-clean-cqrs-how-i-put-it-all-together/)*  
