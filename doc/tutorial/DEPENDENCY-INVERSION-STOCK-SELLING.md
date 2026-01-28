@@ -649,7 +649,6 @@ This means:
 - The domain can be **tested in isolation** with plain JUnit tests
 - The domain can be **reused** in different contexts (CLI application, batch job, message queue consumer)
 - The domain can be **evolved** independently of infrastructure concerns
-- Developers can understand business logic without learning Spring, JPA, or HTTP protocols
 
 ### Benefit 5: Improved Error Handling and Resilience
 
