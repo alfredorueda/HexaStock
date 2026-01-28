@@ -1,4 +1,4 @@
-# Concurrency Control with Pessimistic Database Locking
+# Concurrency Control with Pessimistic and Optimistic Approaches
 
 ## Table of Contents
 
