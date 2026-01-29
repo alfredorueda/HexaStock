@@ -83,7 +83,7 @@ public class ExceptionHandlingAdvice {
     @ResponseBody
     public ProblemDetail externalApiExceptionHandler(ExternalApiException ex) {
         ProblemDetail pd = ProblemDetail.forStatus(HttpStatus.SERVICE_UNAVAILABLE);
-        pd.setTitle("FinHub External API Error");
+        pd.setTitle("External API Error");
         pd.setDetail(ex.getMessage());
         return pd;
     }
