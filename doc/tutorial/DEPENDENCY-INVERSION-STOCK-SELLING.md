@@ -644,7 +644,6 @@ The domain model (`Portfolio`, `Holding`, `Lot`, `SellResult`) contains **zero i
 - No HTTP-related imports (like `HttpClient`, `RestTemplate`)
 - No JSON serialization annotations (like `@JsonProperty`)
 - No Spring framework imports (like `@Service`, `@Component`)
-- Esto es solo una prueba
 
 This means:
 - The domain can be **tested in isolation** with plain JUnit tests

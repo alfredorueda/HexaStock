@@ -120,7 +120,7 @@ public class Holding {
         for (var lot : lots) {
             if (remainingToSell <= 0) break;
 
-            int sharesSoldFromLot = Math.max(lot.getRemaining(), remainingToSell);
+            int sharesSoldFromLot = Math.min(lot.getRemaining(), remainingToSell);
             BigDecimal lotCostBasis = lot.getUnitPrice().multiply(BigDecimal.valueOf(sharesSoldFromLot));
             
             costBasis = costBasis.add(lotCostBasis);
