@@ -1,5 +1,38 @@
 # Dependency Inversion Principle in Stock Selling: A Real Implementation Analysis
 
+## Table of Contents
+- [Responsibility of the Stock Selling Service](#responsibility-of-the-stock-selling-service)
+- [Port / Interface Used to Obtain the Stock Price](#port--interface-used-to-obtain-the-stock-price)
+- [Concrete Adapters](#concrete-adapters)
+  - [1. FinhubStockPriceAdapter](#1-finhubstockpriceadapter)
+  - [2. AlphaVantageStockPriceAdapter](#2-alphavantagestockpriceadapter)
+- [Full Execution Flow of a Stock Sale](#full-execution-flow-of-a-stock-sale)
+  - [Step 1: HTTP Request Arrives at the Driving Adapter](#step-1-http-request-arrives-at-the-driving-adapter)
+  - [Step 2: Primary Port Delegates to Application Service](#step-2-primary-port-delegates-to-application-service)
+  - [Step 3: Service Retrieves Portfolio from Persistence](#step-3-service-retrieves-portfolio-from-persistence)
+  - [Step 4: Service Fetches Current Stock Price](#step-4-service-fetches-current-stock-price)
+  - [Step 5: Service Delegates Business Logic to Domain Model](#step-5-service-delegates-business-logic-to-domain-model)
+  - [Step 6: Service Persists Updated Portfolio](#step-6-service-persists-updated-portfolio)
+  - [Step 7: Service Records Transaction for Audit](#step-7-service-records-transaction-for-audit)
+  - [Step 8: Service Returns Result to Controller](#step-8-service-returns-result-to-controller)
+  - [Step 9: Controller Converts to DTO and Returns HTTP Response](#step-9-controller-converts-to-dto-and-returns-http-response)
+- [Why This Satisfies Dependency Inversion](#why-this-satisfies-dependency-inversion)
+  - [1. The Application Service is a High-Level Module](#1-the-application-service-is-a-high-level-module)
+  - [2. The Service Depends Only on Abstractions](#2-the-service-depends-only-on-abstractions)
+  - [3. Low-Level Modules (Adapters) Implement High-Level Abstractions](#3-low-level-modules-adapters-implement-high-level-abstractions)
+  - [4. Abstractions Do Not Depend on Details](#4-abstractions-do-not-depend-on-details)
+  - [5. Spring Dependency Injection Resolves the Concrete Implementation](#5-spring-dependency-injection-resolves-the-concrete-implementation)
+- [Practical Benefits (Testability, Extensibility)](#practical-benefits-testability-extensibility)
+  - [Benefit 1: Testability Without Infrastructure](#benefit-1-testability-without-infrastructure)
+  - [Benefit 2: Switching Stock Price Providers Without Code Changes](#benefit-2-switching-stock-price-providers-without-code-changes)
+  - [Benefit 3: Adding a New Stock Price Provider is Isolated](#benefit-3-adding-a-new-stock-price-provider-is-isolated)
+  - [Benefit 4: Domain Model Remains Pure](#benefit-4-domain-model-remains-pure)
+  - [Benefit 5: Improved Error Handling and Resilience](#benefit-5-improved-error-handling-and-resilience)
+  - [Benefit 6: Regulatory Compliance and Auditing](#benefit-6-regulatory-compliance-and-auditing)
+- [Summary](#summary)
+
+---
+
 ## Responsibility of the Stock Selling Service
 
 The stock selling use case is implemented by the `PortfolioStockOperationsService` class, located in the package `cat.gencat.agaur.hexastock.application.service`.
