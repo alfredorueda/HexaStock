@@ -76,6 +76,16 @@ Understanding this structure is critical because:
 - **Transaction management** is placed at the application service level (infrastructure concern), not in the domain (business logic)
 - **Error handling** demonstrates how domain exceptions (business language) are translated by adapters into HTTP responses (technical protocol)
 
+<img width="1600" height="797" alt="Hexagonal Architecture" src="https://github.com/user-attachments/assets/09c46496-b801-4375-801a-aebe1361d57d" />
+
+> *Image credit:*  
+> *The architectural diagram referenced in this tutorial is based on work by **Tom Hombergs**.*  
+> *Sources:*  
+> *– Article: [Hexagonal Architecture with Java and Spring](https://reflectoring.io/spring-hexagonal/)*  
+> *– Reference implementation: [BuckPal – A Hexagonal Architecture Example](https://github.com/thombergs/buckpal)*  
+> *Used for educational purposes with proper attribution.*
+
+
 <img width="876" height="657" alt="image" src="https://github.com/user-attachments/assets/91ddf125-0949-4251-87ac-ab0856698376" />
 
 
