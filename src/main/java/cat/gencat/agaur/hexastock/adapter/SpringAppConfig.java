@@ -9,6 +9,7 @@ import cat.gencat.agaur.hexastock.application.service.*;
 import cat.gencat.agaur.hexastock.model.service.HoldingPerformanceCalculator;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.cache.annotation.EnableCaching;
 import org.springframework.context.annotation.Bean;
 
 /**
@@ -18,6 +19,7 @@ import org.springframework.context.annotation.Bean;
  * @author Francisco José Nebrera Rodríguez
  */
 @SpringBootApplication
+@EnableCaching
 public class SpringAppConfig {
 
   @Autowired
