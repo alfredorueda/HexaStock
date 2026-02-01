@@ -5,6 +5,7 @@ import cat.gencat.agaur.hexastock.model.StockPrice;
 import cat.gencat.agaur.hexastock.model.Ticker;
 import cat.gencat.agaur.hexastock.model.exception.ExternalApiException;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.context.annotation.Profile;
 import org.springframework.http.client.SimpleClientHttpRequestFactory;
 import org.springframework.stereotype.Component;
@@ -59,6 +60,7 @@ public class AlphaVantageStockPriceAdapter implements StockPriceProviderPort {
      * @throws ExternalApiException if there is an error communicating with the Alpha Vantage API or the response is invalid
      */
     @Override
+    @Cacheable(cacheNames = "stockPrices", key = "#ticker.value()", sync = true)
     public StockPrice fetchStockPrice(Ticker ticker) {
         // Throttle to stay within free-tier rate limits (Alpha Vantage).
         throttle();
