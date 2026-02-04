@@ -9,10 +9,10 @@
 - [2. Objective of the Assignment](#2-objective-of-the-assignment)
 - [3. Fundamental Design Principle (Key Learning Objective)](#3-fundamental-design-principle-key-learning-objective)
 - [4. Lot Selection Policy (Key Domain Decision)](#4-lot-selection-policy-key-domain-decision)
-- [5. Strategies to Implement](#5-strategies-to-implement)
-    - [5.1 Mandatory New Strategies](#51-mandatory-new-strategies)
+- [5. Lot Selection Policies to Implement](#5-lot-selection-policies-to-implement)
+    - [5.1 Mandatory New Policies](#51-mandatory-new-policies)
     - [5.2 Advanced Extra — Specific Lot Identification (Optional)](#52-advanced-extra--specific-lot-identification-optional)
-- [6. Expected Design (DDD + Strategy Pattern)](#6-expected-design-ddd--strategy-pattern)
+- [6. Design Requirements](#6-design-requirements)
 - [7. Hexagonal Architecture](#7-hexagonal-architecture)
 - [8. Evaluation Criteria](#8-evaluation-criteria)
 - [Pedagogical Closing](#pedagogical-closing)
@@ -38,27 +38,27 @@
 ## 1. Business Context
 
 The **HexaStock** platform was originally designed for the Spanish market.  
-In this context, tax regulations require the use of the **FIFO (First-In, First-Out)** criterion when selling stocks. For this reason, the system was initially implemented with FIFO as its default and only lot selection strategy.
+In this context, tax regulations require the use of the **FIFO (First-In, First-Out)** criterion when selling stocks. For this reason, the system was initially implemented with FIFO as its default and only lot selection policy.
 
 At this point, **FIFO is already implemented and working correctly in the system**.
 
 Over recent months, several clients and potential international partners have highlighted an important limitation of the product:  
 working exclusively with FIFO is insufficient for operating in other markets and for advanced users who require greater flexibility and analytical capabilities.
 
-As part of the company’s growth strategy, the product is now expected to **expand to international markets**, where:
+As part of the company's growth strategy, the product is now expected to **expand to international markets**, where:
 
 - different regulations apply,
-- alternative lot selection strategies are commonly used,
+- alternative lot selection policies are commonly used,
 - and advanced portfolio functionality is expected by expert users.
 
 This creates a clear business opportunity:  
-**to extend HexaStock so it supports additional lot selection strategies beyond FIFO**, while preserving architectural quality and minimizing maintenance costs.
+**to extend HexaStock so it supports additional lot selection policies beyond FIFO**, while preserving architectural quality and minimizing maintenance costs.
 
 ---
 
 ## 2. Objective of the Assignment
 
-The goal of this assignment is to **evolve the existing system** to support **new lot selection strategies**, beyond FIFO, while strictly respecting:
+The goal of this assignment is to **evolve the existing system** to support **new lot selection policies**, beyond FIFO, while strictly respecting:
 
 - **Domain-Driven Design (DDD)** principles
 - **Hexagonal (Clean) Architecture**
@@ -79,7 +79,7 @@ HexaStock follows the following guiding principle:
 > **Infrastructure changes should impact infrastructure code only.**  
 > **The domain must not depend on frameworks, databases, or technical details.**
 
-Introducing new lot selection strategies is a **business rule change**.  
+Introducing new lot selection policies is a **business rule change**.  
 Therefore, the main impact of this extension must be concentrated in the **domain model** and its algorithms.
 
 This exercise aims to demonstrate, in a concrete and practical way, the power of combining **DDD with Hexagonal Architecture** to reduce the cost of change and protect the core of the system.
@@ -88,7 +88,7 @@ This exercise aims to demonstrate, in a concrete and practical way, the power of
 
 ## 4. Lot Selection Policy (Key Domain Decision)
 
-Each **Portfolio** has an associated **Lot Selection Policy** (`LotSelectionPolicy`) that determines how lots are consumed when selling stocks.
+Each **Portfolio** has an associated **Lot Selection Policy** that determines how lots are consumed when selling stocks.
 
 ### Mandatory Business Rules
 
@@ -100,17 +100,17 @@ Each **Portfolio** has an associated **Lot Selection Policy** (`LotSelectionPoli
 
 ---
 
-## 5. Strategies to Implement
+## 5. Lot Selection Policies to Implement
 
-### 5.1 Mandatory New Strategies
+### 5.1 Mandatory New Policies
 
-Students must implement **two new strategies**, in addition to the existing FIFO strategy.
+Students must implement **two new policies**, in addition to the existing FIFO policy.
 
 #### LIFO — Last In, First Out
 
 - The most recently acquired shares are sold first.
 - Clearly illustrates behavioral differences compared to FIFO.
-- Algorithmically simple, ideal for introducing the Strategy pattern.
+- Algorithmically straightforward.
 
 ---
 
@@ -119,9 +119,9 @@ Students must implement **two new strategies**, in addition to the existing FIFO
 - Shares purchased at the **highest price** are sold first.
 - Uses a non-temporal selection criterion.
 - Commonly used in fiscal analysis and advanced simulations.
-- Provides higher algorithmic and pedagogical value.
+- Provides higher algorithmic complexity.
 
-Both strategies must be **fully encapsulated within the domain** and designed to be easily extensible.
+Both policies must be **fully encapsulated within the domain** and the solution must be designed to accommodate future policies easily.
 
 ---
 
@@ -147,19 +147,32 @@ This extension is optional but will be **highly valued** for advanced students.
 
 ---
 
-## 6. Expected Design (DDD + Strategy Pattern)
+## 6. Design Requirements
 
-Lot selection strategies must be modeled using the **Strategy pattern**:
+The solution must support multiple lot selection policies while respecting the following constraints:
 
-- A common abstraction for lot selection behavior.
-- Concrete implementations for FIFO (existing), LIFO, HIFO, and (optional) SPECIFIC_ID.
-- Strategy selection depends on the **state of the Portfolio**, not on controllers or application services.
+### Domain Layer Requirements
 
-### Explicitly forbidden
+- Lot selection logic must reside **entirely within the domain**.
+- The domain must determine which lots to consume based on the portfolio's policy.
+- Policy selection must depend on the **state of the Portfolio**, not on external components.
+- The solution must be designed to support adding new policies in the future with minimal changes to existing code.
+
+### Explicitly Forbidden
 
 - Business logic in REST controllers
-- Algorithm selection in the web layer
+- Policy selection or lot selection algorithms in the web layer
 - Leakage of domain rules into infrastructure code
+- Conditional logic scattered across multiple layers to handle different policies
+
+### Design Quality Expectations
+
+Students are free to choose their own design approach, but the solution will be evaluated based on:
+
+- **Separation of concerns**: Each component has a clear, single responsibility
+- **Extensibility**: New policies can be added without modifying existing policy implementations
+- **Encapsulation**: Business rules are hidden within the domain and not exposed to other layers
+- **Testability**: Policies can be tested independently of infrastructure
 
 ---
 
@@ -168,7 +181,7 @@ Lot selection strategies must be modeled using the **Strategy pattern**:
 The extension must respect the existing architecture:
 
 - **Domain**  
-  Main focus of the change.
+  Main focus of the change. Contains all lot selection logic.
 
 - **Application layer**  
   Orchestrates use cases, no algorithmic logic.
@@ -177,7 +190,7 @@ The extension must respect the existing architecture:
   Input validation and DTO translation.
 
 - **Outbound adapters (persistence)**  
-  Persist the policy, no business logic.
+  Persist the policy as part of portfolio state, no business logic.
 
 ---
 
@@ -185,10 +198,10 @@ The extension must respect the existing architecture:
 
 The following aspects will be especially valued:
 
-- Clear separation of responsibilities
-- Clean and correct use of the Strategy pattern
+- Clear separation of responsibilities across architectural layers
 - Strong encapsulation of business rules in the domain
 - Strict respect for architectural boundaries
+- Solution design that facilitates future extension with new policies
 - Clear and expressive domain tests
 - *(Extra)* Correct implementation of Specific Lot Identification
 
@@ -266,7 +279,7 @@ By implementing this extension, you will experience firsthand:
 - The practical value of combining **Domain-Driven Design** with **Hexagonal Architecture** in real-world scenarios.
 
 This is the counterpart to the mandatory assignment:  
-- The **mandatory work** (lot selection strategies) demonstrates how **business changes** are isolated in the domain.
+- The **mandatory work** (lot selection policies) demonstrates how **business changes** are isolated in the domain.
 - This **optional extension** demonstrates how **infrastructure changes** are isolated in adapters.
 
 Together, they illustrate the complete architectural story.
@@ -297,7 +310,7 @@ You are free to design the MongoDB document structure as you see fit, as long as
 
 This optional extension will be evaluated **separately** from the mandatory assignment and will **not penalize** students who choose not to implement it.
 
-**If you do not implement this extension**, your grade will be based entirely on the mandatory requirements (lot selection strategies, domain design, and tests).
+**If you do not implement this extension**, your grade will be based entirely on the mandatory requirements (lot selection policies, domain design, and tests).
 
 **If you do implement this extension**, it will be assessed based on:
 
@@ -316,7 +329,7 @@ Successful implementation of this extension will demonstrate **advanced understa
 
 This optional infrastructure extension reinforces the core learning objective of the assignment:
 
-- The **core assignment** focuses on a **business change**: extending lot selection strategies.  
+- The **core assignment** focuses on a **business change**: extending lot selection policies.  
   This change is isolated in the **domain layer**.
 
 - This **optional extension** focuses on an **infrastructure change**: replacing the persistence technology.  
@@ -366,7 +379,7 @@ The video must comply with the following requirements:
 
 #### Central Requirement: Complete End-to-End Use Case Execution
 
-The **core focus** of the video must be to explain and demonstrate **the complete execution flow of the stock selling use case using the HIFO strategy (Highest In, First Out)**.
+The **core focus** of the video must be to explain and demonstrate **the complete execution flow of the stock selling use case using the HIFO policy (Highest In, First Out)**.
 
 **HIFO is mandatory** for this demonstration. FIFO already exists in the system and must **not** be the focus of the architectural explanation.
 
@@ -401,11 +414,11 @@ The video must explain **all architectural components involved in the use case**
    - Demonstrate that the domain is **rich, not anemic**
    - Show where the actual business logic lives
 
-5. **Domain Strategy Implementation (HIFO)**
-   - Explain the Strategy pattern implementation
-   - Show how the HIFO strategy is selected and applied
+5. **Lot Selection Implementation (HIFO)**
+   - Show how the HIFO policy is represented in the domain
    - Demonstrate the algorithm that selects lots based on highest purchase price
-   - Explain how the strategy is encapsulated in the domain
+   - Explain how the policy is encapsulated within the domain
+   - Show how the Portfolio determines which lots to consume
 
 6. **Output Ports (Repository Interfaces)**
    - Explain the outbound port contracts
@@ -443,9 +456,10 @@ The video must **explicitly and clearly demonstrate** understanding of Domain-Dr
    - The domain model must be **rich**: entities have behavior, not just data
    - Students must demonstrate that domain entities enforce their own invariants and encapsulate business logic
 
-4. **Strategy Pattern in the Domain**
-   - The lot selection strategy (HIFO) must be a **domain concept**, not an infrastructure detail
-   - The Portfolio entity must use the strategy to make business decisions
+4. **Policy Implementation in the Domain**
+   - The lot selection policy (HIFO) must be a **domain concept**, not an infrastructure detail
+   - The Portfolio entity must be responsible for applying the appropriate policy
+   - Students must explain their design approach and justify their decisions
 
 **Failure to demonstrate this understanding will significantly impact the evaluation**, even if the code works correctly.
 
@@ -467,12 +481,12 @@ Required demonstrations:
    - Demonstrate that the system is actually executing, not simulated
 
 3. **Optional but highly recommended: Use the debugger**
-   - Set breakpoints in key components (controller, service, domain entity, strategy, adapter)
+   - Set breakpoints in key components (controller, service, domain entity, policy implementation, adapter)
    - Step through the execution flow
    - Show how control passes from layer to layer
    - Demonstrate the delegation from the application service to the domain entity
-   - Show the strategy being invoked within the domain
-   - Illustrate how the Portfolio entity uses the HIFO strategy to select lots
+   - Show how the lot selection logic is invoked within the domain
+   - Illustrate how the Portfolio applies the HIFO policy to select lots
 
 This live demonstration will provide **concrete evidence** of architectural understanding and correct implementation.
 
@@ -486,7 +500,7 @@ The video may include and explain **architectural and design diagrams**, created
 
 1. **Class Diagram**
    - Show the domain model (Portfolio, Holding, Lot, etc.)
-   - Show the strategy pattern structure (LotSelectionStrategy interface, HIFO implementation, etc.)
+   - Show the design structure for handling multiple lot selection policies
    - The diagram must reflect the **actual implementation**
 
 2. **Sequence Diagram**
@@ -515,12 +529,12 @@ Required code demonstrations:
    - REST controller
    - Application service
    - Domain entities (Portfolio, Holding, Lot)
-   - HIFO strategy implementation
+   - HIFO policy implementation
    - Repository adapter
 
 2. **Explain key methods and logic**:
    - Walk through the code that implements the HIFO algorithm
-   - Show how the Portfolio entity delegates to the strategy
+   - Show how the Portfolio applies the appropriate policy
    - Explain how the application service orchestrates the use case
 
 3. **Highlight architectural boundaries**:
@@ -536,7 +550,7 @@ The video must include **execution and explanation of tests**.
 Required test demonstrations:
 
 1. **Execute domain tests related to HIFO**
-   - Run unit tests that validate the HIFO strategy algorithm
+   - Run unit tests that validate the HIFO policy algorithm
    - Run domain tests that validate the Portfolio behavior with HIFO
    - Explain what each test validates
 
@@ -560,12 +574,13 @@ Required test demonstrations:
 In addition to the core end-to-end execution demonstration, the video should briefly cover:
 
 1. **Core Idea and Business Value**
-   - Explain the business context and the need for multiple lot selection strategies
+   - Explain the business context and the need for multiple lot selection policies
    - Describe the solution approach
 
 2. **Architectural Decisions and Trade-offs**
-   - Explain key design decisions (e.g., why Strategy pattern, where to place the strategy)
+   - Explain key design decisions and the reasoning behind them
    - Discuss trade-offs and alternative approaches considered
+   - Justify why your design satisfies the requirements
 
 3. **Testing Strategy**
    - Describe the overall testing approach (unit, integration, domain tests)
@@ -583,7 +598,7 @@ The video must demonstrate that students have achieved the **core learning objec
 - **Deep understanding** of Domain-Driven Design principles
 - **Deep understanding** of Hexagonal Architecture
 - **Practical ability** to implement and explain a business rule extension that respects architectural boundaries
-- **Demonstrated proficiency** of the Strategy pattern in a DDD context
+- **Ability to design** a solution that accommodates multiple policies while maintaining clean architecture
 - **Ability to articulate** how the application service orchestrates while the domain encapsulates business logic
 
 The objective is **not merely to show that the system works**, but to **prove that the system has been correctly designed and correctly extended** according to DDD and Hexagonal Architecture principles.
@@ -602,7 +617,7 @@ The video should reflect **genuine mastery** of:
 - The architectural design
 - The domain model
 - The implementation details
-- The design patterns used
+- The design decisions and their rationale
 - The flow of control through the system
 
 Students should be able to answer the question: **"Why did you design it this way?"** for every architectural decision shown.
