@@ -1,4 +1,5 @@
 ### This file contains HTTP requests for testing the portfolio management API.
+
 ###
 POST http://localhost:8081/api/portfolios
 Content-Type: application/json
@@ -8,57 +9,11 @@ Content-Type: application/json
 }
 
 > {%
-    client.log("Response body: " + JSON.stringify(response.body));
-    client.log("Location header: " + response.headers.valueOf("Location"));
-
-    let portfolioId = null;
-
-    try {
-        // Check if response.body is already an object or a string
-        const responseBody = typeof response.body === 'string'
-            ? JSON.parse(response.body)
-            : response.body;
-
-        // Prefer extracting id from JSON response body (CreatePortfolioResponseDTO)
-        // Response format: { id, ownerName, cashBalance, currency }
-        if (responseBody && responseBody.id) {
-            portfolioId = responseBody.id;
-            client.log("Portfolio ID extracted from response body: " + portfolioId);
-        }
-    } catch (e) {
-        client.log("Could not parse response body: " + e.message);
-    }
-
-    // Fallback: extract id from Location header if body is empty or id is missing
-    if (!portfolioId) {
-        const locationHeader = response.headers.valueOf("Location");
-        if (locationHeader) {
-            // Location header format: http://localhost:8081/api/portfolios/{id}
-            const matches = locationHeader.match(/\/api\/portfolios\/([^\/]+)$/);
-            if (matches && matches[1]) {
-                portfolioId = matches[1];
-                client.log("Portfolio ID extracted from Location header: " + portfolioId);
-            }
-        }
-    }
-
-    if (portfolioId) {
-        client.global.set("portfolioId", portfolioId);
-        client.log("portfolioId global variable set to: " + portfolioId);
-    } else {
-        client.log("ERROR: Could not extract portfolio ID from response body or Location header");
-    }
+    client.global.set("portfolioId", response.body.id);
 %}
 
 ###
 GET http://localhost:8081/api/portfolios/{{portfolioId}}
-# Expected response (PortfolioResponseDTO):
-# {
-#   "id": "abc123",
-#   "ownerName": "Rachel Green",
-#   "balance": 1000000.00,
-#   "createdAt": "2024-06-01T12:34:56"
-# }
 
 ###
 POST http://localhost:8081/api/portfolios/{{portfolioId}}/deposits
