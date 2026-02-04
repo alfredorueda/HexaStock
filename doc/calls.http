@@ -6,21 +6,50 @@ Content-Type: application/json
 {
   "ownerName": "Rachel Green"
 }
+
 > {%
-    client.log(response.body);
+    client.log("Response body: " + JSON.stringify(response.body));
+    client.log("Location header: " + response.headers.valueOf("Location"));
+
+    let portfolioId = null;
+
     try {
         // Check if response.body is already an object or a string
         const responseBody = typeof response.body === 'string'
             ? JSON.parse(response.body)
             : response.body;
 
-        client.global.set("portfolioId", responseBody.id);
-        client.log("Portfolio ID set to: " + responseBody.id);
+        // Prefer extracting id from JSON response body (CreatePortfolioResponseDTO)
+        // Response format: { id, ownerName, cashBalance, currency }
+        if (responseBody && responseBody.id) {
+            portfolioId = responseBody.id;
+            client.log("Portfolio ID extracted from response body: " + portfolioId);
+        }
     } catch (e) {
-        client.log("Error handling response: " + e.message);
-        client.log("Response type: " + typeof response.body);
+        client.log("Could not parse response body: " + e.message);
+    }
+
+    // Fallback: extract id from Location header if body is empty or id is missing
+    if (!portfolioId) {
+        const locationHeader = response.headers.valueOf("Location");
+        if (locationHeader) {
+            // Location header format: http://localhost:8081/api/portfolios/{id}
+            const matches = locationHeader.match(/\/api\/portfolios\/([^\/]+)$/);
+            if (matches && matches[1]) {
+                portfolioId = matches[1];
+                client.log("Portfolio ID extracted from Location header: " + portfolioId);
+            }
+        }
+    }
+
+    if (portfolioId) {
+        client.global.set("portfolioId", portfolioId);
+        client.log("portfolioId global variable set to: " + portfolioId);
+    } else {
+        client.log("ERROR: Could not extract portfolio ID from response body or Location header");
     }
 %}
+
 ###
 GET http://localhost:8081/api/portfolios/{{portfolioId}}
 # Expected response (PortfolioResponseDTO):
@@ -64,7 +93,6 @@ Content-Type: application/json
   "ticker": "AAPL",
   "quantity": 10
 }
-
 
 ###
 POST http://localhost:8081/api/portfolios/{{portfolioId}}/sales
