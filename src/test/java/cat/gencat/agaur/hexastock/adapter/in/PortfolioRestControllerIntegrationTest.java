@@ -87,7 +87,11 @@ class PortfolioRestControllerIntegrationTest {
             .post("/api/portfolios")
             .then()
             .statusCode(201)
-            .body("id", notNullValue());
+            .header("Location", containsString("/api/portfolios/"))
+            .body("id", notNullValue())
+            .body("ownerName", equalTo(ownerName))
+            .body("cashBalance", equalTo(0))
+            .body("currency", equalTo("USD"));
         String portfolioId = createResp.extract().path("id");
 
         // 2. Deposit
@@ -136,7 +140,11 @@ class PortfolioRestControllerIntegrationTest {
             .post("/api/portfolios")
             .then()
             .statusCode(201)
-            .body("id", notNullValue());
+            .header("Location", containsString("/api/portfolios/"))
+            .body("id", notNullValue())
+            .body("ownerName", equalTo(ownerName))
+            .body("cashBalance", equalTo(0))
+            .body("currency", equalTo("USD"));
         String portfolioId = createResp.extract().path("id");
 
         RestAssured.given()
@@ -189,6 +197,10 @@ class PortfolioRestControllerIntegrationTest {
             .post("/api/portfolios")
             .then()
             .statusCode(201)
+            .header("Location", containsString("/api/portfolios/"))
+            .body("ownerName", equalTo(ownerName))
+            .body("cashBalance", equalTo(0))
+            .body("currency", equalTo("USD"))
             .extract().path("id");
         // No deposit, try to buy
         RestAssured.given()
@@ -211,6 +223,10 @@ class PortfolioRestControllerIntegrationTest {
             .post("/api/portfolios")
             .then()
             .statusCode(201)
+            .header("Location", containsString("/api/portfolios/"))
+            .body("ownerName", equalTo(ownerName))
+            .body("cashBalance", equalTo(0))
+            .body("currency", equalTo("USD"))
             .extract().path("id");
         RestAssured.given()
             .contentType(ContentType.JSON)
@@ -245,6 +261,10 @@ class PortfolioRestControllerIntegrationTest {
             .post("/api/portfolios")
             .then()
             .statusCode(201)
+            .header("Location", containsString("/api/portfolios/"))
+            .body("ownerName", equalTo(ownerName))
+            .body("cashBalance", equalTo(0))
+            .body("currency", equalTo("USD"))
             .extract().path("id");
         RestAssured.given()
                 .contentType(ContentType.JSON)
@@ -281,6 +301,10 @@ class PortfolioRestControllerIntegrationTest {
             .post("/api/portfolios")
             .then()
             .statusCode(201)
+            .header("Location", containsString("/api/portfolios/"))
+            .body("ownerName", equalTo(ownerName))
+            .body("cashBalance", equalTo(0))
+            .body("currency", equalTo("USD"))
             .extract().path("id");
 
         RestAssured.given()
@@ -350,6 +374,10 @@ class PortfolioRestControllerIntegrationTest {
             .post("/api/portfolios")
             .then()
             .statusCode(201)
+            .header("Location", containsString("/api/portfolios/"))
+            .body("ownerName", equalTo(ownerName))
+            .body("cashBalance", equalTo(0))
+            .body("currency", equalTo("USD"))
             .extract().path("id");
         RestAssured.given()
             .contentType(ContentType.JSON)
@@ -371,6 +399,10 @@ class PortfolioRestControllerIntegrationTest {
             .post("/api/portfolios")
             .then()
             .statusCode(201)
+            .header("Location", containsString("/api/portfolios/"))
+            .body("ownerName", equalTo(ownerName))
+            .body("cashBalance", equalTo(0))
+            .body("currency", equalTo("USD"))
             .extract().path("id");
         RestAssured.given()
             .contentType(ContentType.JSON)
@@ -392,6 +424,10 @@ class PortfolioRestControllerIntegrationTest {
             .post("/api/portfolios")
             .then()
             .statusCode(201)
+            .header("Location", containsString("/api/portfolios/"))
+            .body("ownerName", equalTo(ownerName))
+            .body("cashBalance", equalTo(0))
+            .body("currency", equalTo("USD"))
             .extract().path("id");
         RestAssured.given()
             .contentType(ContentType.JSON)
@@ -430,7 +466,11 @@ class PortfolioRestControllerIntegrationTest {
             .post("/api/portfolios")
             .then()
             .statusCode(201)
-            .body("id", notNullValue());
+            .header("Location", containsString("/api/portfolios/"))
+            .body("id", notNullValue())
+            .body("ownerName", equalTo(ownerName))
+            .body("cashBalance", equalTo(0))
+            .body("currency", equalTo("USD"));
         String portfolioId = createResp.extract().path("id");
 
         RestAssured.given()
@@ -452,7 +492,11 @@ class PortfolioRestControllerIntegrationTest {
             .post("/api/portfolios")
             .then()
             .statusCode(201)
-            .body("id", notNullValue());
+            .header("Location", containsString("/api/portfolios/"))
+            .body("id", notNullValue())
+            .body("ownerName", equalTo(ownerName))
+            .body("cashBalance", equalTo(0))
+            .body("currency", equalTo("USD"));
         String portfolioId = createResp.extract().path("id");
 
         RestAssured.given()
@@ -487,13 +531,16 @@ class PortfolioRestControllerIntegrationTest {
         String owner1 = "Alice";
         String owner2 = "Bob";
         String owner3 = "Charlie";
-
         String id1 = RestAssured.given()
             .contentType(ContentType.JSON)
             .body("{\"ownerName\": \"" + owner1 + "\"}")
             .post("/api/portfolios")
             .then()
             .statusCode(201)
+            .header("Location", containsString("/api/portfolios/"))
+            .body("ownerName", equalTo(owner1))
+            .body("cashBalance", equalTo(0))
+            .body("currency", equalTo("USD"))
             .extract().path("id");
         String id2 = RestAssured.given()
             .contentType(ContentType.JSON)
@@ -501,6 +548,10 @@ class PortfolioRestControllerIntegrationTest {
             .post("/api/portfolios")
             .then()
             .statusCode(201)
+            .header("Location", containsString("/api/portfolios/"))
+            .body("ownerName", equalTo(owner2))
+            .body("cashBalance", equalTo(0))
+            .body("currency", equalTo("USD"))
             .extract().path("id");
         String id3 = RestAssured.given()
             .contentType(ContentType.JSON)
@@ -508,6 +559,10 @@ class PortfolioRestControllerIntegrationTest {
             .post("/api/portfolios")
             .then()
             .statusCode(201)
+            .header("Location", containsString("/api/portfolios/"))
+            .body("ownerName", equalTo(owner3))
+            .body("cashBalance", equalTo(0))
+            .body("currency", equalTo("USD"))
             .extract().path("id");
 
         // Make deposits

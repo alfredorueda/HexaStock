@@ -13,10 +13,11 @@ import cat.gencat.agaur.hexastock.model.exception.ConflictQuantityException;
 import cat.gencat.agaur.hexastock.model.exception.InvalidAmountException;
 import cat.gencat.agaur.hexastock.model.exception.InvalidQuantityException;
 import cat.gencat.agaur.hexastock.model.exception.PortfolioNotFoundException;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
+import java.net.URI;
 import java.util.Currency;
 import java.util.List;
 import java.util.Optional;
@@ -73,13 +74,25 @@ public class PortfolioRestController {
      * 
      * <p>POST /api/portfolios</p>
      * 
+     * <p>Returns HTTP 201 Created with a Location header pointing to the newly
+     * created resource at {@code /api/portfolios/{id}}.</p>
+     * 
      * @param request DTO containing the owner name
-     * @return The newly created portfolio with HTTP 201 Created status
+     * @return The newly created portfolio representation with HTTP 201 Created status
+     *         and Location header
      */
     @PostMapping
-    public ResponseEntity<Portfolio> createPortfolio(@RequestBody CreatePortfolioDTO request) {
+    public ResponseEntity<CreatePortfolioResponseDTO> createPortfolio(@RequestBody CreatePortfolioDTO request) {
         Portfolio portfolio = portfolioManagementUseCase.createPortfolio(request.ownerName());
-        return new ResponseEntity<>(portfolio, HttpStatus.CREATED);
+        CreatePortfolioResponseDTO responseDTO = CreatePortfolioResponseDTO.from(portfolio);
+        
+        URI location = ServletUriComponentsBuilder
+                .fromCurrentRequest()
+                .path("/{id}")
+                .buildAndExpand(portfolio.getId())
+                .toUri();
+        
+        return ResponseEntity.created(location).body(responseDTO);
     }
     
     /**
