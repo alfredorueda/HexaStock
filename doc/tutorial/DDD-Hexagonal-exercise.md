@@ -613,7 +613,7 @@ It must be evident that students **understand everything that has been generated
 
 **Superficial explanations**, reading from generated documentation without comprehension, or inability to explain design decisions will **not be accepted** and will negatively impact the evaluation.
 
-The video should reflect **genuine mastery** of:
+The video should reflect **genuine understanding** of:
 - The architectural design
 - The domain model
 - The implementation details
