@@ -1,0 +1,111 @@
+@startuml watchlist-command-flow
+
+!theme plain
+title Watchlist Command Flow (Write Side)
+
+skinparam backgroundColor #FEFEFE
+skinparam sequenceArrowThickness 2
+skinparam roundcorner 10
+skinparam maxmessagesize 200
+
+skinparam participant {
+    BackgroundColor #E3F2FD
+    BorderColor #1976D2
+    FontColor #0D47A1
+}
+
+skinparam note {
+    BackgroundColor #BBDEFB
+    BorderColor #1976D2
+}
+
+actor "Client" as Client #E3F2FD
+participant "REST Controller\n(Inbound Adapter)" as Controller #E3F2FD
+participant "WatchlistCommandPort\n(Input Port)" as Port #E3F2FD
+participant "WatchlistService\n(Application Service)" as Service #E3F2FD
+participant "Watchlist\n(Aggregate)" as Watchlist #E3F2FD
+participant "WatchlistRepositoryPort\n(Output Port)" as RepoPort #E3F2FD
+participant "JPA Adapter\n(Outbound Adapter)" as JpaAdapter #E3F2FD
+database "Database" as DB #E3F2FD
+
+== Add Entry to Watchlist (Command) ==
+
+Client -> Controller : POST /watchlists/{id}/entries\n{ticker: "AAPL", threshold: 150.00}
+activate Controller #BBDEFB
+
+Controller -> Controller : Validate input DTO
+Controller -> Port : addEntry(watchlistId, ticker, thresholdPrice)
+activate Port #BBDEFB
+
+Port -> Service : addEntry(...)
+activate Service #BBDEFB
+
+note right of Service #BBDEFB
+  **Application Service Role:**
+  Orchestrates the use case.
+  Does NOT contain business logic.
+  Delegates to domain aggregate.
+end note
+
+Service -> RepoPort : findById(watchlistId)
+activate RepoPort #BBDEFB
+RepoPort -> JpaAdapter : findById(watchlistId)
+activate JpaAdapter #BBDEFB
+JpaAdapter -> DB : SELECT * FROM watchlist\nWHERE id = ?
+activate DB #BBDEFB
+DB --> JpaAdapter : WatchlistJpaEntity
+deactivate DB
+JpaAdapter -> JpaAdapter : Map to Domain\nWatchlist aggregate
+JpaAdapter --> RepoPort : Watchlist
+deactivate JpaAdapter
+RepoPort --> Service : Watchlist
+deactivate RepoPort
+
+note right of Watchlist #BBDEFB
+  **Rich Domain Model:**
+  Business rules enforced here.
+  - Validates threshold > 0
+  - Ensures ticker uniqueness
+  - Encapsulates entries in Map
+end note
+
+Service -> Watchlist : addOrUpdateEntry(ticker, thresholdPrice)
+activate Watchlist #BBDEFB
+Watchlist -> Watchlist : Validate threshold price > 0
+Watchlist -> Watchlist : Create WatchlistEntry
+Watchlist -> Watchlist : entries.put(ticker, entry)
+Watchlist --> Service : void
+deactivate Watchlist
+
+Service -> RepoPort : save(watchlist)
+activate RepoPort #BBDEFB
+RepoPort -> JpaAdapter : save(watchlist)
+activate JpaAdapter #BBDEFB
+JpaAdapter -> JpaAdapter : Map to JPA entities
+JpaAdapter -> DB : INSERT/UPDATE watchlist_entry
+activate DB #BBDEFB
+DB --> JpaAdapter : OK
+deactivate DB
+JpaAdapter --> RepoPort : Watchlist
+deactivate JpaAdapter
+RepoPort --> Service : Watchlist
+deactivate RepoPort
+
+Service --> Port : Watchlist
+deactivate Service
+Port --> Controller : Watchlist
+deactivate Port
+
+Controller -> Controller : Map to Response DTO
+Controller --> Client : 200 OK\n{watchlistId, entries: [...]}
+deactivate Controller
+
+note over Client, DB #BBDEFB
+  **Write Side Characteristics:**
+  ✓ Loads full aggregate from database
+  ✓ Enforces domain invariants
+  ✓ Modifies and persists state
+  ✓ Application service orchestrates, domain decides
+end note
+
+@enduml

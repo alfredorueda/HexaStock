@@ -1,0 +1,137 @@
+@startuml market-sentinel-detection-flow
+
+!theme plain
+title Market Sentinel Detection Flow (Read Side)
+
+skinparam backgroundColor #FEFEFE
+skinparam sequenceArrowThickness 2
+skinparam roundcorner 10
+skinparam maxmessagesize 200
+
+skinparam participant {
+    BackgroundColor #E8F5E9
+    BorderColor #388E3C
+    FontColor #1B5E20
+}
+
+skinparam note {
+    BackgroundColor #C8E6C9
+    BorderColor #388E3C
+}
+
+participant "Scheduler\n(@Scheduled)" as Scheduler #E8F5E9
+participant "MarketSentinelService\n(Application Service)" as Service #E8F5E9
+participant "WatchlistQueryPort\n(Output Port)" as QueryPort #E8F5E9
+participant "Query Adapter\n(Outbound Adapter)" as QueryAdapter #E8F5E9
+database "Database" as DB #E8F5E9
+participant "StockPriceProviderPort\n(Output Port)" as PricePort #FFE0B2
+participant "Price Adapter\n(External API)" as PriceAdapter #FFE0B2
+participant "NotificationPort\n(Output Port)" as NotifPort #E8F5E9
+participant "Console Adapter\n(Outbound Adapter)" as ConsoleAdapter #E8F5E9
+
+== Scheduled Detection Cycle ==
+
+Scheduler -> Service : detectBuySignals()
+activate Service #C8E6C9
+
+note right of Service #C8E6C9
+  **Read Side:**
+  No aggregates loaded.
+  Uses projection queries.
+  Optimized for scale.
+end note
+
+== Step 1: Find DISTINCT Tickers ==
+
+Service -> QueryPort : findDistinctTickersInActiveWatchlists()
+activate QueryPort #C8E6C9
+QueryPort -> QueryAdapter : findDistinctTickersInActiveWatchlists()
+activate QueryAdapter #C8E6C9
+QueryAdapter -> DB : SELECT DISTINCT e.ticker\nFROM watchlist_entry e\nJOIN watchlist w ON ...\nWHERE w.active = true
+activate DB #C8E6C9
+DB --> QueryAdapter : ["AAPL", "GOOGL", "MSFT"]
+deactivate DB
+QueryAdapter --> QueryPort : Set<Ticker>
+deactivate QueryAdapter
+QueryPort --> Service : Set<Ticker> {AAPL, GOOGL, MSFT}
+deactivate QueryPort
+
+== Step 2: Fetch Prices ONCE per Ticker ==
+
+Service -> PricePort : fetchStockPrice(Set<Ticker>)
+activate PricePort #FFE0B2
+PricePort -> PriceAdapter : Batch API call or\nindividual calls
+activate PriceAdapter #FFE0B2
+
+note right of PriceAdapter #FFE0B2
+  **External System:**
+  Finnhub, AlphaVantage, etc.
+  Called ONCE per ticker,
+  not once per watchlist entry.
+end note
+
+PriceAdapter --> PricePort : Map<Ticker, StockPrice>
+deactivate PriceAdapter
+PricePort --> Service : {AAPL: $145, GOOGL: $125, MSFT: $380}
+deactivate PricePort
+
+== Step 3 & 4: Per-Ticker Detection Loop ==
+
+loop for each Ticker in Set<Ticker>
+
+    note over Service #C8E6C9
+      Processing ticker: AAPL
+      Current price: $145
+    end note
+
+    Service -> QueryPort : findTriggeredEntries(AAPL, $145)
+    activate QueryPort #C8E6C9
+    QueryPort -> QueryAdapter : findTriggeredEntries(...)
+    activate QueryAdapter #C8E6C9
+    QueryAdapter -> DB : SELECT owner_name, list_name,\nticker, threshold_price\nFROM watchlist_entry e\nJOIN watchlist w ON ...\nWHERE w.active = true\nAND e.ticker = 'AAPL'\nAND e.threshold_price >= 145
+    activate DB #C8E6C9
+    
+    note right of DB #C8E6C9
+      **Threshold per Entry:**
+      Database evaluates
+      condition row-by-row.
+      Only triggered entries
+      are returned.
+    end note
+    
+    DB --> QueryAdapter : TriggeredEntryView[]
+    deactivate DB
+    QueryAdapter --> QueryPort : List<TriggeredEntryView>
+    deactivate QueryAdapter
+    QueryPort --> Service : [{owner: "john", list: "Tech", threshold: $150}, ...]
+    deactivate QueryPort
+
+    loop for each TriggeredEntryView
+
+        Service -> NotifPort : notifyBuySignal(BuySignal)
+        activate NotifPort #C8E6C9
+        NotifPort -> ConsoleAdapter : notifyBuySignal(...)
+        activate ConsoleAdapter #C8E6C9
+        ConsoleAdapter -> ConsoleAdapter : log.info("BUY SIGNAL:\njohn should buy AAPL\nthreshold: $150, current: $145")
+        ConsoleAdapter --> NotifPort : void
+        deactivate ConsoleAdapter
+        NotifPort --> Service : void
+        deactivate NotifPort
+
+    end
+
+end
+
+Service --> Scheduler : void
+deactivate Service
+
+note over Scheduler, ConsoleAdapter #C8E6C9
+  **Read Side Characteristics:**
+  ✗ Does NOT load aggregates
+  ✗ Does NOT modify state
+  ✓ Uses projection queries
+  ✓ Scales to millions of entries
+  ✓ Fetches each price only once
+end note
+
+@enduml

@@ -1,0 +1,163 @@
+@startuml cqrs-read-vs-write-overview
+
+!theme plain
+title CQRS: Read vs Write Path Overview
+
+skinparam backgroundColor #FEFEFE
+skinparam sequenceArrowThickness 2
+skinparam roundcorner 10
+skinparam maxmessagesize 250
+
+actor "User" as User
+actor "Scheduler" as Scheduler
+
+box "Write Side (Commands)" #E3F2FD
+    participant "REST Controller" as WriteController #E3F2FD
+    participant "Command Port" as CommandPort #E3F2FD
+    participant "Application Service" as WriteService #E3F2FD
+    participant "Watchlist\nAggregate" as Aggregate #E3F2FD
+    participant "Repository Port" as RepoPort #E3F2FD
+end box
+
+box "Read Side (Queries)" #E8F5E9
+    participant "Market Sentinel\nService" as ReadService #E8F5E9
+    participant "Query Port" as QueryPort #E8F5E9
+end box
+
+box "Shared Infrastructure" #FFF3E0
+    participant "JPA Adapter" as JpaAdapter #FFE0B2
+    database "Database" as DB #FFE0B2
+end box
+
+box "External Systems" #FFE0B2
+    participant "Price Provider" as PriceProvider #FFE0B2
+    participant "Notification" as Notification #E8F5E9
+end box
+
+== WRITE PATH: Add Entry to Watchlist ==
+
+User -> WriteController : POST /watchlists/{id}/entries
+activate WriteController #BBDEFB
+
+WriteController -> CommandPort : addEntry(id, ticker, threshold)
+activate CommandPort #BBDEFB
+
+CommandPort -> WriteService : addEntry(...)
+activate WriteService #BBDEFB
+
+note right of WriteService #BBDEFB
+  **Write Model:**
+  Load aggregate.
+  Enforce invariants.
+  Persist changes.
+end note
+
+WriteService -> RepoPort : findById(id)
+activate RepoPort #BBDEFB
+RepoPort -> JpaAdapter : findById(id)
+activate JpaAdapter #FFE0B2
+JpaAdapter -> DB : SELECT with JOINs
+activate DB #FFE0B2
+DB --> JpaAdapter : Entity + Relations
+deactivate DB
+JpaAdapter --> RepoPort : Watchlist (full aggregate)
+deactivate JpaAdapter
+RepoPort --> WriteService : Watchlist
+deactivate RepoPort
+
+WriteService -> Aggregate : addOrUpdateEntry(ticker, threshold)
+activate Aggregate #BBDEFB
+Aggregate -> Aggregate : Validate & update state
+Aggregate --> WriteService : void
+deactivate Aggregate
+
+WriteService -> RepoPort : save(watchlist)
+activate RepoPort #BBDEFB
+RepoPort -> JpaAdapter : save(watchlist)
+activate JpaAdapter #FFE0B2
+JpaAdapter -> DB : INSERT/UPDATE
+activate DB #FFE0B2
+DB --> JpaAdapter : OK
+deactivate DB
+JpaAdapter --> RepoPort : Watchlist
+deactivate JpaAdapter
+RepoPort --> WriteService : Watchlist
+deactivate RepoPort
+
+WriteService --> CommandPort : Watchlist
+deactivate WriteService
+CommandPort --> WriteController : Watchlist
+deactivate CommandPort
+WriteController --> User : 200 OK
+deactivate WriteController
+
+== READ PATH: Market Sentinel Detection ==
+
+Scheduler -> ReadService : detectBuySignals()
+activate ReadService #C8E6C9
+
+note right of ReadService #C8E6C9
+  **Read Model:**
+  No aggregates.
+  Projection queries.
+  Scales to millions.
+end note
+
+ReadService -> QueryPort : findDistinctTickersInActiveWatchlists()
+activate QueryPort #C8E6C9
+QueryPort -> JpaAdapter : Projection query
+activate JpaAdapter #FFE0B2
+JpaAdapter -> DB : SELECT DISTINCT ticker\nWHERE active = true
+activate DB #FFE0B2
+DB --> JpaAdapter : Set<String>
+deactivate DB
+JpaAdapter --> QueryPort : Set<Ticker>
+deactivate JpaAdapter
+QueryPort --> ReadService : Set<Ticker>
+deactivate QueryPort
+
+ReadService -> PriceProvider : fetchStockPrice(tickers)
+activate PriceProvider #FFE0B2
+PriceProvider --> ReadService : Map<Ticker, StockPrice>
+deactivate PriceProvider
+
+loop for each ticker
+    ReadService -> QueryPort : findTriggeredEntries(ticker, price)
+    activate QueryPort #C8E6C9
+    QueryPort -> JpaAdapter : Projection with WHERE
+    activate JpaAdapter #FFE0B2
+    JpaAdapter -> DB : SELECT ... WHERE\nthreshold >= price
+    activate DB #FFE0B2
+    DB --> JpaAdapter : TriggeredEntryView[]
+    deactivate DB
+    JpaAdapter --> QueryPort : List<View>
+    deactivate JpaAdapter
+    QueryPort --> ReadService : List<TriggeredEntryView>
+    deactivate QueryPort
+    
+    loop for each triggered entry
+        ReadService -> Notification : notifyBuySignal(signal)
+        activate Notification #C8E6C9
+        Notification --> ReadService : void
+        deactivate Notification
+    end
+end
+
+ReadService --> Scheduler : void
+deactivate ReadService
+
+note over User, Notification
+  **CQRS Summary:**
+  
+  | Aspect | Write Path | Read Path |
+  |--------|------------|-----------|
+  | Trigger | User action | Scheduled |
+  | Loads Aggregate | ✓ Yes | ✗ No |
+  | Modifies State | ✓ Yes | ✗ No |
+  | Uses Projections | ✗ No | ✓ Yes |
+  | Scales to Millions | Limited | ✓ Yes |
+  
+  Both paths share the same database, but access it differently.
+end note
+
+@enduml
