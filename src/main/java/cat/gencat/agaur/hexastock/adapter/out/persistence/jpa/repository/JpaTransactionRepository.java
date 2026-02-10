@@ -4,6 +4,7 @@ import cat.gencat.agaur.hexastock.adapter.out.persistence.jpa.entity.Transaction
 import cat.gencat.agaur.hexastock.adapter.out.persistence.jpa.mapper.TransactionMapper;
 import cat.gencat.agaur.hexastock.adapter.out.persistence.jpa.springdatarepository.JpaTransactionSpringDataRepository;
 import cat.gencat.agaur.hexastock.application.port.out.TransactionPort;
+import cat.gencat.agaur.hexastock.model.PortfolioId;
 import cat.gencat.agaur.hexastock.model.Transaction;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
@@ -59,13 +60,13 @@ public class JpaTransactionRepository implements TransactionPort {
      *   <li>Returns the list of domain Transaction objects</li>
      * </ol>
      * 
-     * @param portFolioId The ID of the portfolio to get transactions for
+     * @param portfolioId The PortfolioId value object of the portfolio to get transactions for
      * @return A list of Transaction domain objects
      */
     @Override
-    public List<Transaction> getTransactionsByPortfolioId(String portFolioId) {
-        List<TransactionJpaEntity> lTransactions = jpaSpringDataRepository.getAllByPortfolioId(portFolioId);
-        return lTransactions.stream().map(TransactionMapper::toModelEntity).toList();
+    public List<Transaction> getTransactionsByPortfolioId(PortfolioId portfolioId) {
+        List<TransactionJpaEntity> transactions = jpaSpringDataRepository.getAllByPortfolioId(portfolioId.value());
+        return transactions.stream().map(TransactionMapper::toModelEntity).toList();
     }
 
     /**

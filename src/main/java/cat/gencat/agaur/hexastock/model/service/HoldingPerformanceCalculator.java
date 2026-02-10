@@ -30,61 +30,67 @@ public class HoldingPerformanceCalculator {
 
     public List<HoldingDTO> getHoldingsPerformance(Portfolio portfolio,
                                                    List<Transaction> transactions,
-                                                   Map<Ticker, StockPrice> mTickerPrices) {
-
-        Map<Ticker, List<Transaction>> mapTickerTrans = transactions.stream()
+                                                   Map<Ticker, StockPrice> tickerPrices) {
+        Map<Ticker, List<Transaction>> transactionsByTicker = transactions.stream()
                 .filter(t -> t.getTicker() != null)
                 .collect(Collectors.groupingBy(Transaction::getTicker));
 
-        return mapTickerTrans.entrySet()
-                .stream()
-                .map(tickerTransactions ->
-
-                new HoldingDTO(tickerTransactions.getKey().value(),
-                        getQuantity(tickerTransactions.getValue()),
-                        getRemaining(portfolio.getHolding(tickerTransactions.getKey())),
-                        getAvaragePurchasePrice(tickerTransactions.getValue()),
-                        getCurrentPrice(tickerTransactions.getKey(), mTickerPrices),
-                        getUnRealizedGain(portfolio.getHolding(tickerTransactions.getKey()), mTickerPrices),
-                        getRealizedGain(tickerTransactions.getValue()))
-        ).toList();
+        return transactionsByTicker.entrySet().stream()
+                .map(entry -> {
+                    Ticker ticker = entry.getKey();
+                    List<Transaction> tickerTransactions = entry.getValue();
+                    Holding holding = portfolio.getHolding(ticker);
+                    
+                    return new HoldingDTO(
+                            ticker.value(),
+                            getQuantity(tickerTransactions),
+                            getRemaining(holding),
+                            getAveragePurchasePrice(tickerTransactions),
+                            getCurrentPrice(ticker, tickerPrices),
+                            getUnrealizedGain(holding, tickerPrices),
+                            getRealizedGain(tickerTransactions)
+                    );
+                })
+                .toList();
     }
 
-    private BigDecimal getQuantity(List<Transaction> lTransactions) {
-        return lTransactions.parallelStream()
+    private BigDecimal getQuantity(List<Transaction> transactions) {
+        return transactions.parallelStream()
                 .filter(t -> t.getType() == TransactionType.PURCHASE)
-                .map(Transaction::getQuantity)
-                .map(BigDecimal::valueOf)
+                .map(t -> BigDecimal.valueOf(t.getQuantity().value()))
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
     }
 
     private BigDecimal getRemaining(Holding holding) {
-        return BigDecimal.valueOf(holding.getTotalShares());
+        return BigDecimal.valueOf(holding.getTotalShares().value());
     }
 
-    private BigDecimal getAvaragePurchasePrice(List<Transaction> lTransactions) {
-
-        return lTransactions.parallelStream()
+    private BigDecimal getAveragePurchasePrice(List<Transaction> transactions) {
+        BigDecimal totalCost = transactions.parallelStream()
                 .filter(t -> t.getType() == TransactionType.PURCHASE)
-                .map(t -> t.getUnitPrice().multiply(BigDecimal.valueOf(t.getQuantity())))
-                .reduce(BigDecimal.ZERO, BigDecimal::add)
-                .divide(getQuantity(lTransactions), 2, RoundingMode.HALF_UP);
+                .map(t -> t.getUnitPrice().value().multiply(BigDecimal.valueOf(t.getQuantity().value())))
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+        
+        BigDecimal quantity = getQuantity(transactions);
+        if (quantity.compareTo(BigDecimal.ZERO) == 0) {
+            return BigDecimal.ZERO;
+        }
+        return totalCost.divide(quantity, 2, RoundingMode.HALF_UP);
     }
 
-    private BigDecimal getCurrentPrice(Ticker ticker, Map<Ticker, StockPrice> mTickerPrices) {
-        return BigDecimal.valueOf(mTickerPrices.get(ticker).price());
+    private BigDecimal getCurrentPrice(Ticker ticker, Map<Ticker, StockPrice> tickerPrices) {
+        return tickerPrices.get(ticker).price().value();
     }
 
-    private BigDecimal getUnRealizedGain(Holding holding, Map<Ticker, StockPrice> mTickerPrices) {
-
-        return holding.getUnrealizedGain(getCurrentPrice(holding.getTicker(), mTickerPrices));
+    private BigDecimal getUnrealizedGain(Holding holding, Map<Ticker, StockPrice> tickerPrices) {
+        Price currentPrice = tickerPrices.get(holding.getTicker()).price();
+        return holding.getUnrealizedGain(currentPrice).amount();
     }
 
     private BigDecimal getRealizedGain(List<Transaction> transactions) {
-
-         return transactions.parallelStream()
+        return transactions.parallelStream()
                 .filter(t -> t.getType() == TransactionType.SALE)
-                .map(Transaction::getProfit)
+                .map(t -> t.getProfit().amount())
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
     }
 }

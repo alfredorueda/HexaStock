@@ -88,17 +88,17 @@ public class PortfolioStockOperationsService implements PortfolioStockOperations
      * @throws cat.gencat.agaur.hexastock.model.exception.InsufficientFundsException if there are insufficient funds for the purchase
      */
     @Override
-    public void buyStock(String portfolioId, Ticker ticker, int quantity) {
-        Portfolio portfolio = portfolioPort.getPortfolioById(portfolioId).orElseThrow(() -> new PortfolioNotFoundException(portfolioId));
+    public void buyStock(PortfolioId portfolioId, Ticker ticker, ShareQuantity quantity) {
+        Portfolio portfolio = portfolioPort.getPortfolioById(portfolioId)
+                .orElseThrow(() -> new PortfolioNotFoundException(portfolioId.value()));
 
         StockPrice stockPrice = stockPriceProviderPort.fetchStockPrice(ticker);
+        Price price = stockPrice.price();
 
-        portfolio.buy(ticker, quantity, BigDecimal.valueOf(stockPrice.price()));
-
+        portfolio.buy(ticker, quantity, price);
         portfolioPort.savePortfolio(portfolio);
 
-        Transaction transaction = Transaction.createPurchase(
-                portfolioId, ticker, quantity, BigDecimal.valueOf(stockPrice.price()));
+        Transaction transaction = Transaction.createPurchase(portfolioId, ticker, quantity, price);
         transactionPort.save(transaction);
     }
 
@@ -129,17 +129,18 @@ public class PortfolioStockOperationsService implements PortfolioStockOperations
      * @throws ConflictQuantityException if trying to sell more shares than owned
      */
     @Override
-    public SellResult sellStock(String portfolioId, Ticker ticker, int quantity) {
-        Portfolio portfolio = portfolioPort.getPortfolioById(portfolioId).orElseThrow(() -> new PortfolioNotFoundException(portfolioId));
+    public SellResult sellStock(PortfolioId portfolioId, Ticker ticker, ShareQuantity quantity) {
+        Portfolio portfolio = portfolioPort.getPortfolioById(portfolioId)
+                .orElseThrow(() -> new PortfolioNotFoundException(portfolioId.value()));
 
         StockPrice stockPrice = stockPriceProviderPort.fetchStockPrice(ticker);
+        Price price = stockPrice.price();
 
-        SellResult sellResult = portfolio.sell(ticker, quantity, BigDecimal.valueOf(stockPrice.price()));
-
+        SellResult sellResult = portfolio.sell(ticker, quantity, price);
         portfolioPort.savePortfolio(portfolio);
 
         Transaction transaction = Transaction.createSale(
-                portfolioId, ticker, quantity, BigDecimal.valueOf(stockPrice.price()), sellResult.proceeds(), sellResult.profit());
+                portfolioId, ticker, quantity, price, sellResult.proceeds(), sellResult.profit());
         transactionPort.save(transaction);
 
         return sellResult;

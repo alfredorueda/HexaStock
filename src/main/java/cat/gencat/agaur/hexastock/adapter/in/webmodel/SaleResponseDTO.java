@@ -35,6 +35,13 @@ public record SaleResponseDTO(
     BigDecimal profit
 ) {
     public SaleResponseDTO(String portfolioId, String ticker, int quantity, SellResult sellResult) {
-        this(portfolioId, ticker, quantity, sellResult.proceeds(), sellResult.costBasis(), sellResult.profit());
+        this(portfolioId, ticker, quantity,
+             sellResult.proceeds().amount(),
+             sellResult.costBasis().amount(),
+             sellResult.profit().amount());
+    }
+
+    public static SaleResponseDTO from(String portfolioId, String ticker, int quantity, SellResult sellResult) {
+        return new SaleResponseDTO(portfolioId, ticker, quantity, sellResult);
     }
 }

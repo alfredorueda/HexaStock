@@ -70,17 +70,16 @@ public class ReportingService implements ReportingUseCase {
 
     @Override
     public List<HoldingDTO> getHoldingsPerfomance(String portfolioId) {
-
-        Portfolio portfolio = portfolioPort.getPortfolioById(portfolioId).orElseThrow(() -> new PortfolioNotFoundException(portfolioId));
-
-        List<Transaction> transactions = transactionPort.getTransactionsByPortfolioId(portfolioId);
+        PortfolioId id = PortfolioId.of(portfolioId);
+        Portfolio portfolio = portfolioPort.getPortfolioById(id)
+                .orElseThrow(() -> new PortfolioNotFoundException(portfolioId));
+        List<Transaction> transactions = transactionPort.getTransactionsByPortfolioId(id);
 
         var tickers = portfolio.getHoldings().stream()
                 .map(Holding::getTicker)
                 .collect(Collectors.toSet());
 
         Map<Ticker, StockPrice> tickerStockPriceMap = stockPriceProviderPort.fetchStockPrice(tickers);
-
         return holdingPerformanceCalculator.getHoldingsPerformance(portfolio, transactions, tickerStockPriceMap);
     }
 

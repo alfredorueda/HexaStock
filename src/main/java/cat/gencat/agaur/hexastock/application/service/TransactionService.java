@@ -3,6 +3,7 @@ package cat.gencat.agaur.hexastock.application.service;
 import cat.gencat.agaur.hexastock.adapter.in.webmodel.TransactionDTO;
 import cat.gencat.agaur.hexastock.application.port.in.TransactionUseCase;
 import cat.gencat.agaur.hexastock.application.port.out.TransactionPort;
+import cat.gencat.agaur.hexastock.model.PortfolioId;
 import cat.gencat.agaur.hexastock.model.Transaction;
 import jakarta.transaction.Transactional;
 
@@ -70,7 +71,7 @@ public class TransactionService implements TransactionUseCase {
      */
     @Override
     public List<TransactionDTO> getTransactions(String portfolioId, Optional<String> type) {
-        List<Transaction> transactions = transactionPort.getTransactionsByPortfolioId(portfolioId);
+        List<Transaction> transactions = transactionPort.getTransactionsByPortfolioId(PortfolioId.of(portfolioId));
         return transactions.stream().map(TransactionDTO::new).toList();
     }
 }

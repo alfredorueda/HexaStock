@@ -5,10 +5,7 @@ import cat.gencat.agaur.hexastock.application.port.in.PortfolioManagementUseCase
 import cat.gencat.agaur.hexastock.application.port.in.PortfolioStockOperationsUseCase;
 import cat.gencat.agaur.hexastock.application.port.in.ReportingUseCase;
 import cat.gencat.agaur.hexastock.application.port.in.TransactionUseCase;
-import cat.gencat.agaur.hexastock.model.Money;
-import cat.gencat.agaur.hexastock.model.Portfolio;
-import cat.gencat.agaur.hexastock.model.SellResult;
-import cat.gencat.agaur.hexastock.model.Ticker;
+import cat.gencat.agaur.hexastock.model.*;
 import cat.gencat.agaur.hexastock.model.exception.ConflictQuantityException;
 import cat.gencat.agaur.hexastock.model.exception.InvalidAmountException;
 import cat.gencat.agaur.hexastock.model.exception.InvalidQuantityException;
@@ -18,7 +15,6 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 import java.net.URI;
-import java.util.Currency;
 import java.util.List;
 import java.util.Optional;
 
@@ -89,7 +85,7 @@ public class PortfolioRestController {
         URI location = ServletUriComponentsBuilder
                 .fromCurrentRequest()
                 .path("/{id}")
-                .buildAndExpand(portfolio.getId())
+                .buildAndExpand(portfolio.getId().value())
                 .toUri();
         
         return ResponseEntity.created(location).body(responseDTO);
@@ -106,7 +102,7 @@ public class PortfolioRestController {
      */
     @GetMapping("/{id}")
     public ResponseEntity<PortfolioResponseDTO> getPortfolio(@PathVariable String id) {
-        Portfolio portfolio = portfolioManagementUseCase.getPortfolio(id);
+        Portfolio portfolio = portfolioManagementUseCase.getPortfolio(PortfolioId.of(id));
         return ResponseEntity.ok(PortfolioResponseDTO.from(portfolio));
     }
 
@@ -139,7 +135,7 @@ public class PortfolioRestController {
      */
     @PostMapping("/{id}/deposits")
     public ResponseEntity<Void> deposit(@PathVariable String id, @RequestBody DepositRequestDTO request) {
-        portfolioManagementUseCase.deposit(id, Money.of(Currency.getInstance("USD"), request.amount()));
+        portfolioManagementUseCase.deposit(PortfolioId.of(id), Money.of(request.amount()));
         return ResponseEntity.ok().build();
     }
 
@@ -157,7 +153,7 @@ public class PortfolioRestController {
      */
     @PostMapping("/{id}/withdrawals")
     public ResponseEntity<Void> withdraw(@PathVariable String id, @RequestBody WithdrawalRequestDTO request) {
-        portfolioManagementUseCase.withdraw(id, Money.of(Currency.getInstance("USD"), request.amount()));
+        portfolioManagementUseCase.withdraw(PortfolioId.of(id), Money.of(request.amount()));
         return ResponseEntity.ok().build();
     }
     
@@ -183,7 +179,7 @@ public class PortfolioRestController {
      */
     @PostMapping("/{id}/purchases")
     public ResponseEntity<Void> buyStock(@PathVariable String id, @RequestBody PurchaseDTO request) {
-        portfolioStockOperationsUseCase.buyStock(id, Ticker.of(request.ticker()), request.quantity());
+        portfolioStockOperationsUseCase.buyStock(PortfolioId.of(id), Ticker.of(request.ticker()), ShareQuantity.positive(request.quantity()));
         return ResponseEntity.ok().build();
     }
 
@@ -211,7 +207,7 @@ public class PortfolioRestController {
      */
     @PostMapping("/{id}/sales")
     public ResponseEntity<SaleResponseDTO> sellStock(@PathVariable String id, @RequestBody SaleRequestDTO request) {
-        SellResult result = portfolioStockOperationsUseCase.sellStock(id, Ticker.of(request.ticker()), request.quantity());
+        SellResult result = portfolioStockOperationsUseCase.sellStock(PortfolioId.of(id), Ticker.of(request.ticker()), ShareQuantity.positive(request.quantity()));
         return ResponseEntity.ok(new SaleResponseDTO(id, request.ticker(), request.quantity(), result));
     }
 

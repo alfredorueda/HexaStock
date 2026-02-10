@@ -4,198 +4,117 @@ import cat.gencat.agaur.hexastock.model.exception.ConflictQuantityException;
 import cat.gencat.agaur.hexastock.model.exception.InvalidAmountException;
 import cat.gencat.agaur.hexastock.model.exception.InvalidQuantityException;
 
-import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.Objects;
 
 /**
  * Lot represents a specific purchase of shares for a particular stock.
- * 
+ *
  * <p>In DDD terms, this is an <strong>Entity</strong> that belongs to the Holding aggregate.
- * It tracks the details of a single stock purchase transaction, including:</p>
- * <ul>
- *   <li>How many shares were initially purchased (initialStocks)</li>
- *   <li>How many shares remain unsold (remaining)</li>
- *   <li>The price paid per share (unitPrice)</li>
- *   <li>When the purchase was made (purchasedAt)</li>
- * </ul>
- * 
- * <p>Lot objects are essential for implementing the FIFO (First-In-First-Out) accounting
- * method used when selling shares. Each Lot represents a distinct purchase, and
- * when shares are sold, they are drawn from the oldest Lots first.</p>
- * 
- * <p>Think of a Lot as a receipt for a specific stock purchase. If you buy Apple
- * shares three times at different prices and dates, you'll have three separate Lots.
- * When selling shares, the system uses these Lots to calculate your profit/loss
- * based on the actual purchase prices of the specific shares being sold.</p>
- * 
- * <p>This entity enforces business rules such as:</p>
- * <ul>
- *   <li>Ensuring purchase quantities and prices are positive values</li>
- *   <li>Preventing reduction of shares beyond the remaining amount</li>
- *   <li>Tracking the lifecycle of purchased shares from acquisition to sale</li>
- * </ul>
+ * It tracks the details of a single stock purchase transaction.</p>
  */
 public class Lot {
-
-    /**
-     * Unique identifier for the lot.
-     */
-    private String id;
-    
-    /**
-     * The number of shares initially purchased in this lot.
-     * This value never changes after creation.
-     */
-    private int initialStocks;
-    
-    /**
-     * The number of shares from this lot that remain unsold.
-     * This value starts equal to initialStocks and decreases as shares are sold.
-     */
-    private int remaining;
-    
-    /**
-     * The price paid per share when this lot was purchased.
-     * Used to calculate cost basis and profit/loss during sales.
-     */
-    private BigDecimal unitPrice;
-    
-    /**
-     * The date and time when this lot was purchased.
-     * Used for FIFO ordering during sell operations.
-     */
+    private LotId id;
+    private ShareQuantity initialShares;
+    private ShareQuantity remainingShares;
+    private Price unitPrice;
     private LocalDateTime purchasedAt;
 
     protected Lot() {}
 
     /**
      * Constructs a Lot with the specified attributes.
-     * 
+     *
      * @param id The unique identifier for the lot
-     * @param initialStocks The number of shares initially purchased
-     * @param quantity The number of shares currently remaining (usually equals initialStocks for new lots)
+     * @param initialShares The number of shares initially purchased
+     * @param remainingShares The number of shares currently remaining
      * @param unitPrice The price paid per share
      * @param purchasedAt The date and time of purchase
-     * @param validation Whether to perform validation checks on the inputs
-     * @throws InvalidQuantityException if validation is true and quantity is not positive
-     * @throws InvalidAmountException if validation is true and unitPrice is not positive
      */
-    public Lot(String id, int initialStocks, int quantity, BigDecimal unitPrice, LocalDateTime purchasedAt, boolean validation) {
+    public Lot(LotId id, ShareQuantity initialShares, ShareQuantity remainingShares, Price unitPrice, LocalDateTime purchasedAt) {
+        Objects.requireNonNull(id, "Lot id must not be null");
+        Objects.requireNonNull(initialShares, "Initial shares must not be null");
+        Objects.requireNonNull(remainingShares, "Remaining shares must not be null");
+        Objects.requireNonNull(unitPrice, "Unit price must not be null");
+        Objects.requireNonNull(purchasedAt, "Purchase date must not be null");
 
-        if(validation) {
-            if (quantity <= 0) {
-                throw new InvalidQuantityException("Quantity must be positive");
-            }
-            if (unitPrice.compareTo(BigDecimal.ZERO) <= 0) {
-                throw new InvalidAmountException("Unit price must be positive");
-            }
-        }
-
-        
         this.id = id;
-        this.initialStocks = initialStocks;
-        this.remaining = quantity;
+        this.initialShares = initialShares;
+        this.remainingShares = remainingShares;
         this.unitPrice = unitPrice;
         this.purchasedAt = purchasedAt;
     }
 
     /**
-     * Reduces the number of remaining shares in this lot, typically when shares are sold.
-     * 
-     * <p>This method is called during the FIFO selling process when shares from this lot
-     * are being sold. It reduces the 'remaining' count by the specified quantity.</p>
-     * 
-     * @param qty The number of shares to reduce from this lot
-     * @throws ConflictQuantityException if attempting to reduce by more shares than remain in the lot
+     * Factory method to create a new Lot for a purchase.
+     *
+     * @param quantity The number of shares purchased
+     * @param unitPrice The price paid per share
+     * @return A new Lot instance
      */
-    public void reduce(int qty) {
-        if (qty > remaining) {
-            throw new ConflictQuantityException("Cannot reduce by more than remaining quantity");
+    public static Lot create(ShareQuantity quantity, Price unitPrice) {
+        if (!quantity.isPositive()) {
+            throw new InvalidQuantityException("Quantity must be positive");
         }
-        remaining -= qty;
+        return new Lot(LotId.generate(), quantity, quantity, unitPrice, LocalDateTime.now());
     }
 
+    /**
+     * Reduces the number of remaining shares in this lot.
+     *
+     * @param quantity The number of shares to reduce
+     * @throws ConflictQuantityException if attempting to reduce by more shares than remain
+     */
+    public void reduce(ShareQuantity quantity) {
+        if (quantity.value() > remainingShares.value()) {
+            throw new ConflictQuantityException("Cannot reduce by more than remaining quantity");
+        }
+        remainingShares = remainingShares.subtract(quantity);
+    }
 
     /**
-     * Gets the unique identifier of this lot.
-     * 
-     * @return The lot ID
+     * Calculates the cost basis for a given quantity of shares from this lot.
+     *
+     * @param quantity The number of shares
+     * @return The cost basis as Money
      */
-    public String getId() {
+    public Money calculateCostBasis(ShareQuantity quantity) {
+        return unitPrice.multiply(quantity);
+    }
+
+    public LotId getId() {
         return id;
     }
 
-    /**
-     * Gets the number of shares initially purchased in this lot.
-     * 
-     * @return The initial quantity of shares
-     */
-    public int getInitialStocks() { return initialStocks; }
-    
-    /**
-     * Gets the number of shares from this lot that remain unsold.
-     * 
-     * @return The remaining quantity of shares
-     */
-    public int getRemaining() {
-        return remaining;
+    public ShareQuantity getInitialShares() {
+        return initialShares;
     }
-    
-    /**
-     * Gets the price paid per share when this lot was purchased.
-     * 
-     * @return The unit price
-     */
-    public BigDecimal getUnitPrice() {
+
+    public ShareQuantity getRemainingShares() {
+        return remainingShares;
+    }
+
+    public Price getUnitPrice() {
         return unitPrice;
     }
-    
-    /**
-     * Gets the date and time when this lot was purchased.
-     * 
-     * @return The purchase timestamp
-     */
+
     public LocalDateTime getPurchasedAt() {
         return purchasedAt;
     }
 
-    /**
-     * Checks if this lot has no remaining shares.
-     *
-     * @return true if there are no remaining shares in this lot, false otherwise
-     */
     public boolean isEmpty() {
-        return remaining == 0;
+        return remainingShares.isZero();
     }
 
-    /**
-     * Compares this lot to another object for equality.
-     * Two lots are considered equal if they have the same ID.
-     *
-     * <p>This implements entity equality semantics: lots with the same ID
-     * represent the same purchase transaction, regardless of their current state.</p>
-     *
-     * @param o The object to compare with
-     * @return true if the lots have the same ID, false otherwise
-     */
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
-        if (!(o instanceof Lot)) return false;
-        Lot lot = (Lot) o;
+        if (!(o instanceof Lot lot)) return false;
         return Objects.equals(id, lot.id);
     }
 
-    /**
-     * Returns a hash code value for this lot.
-     * The hash code is based solely on the lot's ID to maintain consistency with equals().
-     *
-     * @return A hash code value for this lot
-     */
     @Override
     public int hashCode() {
         return Objects.hashCode(id);
     }
-
 }

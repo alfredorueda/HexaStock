@@ -2,7 +2,6 @@ package cat.gencat.agaur.hexastock.model;
 
 import cat.gencat.agaur.hexastock.model.exception.*;
 
-import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.*;
 
@@ -38,7 +37,7 @@ public class Portfolio {
     /**
      * Unique identifier for the portfolio.
      */
-    private String id;
+    private PortfolioId id;
     
     /**
      * Name of the portfolio owner.
@@ -48,7 +47,7 @@ public class Portfolio {
     /**
      * Current cash balance available for investment or withdrawal.
      */
-    private BigDecimal balance;
+    private Money balance;
     
     /**
      * Timestamp when the portfolio was created.
@@ -71,7 +70,12 @@ public class Portfolio {
      * @param balance The initial cash balance
      * @param createdAt The creation timestamp
      */
-    public Portfolio(String id, String ownerName, BigDecimal balance, LocalDateTime createdAt) {
+    public Portfolio(PortfolioId id, String ownerName, Money balance, LocalDateTime createdAt) {
+        Objects.requireNonNull(id, "Portfolio id must not be null");
+        Objects.requireNonNull(ownerName, "Owner name must not be null");
+        Objects.requireNonNull(balance, "Balance must not be null");
+        Objects.requireNonNull(createdAt, "Created at must not be null");
+
         this.id = id;
         this.ownerName = ownerName;
         this.balance = balance;
@@ -85,7 +89,7 @@ public class Portfolio {
      * @return A new Portfolio instance with zero balance and current timestamp
      */
     public static Portfolio create(String ownerName) {
-        return new Portfolio(UUID.randomUUID().toString(), ownerName, BigDecimal.ZERO, LocalDateTime.now());
+        return new Portfolio(PortfolioId.generate(), ownerName, Money.ZERO, LocalDateTime.now());
     }
 
     /**
@@ -95,10 +99,10 @@ public class Portfolio {
      * @throws InsufficientFundsException if the deposit amount is not positive
      */
     public void deposit(Money money) {
-        if (money.amount().compareTo(BigDecimal.ZERO) <= 0) {
+        if (!money.isPositive()) {
             throw new InvalidAmountException("Deposit amount must be positive");
         }
-        this.balance = this.balance.add(money.amount());
+        this.balance = this.balance.add(money);
     }
     
     /**
@@ -109,13 +113,13 @@ public class Portfolio {
      * @throws InsufficientFundsException if there are insufficient funds for the withdrawal
      */
     public void withdraw(Money money) {
-        if (money.amount().compareTo(BigDecimal.ZERO) <= 0) {
+        if (!money.isPositive()) {
             throw new InvalidAmountException("Withdrawal amount must be positive");
         }
-        if (balance.compareTo(money.amount()) < 0) {
+        if (balance.isLessThan(money)) {
             throw new InsufficientFundsException("Insufficient funds for withdrawal");
         }
-        this.balance = this.balance.subtract(money.amount());
+        this.balance = this.balance.subtract(money);
     }
 
     /**
@@ -137,21 +141,16 @@ public class Portfolio {
      * @throws InvalidAmountException if the price is not positive
      * @throws InsufficientFundsException if there are insufficient funds for the purchase
      */
-    public void buy(Ticker ticker, int quantity, BigDecimal price) {
-
-       if (quantity <= 0) {
+    public void buy(Ticker ticker, ShareQuantity quantity, Price price) {
+        if (!quantity.isPositive()) {
             throw new InvalidQuantityException("Quantity must be positive");
         }
 
-        if (price.compareTo(BigDecimal.ZERO) <= 0) {
-            throw new InvalidAmountException("Price must be positive");
-        }
-        
-        BigDecimal totalCost = price.multiply(BigDecimal.valueOf(quantity));
-        if (balance.compareTo(totalCost) < 0) {
+        Money totalCost = price.multiply(quantity);
+        if (balance.isLessThan(totalCost)) {
             throw new InsufficientFundsException("Insufficient funds to buy " + quantity + " shares of " + ticker);
         }
-        
+
         Holding holding = findOrCreateHolding(ticker);
         holding.buy(quantity, price);
         balance = balance.subtract(totalCost);
@@ -180,21 +179,18 @@ public class Portfolio {
      * @throws InvalidAmountException if the price is not positive
      * @throws DomainException if the ticker is not found in holdings
      */
-    public SellResult sell(Ticker ticker, int quantity, BigDecimal price) {
-        if (quantity <= 0)
+    public SellResult sell(Ticker ticker, ShareQuantity quantity, Price price) {
+        if (!quantity.isPositive()) {
             throw new InvalidQuantityException("Quantity must be positive");
-
-        if (price.compareTo(BigDecimal.ZERO) <= 0)
-            throw new InvalidAmountException("Price must be positive");
-
-        if (!holdings.containsKey(ticker))
+        }
+        if (!holdings.containsKey(ticker)) {
             throw new HoldingNotFoundException("Holding not found in portfolio: " + ticker);
+        }
 
         Holding holding = holdings.get(ticker);
-
         SellResult result = holding.sell(quantity, price);
         balance = balance.add(result.proceeds());
-        
+
         return result;
     }
 
@@ -213,7 +209,7 @@ public class Portfolio {
      * 
      * @return The portfolio ID
      */
-    public String getId() {
+    public PortfolioId getId() {
         return id;
     }
     
@@ -231,7 +227,7 @@ public class Portfolio {
      * 
      * @return The cash balance
      */
-    public BigDecimal getBalance() {
+    public Money getBalance() {
         return balance;
     }
     

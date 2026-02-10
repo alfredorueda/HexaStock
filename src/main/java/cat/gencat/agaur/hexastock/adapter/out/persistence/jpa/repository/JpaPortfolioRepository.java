@@ -6,6 +6,7 @@ import cat.gencat.agaur.hexastock.adapter.out.persistence.jpa.springdatareposito
 import cat.gencat.agaur.hexastock.model.exception.PortfolioNotFoundException;
 import cat.gencat.agaur.hexastock.application.port.out.PortfolioPort;
 import cat.gencat.agaur.hexastock.model.Portfolio;
+import cat.gencat.agaur.hexastock.model.PortfolioId;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
 
@@ -76,17 +77,14 @@ public class JpaPortfolioRepository implements PortfolioPort {
      *   <li>Throws an exception if no portfolio with the ID exists</li>
      * </ol>
      *
-     * @param portFolioId The unique identifier of the portfolio to retrieve
+     * @param portfolioId The unique identifier of the portfolio to retrieve
      * @return The Portfolio domain object
      * @throws PortfolioNotFoundException if no portfolio with the ID exists
      */
     @Override
-    public Optional<Portfolio> getPortfolioById(String portFolioId) {
-        Optional<Portfolio> opPortfolio = Optional.empty();
-        Optional<PortfolioJpaEntity> jpaEntity = jpaSpringDataRepository.findByIdForUpdate(portFolioId);
-        if (jpaEntity.isPresent())
-            opPortfolio = Optional.of(PortfolioMapper.toModelEntity(jpaEntity.get()));
-        return opPortfolio;
+    public Optional<Portfolio> getPortfolioById(PortfolioId portfolioId) {
+        return jpaSpringDataRepository.findByIdForUpdate(portfolioId.value())
+                .map(PortfolioMapper::toModelEntity);
     }
 
     /**

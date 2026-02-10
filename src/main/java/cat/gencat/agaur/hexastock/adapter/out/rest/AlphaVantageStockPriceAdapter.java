@@ -1,6 +1,7 @@
 package cat.gencat.agaur.hexastock.adapter.out.rest;
 
 import cat.gencat.agaur.hexastock.application.port.out.StockPriceProviderPort;
+import cat.gencat.agaur.hexastock.model.Price;
 import cat.gencat.agaur.hexastock.model.StockPrice;
 import cat.gencat.agaur.hexastock.model.Ticker;
 import cat.gencat.agaur.hexastock.model.exception.ExternalApiException;
@@ -92,6 +93,10 @@ public class AlphaVantageStockPriceAdapter implements StockPriceProviderPort {
         } catch (Exception e) {
             throw new ExternalApiException("Could not parse price from Alpha Vantage response", e);
         }
-        return new StockPrice(ticker, currentPrice, LocalDateTime.now().atZone(ZoneId.of("Europe/Madrid")).toInstant(), "USD");
+        return new StockPrice(
+                ticker,
+                Price.of(currentPrice),
+                LocalDateTime.now().atZone(ZoneId.of("Europe/Madrid")).toInstant()
+        );
     }
 }

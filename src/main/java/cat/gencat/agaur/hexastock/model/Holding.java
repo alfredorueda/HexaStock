@@ -3,241 +3,129 @@ package cat.gencat.agaur.hexastock.model;
 import cat.gencat.agaur.hexastock.model.exception.ConflictQuantityException;
 import cat.gencat.agaur.hexastock.model.exception.EntityExistsException;
 
-import java.math.BigDecimal;
-import java.time.LocalDateTime;
 import java.util.*;
 
 /**
  * Holding represents the ownership of a specific stock within a portfolio.
- * 
+ *
  * <p>In DDD terms, this is an <strong>Entity</strong> that belongs to the Portfolio aggregate.
  * It tracks all lots (purchases) of a particular stock and handles the selling
  * process using the FIFO (First-In-First-Out) accounting method.</p>
- * 
- * <p>A Holding encapsulates:</p>
- * <ul>
- *   <li>The ticker symbol identifying the stock</li>
- *   <li>A collection of Lots representing individual purchase transactions</li>
- *   <li>Methods to buy and sell shares</li>
- *   <li>Logic to calculate total shares owned</li>
- * </ul>
- * 
- * <p>Think of a Holding as your collection of shares for a single company, like Apple or Microsoft.
- * Each time you buy shares of this company, a new "Lot" is created to track that specific purchase.
- * When you sell shares, the oldest ones are sold first (FIFO method), which affects cost basis
- * and profit/loss calculations for tax and performance reporting.</p>
- * 
- * <p>The Holding enforces business rules such as:</p>
- * <ul>
- *   <li>Preventing the sale of more shares than are owned</li>
- *   <li>Maintaining the integrity of Lot data</li>
- *   <li>Correctly applying FIFO accounting during sales</li>
- * </ul>
  */
 public class Holding {
-
-    /**
-     * Unique identifier for the holding.
-     */
-    private String id;
-    
-    /**
-     * The ticker symbol identifying the stock.
-     */
+    private HoldingId id;
     private Ticker ticker;
-
-    /**
-     * List of lots representing the shares purchased for this holding.
-     * Each lot contains information about the quantity, unit price, and purchase date.
-     * Lots are processed in FIFO order (oldest first) during sell operations.
-     */
     private final List<Lot> lots = new ArrayList<>();
 
     protected Holding() {}
-    
-    /**
-     * Constructs a Holding with the specified attributes.
-     * 
-     * @param id The unique identifier for the holding
-     * @param ticker The ticker symbol identifying the stock
-     */
-    public Holding(String id, Ticker ticker) {
+
+    public Holding(HoldingId id, Ticker ticker) {
+        Objects.requireNonNull(id, "Holding id must not be null");
+        Objects.requireNonNull(ticker, "Ticker must not be null");
         this.id = id;
         this.ticker = ticker;
     }
 
-    /**
-     * Factory method to create a new Holding instance with a generated ID.
-     * 
-     * @param ticker The ticker symbol identifying the stock
-     * @return A new Holding instance for the specified ticker
-     */
     public static Holding create(Ticker ticker) {
-        return new Holding(UUID.randomUUID().toString(), ticker);
+        return new Holding(HoldingId.generate(), ticker);
     }
 
     /**
      * Buys shares of this stock, creating a new Lot to track the purchase.
-     * 
-     * <p>When shares are purchased, a new Lot is created to track:</p>
-     * <ul>
-     *   <li>The quantity of shares purchased</li>
-     *   <li>The price paid per share</li>
-     *   <li>The date and time of the purchase</li>
-     * </ul>
-     * 
+     *
      * @param quantity The number of shares to buy
      * @param unitPrice The price per share
      */
-    public void buy(int quantity, BigDecimal unitPrice) {
-        Lot lot = new Lot(UUID.randomUUID().toString(), quantity, quantity, unitPrice, LocalDateTime.now(), true);
+    public void buy(ShareQuantity quantity, Price unitPrice) {
+        Lot lot = Lot.create(quantity, unitPrice);
         lots.add(lot);
     }
 
     /**
      * Sells shares of this stock using the FIFO (First-In-First-Out) accounting method.
-     * 
-     * <p>This method:</p>
-     * <ol>
-     *   <li>Verifies there are enough shares to sell</li>
-     *   <li>Sells shares from the oldest Lots first (FIFO)</li>
-     *   <li>Calculates the cost basis based on the original purchase prices</li>
-     *   <li>Calculates the profit or loss from the sale</li>
-     * </ol>
-     * 
+     *
      * @param quantity The number of shares to sell
      * @param sellPrice The current market price per share
      * @return A SellResult containing proceeds, cost basis, and profit information
      * @throws ConflictQuantityException if there are not enough shares to sell
      */
-    public SellResult sell(int quantity, BigDecimal sellPrice) {
-        if (getTotalShares() < quantity)
-            throw new ConflictQuantityException("Not enough shares to sell. Available: " + getTotalShares() + ", Requested: " + quantity);
-
-        int remainingToSell = quantity;
-        BigDecimal costBasis = BigDecimal.ZERO;
-
-        for (var lot : lots) {
-            if (remainingToSell <= 0) break;
-
-            int sharesSoldFromLot = Math.min(lot.getRemaining(), remainingToSell);
-            BigDecimal lotCostBasis = lot.getUnitPrice().multiply(BigDecimal.valueOf(sharesSoldFromLot));
-            
-            costBasis = costBasis.add(lotCostBasis);
-            lot.reduce(sharesSoldFromLot);
-            remainingToSell -= sharesSoldFromLot;
+    public SellResult sell(ShareQuantity quantity, Price sellPrice) {
+        if (getTotalShares().value() < quantity.value()) {
+            throw new ConflictQuantityException(
+                    "Not enough shares to sell. Available: " + getTotalShares() + ", Requested: " + quantity);
         }
 
-        // Remove lots with zero remaining after selling
+        ShareQuantity remainingToSell = quantity;
+        Money costBasis = Money.ZERO;
+
+        for (var lot : lots) {
+            if (remainingToSell.isZero()) break;
+
+            ShareQuantity sharesSoldFromLot = lot.getRemainingShares().min(remainingToSell);
+            Money lotCostBasis = lot.calculateCostBasis(sharesSoldFromLot);
+
+            costBasis = costBasis.add(lotCostBasis);
+            lot.reduce(sharesSoldFromLot);
+            remainingToSell = remainingToSell.subtract(sharesSoldFromLot);
+        }
+
         lots.removeIf(Lot::isEmpty);
 
-        BigDecimal proceeds = sellPrice.multiply(BigDecimal.valueOf(quantity));
-        BigDecimal profit = proceeds.subtract(costBasis);
-        
-        return new SellResult(proceeds, costBasis, profit);
+        Money proceeds = sellPrice.multiply(quantity);
+        return SellResult.of(proceeds, costBasis);
     }
-    
-    /**
-     * Calculates the total number of shares currently owned in this holding.
-     * 
-     * @return The total number of shares across all lots
-     */
-    public int getTotalShares() {
+
+    public ShareQuantity getTotalShares() {
         return lots.stream()
-                .mapToInt(Lot::getRemaining)
-                .sum();
+                .map(Lot::getRemainingShares)
+                .reduce(ShareQuantity.ZERO, ShareQuantity::add);
     }
 
-
-    /**
-     * Gets the unique identifier of this holding.
-     * 
-     * @return The holding ID
-     */
-    public String getId() {
+    public HoldingId getId() {
         return id;
     }
-    
-    /**
-     * Gets the ticker symbol identifying the stock.
-     * 
-     * @return The ticker symbol
-     */
+
     public Ticker getTicker() {
         return ticker;
     }
-    
-    /**
-     * Gets an unmodifiable list of all lots in this holding.
-     * 
-     * @return An unmodifiable list of lots
-     */
+
     public List<Lot> getLots() {
         return List.copyOf(lots);
     }
 
-    /**
-     * Compares this holding to another object for equality.
-     * Two holdings are considered equal if they have the same ID.
-     *
-     * <p>This implements entity equality semantics: holdings with the same ID
-     * represent the same stock position, regardless of their current state (lots, shares count, etc.).</p>
-     *
-     * @param o The object to compare with
-     * @return true if the holdings have the same ID, false otherwise
-     */
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (!(o instanceof Holding)) return false;
-        Holding holding = (Holding) o;
-        return Objects.equals(id, holding.id);
-    }
-
-    /**
-     * Returns a hash code value for this holding.
-     * The hash code is based solely on the holding's ID to maintain consistency with equals().
-     *
-     * @return A hash code value for this holding
-     */
-    @Override
-    public int hashCode() {
-        return Objects.hashCode(id);
-    }
-
-    /**
-     * Adds a pre-existing Lot to this holding.
-     * 
-     * <p>This method should only be used for reconstituting a Holding from persistence,
-     * not for normal application flow where the buy method should be used instead.</p>
-     * 
-     * @param lot The Lot to add
-     * @throws EntityExistsException if a Lot with the same ID already exists
-     */
     public void addLot(Lot lot) {
-        long count = lots.parallelStream().filter(l -> l.getId().equals(lot.getId())).count();
-        if (count > 0)
+        boolean exists = lots.stream().anyMatch(l -> l.getId().equals(lot.getId()));
+        if (exists) {
             throw new EntityExistsException("Lot " + lot.getId() + " already exists");
-
+        }
         lots.add(lot);
     }
 
-    public BigDecimal getRemainingSharesPurchasePrice() {
-
-        return this.lots.parallelStream()
-                .map(l -> l.getUnitPrice().multiply(BigDecimal.valueOf(l.getRemaining())))
-                .reduce(BigDecimal.ZERO, BigDecimal::add);
+    public Money getRemainingSharesPurchasePrice() {
+        return lots.stream()
+                .map(l -> l.getUnitPrice().multiply(l.getRemainingShares()))
+                .reduce(Money.ZERO, Money::add);
     }
 
-    public BigDecimal getTheoreticSalePrice(BigDecimal currentPrice) {
-
-        return this.lots.parallelStream()
-                .map(l -> currentPrice.multiply(BigDecimal.valueOf(l.getRemaining())))
-                .reduce(BigDecimal.ZERO, BigDecimal::add);
+    public Money getTheoreticSalePrice(Price currentPrice) {
+        return lots.stream()
+                .map(l -> currentPrice.multiply(l.getRemainingShares()))
+                .reduce(Money.ZERO, Money::add);
     }
 
-    public BigDecimal getUnrealizedGain(BigDecimal currentPrice) {
-
+    public Money getUnrealizedGain(Price currentPrice) {
         return getTheoreticSalePrice(currentPrice).subtract(getRemainingSharesPurchasePrice());
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof Holding holding)) return false;
+        return Objects.equals(id, holding.id);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hashCode(id);
     }
 }

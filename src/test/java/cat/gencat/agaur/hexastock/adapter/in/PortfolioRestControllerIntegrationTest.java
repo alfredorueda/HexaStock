@@ -90,7 +90,7 @@ class PortfolioRestControllerIntegrationTest {
             .header("Location", containsString("/api/portfolios/"))
             .body("id", notNullValue())
             .body("ownerName", equalTo(ownerName))
-            .body("cashBalance", equalTo(0))
+            .body("cashBalance", equalTo(0.0f))
             .body("currency", equalTo("USD"));
         String portfolioId = createResp.extract().path("id");
 
@@ -143,7 +143,7 @@ class PortfolioRestControllerIntegrationTest {
             .header("Location", containsString("/api/portfolios/"))
             .body("id", notNullValue())
             .body("ownerName", equalTo(ownerName))
-            .body("cashBalance", equalTo(0))
+            .body("cashBalance", equalTo(0.0f))
             .body("currency", equalTo("USD"));
         String portfolioId = createResp.extract().path("id");
 
@@ -199,7 +199,7 @@ class PortfolioRestControllerIntegrationTest {
             .statusCode(201)
             .header("Location", containsString("/api/portfolios/"))
             .body("ownerName", equalTo(ownerName))
-            .body("cashBalance", equalTo(0))
+            .body("cashBalance", equalTo(0.0f))
             .body("currency", equalTo("USD"))
             .extract().path("id");
         // No deposit, try to buy
@@ -225,7 +225,7 @@ class PortfolioRestControllerIntegrationTest {
             .statusCode(201)
             .header("Location", containsString("/api/portfolios/"))
             .body("ownerName", equalTo(ownerName))
-            .body("cashBalance", equalTo(0))
+            .body("cashBalance", equalTo(0.0f))
             .body("currency", equalTo("USD"))
             .extract().path("id");
         RestAssured.given()
@@ -263,7 +263,7 @@ class PortfolioRestControllerIntegrationTest {
             .statusCode(201)
             .header("Location", containsString("/api/portfolios/"))
             .body("ownerName", equalTo(ownerName))
-            .body("cashBalance", equalTo(0))
+            .body("cashBalance", equalTo(0.0f))
             .body("currency", equalTo("USD"))
             .extract().path("id");
         RestAssured.given()
@@ -303,7 +303,7 @@ class PortfolioRestControllerIntegrationTest {
             .statusCode(201)
             .header("Location", containsString("/api/portfolios/"))
             .body("ownerName", equalTo(ownerName))
-            .body("cashBalance", equalTo(0))
+            .body("cashBalance", equalTo(0.0f))
             .body("currency", equalTo("USD"))
             .extract().path("id");
 
@@ -376,7 +376,7 @@ class PortfolioRestControllerIntegrationTest {
             .statusCode(201)
             .header("Location", containsString("/api/portfolios/"))
             .body("ownerName", equalTo(ownerName))
-            .body("cashBalance", equalTo(0))
+            .body("cashBalance", equalTo(0.0f))
             .body("currency", equalTo("USD"))
             .extract().path("id");
         RestAssured.given()
@@ -401,7 +401,7 @@ class PortfolioRestControllerIntegrationTest {
             .statusCode(201)
             .header("Location", containsString("/api/portfolios/"))
             .body("ownerName", equalTo(ownerName))
-            .body("cashBalance", equalTo(0))
+            .body("cashBalance", equalTo(0.0f))
             .body("currency", equalTo("USD"))
             .extract().path("id");
         RestAssured.given()
@@ -426,7 +426,7 @@ class PortfolioRestControllerIntegrationTest {
             .statusCode(201)
             .header("Location", containsString("/api/portfolios/"))
             .body("ownerName", equalTo(ownerName))
-            .body("cashBalance", equalTo(0))
+            .body("cashBalance", equalTo(0.0f))
             .body("currency", equalTo("USD"))
             .extract().path("id");
         RestAssured.given()
@@ -469,7 +469,7 @@ class PortfolioRestControllerIntegrationTest {
             .header("Location", containsString("/api/portfolios/"))
             .body("id", notNullValue())
             .body("ownerName", equalTo(ownerName))
-            .body("cashBalance", equalTo(0))
+            .body("cashBalance", equalTo(0.0f))
             .body("currency", equalTo("USD"));
         String portfolioId = createResp.extract().path("id");
 
@@ -495,7 +495,7 @@ class PortfolioRestControllerIntegrationTest {
             .header("Location", containsString("/api/portfolios/"))
             .body("id", notNullValue())
             .body("ownerName", equalTo(ownerName))
-            .body("cashBalance", equalTo(0))
+            .body("cashBalance", equalTo(0.0f))
             .body("currency", equalTo("USD"));
         String portfolioId = createResp.extract().path("id");
 
@@ -539,7 +539,7 @@ class PortfolioRestControllerIntegrationTest {
             .statusCode(201)
             .header("Location", containsString("/api/portfolios/"))
             .body("ownerName", equalTo(owner1))
-            .body("cashBalance", equalTo(0))
+            .body("cashBalance", equalTo(0.0f))
             .body("currency", equalTo("USD"))
             .extract().path("id");
         String id2 = RestAssured.given()
@@ -550,7 +550,7 @@ class PortfolioRestControllerIntegrationTest {
             .statusCode(201)
             .header("Location", containsString("/api/portfolios/"))
             .body("ownerName", equalTo(owner2))
-            .body("cashBalance", equalTo(0))
+            .body("cashBalance", equalTo(0.0f))
             .body("currency", equalTo("USD"))
             .extract().path("id");
         String id3 = RestAssured.given()
@@ -561,7 +561,7 @@ class PortfolioRestControllerIntegrationTest {
             .statusCode(201)
             .header("Location", containsString("/api/portfolios/"))
             .body("ownerName", equalTo(owner3))
-            .body("cashBalance", equalTo(0))
+            .body("cashBalance", equalTo(0.0f))
             .body("currency", equalTo("USD"))
             .extract().path("id");
 

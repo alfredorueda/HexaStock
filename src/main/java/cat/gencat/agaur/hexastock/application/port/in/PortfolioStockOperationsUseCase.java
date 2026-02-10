@@ -1,6 +1,8 @@
 package cat.gencat.agaur.hexastock.application.port.in;
 
+import cat.gencat.agaur.hexastock.model.PortfolioId;
 import cat.gencat.agaur.hexastock.model.SellResult;
+import cat.gencat.agaur.hexastock.model.ShareQuantity;
 import cat.gencat.agaur.hexastock.model.Ticker;
 import cat.gencat.agaur.hexastock.model.exception.ConflictQuantityException;
 import cat.gencat.agaur.hexastock.model.exception.InvalidQuantityException;
@@ -50,7 +52,7 @@ public interface PortfolioStockOperationsUseCase {
      * @throws InvalidQuantityException if the quantity is not positive
      * @throws cat.gencat.agaur.hexastock.model.exception.InsufficientFundsException if there are insufficient funds for the purchase
      */
-    void buyStock(String portfolioId, Ticker ticker, int quantity);
+    void buyStock(PortfolioId portfolioId, Ticker ticker, ShareQuantity quantity);
     
     /**
      * Sells shares of a stock from a portfolio.
@@ -74,5 +76,5 @@ public interface PortfolioStockOperationsUseCase {
      * @throws cat.gencat.agaur.hexastock.model.exception.DomainException if the ticker is not found in holdings
      * @throws ConflictQuantityException if trying to sell more shares than owned
      */
-    SellResult sellStock(String portfolioId, Ticker ticker, int quantity);
+    SellResult sellStock(PortfolioId portfolioId, Ticker ticker, ShareQuantity quantity);
 }

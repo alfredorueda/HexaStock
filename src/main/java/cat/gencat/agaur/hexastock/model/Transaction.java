@@ -1,8 +1,6 @@
 package cat.gencat.agaur.hexastock.model;
 
-import java.math.BigDecimal;
 import java.time.LocalDateTime;
-import java.util.UUID;
 
 /**
  * Transaction represents a financial activity within a portfolio.
@@ -80,22 +78,21 @@ import java.util.UUID;
  * requirements while optimizing for the reality of large transaction volumes in financial systems.
  */
 public class Transaction {
-
-    private String id;
-    private String portfolioId;
+    private TransactionId id;
+    private PortfolioId portfolioId;
     private TransactionType type;
     private Ticker ticker;
-    private int quantity;
-    private BigDecimal unitPrice;
-    private BigDecimal totalAmount;
-    private BigDecimal profit;
+    private ShareQuantity quantity;
+    private Price unitPrice;
+    private Money totalAmount;
+    private Money profit;
     private LocalDateTime createdAt;
 
     protected Transaction() {}
-    
-    public Transaction(String id, String portfolioId, TransactionType type, Ticker ticker,
-                        int quantity, BigDecimal unitPrice, BigDecimal totalAmount, 
-                        BigDecimal profit, LocalDateTime createdAt) {
+
+    public Transaction(TransactionId id, PortfolioId portfolioId, TransactionType type, Ticker ticker,
+                       ShareQuantity quantity, Price unitPrice, Money totalAmount,
+                       Money profit, LocalDateTime createdAt) {
         this.id = id;
         this.portfolioId = portfolioId;
         this.type = type;
@@ -106,102 +103,100 @@ public class Transaction {
         this.profit = profit;
         this.createdAt = createdAt;
     }
-    
-   public static Transaction createDeposit(String portfolioId, BigDecimal amount) {
+
+    public static Transaction createDeposit(PortfolioId portfolioId, Money amount) {
         return new Transaction(
-            UUID.randomUUID().toString(),
-            portfolioId,
-            TransactionType.DEPOSIT,
-            null,
-            0,
-            BigDecimal.ZERO,
-            amount,
-            BigDecimal.ZERO,
-            LocalDateTime.now()
-        );
-    }
-    
-    public static Transaction createWithdrawal(String portfolioId, BigDecimal amount) {
-        return new Transaction(
-            UUID.randomUUID().toString(),
-            portfolioId,
-            TransactionType.WITHDRAWAL,
-            null,
-            0,
-            BigDecimal.ZERO,
-            amount,
-            BigDecimal.ZERO,
-            LocalDateTime.now()
-        );
-    }
-    
-    public static Transaction createPurchase(String portfolioId, Ticker ticker,
-                                            int quantity, BigDecimal unitPrice) {
-        BigDecimal totalAmount = unitPrice.multiply(BigDecimal.valueOf(quantity));
-        return new Transaction(
-            UUID.randomUUID().toString(),
-            portfolioId,
-            TransactionType.PURCHASE,
-            ticker,
-            quantity,
-            unitPrice,
-            totalAmount,
-            BigDecimal.ZERO,
-            LocalDateTime.now()
-        );
-    }
-    
-    public static Transaction createSale(String portfolioId, Ticker ticker,
-                                       int quantity, BigDecimal unitPrice, 
-                                       BigDecimal totalAmount, BigDecimal profit) {
-        return new Transaction(
-            UUID.randomUUID().toString(),
-            portfolioId,
-            TransactionType.SALE,
-            ticker,
-            quantity,
-            unitPrice,
-            totalAmount,
-            profit,
-            LocalDateTime.now()
+                TransactionId.generate(),
+                portfolioId,
+                TransactionType.DEPOSIT,
+                null,
+                ShareQuantity.ZERO,
+                null,
+                amount,
+                Money.ZERO,
+                LocalDateTime.now()
         );
     }
 
-    // Getters
-    public String getId() {
+    public static Transaction createWithdrawal(PortfolioId portfolioId, Money amount) {
+        return new Transaction(
+                TransactionId.generate(),
+                portfolioId,
+                TransactionType.WITHDRAWAL,
+                null,
+                ShareQuantity.ZERO,
+                null,
+                amount,
+                Money.ZERO,
+                LocalDateTime.now()
+        );
+    }
+
+    public static Transaction createPurchase(PortfolioId portfolioId, Ticker ticker,
+                                             ShareQuantity quantity, Price unitPrice) {
+        Money totalAmount = unitPrice.multiply(quantity);
+        return new Transaction(
+                TransactionId.generate(),
+                portfolioId,
+                TransactionType.PURCHASE,
+                ticker,
+                quantity,
+                unitPrice,
+                totalAmount,
+                Money.ZERO,
+                LocalDateTime.now()
+        );
+    }
+
+    public static Transaction createSale(PortfolioId portfolioId, Ticker ticker,
+                                         ShareQuantity quantity, Price unitPrice,
+                                         Money totalAmount, Money profit) {
+        return new Transaction(
+                TransactionId.generate(),
+                portfolioId,
+                TransactionType.SALE,
+                ticker,
+                quantity,
+                unitPrice,
+                totalAmount,
+                profit,
+                LocalDateTime.now()
+        );
+    }
+
+    public TransactionId getId() {
         return id;
     }
-    
-    public String getPortfolioId() {
+
+    public PortfolioId getPortfolioId() {
         return portfolioId;
     }
-    
+
     public TransactionType getType() {
         return type;
     }
-    
+
     public Ticker getTicker() {
         return ticker;
     }
-    
-    public int getQuantity() {
+
+    public ShareQuantity getQuantity() {
         return quantity;
     }
-    
-    public BigDecimal getUnitPrice() {
+
+    public Price getUnitPrice() {
         return unitPrice;
     }
-    
-    public BigDecimal getTotalAmount() {
+
+    public Money getTotalAmount() {
         return totalAmount;
     }
-    
-    public BigDecimal getProfit() {
+
+    public Money getProfit() {
         return profit;
     }
-    
+
     public LocalDateTime getCreatedAt() {
         return createdAt;
     }
-
 }

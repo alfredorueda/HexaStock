@@ -12,9 +12,9 @@ public record PortfolioResponseDTO(
 ) {
     public static PortfolioResponseDTO from(Portfolio p) {
         return new PortfolioResponseDTO(
-            p.getId(),
+            p.getId().value(),
             p.getOwnerName(),
-            p.getBalance(),
+            p.getBalance().amount(),
             p.getCreatedAt()
         );
     }

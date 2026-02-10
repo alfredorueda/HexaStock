@@ -1,6 +1,7 @@
 package cat.gencat.agaur.hexastock.adapter.out.rest;
 
 import cat.gencat.agaur.hexastock.application.port.out.StockPriceProviderPort;
+import cat.gencat.agaur.hexastock.model.Price;
 import cat.gencat.agaur.hexastock.model.StockPrice;
 import cat.gencat.agaur.hexastock.model.Ticker;
 import org.springframework.context.annotation.Profile;
@@ -21,12 +22,11 @@ public class MockFinhubStockPriceAdapter implements StockPriceProviderPort {
     @Override
     public StockPrice fetchStockPrice(Ticker ticker) {
         // Generate a random price between $10 and $1000
-        double price = 10.0 + (990.0 * random.nextDouble());
+        double priceValue = 10.0 + (990.0 * random.nextDouble());
         return new StockPrice(
             ticker,
-            price,
-            Instant.now(),
-            "USD"
+            Price.of(priceValue),
+            Instant.now()
         );
     }
 }

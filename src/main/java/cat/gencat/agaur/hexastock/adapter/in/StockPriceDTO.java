@@ -38,9 +38,9 @@ public record StockPriceDTO(
     public static StockPriceDTO fromDomainModel(StockPrice stockPrice) { 
         return new StockPriceDTO(
             stockPrice.ticker().value(),
-            stockPrice.price(),
+            stockPrice.price().value().doubleValue(),
             stockPrice.time(),
-            stockPrice.currency()
+            "USD"  // Single-currency assumption
         );
     }
 }

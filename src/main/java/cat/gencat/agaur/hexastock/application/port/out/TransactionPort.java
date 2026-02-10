@@ -1,5 +1,6 @@
 package cat.gencat.agaur.hexastock.application.port.out;
 
+import cat.gencat.agaur.hexastock.model.PortfolioId;
 import cat.gencat.agaur.hexastock.model.Transaction;
 
 import java.util.List;
@@ -36,10 +37,10 @@ public interface TransactionPort {
      * <p>This method provides the transaction history for a portfolio, which can include
      * deposits, withdrawals, stock purchases, and stock sales.</p>
      * 
-     * @param portFolioId The unique identifier of the portfolio to get transactions for
+     * @param portfolioId The unique identifier of the portfolio to get transactions for
      * @return A list of transaction records of type T
      */
-    List<Transaction> getTransactionsByPortfolioId(String portFolioId);
+    List<Transaction> getTransactionsByPortfolioId(PortfolioId portfolioId);
     
     /**
      * Saves a new transaction record to the persistence store.

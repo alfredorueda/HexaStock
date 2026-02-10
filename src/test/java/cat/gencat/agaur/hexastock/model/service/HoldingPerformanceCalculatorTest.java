@@ -29,16 +29,11 @@ class HoldingPerformanceCalculatorTest {
     private static final Ticker AMAZON = Ticker.of("AMZN");
     
     // Common prices for tests
-    private static final BigDecimal PRICE_90 = new BigDecimal("90.00");
-    private static final BigDecimal PRICE_100 = new BigDecimal("100.00");
-    private static final BigDecimal PRICE_110 = new BigDecimal("110.00");
-    private static final BigDecimal PRICE_120 = new BigDecimal("120.00");
-    private static final BigDecimal PRICE_130 = new BigDecimal("130.00");
-    private static final BigDecimal PRICE_140 = new BigDecimal("140.00");
-    private static final BigDecimal PRICE_150 = new BigDecimal("150.00");
-    
-    // Currency for operations
-    private static final Currency USD = Currency.getInstance("USD");
+    private static final Price PRICE_100 = Price.of("100.00");
+    private static final Price PRICE_110 = Price.of("110.00");
+    private static final Price PRICE_120 = Price.of("120.00");
+    private static final Price PRICE_140 = Price.of("140.00");
+    private static final Price PRICE_150 = Price.of("150.00");
     
     @BeforeEach
     void setUp() {
@@ -55,15 +50,15 @@ class HoldingPerformanceCalculatorTest {
             // Given
             Portfolio portfolio = Portfolio.create("Test Owner");
             // Deposit enough funds before buying
-            portfolio.deposit(Money.of(USD, new BigDecimal("1500.00")));
+            portfolio.deposit(Money.of("1500.00"));
             
-            portfolio.buy(APPLE, 10, PRICE_100);
+            portfolio.buy(APPLE, ShareQuantity.of(10), PRICE_100);
             
-            StockPrice applePrice = new StockPrice(APPLE, 110.00, Instant.now(), "USD");
+            StockPrice applePrice = new StockPrice(APPLE, Price.of("110.00"), Instant.now());
             Map<Ticker, StockPrice> tickerPrices = Map.of(APPLE, applePrice);
             
             Transaction purchase = Transaction.createPurchase(
-                    portfolio.getId(), APPLE, 10, PRICE_100);
+                    portfolio.getId(), APPLE, ShareQuantity.of(10), PRICE_100);
             List<Transaction> transactions = List.of(purchase);
             
             // When
@@ -76,7 +71,7 @@ class HoldingPerformanceCalculatorTest {
             assertEquals("AAPL", holdingDTO.ticker());
             assertEquals(new BigDecimal("10"), holdingDTO.quantity());
             assertEquals(new BigDecimal("10"), holdingDTO.remaining());
-            assertEquals(PRICE_100, holdingDTO.averagePurchasePrice());
+            assertEquals(new BigDecimal("100.00"), holdingDTO.averagePurchasePrice());
             
             // Compare values with the same scale (2 decimals)
             BigDecimal expectedCurrentPrice = new BigDecimal("110.00");
@@ -93,27 +88,27 @@ class HoldingPerformanceCalculatorTest {
             // Given
             Portfolio portfolio = Portfolio.create("Test Owner");
             // Deposit enough funds before buying
-            portfolio.deposit(Money.of(USD, new BigDecimal("3000.00")));
+            portfolio.deposit(Money.of("3000.00"));
             
             // Buy 10 shares at $100
-            portfolio.buy(MICROSOFT, 10, PRICE_100);
+            portfolio.buy(MICROSOFT, ShareQuantity.of(10), PRICE_100);
             
             // Buy 5 shares at $120
-            portfolio.buy(MICROSOFT, 5, PRICE_120);
+            portfolio.buy(MICROSOFT, ShareQuantity.of(5), PRICE_120);
             
             // Sell 8 shares at $110 (FIFO - the oldest shares are sold first)
-            SellResult sellResult = portfolio.sell(MICROSOFT, 8, PRICE_110);
+            SellResult sellResult = portfolio.sell(MICROSOFT, ShareQuantity.of(8), PRICE_110);
             
-            StockPrice msftPrice = new StockPrice(MICROSOFT, 120.00, Instant.now(), "USD");
+            StockPrice msftPrice = new StockPrice(MICROSOFT, Price.of("120.00"), Instant.now());
             Map<Ticker, StockPrice> tickerPrices = Map.of(MICROSOFT, msftPrice);
             
             // Manually create transactions to reflect the operations
             Transaction purchase1 = Transaction.createPurchase(
-                    portfolio.getId(), MICROSOFT, 10, PRICE_100);
+                    portfolio.getId(), MICROSOFT, ShareQuantity.of(10), PRICE_100);
             Transaction purchase2 = Transaction.createPurchase(
-                    portfolio.getId(), MICROSOFT, 5, PRICE_120);
+                    portfolio.getId(), MICROSOFT, ShareQuantity.of(5), PRICE_120);
             Transaction sale = Transaction.createSale(
-                    portfolio.getId(), MICROSOFT, 8, PRICE_110, 
+                    portfolio.getId(), MICROSOFT, ShareQuantity.of(8), PRICE_110, 
                     sellResult.proceeds(), sellResult.profit());
             
             List<Transaction> transactions = List.of(purchase1, purchase2, sale);
@@ -151,16 +146,16 @@ class HoldingPerformanceCalculatorTest {
             Portfolio portfolio = Portfolio.create("Test Owner");
             
             // Deposit sufficient funds for all purchases
-            portfolio.deposit(Money.of(USD, new BigDecimal("10000.00")));
+            portfolio.deposit(Money.of("10000.00"));
             
             // Purchase Lot 1: 10 shares of Amazon at $100 each
-            portfolio.buy(AMAZON, 10, PRICE_100);  // Total cost: $1000
+            portfolio.buy(AMAZON, ShareQuantity.of(10), PRICE_100);  // Total cost: $1000
             
             // Purchase Lot 2: 15 shares of Amazon at $120 each
-            portfolio.buy(AMAZON, 15, PRICE_120);  // Total cost: $1800
+            portfolio.buy(AMAZON, ShareQuantity.of(15), PRICE_120);  // Total cost: $1800
             
             // Purchase Lot 3: 5 shares of Amazon at $140 each
-            portfolio.buy(AMAZON, 5, PRICE_140);  // Total cost: $700
+            portfolio.buy(AMAZON, ShareQuantity.of(5), PRICE_140);  // Total cost: $700
             
             // Current holdings: 30 shares total
             // - Lot 1: 10 shares @ $100 = $1000
@@ -172,7 +167,7 @@ class HoldingPerformanceCalculatorTest {
             // This should sell:
             // - All 10 shares from Lot 1
             // - 12 shares from Lot 2
-            SellResult sellResult = portfolio.sell(AMAZON, 22, PRICE_150);
+            SellResult sellResult = portfolio.sell(AMAZON, ShareQuantity.of(22), PRICE_150);
             
             // Expected results of the sale:
             // - Proceeds: 22 * $150 = $3300
@@ -180,18 +175,18 @@ class HoldingPerformanceCalculatorTest {
             // - Profit: $3300 - $2440 = $860
             
             // Current stock price for remaining shares
-            StockPrice amazonPrice = new StockPrice(AMAZON, 150.00, Instant.now(), "USD");
+            StockPrice amazonPrice = new StockPrice(AMAZON, Price.of("150.00"), Instant.now());
             Map<Ticker, StockPrice> tickerPrices = Map.of(AMAZON, amazonPrice);
             
             // Create transactions to mirror the portfolio operations
             Transaction purchase1 = Transaction.createPurchase(
-                    portfolio.getId(), AMAZON, 10, PRICE_100);
+                    portfolio.getId(), AMAZON, ShareQuantity.of(10), PRICE_100);
             Transaction purchase2 = Transaction.createPurchase(
-                    portfolio.getId(), AMAZON, 15, PRICE_120);
+                    portfolio.getId(), AMAZON, ShareQuantity.of(15), PRICE_120);
             Transaction purchase3 = Transaction.createPurchase(
-                    portfolio.getId(), AMAZON, 5, PRICE_140);
+                    portfolio.getId(), AMAZON, ShareQuantity.of(5), PRICE_140);
             Transaction sale = Transaction.createSale(
-                    portfolio.getId(), AMAZON, 22, PRICE_150, 
+                    portfolio.getId(), AMAZON, ShareQuantity.of(22), PRICE_150, 
                     sellResult.proceeds(), sellResult.profit());
             
             List<Transaction> transactions = List.of(purchase1, purchase2, purchase3, sale);
@@ -257,19 +252,19 @@ class HoldingPerformanceCalculatorTest {
             Portfolio portfolio = Portfolio.create("Test Owner");
             
             // Deposit enough funds before buying
-            portfolio.deposit(Money.of(USD, new BigDecimal("1000.00")));
+            portfolio.deposit(Money.of("1000.00"));
             
             // Create deposit and withdrawal transactions (no ticker)
-            Transaction deposit = Transaction.createDeposit(portfolio.getId(), new BigDecimal("1000.00"));
-            Transaction withdrawal = Transaction.createWithdrawal(portfolio.getId(), new BigDecimal("500.00"));
+            Transaction deposit = Transaction.createDeposit(portfolio.getId(), Money.of("1000.00"));
+            Transaction withdrawal = Transaction.createWithdrawal(portfolio.getId(), Money.of("500.00"));
             
             // Create a purchase transaction with ticker
-            portfolio.buy(APPLE, 5, PRICE_100);
-            Transaction purchase = Transaction.createPurchase(portfolio.getId(), APPLE, 5, PRICE_100);
+            portfolio.buy(APPLE, ShareQuantity.of(5), PRICE_100);
+            Transaction purchase = Transaction.createPurchase(portfolio.getId(), APPLE, ShareQuantity.of(5), PRICE_100);
             
             List<Transaction> transactions = List.of(deposit, withdrawal, purchase);
             
-            StockPrice applePrice = new StockPrice(APPLE, 110.00, Instant.now(), "USD");
+            StockPrice applePrice = new StockPrice(APPLE, Price.of("110.00"), Instant.now());
             Map<Ticker, StockPrice> tickerPrices = Map.of(APPLE, applePrice);
             
             // When
@@ -288,10 +283,10 @@ class HoldingPerformanceCalculatorTest {
             
             // We do not add the holding to the portfolio but we do create transactions
             Transaction purchase = Transaction.createPurchase(
-                    portfolio.getId(), APPLE, 10, PRICE_100);
+                    portfolio.getId(), APPLE, ShareQuantity.of(10), PRICE_100);
             List<Transaction> transactions = List.of(purchase);
             
-            StockPrice applePrice = new StockPrice(APPLE, 110.00, Instant.now(), "USD");
+            StockPrice applePrice = new StockPrice(APPLE, Price.of("110.00"), Instant.now());
             Map<Ticker, StockPrice> tickerPrices = Map.of(APPLE, applePrice);
             
             // When & Then

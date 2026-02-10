@@ -7,6 +7,7 @@ import cat.gencat.agaur.hexastock.application.port.out.PortfolioPort;
 import cat.gencat.agaur.hexastock.application.port.out.TransactionPort;
 import cat.gencat.agaur.hexastock.model.Money;
 import cat.gencat.agaur.hexastock.model.Portfolio;
+import cat.gencat.agaur.hexastock.model.PortfolioId;
 import cat.gencat.agaur.hexastock.model.Transaction;
 import jakarta.transaction.Transactional;
 import java.util.List;
@@ -86,8 +87,9 @@ public class PortfolioManagementService implements PortfolioManagementUseCase {
      * @throws PortfolioNotFoundException if the portfolio is not found
      */
     @Override
-    public Portfolio getPortfolio(String portfolioId) {
-        return portfolioPort.getPortfolioById(portfolioId).orElseThrow(() -> new PortfolioNotFoundException(portfolioId));
+    public Portfolio getPortfolio(PortfolioId portfolioId) {
+        return portfolioPort.getPortfolioById(portfolioId)
+                .orElseThrow(() -> new PortfolioNotFoundException(portfolioId.value()));
     }
 
     /**
@@ -108,12 +110,12 @@ public class PortfolioManagementService implements PortfolioManagementUseCase {
      * @throws cat.gencat.agaur.hexastock.model.exception.InsufficientFundsException if the deposit amount is not positive
      */
     @Override
-    public void deposit(String portfolioId, Money amount) {
+    public void deposit(PortfolioId portfolioId, Money amount) {
         Portfolio portfolio = getPortfolio(portfolioId);
         portfolio.deposit(amount);
         portfolioPort.savePortfolio(portfolio);
 
-        Transaction transaction = Transaction.createDeposit(portfolioId, amount.amount());
+        Transaction transaction = Transaction.createDeposit(portfolioId, amount);
         transactionPort.save(transaction);
     }
 
@@ -136,12 +138,12 @@ public class PortfolioManagementService implements PortfolioManagementUseCase {
      * @throws cat.gencat.agaur.hexastock.model.exception.InsufficientFundsException if there are insufficient funds for the withdrawal
      */
     @Override
-    public void withdraw(String portfolioId, Money amount) {
+    public void withdraw(PortfolioId portfolioId, Money amount) {
         Portfolio portfolio = getPortfolio(portfolioId);
         portfolio.withdraw(amount);
         portfolioPort.savePortfolio(portfolio);
 
-        Transaction transaction = Transaction.createWithdrawal(portfolioId, amount.amount());
+        Transaction transaction = Transaction.createWithdrawal(portfolioId, amount);
         transactionPort.save(transaction);
     }
 
