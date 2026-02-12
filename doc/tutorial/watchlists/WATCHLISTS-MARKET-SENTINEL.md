@@ -691,8 +691,16 @@ Test the service, not the scheduler. The scheduler's only responsibility is timi
 The following PlantUML diagrams illustrate the key flows:
 
 1. **Command Flow (Write Side)**: [watchlist-command-flow.puml](./diagrams/watchlist-command-flow.puml)
+
+[![Watchlist Command Flow](diagrams/Rendered/watchlist-command-flow.png)](diagrams/Rendered/watchlist-command-flow.svg)
+
 2. **Market Sentinel Detection (Read Side)**: [market-sentinel-detection-flow.puml](./diagrams/market-sentinel-detection-flow.puml)
+
+[![Market Sentinel Detection Flow](diagrams/Rendered/market-sentinel-detection-flow.png)](diagrams/Rendered/market-sentinel-detection-flow.svg)
+
 3. **CQRS Overview**: [cqrs-read-vs-write-overview.puml](./diagrams/cqrs-read-vs-write-overview.puml)
+
+[![CQRS Read vs Write Overview](diagrams/Rendered/cqrs-read-vs-write-overview.png)](diagrams/Rendered/cqrs-read-vs-write-overview.svg)
 
 ---
 

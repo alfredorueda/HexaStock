@@ -22,7 +22,7 @@
   - https://deepwiki.com/alfredorueda/HexaStock/3.1-core-entities#fifo-accounting-implementation
 - Show the **UML Class Diagram** to illustrate relationships in the domain
 
-<img src="UML Class Diagram without exceptions.png" width="90%">
+[![HexaStock Domain Model](../tutorial/diagrams/Rendered/HexaStock%20Domain%20Model.png)](../tutorial/diagrams/Rendered/HexaStock%20Domain%20Model.svg)
 
 - This diagram shows the purchase flow within the domain model, starting from the Portfolio aggregate root. The Portfolio validates the purchase, finds or creates a Holding for the ticker, and the Holding creates a new Lot to track the purchase.
 <img src="Buy Stocks Use Case.png" width="70%">

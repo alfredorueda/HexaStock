@@ -1,0 +1,48 @@
+name: PlantUML Auto-Render
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  render-diagrams:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    # Skip if the last commit was an auto-render commit (prevent infinite loops)
+    if: >-
+      !contains(github.event.head_commit.message, '[skip ci]') &&
+      github.event.head_commit.author.name != 'github-actions[bot]'
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Render all PlantUML diagrams to SVG and PNG
+        run: ./scripts/render-diagrams.sh
+
+      - name: Check for rendered diagram changes
+        id: changes
+        run: |
+          git add **/Rendered/*.svg **/Rendered/*.png
+          if git diff --cached --quiet; then
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+            echo "ℹ️  No diagram changes detected."
+          else
+            echo "changed=true" >> "$GITHUB_OUTPUT"
+            echo "📝 Diagram changes detected — will commit."
+          fi
+
+      - name: Commit and push updated diagrams
+        if: steps.changes.outputs.changed == 'true'
+        run: |
+          git config user.name  "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git commit -m "chore(diagrams): auto-render PlantUML to SVG and PNG [skip ci]"
+          git push

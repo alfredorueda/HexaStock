@@ -272,7 +272,7 @@ This separation enables independent testing of business logic, flexible adapter 
 
 ### UML Class Diagram
 
-<img width="1693" height="1576" alt="image" src="https://github.com/user-attachments/assets/85a5e57f-86dc-4b44-b221-fb7a4e3d3e6c" />
+[![HexaStock Domain Model](doc/tutorial/diagrams/Rendered/HexaStock%20Domain%20Model.png)](doc/tutorial/diagrams/Rendered/HexaStock%20Domain%20Model.svg)
 
 ## Domain Concepts
 

@@ -124,7 +124,7 @@ This tutorial explains a **real use case** from the HexaStock codebase: **sellin
 
 ## 2. Domain Context: What "Selling Stocks" Means in HexaStock
 
-<img width="1693" height="1576" alt="image" src="https://github.com/user-attachments/assets/dcc5c599-319d-48ae-838d-c6be7800d952" />
+[![HexaStock Domain Model](diagrams/Rendered/HexaStock%20Domain%20Model.png)](diagrams/Rendered/HexaStock%20Domain%20Model.svg)
 
 In this system:
 
@@ -185,8 +185,7 @@ public ResponseEntity<SaleResponseDTO> sellStock(@PathVariable String id,
 
 This controller **drives** the application by calling its use cases. It does not contain business logic.
 
-<img width="2168" height="1434" alt="image" src="https://github.com/user-attachments/assets/a9ffd45a-46d5-4406-bb6c-28af84482f96" />
-
+[![Sell HTTP to Port](diagrams/Rendered/sell-http-to-port.png)](diagrams/Rendered/sell-http-to-port.svg)
 
 ---
 
@@ -284,8 +283,7 @@ public SellResult sellStock(PortfolioId portfolioId, Ticker ticker, ShareQuantit
 
 **Diagram Reference:** See [`diagrams/sell-application-service.puml`](diagrams/sell-application-service.puml)
 
-<img width="2086" height="1300" alt="image" src="https://github.com/user-attachments/assets/b10eb9a9-2adf-4cc8-93b5-9f6ea682cbef" />
-
+[![Sell Application Service](diagrams/Rendered/sell-application-service.png)](diagrams/Rendered/sell-application-service.svg)
 
 ### Step 4: Domain Model Enforces Invariants
 
@@ -378,8 +376,7 @@ The Lot:
 
 **Diagram Reference:** See [`diagrams/sell-domain-fifo.puml`](diagrams/sell-domain-fifo.puml)
 
-<img width="1831" height="2343" alt="image" src="https://github.com/user-attachments/assets/d9a1aa88-1f1c-4d37-99a1-d7e2c37aae38" />
-
+[![Sell Domain FIFO](diagrams/Rendered/sell-domain-fifo.png)](diagrams/Rendered/sell-domain-fifo.svg)
 
 ### Step 5: Persistence Adapter Saves Changes
 
@@ -387,8 +384,7 @@ The `PortfolioPort` implementation (a JPA adapter) converts the domain `Portfoli
 
 **Diagram Reference:** See [`diagrams/sell-persistence-adapter.puml`](diagrams/sell-persistence-adapter.puml)
 
-<img width="2154" height="1562" alt="image" src="https://github.com/user-attachments/assets/67813333-e842-4b65-9887-861056e36d31" />
-
+[![Sell Persistence Adapter](diagrams/Rendered/sell-persistence-adapter.png)](diagrams/Rendered/sell-persistence-adapter.svg)
 
 ### Step 6: Response Returns to Client
 
@@ -714,8 +710,7 @@ This inversion of dependencies is the essence of Hexagonal Architecture: the dom
 
 **Diagram Reference:** See [`diagrams/sell-persistence-adapter.puml`](diagrams/sell-persistence-adapter.puml)
 
-<img width="2154" height="1562" alt="image" src="https://github.com/user-attachments/assets/4d8b0c91-e936-41aa-b020-8b7a39c539c0" />
-
+[![Sell Persistence Adapter](diagrams/Rendered/sell-persistence-adapter.png)](diagrams/Rendered/sell-persistence-adapter.svg)
 
 ---
 
@@ -749,8 +744,7 @@ HTTP 404 Not Found
 
 **Diagram Reference:** See [`diagrams/sell-error-portfolio-not-found.puml`](diagrams/sell-error-portfolio-not-found.puml)
 
-<img width="2897" height="1570" alt="image" src="https://github.com/user-attachments/assets/6e4cba0e-a52d-4c1c-85f8-9b3ee85e5e5a" />
-
+[![Sell Error Portfolio Not Found](diagrams/Rendered/sell-error-portfolio-not-found.png)](diagrams/Rendered/sell-error-portfolio-not-found.svg)
 
 ---
 
@@ -787,8 +781,7 @@ HTTP 400 Bad Request
 
 **Diagram Reference:** See [`diagrams/sell-error-invalid-quantity.puml`](diagrams/sell-error-invalid-quantity.puml)
 
-<img width="3078" height="1890" alt="image" src="https://github.com/user-attachments/assets/87832f18-b11f-4ba4-960f-0582de36a7ef" />
-
+[![Sell Error Invalid Quantity](diagrams/Rendered/sell-error-invalid-quantity.png)](diagrams/Rendered/sell-error-invalid-quantity.svg)
 
 ---
 
@@ -822,8 +815,7 @@ HTTP 409 Conflict
 
 **Diagram Reference:** See [`diagrams/sell-error-sell-more-than-owned.puml`](diagrams/sell-error-sell-more-than-owned.puml)
 
-<img width="3582" height="2370" alt="image" src="https://github.com/user-attachments/assets/889f9305-297a-49dd-8004-6fe4a34cd928" />
-
+[![Sell Error Sell More Than Owned](diagrams/Rendered/sell-error-sell-more-than-owned.png)](diagrams/Rendered/sell-error-sell-more-than-owned.svg)
 
 ---
 
@@ -1127,7 +1119,7 @@ Pick **one** provider that offers a free tier or freemium plan. You may choose a
 You can also pick another provider not listed here, as long as:
 * it exposes a "latest price" endpoint,
 * it authenticates via API key,
-* it returns data you can map to your domain `StockPrice` model (which contains `Ticker`, `Price`, and `Instant`).
+* it returns data you can map to your domain `StockPrice` model (which contains `Price` and `Ticker` value objects).
 
 ---
 
