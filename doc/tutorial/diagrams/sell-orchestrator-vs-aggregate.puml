@@ -10,7 +10,7 @@ participant "Lot\n(Entity)" as Lot #LightYellow
 
 == ✅ Correct: Service calls Aggregate Root ==
 
-Service -> Portfolio: sell(ticker, quantity, price)
+Service -> Portfolio: sell(Ticker, ShareQuantity, Price)
 activate Service
 activate Portfolio
 note right of Service
@@ -20,9 +20,8 @@ note right of Service
   business decisions
 end note
 
-Portfolio -> Portfolio: validate inputs
-Portfolio -> Portfolio: check holdings exist
-Portfolio -> Holding: sell(quantity, price)
+Portfolio -> Portfolio: validate inputs\n(quantity.isPositive(),\nholdings.containsKey(ticker))
+Portfolio -> Holding: sell(ShareQuantity, Price)
 activate Holding
 note right of Portfolio
   Aggregate Root
@@ -31,18 +30,23 @@ note right of Portfolio
   controlled entities
 end note
 
-Holding -> Holding: check total shares
-Holding -> Lot: reduce(qty)
+Holding -> Holding: check getTotalShares()
+Holding -> Lot: calculateCostBasis(ShareQuantity)
 activate Lot
-Lot -> Lot: validate & update
+Lot --> Holding: Money
+deactivate Lot
+
+Holding -> Lot: reduce(ShareQuantity)
+activate Lot
+Lot -> Lot: validate & update\nremainingShares
 Lot --> Holding: void
 deactivate Lot
 
-Holding -> Holding: calculate profit
+Holding -> Holding: calculate SellResult.of(\nMoney proceeds, Money costBasis)
 Holding --> Portfolio: SellResult
 deactivate Holding
 
-Portfolio -> Portfolio: update balance
+Portfolio -> Portfolio: balance = balance.add(\nresult.proceeds())
 Portfolio --> Service: SellResult
 deactivate Portfolio
 deactivate Service
@@ -63,7 +67,7 @@ end note
 Holding -[#red]-> Service: <font color=red>List<Lot></font>
 deactivate Holding
 
-Service -[#red]x Lot: <font color=red>reduce(qty)</font>
+Service -[#red]x Lot: <font color=red>reduce(ShareQuantity)</font>
 activate Lot #Pink
 note right of Service #Pink
   This bypasses the

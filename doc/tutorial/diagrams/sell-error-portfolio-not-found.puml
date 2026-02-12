@@ -11,15 +11,18 @@ participant "GlobalExceptionHandler\n(@RestControllerAdvice)" as Handler
 Client -> Controller: POST /api/portfolios/xyz-999/sales\n{"ticker":"AAPL", "quantity":5}
 activate Controller
 
-Controller -> Service: sellStock("xyz-999", ticker, 5)
+Controller -> Controller: Create Value Objects:\nPortfolioId.of("xyz-999")\nTicker.of("AAPL")\nShareQuantity.positive(5)
+
+Controller -> Service: sellStock(PortfolioId, Ticker, ShareQuantity)
 activate Service
 
-Service -> Port: getPortfolioById("xyz-999")
+Service -> Port: getPortfolioById(PortfolioId("xyz-999"))
 activate Port
 Port --> Service: Optional.empty()
 deactivate Port
 
-Service -> Service: orElseThrow()
+Service -> Service: orElseThrow(\n() -> new PortfolioNotFoundException(\nportfolioId.value()))
+
 Service --> Controller: throw PortfolioNotFoundException("xyz-999")
 deactivate Service
 

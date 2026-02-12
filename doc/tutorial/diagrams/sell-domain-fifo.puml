@@ -4,64 +4,74 @@ skinparam backgroundColor #FEFEFE
 
 participant "Portfolio\n(Aggregate Root)" as Portfolio
 participant "Holding\n(Entity)" as Holding
-participant "Lot 1\n(Entity)\nPurchased: 2024-01-15\nRemaining: 10" as Lot1
-participant "Lot 2\n(Entity)\nPurchased: 2024-02-20\nRemaining: 5" as Lot2
+participant "Lot 1\n(Entity)\nPurchased: 2024-01-15\nRemaining: ShareQuantity(10)" as Lot1
+participant "Lot 2\n(Entity)\nPurchased: 2024-02-20\nRemaining: ShareQuantity(5)" as Lot2
 
 activate Portfolio
-
-Portfolio -> Portfolio: validate quantity > 0
-Portfolio -> Portfolio: validate price > 0
+Portfolio -> Portfolio: validate quantity.isPositive()
 Portfolio -> Portfolio: check holdings.containsKey(ticker)
 
-Portfolio -> Holding: sell(quantity=7, sellPrice=150)
+Portfolio -> Holding: sell(ShareQuantity(7), Price(150))
 activate Holding
 
-Holding -> Holding: check getTotalShares() >= 7
+Holding -> Holding: check getTotalShares().value() >= 7
 note right
-  Total: 10 + 5 = 15 shares
-  Selling: 7 shares
+  Total: ShareQuantity(10) + ShareQuantity(5) = 15 shares
+  Selling: ShareQuantity(7)
   OK to proceed
 end note
 
-Holding -> Holding: calculate proceeds:\n7 * 150 = 1050
-Holding -> Holding: costBasis = 0\nremaining = 7
+Holding -> Holding: remainingToSell = ShareQuantity(7)\ncostBasis = Money.ZERO
 
 note over Holding
   **FIFO Algorithm**
   Sell from oldest lot first
 end note
 
-Holding -> Lot1: reduce(toSell=7)
+Holding -> Holding: sharesSoldFromLot =\nlot1.getRemainingShares().min(remainingToSell)\n= ShareQuantity(10).min(ShareQuantity(7))\n= ShareQuantity(7)
+
+Holding -> Lot1: calculateCostBasis(ShareQuantity(7))
 activate Lot1
-Lot1 -> Lot1: validate qty <= remaining
-Lot1 -> Lot1: remaining -= 7\n(10 → 3)
+Lot1 -> Lot1: unitPrice.multiply(ShareQuantity(7))\n= Price(100) × 7 = Money(700)
+Lot1 --> Holding: Money(700)
+deactivate Lot1
+
+Holding -> Holding: costBasis = Money.ZERO.add(Money(700))\n= Money(700)
+
+Holding -> Lot1: reduce(ShareQuantity(7))
+activate Lot1
+Lot1 -> Lot1: validate qty <= remainingShares
+Lot1 -> Lot1: remainingShares = remainingShares.subtract(ShareQuantity(7))\nShareQuantity(10) → ShareQuantity(3)
 Lot1 --> Holding: void
 deactivate Lot1
 
-Holding -> Holding: costBasis += 7 * Lot1.unitPrice\ncostBasis = 7 * 100 = 700
+Holding -> Holding: remainingToSell =\nShareQuantity(7).subtract(ShareQuantity(7))\n= ShareQuantity.ZERO
 
 note right of Holding
-  Only needed 7 shares.
-  Lot1 had enough.
+  remainingToSell.isZero() → true
   Lot2 remains untouched.
 end note
 
-Holding -> Holding: profit = proceeds - costBasis\n= 1050 - 700 = 350
+Holding -> Holding: lots.removeIf(Lot::isEmpty)\n(no lots removed, Lot1 still has 3)
 
-Holding --> Portfolio: SellResult(proceeds=1050,\ncostBasis=700, profit=350)
+Holding -> Holding: proceeds = Price(150).multiply(ShareQuantity(7))\n= Money(1050)
+
+Holding -> Holding: SellResult.of(Money(1050), Money(700))\nprofit = proceeds - costBasis\n= Money(1050) - Money(700) = Money(350)
+
+Holding --> Portfolio: SellResult(\nproceeds=Money(1050),\ncostBasis=Money(700),\nprofit=Money(350))
 deactivate Holding
 
-Portfolio -> Portfolio: balance += proceeds\nbalance += 1050
+Portfolio -> Portfolio: balance = balance.add(result.proceeds())\nbalance += Money(1050)
 
 Portfolio --> : SellResult
 deactivate Portfolio
 
 note over Portfolio, Lot2
   **Key Invariants Protected:**
-  1. Cannot sell more than owned
+  1. Cannot sell more than owned (ShareQuantity comparison)
   2. FIFO order strictly enforced
-  3. Balance updated consistently
-  4. Lot quantities remain non-negative
+  3. Balance (Money) updated consistently
+  4. Lot ShareQuantity remains non-negative
+  5. Empty lots removed from aggregate
 end note
-
 @enduml

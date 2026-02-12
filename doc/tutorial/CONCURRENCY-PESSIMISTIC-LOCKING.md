@@ -250,7 +250,7 @@ The `@Transactional` annotation on the use case service method defines the trans
 
 ```java
 @Transactional
-public void withdraw(String portfolioId, Money amount) {
+public void withdraw(PortfolioId portfolioId, Money amount) {
     Portfolio portfolio = getPortfolio(portfolioId); // Lock acquired here
     portfolio.withdraw(amount);
     portfolioPort.savePortfolio(portfolio);
@@ -455,7 +455,7 @@ public class PortfolioService {
     
     private static final int MAX_RETRIES = 3;
     
-    public void withdrawWithRetry(String portfolioId, Money amount) {
+    public void withdrawWithRetry(PortfolioId portfolioId, Money amount) {
         int attempt = 0;
         while (attempt < MAX_RETRIES) {
             try {
@@ -473,9 +473,9 @@ public class PortfolioService {
     }
     
     @Transactional
-    private void withdrawOnce(String portfolioId, Money amount) {
+    private void withdrawOnce(PortfolioId portfolioId, Money amount) {
         Portfolio portfolio = portfolioRepository.findById(portfolioId)
-            .orElseThrow(() -> new PortfolioNotFoundException(portfolioId));
+            .orElseThrow(() -> new PortfolioNotFoundException(portfolioId.value()));
         portfolio.withdraw(amount);
         portfolioRepository.save(portfolio);
     }

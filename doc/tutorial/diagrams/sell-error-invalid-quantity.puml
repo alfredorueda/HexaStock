@@ -11,28 +11,19 @@ participant "GlobalExceptionHandler" as Handler
 Client -> Controller: POST /api/portfolios/abc-123/sales\n{"ticker":"AAPL", "quantity":0}
 activate Controller
 
-Controller -> Service: sellStock("abc-123", ticker, 0)
-activate Service
+Controller -> Controller: Create Value Objects:\nPortfolioId.of("abc-123")\nTicker.of("AAPL")\nShareQuantity.positive(0)
 
-Service -> Service: fetch portfolio
-Service -> Service: fetch price
-
-Service -> Portfolio: sell(ticker, 0, price)
-activate Portfolio
-
-Portfolio -> Portfolio: validate quantity
-note right of Portfolio
-  Business rule:
-  quantity must be > 0
+note right of Controller
+  **Defense in depth:**
+  ShareQuantity.positive(0)
+  throws InvalidQuantityException
+  at the adapter boundary.
+  
+  Even if bypassed, Portfolio.sell()
+  checks quantity.isPositive() again.
 end note
 
-Portfolio -> Portfolio: if (quantity <= 0)\n  throw InvalidQuantityException()
-
-Portfolio --> Service: throw InvalidQuantityException("Quantity must be positive")
-deactivate Portfolio
-
-Service --> Controller: throw InvalidQuantityException
-deactivate Service
+Controller --> Controller: throw InvalidQuantityException(\n"Quantity must be positive: 0")
 
 Controller -> Handler: handle exception
 activate Handler
@@ -49,8 +40,8 @@ note over Client, Handler
   **Domain Exception → HTTP Status**
   InvalidQuantityException → 400 Bad Request
   
-  The domain model enforces this rule,
-  not the controller or service!
+  The Value Object **ShareQuantity.positive()**
+  enforces this rule at construction time.
+  Portfolio.sell() provides a second guard.
 end note
-
 @enduml

@@ -473,13 +473,13 @@ paths:
 ### 3.1 Domain Entities
 
 #### Portfolio
-- **Description**: Represents an investor's investment account containing cash and stock holdings
+- **Description**: Represents an investor's investment account containing cash and stock holdings. This is the **Aggregate Root** in DDD terms.
 - **Attributes**:
-  - `id`: Unique identifier
-  - `ownerName`: Name of the portfolio owner
-  - `balance`: Cash balance available for investments
-  - `createdAt`: Date when the portfolio was created
-  - `holdings`: Collection of stock holdings in this portfolio
+  - `id`: `PortfolioId` — Unique identifier (Value Object wrapping String)
+  - `ownerName`: `String` — Name of the portfolio owner
+  - `balance`: `Money` — Cash balance available for investments (Value Object wrapping BigDecimal)
+  - `createdAt`: `LocalDateTime` — Timestamp when the portfolio was created
+  - `holdings`: `Map<Ticker, Holding>` — Collection of stock holdings indexed by ticker
 - **Responsibilities**:
   - Managing cash through deposits and withdrawals
   - Facilitating stock purchases and sales
@@ -489,136 +489,194 @@ paths:
 #### Holding
 - **Description**: Represents ownership of a specific stock within a portfolio
 - **Attributes**:
-  - `id`: Unique identifier
-  - `ticker`: Stock symbol (e.g., AAPL, MSFT)
-  - `lots`: Chronologically ordered collection of purchase lots
+  - `id`: `HoldingId` — Unique identifier (Value Object wrapping String)
+  - `ticker`: `Ticker` — Stock symbol (Value Object, e.g., `Ticker.of("AAPL")`)
+  - `lots`: `List<Lot>` — Chronologically ordered collection of purchase lots
 - **Responsibilities**:
   - Tracking all purchase lots for a specific stock
   - Managing the selling process using FIFO accounting
-  - Calculating total shares owned of the stock
+  - Calculating total shares owned (`ShareQuantity`)
 
 #### Lot
 - **Description**: Represents a specific purchase of shares at a certain price and time
 - **Attributes**:
-  - `id`: Unique identifier
-  - `quantity`: Original number of shares purchased
-  - `remaining`: Current number of shares remaining in this lot
-  - `unitPrice`: Price per share paid
-  - `purchasedAt`: Date and time of purchase
+  - `id`: `LotId` — Unique identifier (Value Object wrapping String)
+  - `initialShares`: `ShareQuantity` — Original number of shares purchased (Value Object wrapping int)
+  - `remainingShares`: `ShareQuantity` — Current number of shares remaining in this lot
+  - `unitPrice`: `Price` — Price per share paid (Value Object wrapping BigDecimal)
+  - `purchasedAt`: `LocalDateTime` — Date and time of purchase
 - **Responsibilities**:
   - Tracking the original purchase details
-  - Managing the reduction of shares when sales occur
+  - Managing the reduction of shares when sales occur (`reduce(ShareQuantity)`)
+  - Calculating cost basis (`calculateCostBasis(ShareQuantity)` → `Money`)
 
 #### Transaction
-- **Description**: Records financial activities within a portfolio
+- **Description**: Records financial activities within a portfolio (separate aggregate)
 - **Attributes**:
-  - `id`: Unique identifier
-  - `portfolioId`: Portfolio this transaction belongs to
-  - `type`: Type of transaction (BUY, SELL, DEPOSIT, WITHDRAWAL)
-  - `ticker`: Stock symbol (for BUY/SELL transactions)
-  - `quantity`: Number of shares (for BUY/SELL transactions)
-  - `price`: Price per share (for BUY/SELL transactions)
-  - `amount`: Total transaction amount
-  - `date`: Date and time of the transaction
-  - `profit`: Profit or loss for SELL transactions
+  - `id`: `TransactionId` — Unique identifier (Value Object wrapping String)
+  - `portfolioId`: `PortfolioId` — Portfolio this transaction belongs to
+  - `type`: `TransactionType` — Type of transaction (PURCHASE, SALE, DEPOSIT, WITHDRAWAL)
+  - `ticker`: `Ticker` — Stock symbol (for PURCHASE/SALE transactions)
+  - `quantity`: `ShareQuantity` — Number of shares (for PURCHASE/SALE transactions)
+  - `unitPrice`: `Price` — Price per share (for PURCHASE/SALE transactions)
+  - `totalAmount`: `Money` — Total transaction amount
+  - `profit`: `Money` — Profit or loss for SALE transactions
+  - `createdAt`: `LocalDateTime` — Date and time of the transaction
 - **Responsibilities**:
   - Providing a historical record of all financial activities
   - Supporting transaction history and reporting
 
-### 3.2 Relationships
-- A **Portfolio** contains multiple **Holdings** (one-to-many)
-- A **Holding** contains multiple **Lots** (one-to-many)
-- A **Portfolio** is associated with multiple **Transactions** (one-to-many)
+### 3.2 Value Objects
+The domain uses Value Objects to replace primitive types, enforcing domain rules at construction time:
+
+| Value Object | Wraps | Purpose |
+|---|---|---|
+| `Money` | `BigDecimal` | Monetary amounts (balance, proceeds, cost basis, profit) |
+| `Price` | `BigDecimal` | Per-share stock prices (must be positive) |
+| `ShareQuantity` | `int` | Number of shares (must be non-negative) |
+| `Ticker` | `String` | Stock symbol identifiers |
+| `PortfolioId` | `String` | Portfolio unique identifiers |
+| `HoldingId` | `String` | Holding unique identifiers |
+| `LotId` | `String` | Lot unique identifiers |
+| `TransactionId` | `String` | Transaction unique identifiers |
+| `SellResult` | `Money` × 3 | Sale outcome (proceeds, costBasis, profit) |
+| `StockPrice` | `Ticker`, `Price`, `Instant` | Stock price at a moment in time |
+
+### 3.3 Relationships
+- A **Portfolio** contains multiple **Holdings** (one-to-many, indexed by `Ticker`)
+- A **Holding** contains multiple **Lots** (one-to-many, ordered chronologically)
+- A **Portfolio** is associated with multiple **Transactions** (separate aggregate, linked by `PortfolioId`)
 
 ## 4. PLANTUML DIAGRAM
 
 ```plantuml
 @startuml "Portfolio Domain Model"
 
-class Portfolio {
-  -id: String
+class Portfolio <<Aggregate Root>> {
+  -id: PortfolioId
   -ownerName: String
-  -balance: BigDecimal
-  -createdAt: LocalDate
-  +deposit(amount: BigDecimal)
-  +withdraw(amount: BigDecimal)
-  +buy(ticker: String, quantity: int, price: BigDecimal)
-  +sell(ticker: String, quantity: int, price: BigDecimal): SellResult
-  +getId(): String
+  -balance: Money
+  -createdAt: LocalDateTime
+  -holdings: Map<Ticker, Holding>
+  +{static} create(ownerName: String): Portfolio
+  +deposit(money: Money): void
+  +withdraw(money: Money): void
+  +buy(ticker: Ticker, quantity: ShareQuantity, price: Price): void
+  +sell(ticker: Ticker, quantity: ShareQuantity, price: Price): SellResult
+  +getId(): PortfolioId
   +getOwnerName(): String
-  +getBalance(): BigDecimal
-  +getCreatedAt(): LocalDate
-  +getHoldings(): Set<Holding>
+  +getBalance(): Money
+  +getCreatedAt(): LocalDateTime
+  +getHoldings(): List<Holding>
 }
 
-class Holding {
-  -id: String
-  -ticker: String
+class Holding <<Entity>> {
+  -id: HoldingId
+  -ticker: Ticker
   -lots: List<Lot>
-  +buy(quantity: int, unitPrice: BigDecimal)
-  +sell(quantity: int, sellPrice: BigDecimal): SellResult
-  +getTotalShares(): int
-  +isEmpty(): boolean
-  +getTicker(): String
+  +{static} create(ticker: Ticker): Holding
+  +buy(quantity: ShareQuantity, unitPrice: Price): void
+  +sell(quantity: ShareQuantity, sellPrice: Price): SellResult
+  +getTotalShares(): ShareQuantity
+  +getTicker(): Ticker
 }
 
-class Lot {
-  -id: String
-  -quantity: int
-  -remaining: int
-  -unitPrice: BigDecimal
+class Lot <<Entity>> {
+  -id: LotId
+  -initialShares: ShareQuantity
+  -remainingShares: ShareQuantity
+  -unitPrice: Price
   -purchasedAt: LocalDateTime
-  +reduce(quantity: int)
+  +{static} create(quantity: ShareQuantity, unitPrice: Price): Lot
+  +reduce(quantity: ShareQuantity): void
+  +calculateCostBasis(quantity: ShareQuantity): Money
   +isEmpty(): boolean
-  +getRemaining(): int
-  +getUnitPrice(): BigDecimal
+  +getRemainingShares(): ShareQuantity
+  +getUnitPrice(): Price
   +getPurchasedAt(): LocalDateTime
 }
 
-class Transaction {
-  -id: String
-  -portfolioId: String
+class Transaction <<Separate Aggregate>> {
+  -id: TransactionId
+  -portfolioId: PortfolioId
   -type: TransactionType
-  -ticker: String
-  -quantity: int
-  -price: BigDecimal
-  -amount: BigDecimal
-  -date: LocalDateTime
-  -profit: BigDecimal
-  +createPurchase(portfolioId, ticker, quantity, price): Transaction
-  +createSale(portfolioId, ticker, quantity, price, proceeds, profit): Transaction
-  +createDeposit(portfolioId, amount): Transaction
-  +createWithdrawal(portfolioId, amount): Transaction
+  -ticker: Ticker
+  -quantity: ShareQuantity
+  -unitPrice: Price
+  -totalAmount: Money
+  -profit: Money
+  -createdAt: LocalDateTime
+  +{static} createPurchase(portfolioId: PortfolioId, ticker: Ticker, quantity: ShareQuantity, unitPrice: Price): Transaction
+  +{static} createSale(portfolioId: PortfolioId, ticker: Ticker, quantity: ShareQuantity, unitPrice: Price, totalAmount: Money, profit: Money): Transaction
+  +{static} createDeposit(portfolioId: PortfolioId, amount: Money): Transaction
+  +{static} createWithdrawal(portfolioId: PortfolioId, amount: Money): Transaction
 }
 
 enum TransactionType {
-  BUY
-  SELL
+  PURCHASE
+  SALE
   DEPOSIT
   WITHDRAWAL
 }
 
-class SellResult {
-  -proceeds: BigDecimal
-  -costBasis: BigDecimal
-  -profit: BigDecimal
+class SellResult <<Value Object>> {
+  -proceeds: Money
+  -costBasis: Money
+  -profit: Money
+  +{static} of(proceeds: Money, costBasis: Money): SellResult
+  +isProfitable(): boolean
+  +isLoss(): boolean
 }
 
-class InvestmentSummaryDto {
-  -ticker: String
-  -totalShares: int
-  -averageCost: BigDecimal
-  -currentPrice: BigDecimal
-  -currentValue: BigDecimal
-  -totalCost: BigDecimal
-  -unrealizedGain: BigDecimal
-  -unrealizedGainPercent: BigDecimal
+class Money <<Value Object>> {
+  -amount: BigDecimal
+  +{static} of(value: BigDecimal): Money
+  +add(augend: Money): Money
+  +subtract(subtrahend: Money): Money
+  +isPositive(): boolean
+  +isLessThan(other: Money): boolean
+}
+
+class Price <<Value Object>> {
+  -value: BigDecimal
+  +{static} of(value: double): Price
+  +multiply(quantity: ShareQuantity): Money
+}
+
+class ShareQuantity <<Value Object>> {
+  -value: int
+  +{static} of(value: int): ShareQuantity
+  +{static} positive(value: int): ShareQuantity
+  +add(other: ShareQuantity): ShareQuantity
+  +subtract(other: ShareQuantity): ShareQuantity
+  +min(other: ShareQuantity): ShareQuantity
+  +isZero(): boolean
+  +isPositive(): boolean
+}
+
+class Ticker <<Value Object>> {
+  -value: String
+  +{static} of(value: String): Ticker
+}
+
+class PortfolioId <<Value Object>> {
+  -value: String
+  +{static} of(value: String): PortfolioId
+  +{static} generate(): PortfolioId
 }
 
 Portfolio "1" *-- "0..*" Holding : contains >
 Holding "1" *-- "0..*" Lot : contains >
 Portfolio "1" -- "0..*" Transaction : has >
 Transaction -- TransactionType : has >
+
+Portfolio --> PortfolioId : identified by
+Portfolio --> Money : balance
+Holding --> Ticker : identifies
+Lot --> ShareQuantity : tracks shares
+Lot --> Price : unitPrice
+Transaction --> PortfolioId : references
+SellResult --> Money : contains
 
 @enduml
 ```

@@ -54,7 +54,7 @@ Before diving into the execution flow of selling stocks, it's essential to under
 ### Core Architectural Layers
 
 **Application Core** — The heart of the system, completely isolated from external technologies:
-- **Domain Layer:** Contains pure business logic (entities, value objects, domain services). This is where business rules like FIFO accounting, invariant protection, and portfolio consistency are enforced. Examples: `Portfolio`, `Holding`, `Lot`, `Ticker`.
+- **Domain Layer:** Contains pure business logic (entities, value objects, domain services). This is where business rules like FIFO accounting, invariant protection, and portfolio consistency are enforced. Examples: `Portfolio`, `Holding`, `Lot`, `Ticker`, `Money`, `Price`, `ShareQuantity`, `PortfolioId`, `HoldingId`, `LotId`.
 - **Application Layer:** Orchestrates use cases by coordinating domain objects and ports. Application services are thin coordinators with no business logic—they retrieve data, delegate decisions to the domain, and persist results. Examples: `PortfolioStockOperationsService`.
 
 **Ports** — Interfaces that define contracts between the core and the outside world:
@@ -101,7 +101,7 @@ The sell stock use case flows through these architectural layers:
 - **Primary (Driving) Adapters** → `PortfolioRestController` in package `adapter.in`
 - **Inbound Ports** → `PortfolioStockOperationsUseCase` interface in `application.port.in`
 - **Application Layer** → `PortfolioStockOperationsService` orchestrates the use case, manages transaction boundaries, and coordinates between ports
-- **Domain Layer** → `Portfolio` (aggregate root), `Holding`, `Lot` (entities), `Ticker`, `SellResult` (value objects), domain exceptions
+- **Domain Layer** → `Portfolio` (aggregate root), `Holding`, `Lot` (entities), `Ticker`, `Money`, `Price`, `ShareQuantity`, `SellResult`, `PortfolioId`, `HoldingId`, `LotId` (value objects), domain exceptions
 - **Outbound Ports** → `PortfolioPort` (persistence abstraction), `StockPriceProviderPort` (external price data), `TransactionPort` (audit log)
 - **Secondary (Driven) Adapters** → JPA repositories (`PortfolioJpaAdapter`), external API clients (`FinnhubStockPriceAdapter`, `AlphaVantageStockPriceAdapter`), transaction repositories
 
@@ -118,6 +118,7 @@ This tutorial explains a **real use case** from the HexaStock codebase: **sellin
 - Why application services **orchestrate** while aggregates **decide**
 - How FIFO accounting is implemented at the domain level
 - How domain exceptions translate to HTTP responses
+- How **Value Objects** (`Money`, `Price`, `ShareQuantity`, `Ticker`, `PortfolioId`, etc.) replace primitives to enforce domain rules at construction time and make the ubiquitous language explicit in code
 
 ---
 
@@ -127,18 +128,21 @@ This tutorial explains a **real use case** from the HexaStock codebase: **sellin
 
 In this system:
 
-- A **Portfolio** represents an investor's account containing cash and stock holdings
-- A **Holding** tracks all shares owned for a specific stock ticker (e.g., AAPL)
-- A **Lot** represents a single purchase transaction—a batch of shares bought at a specific price and time
+- A **Portfolio** represents an investor's account containing cash (`Money`) and stock holdings
+- A **Holding** tracks all shares owned for a specific stock ticker (e.g., `Ticker.of("AAPL")`)
+- A **Lot** represents a single purchase transaction—a batch of shares (`ShareQuantity`) bought at a specific price (`Price`) and time
 - **FIFO (First-In-First-Out)** accounting is used: when selling, the oldest lots are sold first
 - A **Transaction** record is created for every financial activity (deposit, withdrawal, purchase, sale)
 
 When you sell stocks in HexaStock:
-1. The system fetches the current market price
+1. The system fetches the current market price (returned as a `StockPrice` containing a `Price` value object)
 2. It applies FIFO to determine which lots to draw from
-3. It calculates proceeds (money received), cost basis (original purchase cost), and profit/loss
-4. It updates the portfolio's cash balance and holdings
+3. It calculates proceeds (`Money` received), cost basis (`Money` originally paid), and profit/loss (`Money`)
+4. It updates the portfolio's cash balance (`Money`) and holdings
 5. It records a transaction for audit purposes
+
+> **💡 Why Value Objects?**
+> The domain uses `Money`, `Price`, `ShareQuantity`, `Ticker`, `PortfolioId`, `HoldingId`, and `LotId` instead of primitives (`BigDecimal`, `int`, `String`). This eliminates an entire class of bugs (e.g., passing a quantity where a price is expected), enforces validation at construction time, and makes the code self-documenting through the ubiquitous language.
 
 ---
 
@@ -153,8 +157,10 @@ When you sell stocks in HexaStock:
 public ResponseEntity<SaleResponseDTO> sellStock(@PathVariable String id,
                                                  @RequestBody SaleRequestDTO request) {
     SellResult result =
-            portfolioStockOperationsUseCase.sellStock(id, Ticker.of(request.ticker()),
-                    request.quantity());
+            portfolioStockOperationsUseCase.sellStock(
+                    PortfolioId.of(id),
+                    Ticker.of(request.ticker()),
+                    ShareQuantity.positive(request.quantity()));
     return ResponseEntity
             .ok(new SaleResponseDTO(id, request.ticker(), request.quantity(), result));
 }
@@ -171,9 +177,11 @@ public ResponseEntity<SaleResponseDTO> sellStock(@PathVariable String id,
 **Why This Is a Driving Adapter:**
 - It receives HTTP requests from the outside world
 - It **depends on the inbound port** (`PortfolioStockOperationsUseCase`), **not** on the implementation
-- It converts HTTP-specific data (JSON, path variables) into domain objects (`Ticker`)
+- It converts HTTP-specific data (JSON, path variables) into **Value Objects** (`PortfolioId.of(id)`, `Ticker.of(...)`, `ShareQuantity.positive(...)`)
 - It converts domain results (`SellResult`) into DTOs (`SaleResponseDTO`)
 - It handles HTTP concerns (status codes, response entities)
+
+> **💡 Boundary mapping:** Notice how the controller is the **translation layer** between the external world (primitives in JSON/path) and the domain world (Value Objects). The DTO `SaleRequestDTO(String ticker, int quantity)` uses primitives because JSON is a primitive format. The controller immediately wraps these into `Ticker`, `ShareQuantity`, and `PortfolioId` before crossing into the application core. `ShareQuantity.positive(...)` rejects zero or negative values at the boundary.
 
 This controller **drives** the application by calling its use cases. It does not contain business logic.
 
@@ -194,6 +202,7 @@ Here is the complete architecture trace for selling stocks:
 | **Domain Model** | Aggregate Root | Business Logic | `model.Portfolio` |
 | **Domain Model** | Entity | Business Logic | `model.Holding` |
 | **Domain Model** | Entity | Business Logic | `model.Lot` |
+| **Domain Model** | Value Objects | Type Safety & Validation | `model.Money`, `model.Price`, `model.ShareQuantity`, `model.Ticker`, `model.PortfolioId`, `model.HoldingId`, `model.LotId`, `model.SellResult` |
 | **Secondary Port** | Outbound Interface | Persistence Contract | `application.port.out.PortfolioPort` |
 | **Secondary Port** | Outbound Interface | Price Provider Contract | `application.port.out.StockPriceProviderPort` |
 | **Secondary Port** | Outbound Interface | Transaction Storage Contract | `application.port.out.TransactionPort` |
@@ -217,21 +226,21 @@ POST /api/portfolios/abc-123/sales
 ```
 
 It extracts:
-- Portfolio ID: `"abc-123"` (from path)
-- Ticker: `"AAPL"` (from request body)
-- Quantity: `5` (from request body)
+- Portfolio ID: `"abc-123"` (from path) → wrapped as `PortfolioId.of("abc-123")`
+- Ticker: `"AAPL"` (from request body) → wrapped as `Ticker.of("AAPL")`
+- Quantity: `5` (from request body) → wrapped as `ShareQuantity.positive(5)`
 
 ### Step 2: Controller Calls Inbound Port
 
 ```java
 SellResult result = portfolioStockOperationsUseCase.sellStock(
-    id, 
-    Ticker.of(request.ticker()), 
-    request.quantity()
+    PortfolioId.of(id),
+    Ticker.of(request.ticker()),
+    ShareQuantity.positive(request.quantity())
 );
 ```
 
-The controller calls the **use case interface**, not a concrete class. This is dependency inversion in action.
+The controller calls the **use case interface**, not a concrete class. This is dependency inversion in action. Notice how all parameters are **Value Objects**, not primitives—the type system prevents accidentally swapping a portfolio ID for a ticker.
 
 ### Step 3: Application Service Orchestrates
 
@@ -239,27 +248,25 @@ The controller calls the **use case interface**, not a concrete class. This is d
 
 ```java
 @Override
-public SellResult sellStock(String portfolioId, Ticker ticker, int quantity) {
+public SellResult sellStock(PortfolioId portfolioId, Ticker ticker, ShareQuantity quantity) {
     // 1. Retrieve portfolio from persistence
     Portfolio portfolio = portfolioPort.getPortfolioById(portfolioId)
-        .orElseThrow(() -> new PortfolioNotFoundException(portfolioId));
+        .orElseThrow(() -> new PortfolioNotFoundException(portfolioId.value()));
 
     // 2. Fetch current stock price from external provider
     StockPrice stockPrice = stockPriceProviderPort.fetchStockPrice(ticker);
+    Price price = stockPrice.price();
 
     // 3. Delegate to domain model (AGGREGATE ROOT)
-    SellResult sellResult = portfolio.sell(ticker, quantity, 
-        BigDecimal.valueOf(stockPrice.price()));
+    SellResult sellResult = portfolio.sell(ticker, quantity, price);
 
     // 4. Persist updated portfolio
     portfolioPort.savePortfolio(portfolio);
 
     // 5. Record transaction for audit
     Transaction transaction = Transaction.createSale(
-        portfolioId, ticker, quantity, 
-        BigDecimal.valueOf(stockPrice.price()), 
-        sellResult.proceeds(), 
-        sellResult.profit()
+        portfolioId, ticker, quantity, price,
+        sellResult.proceeds(), sellResult.profit()
     );
     transactionPort.save(transaction);
 
@@ -268,8 +275,9 @@ public SellResult sellStock(String portfolioId, Ticker ticker, int quantity) {
 ```
 
 **Notice what the service does:**
-- ✅ Retrieves data from adapters
-- ✅ Calls the aggregate root
+- ✅ Retrieves data from adapters (using `PortfolioId`, `Ticker` value objects)
+- ✅ Extracts the `Price` from the `StockPrice` returned by the provider
+- ✅ Calls the aggregate root with Value Objects (`Ticker`, `ShareQuantity`, `Price`)
 - ✅ Coordinates persistence
 - ❌ Does **NOT** contain domain rules
 - ❌ Does **NOT** manipulate nested entities directly
@@ -284,81 +292,89 @@ public SellResult sellStock(String portfolioId, Ticker ticker, int quantity) {
 **File:** `model.Portfolio`
 
 ```java
-public SellResult sell(Ticker ticker, int quantity, BigDecimal price) {
-    if (quantity <= 0)
+public SellResult sell(Ticker ticker, ShareQuantity quantity, Price price) {
+    if (!quantity.isPositive())
         throw new InvalidQuantityException("Quantity must be positive");
-
-    if (price.compareTo(BigDecimal.ZERO) <= 0)
-        throw new InvalidAmountException("Price must be positive");
 
     if (!holdings.containsKey(ticker))
         throw new HoldingNotFoundException("Holding not found in portfolio: " + ticker);
 
     Holding holding = holdings.get(ticker);
-
     SellResult result = holding.sell(quantity, price);
     balance = balance.add(result.proceeds());
-    
+
     return result;
 }
 ```
 
 The Portfolio (aggregate root):
-- Validates inputs
+- Validates inputs using Value Object methods (`quantity.isPositive()`)
 - Protects the invariant: "You can only sell holdings you own"
 - Delegates to the Holding entity
-- Updates its own cash balance
-- Returns the result
+- Updates its own cash balance (`Money`)
+- Returns the result (`SellResult`)
+
+> **💡 Value Object validation:** Much of the validation that used to be manual (`if (quantity <= 0)`) is now built into the Value Objects themselves. `ShareQuantity` rejects negative values at construction time. `Price` rejects non-positive values at construction time. The domain methods provide an additional layer of protection for business-level invariants.
 
 **File:** `model.Holding`
 
 ```java
-public SellResult sell(int quantity, BigDecimal sellPrice) {
-    if (getTotalShares() < quantity) {
-        throw new ConflictQuantityException("Not enough shares to sell");
+public SellResult sell(ShareQuantity quantity, Price sellPrice) {
+    if (getTotalShares().value() < quantity.value()) {
+        throw new ConflictQuantityException(
+                "Not enough shares to sell. Available: " + getTotalShares()
+                + ", Requested: " + quantity);
     }
 
-    BigDecimal proceeds = sellPrice.multiply(BigDecimal.valueOf(quantity));
-    BigDecimal costBasis = BigDecimal.ZERO;
-    int remaining = quantity;
+    ShareQuantity remainingToSell = quantity;
+    Money costBasis = Money.ZERO;
 
     // FIFO: Sell from oldest lots first
-    for (Lot lot : lots) {
-        if (remaining == 0) break;
-        
-        int toSell = Math.min(remaining, lot.getRemaining());
-        lot.reduce(toSell);
-        costBasis = costBasis.add(
-            lot.getUnitPrice().multiply(BigDecimal.valueOf(toSell))
-        );
-        remaining -= toSell;
+    for (var lot : lots) {
+        if (remainingToSell.isZero()) break;
+
+        ShareQuantity sharesSoldFromLot = lot.getRemainingShares().min(remainingToSell);
+        Money lotCostBasis = lot.calculateCostBasis(sharesSoldFromLot);
+        costBasis = costBasis.add(lotCostBasis);
+
+        lot.reduce(sharesSoldFromLot);
+        remainingToSell = remainingToSell.subtract(sharesSoldFromLot);
     }
 
-    BigDecimal profit = proceeds.subtract(costBasis);
-    return new SellResult(proceeds, costBasis, profit);
+    lots.removeIf(Lot::isEmpty);
+
+    Money proceeds = sellPrice.multiply(quantity);
+    return SellResult.of(proceeds, costBasis);
 }
 ```
 
 The Holding:
-- Protects the invariant: "You cannot sell more shares than you own"
-- Implements FIFO across multiple lots
-- Calculates cost basis from the original purchase prices
-- Calculates profit/loss
+- Protects the invariant: "You cannot sell more shares than you own" (comparing `ShareQuantity` values)
+- Implements FIFO across multiple lots using `ShareQuantity.min()` for clean lot-by-lot iteration
+- Delegates cost basis calculation to each `Lot` via `lot.calculateCostBasis(sharesSoldFromLot)`
+- Calculates proceeds using `Price.multiply(ShareQuantity)` → returns `Money`
+- Creates the result via `SellResult.of(proceeds, costBasis)` which auto-calculates profit
+- Removes depleted lots (`lots.removeIf(Lot::isEmpty)`) to keep the aggregate lean
 
 **File:** `model.Lot`
 
 ```java
-public void reduce(int qty) {
-    if (qty > remaining) {
+public void reduce(ShareQuantity quantity) {
+    if (quantity.value() > remainingShares.value()) {
         throw new ConflictQuantityException("Cannot reduce by more than remaining quantity");
     }
-    remaining -= qty;
+    remainingShares = remainingShares.subtract(quantity);
+}
+
+public Money calculateCostBasis(ShareQuantity quantity) {
+    return unitPrice.multiply(quantity);
 }
 ```
 
 The Lot:
 - Protects the invariant: "Remaining shares cannot go negative"
-- Updates its remaining quantity
+- Updates its remaining quantity using `ShareQuantity.subtract()`
+- Calculates cost basis using `Price.multiply(ShareQuantity)` → returns `Money`
 
 **Diagram Reference:** See [`diagrams/sell-domain-fifo.puml`](diagrams/sell-domain-fifo.puml)
 
@@ -390,6 +406,8 @@ HTTP 200 OK
 }
 ```
 
+> **💡 DTO mapping:** The `SaleResponseDTO` constructor accepts the domain `SellResult` and extracts the raw `BigDecimal` values from `Money` via `.amount()` for JSON serialization. This keeps the boundary clean: Value Objects inside the hexagon, primitives outside.
+
 ---
 
 ## 6. 🎯 Why Application Services Orchestrate and Aggregates Protect Invariants
@@ -403,37 +421,39 @@ This is the **most important concept** in DDD and Hexagonal Architecture.
 ```java
 // application.port.in.PortfolioStockOperationsUseCase
 public interface PortfolioStockOperationsUseCase {
-    SellResult sellStock(String portfolioId, Ticker ticker, int quantity);
+    SellResult sellStock(PortfolioId portfolioId, Ticker ticker, ShareQuantity quantity);
 }
 ```
 
-This interface defines **what** the application can do, not **how**.
+This interface defines **what** the application can do, not **how**. Notice the use of Value Objects (`PortfolioId`, `Ticker`, `ShareQuantity`) instead of primitives—the port speaks the domain's ubiquitous language.
 
 **Application Service (Orchestrator):**
 
 ```java
 // application.service.PortfolioStockOperationsService
 @Transactional
-public class PortfolioStockOperationsService 
+public class PortfolioStockOperationsService
     implements PortfolioStockOperationsUseCase {
-    
+
     private final PortfolioPort portfolioPort;
     private final StockPriceProviderPort stockPriceProviderPort;
     private final TransactionPort transactionPort;
 
     @Override
-    public SellResult sellStock(String portfolioId, Ticker ticker, int quantity) {
+    public SellResult sellStock(PortfolioId portfolioId, Ticker ticker, ShareQuantity quantity) {
         Portfolio portfolio = portfolioPort.getPortfolioById(portfolioId)
-            .orElseThrow(() -> new PortfolioNotFoundException(portfolioId));
+            .orElseThrow(() -> new PortfolioNotFoundException(portfolioId.value()));
 
         StockPrice stockPrice = stockPriceProviderPort.fetchStockPrice(ticker);
+        Price price = stockPrice.price();
 
-        SellResult sellResult = portfolio.sell(ticker, quantity, 
-            BigDecimal.valueOf(stockPrice.price()));
+        SellResult sellResult = portfolio.sell(ticker, quantity, price);
 
         portfolioPort.savePortfolio(portfolio);
 
-        Transaction transaction = Transaction.createSale(...);
+        Transaction transaction = Transaction.createSale(
+            portfolioId, ticker, quantity, price,
+            sellResult.proceeds(), sellResult.profit());
         transactionPort.save(transaction);
 
         return sellResult;
@@ -459,25 +479,24 @@ public class PortfolioStockOperationsService
 
 ```java
 // model.Portfolio
-public SellResult sell(Ticker ticker, int quantity, BigDecimal price) {
-    if (quantity <= 0)
+public SellResult sell(Ticker ticker, ShareQuantity quantity, Price price) {
+    if (!quantity.isPositive())
         throw new InvalidQuantityException("Quantity must be positive");
-
     if (!holdings.containsKey(ticker))
         throw new HoldingNotFoundException("Holding not found");
 
     Holding holding = holdings.get(ticker);
     SellResult result = holding.sell(quantity, price);
     balance = balance.add(result.proceeds());
-    
+
     return result;
 }
 ```
 
 **Role:** **GUARDIAN OF INVARIANTS**
-- It enforces "quantity must be positive"
+- It enforces "quantity must be positive" (via `ShareQuantity.isPositive()`)
 - It enforces "you can only sell holdings you own"
-- It updates the balance **consistently** with the sale
+- It updates the balance (`Money`) **consistently** with the sale
 - It controls access to its nested entities (Holding, Lot)
 
 ---
@@ -491,26 +510,28 @@ Imagine if the application service did this:
 ```java
 // WRONG! DO NOT DO THIS!
 @Override
-public SellResult sellStock(String portfolioId, Ticker ticker, int quantity) {
+public SellResult sellStock(PortfolioId portfolioId, Ticker ticker, ShareQuantity quantity) {
     Portfolio portfolio = portfolioPort.getPortfolioById(portfolioId).orElseThrow();
+
     Holding holding = portfolio.getHoldings().stream()
         .filter(h -> h.getTicker().equals(ticker))
         .findFirst()
         .orElseThrow();
-    
+
     // Service directly manipulates lots - DANGEROUS!
-    int remaining = quantity;
+    ShareQuantity remaining = quantity;
     for (Lot lot : holding.getLots()) {
-        if (remaining > 0) {
-            int toSell = Math.min(remaining, lot.getRemaining());
+        if (remaining.isPositive()) {
+            ShareQuantity toSell = lot.getRemainingShares().min(remaining);
             lot.reduce(toSell);  // Direct manipulation!
-            remaining -= toSell;
+            remaining = remaining.subtract(toSell);
         }
     }
-    
+
     // Update balance - might be inconsistent!
-    portfolio.setBalance(portfolio.getBalance().add(someAmount));
-    
+    Money someAmount = Price.of(150).multiply(quantity);
+    portfolio.deposit(someAmount); // WRONG way to add proceeds!
+
     portfolioPort.savePortfolio(portfolio);
 }
 ```
@@ -519,7 +540,7 @@ public SellResult sellStock(String portfolioId, Ticker ticker, int quantity) {
 
 1. **FIFO Logic Duplication:** The FIFO algorithm is now in the service, not in the domain. If business rules change (e.g., switch to LIFO), you must change the service, not the domain model.
 
-2. **Invariant Violation Risk:** What if the service forgets to check `getTotalShares() < quantity`? The portfolio would be in an invalid state.
+2. **Invariant Violation Risk:** What if the service forgets to check `getTotalShares().value() < quantity.value()`? The portfolio would be in an invalid state.
 
 3. **Balance Inconsistency:** What if the balance update logic doesn't match the actual proceeds calculation? The portfolio becomes corrupted.
 
@@ -537,11 +558,11 @@ SellResult sellResult = portfolio.sell(ticker, quantity, price);
 ```
 
 The `Portfolio` aggregate:
-- **Validates** inputs
+- **Validates** inputs using Value Object methods
 - **Checks** holdings exist
 - **Delegates** to `Holding` (which it controls)
-- **Updates** balance consistently
-- **Returns** a complete result
+- **Updates** balance consistently with `Money.add()`
+- **Returns** a complete `SellResult`
 
 **Benefits:**
 - All domain rules are in **one place** (the domain model)
@@ -556,9 +577,9 @@ The `Portfolio` aggregate:
 **Diagram Reference:** See [`diagrams/sell-orchestrator-vs-aggregate.puml`](diagrams/sell-orchestrator-vs-aggregate.puml)
 
 This diagram explicitly shows:
-- The **Application Service** calling `Portfolio.sell()` (aggregate root)
-- The **Portfolio** calling `Holding.sell()` (controlled entity)
-- The **Holding** calling `Lot.reduce()` (controlled entity)
+- The **Application Service** calling `Portfolio.sell(Ticker, ShareQuantity, Price)` (aggregate root)
+- The **Portfolio** calling `Holding.sell(ShareQuantity, Price)` (controlled entity)
+- The **Holding** calling `Lot.reduce(ShareQuantity)` (controlled entity)
 - **NO** direct service → Holding communication
 - **NO** direct service → Lot communication
 
@@ -573,6 +594,8 @@ This diagram explicitly shows:
 > The application service is a **traffic controller**. It fetches data, calls the aggregate, and saves results. It does not make business decisions.
 >
 > The aggregate root is a **consistency boundary**. All changes to entities within the aggregate must go through the root. This ensures invariants are never violated.
+>
+> **Value Objects** reinforce this boundary by making the types expressive. You cannot accidentally pass a `ShareQuantity` where a `Price` is expected—the compiler catches it.
 
 ---
 
@@ -582,7 +605,7 @@ The application service is annotated with `@Transactional`:
 
 ```java
 @Transactional
-public class PortfolioStockOperationsService 
+public class PortfolioStockOperationsService
     implements PortfolioStockOperationsUseCase {
     // ...
 }
@@ -593,15 +616,15 @@ public class PortfolioStockOperationsService
 Selling stocks is a **critical financial operation** that must maintain strict consistency guarantees:
 
 1. **Multi-Step Operation:** A single sell involves multiple database writes:
-   - Update portfolio balance (add proceeds)
-   - Update holding lot quantities (reduce shares via FIFO)
+   - Update portfolio balance (add proceeds as `Money`)
+   - Update holding lot quantities (reduce `ShareQuantity` via FIFO)
    - Record transaction for audit trail
    
    These changes must **all succeed or all fail together**. Partial updates would corrupt the portfolio state.
 
 2. **Consistency Across Aggregates:** Portfolio state and transaction history must remain synchronized. If the transaction record fails to save, the portfolio changes must be rolled back to prevent discrepancies in financial reporting.
 
-3. **Invariant Protection:** The domain model enforces business rules (e.g., "cannot sell more than you own"), but the transaction boundary ensures these validations and subsequent state changes happen atomically—no other thread can observe an intermediate state.
+3. **Invariant Protection:** The domain model enforces business rules (e.g., "cannot sell more than you own" via `ShareQuantity` comparisons), but the transaction boundary ensures these validations and subsequent state changes happen atomically—no other thread can observe an intermediate state.
 
 ### ACID Guarantees in Action
 
@@ -612,29 +635,29 @@ Spring's `@Transactional` ensures:
 3. **Isolation:** Concurrent sells on the same portfolio are serialized (preventing race conditions)
 4. **Durability:** Once committed, the sale is permanent
 
-**Important separation of concerns:** The domain enforces **business consistency** (invariants, validations), while infrastructure enforces **technical consistency** (ACID properties, transaction boundaries).
+**Important separation of concerns:** The domain enforces **business consistency** (invariants, validations via Value Objects), while infrastructure enforces **technical consistency** (ACID properties, transaction boundaries).
 
 ### Concurrency Risks in Financial Operations
 
 When multiple users (or concurrent requests from the same user) attempt to sell stocks from the same portfolio simultaneously, several problems can arise without proper synchronization:
 
 **Lost Update Problem:**
-- Request 1 reads balance = $1000
-- Request 2 reads balance = $1000 (stale)
-- Request 1 sells stock, adds $500 proceeds → balance = $1500, commits
-- Request 2 sells stock, adds $300 proceeds → calculates $1300 based on stale read, commits
+- Request 1 reads balance = `Money.of(1000)`
+- Request 2 reads balance = `Money.of(1000)` (stale)
+- Request 1 sells stock, adds proceeds → balance = `Money.of(1500)`, commits
+- Request 2 sells stock, adds proceeds → calculates `Money.of(1300)` based on stale read, commits
 - **Result:** Final balance is $1300, but should be $1800. The first update is lost.
 
 **Double-Spending:**
-- Request 1 reads holding: 10 shares available
-- Request 2 reads holding: 10 shares available (stale)
+- Request 1 reads holding: `ShareQuantity.of(10)` available
+- Request 2 reads holding: `ShareQuantity.of(10)` available (stale)
 - Request 1 sells 10 shares, commits
-- Request 2 attempts to sell 10 shares, but only 0 remain
+- Request 2 attempts to sell 10 shares, but only `ShareQuantity.ZERO` remain
 - Without proper isolation, Request 2 might observe an inconsistent intermediate state.
 
 **FIFO Corruption:**
 - Two concurrent sells might both attempt to reduce the same lot simultaneously
-- Without serialization, lot quantities could become negative or inconsistent
+- Without serialization, lot `ShareQuantity` values could become negative or inconsistent
 - The aggregate's invariants would be violated mid-operation
 
 ### How HexaStock Handles Concurrency
@@ -671,10 +694,12 @@ The transaction boundary is intentionally placed at the **application service**,
 ### Domain Model → JPA Entities
 
 The `Portfolio` domain object is mapped to a `PortfolioEntity` (JPA):
-- `Portfolio.balance` → `PortfolioEntity.balance`
-- `Portfolio.holdings` → `PortfolioEntity.holdings` (one-to-many)
+- `Portfolio.id` (`PortfolioId`) → `PortfolioEntity.id` (`String`)
+- `Portfolio.balance` (`Money`) → `PortfolioEntity.balance` (`BigDecimal`)
+- `Portfolio.holdings` (`Map<Ticker, Holding>`) → `PortfolioEntity.holdings` (one-to-many)
 
-A **mapper** converts between the two:
+A **mapper** converts between the two, extracting primitive values from Value Objects for persistence and re-wrapping them when loading:
+
 ```java
 Portfolio domainPortfolio = PortfolioMapper.toDomain(portfolioEntity);
 PortfolioEntity jpaEntity = PortfolioMapper.toEntity(domainPortfolio);
@@ -685,7 +710,7 @@ PortfolioEntity jpaEntity = PortfolioMapper.toEntity(domainPortfolio);
 - `PortfolioRepository` (JPA) implements `PortfolioPort` (domain interface)
 - `TransactionRepository` (JPA) implements `TransactionPort` (domain interface)
 
-This inversion of dependencies is the essence of Hexagonal Architecture: the domain defines **what** it needs (ports), and adapters provide **how** (implementations).
+This inversion of dependencies is the essence of Hexagonal Architecture: the domain defines **what** it needs (ports), and adapters provide **how** (implementations). The persistence layer deals with primitives (`String`, `BigDecimal`, `int`), while the domain layer deals with Value Objects (`PortfolioId`, `Money`, `ShareQuantity`). The mapper handles the translation.
 
 **Diagram Reference:** See [`diagrams/sell-persistence-adapter.puml`](diagrams/sell-persistence-adapter.puml)
 
@@ -703,12 +728,14 @@ This inversion of dependencies is the essence of Hexagonal Architecture: the dom
 **Exception:** `PortfolioNotFoundException` (domain exception)
 
 **Code:**
+
 ```java
 Portfolio portfolio = portfolioPort.getPortfolioById(portfolioId)
-    .orElseThrow(() -> new PortfolioNotFoundException(portfolioId));
+    .orElseThrow(() -> new PortfolioNotFoundException(portfolioId.value()));
 ```
 
 **HTTP Response:**
+
 ```json
 HTTP 404 Not Found
 {
@@ -734,13 +761,21 @@ HTTP 404 Not Found
 **Exception:** `InvalidQuantityException` (domain exception)
 
 **Code:**
+
 ```java
-// In Portfolio.sell()
-if (quantity <= 0)
+// In the controller, ShareQuantity.positive() rejects non-positive values:
+ShareQuantity.positive(request.quantity())
+// → throws InvalidQuantityException("Quantity must be positive: 0")
+
+// In Portfolio.sell(), an additional guard:
+if (!quantity.isPositive())
     throw new InvalidQuantityException("Quantity must be positive");
 ```
 
+> **💡 Defense in depth:** The `ShareQuantity.positive()` factory method validates at the adapter boundary, and `Portfolio.sell()` validates again inside the domain. This layered approach ensures protection even if a caller bypasses the controller.
+
 **HTTP Response:**
+
 ```json
 HTTP 400 Bad Request
 {
@@ -759,24 +794,28 @@ HTTP 400 Bad Request
 
 ### Error 3: Selling More Than Owned
 
-**Trigger:** Trying to sell 10 shares when you only own 3
+**Trigger:** Trying to sell 100 shares when you only own 10
 
 **Exception:** `ConflictQuantityException` (domain exception)
 
 **Code:**
+
 ```java
 // In Holding.sell()
-if (getTotalShares() < quantity) {
-    throw new ConflictQuantityException("Not enough shares to sell");
+if (getTotalShares().value() < quantity.value()) {
+    throw new ConflictQuantityException(
+            "Not enough shares to sell. Available: " + getTotalShares()
+            + ", Requested: " + quantity);
 }
 ```
 
 **HTTP Response:**
+
 ```json
 HTTP 409 Conflict
 {
   "title": "Conflict Quantity",
-  "detail": "Not enough shares to sell",
+  "detail": "Not enough shares to sell. Available: 10, Requested: 100",
   "status": 409
 }
 ```
@@ -812,6 +851,8 @@ HTTP 409 Conflict
 
 5. **Encapsulation Matters:** The `Portfolio` does not expose a `setBalance()` method. The only way to change the balance is through domain methods like `deposit()`, `withdraw()`, `buy()`, or `sell()`. This prevents corruption.
 
+6. **Value Objects Eliminate Primitive Obsession:** Types like `Money`, `Price`, `ShareQuantity`, `Ticker`, `PortfolioId`, `HoldingId`, and `LotId` replace raw `BigDecimal`, `int`, and `String`. This makes the code type-safe, self-validating, and expressive in the ubiquitous language. You cannot accidentally pass a `Money` where a `Price` is expected, even though both wrap `BigDecimal` internally.
+
 ---
 
 ## 11. Summary: The Complete Sell Flow
@@ -820,28 +861,30 @@ HTTP 409 Conflict
 HTTP Request
     ↓
 PortfolioRestController (Driving Adapter)
+    ↓ maps primitives to Value Objects:
+    │   PortfolioId.of(id), Ticker.of(ticker), ShareQuantity.positive(quantity)
     ↓ calls
 PortfolioStockOperationsUseCase (Primary Port / Interface)
     ↓ implemented by
 PortfolioStockOperationsService (Application Service)
     ↓ uses
-PortfolioPort (Secondary Port / Interface) → fetch portfolio
-StockPriceProviderPort (Secondary Port / Interface) → fetch price
+PortfolioPort (Secondary Port) → fetch portfolio by PortfolioId
+StockPriceProviderPort (Secondary Port) → fetch StockPrice (contains Price)
     ↓ delegates to
-Portfolio.sell() (Aggregate Root - Domain Logic)
+Portfolio.sell(Ticker, ShareQuantity, Price) (Aggregate Root - Domain Logic)
     ↓ delegates to
-Holding.sell() (Entity - Domain Logic)
+Holding.sell(ShareQuantity, Price) (Entity - Domain Logic)
     ↓ delegates to
-Lot.reduce() (Entity - Domain Logic)
+Lot.reduce(ShareQuantity) (Entity - Domain Logic)
     ↓ returns
-SellResult (Value Object)
+SellResult (Value Object: Money proceeds, Money costBasis, Money profit)
     ↓ service saves
 PortfolioPort.savePortfolio() (Secondary Port)
 TransactionPort.save() (Secondary Port)
     ↓ implemented by
 JPA Repositories (Driven Adapters)
     ↓ returns
-HTTP Response (SaleResponseDTO)
+HTTP Response (SaleResponseDTO — primitives extracted from Value Objects)
 ```
 
 ---
@@ -862,6 +905,7 @@ The following exercises form a progressive learning path designed to deepen your
 - Include: REST endpoint → Controller → Inbound Port → Application Service → Domain Model → Persistence
 - Identify which classes validate business rules and where ACID guarantees are enforced
 - Note one key difference between buy and sell operations
+- Pay attention to how `ShareQuantity`, `Price`, `Money`, and `Ticker` flow through the layers
 
 ---
 
@@ -874,7 +918,7 @@ The following exercises form a progressive learning path designed to deepen your
 - A written explanation (300-500 words) answering:
   - Why is `Portfolio` the aggregate root instead of `Holding` or `Lot`?
   - What invariants would break if `Holding` were exposed as a separate aggregate?
-  - Why must balance updates and holding modifications happen together atomically?
+  - Why must balance (`Money`) updates and holding modifications happen together atomically?
 - Use concrete examples from the sell operation to support your reasoning
 
 ---
@@ -917,19 +961,19 @@ In a single sell transaction, a portfolio must respect the following rules **per
 
 ### Rule 1 — Small sells are always allowed
 
-A portfolio may sell **up to 10 shares** of a holding **without any percentage restriction**, as long as enough shares exist.
+A portfolio may sell **up to 10 shares** (`ShareQuantity.of(10)`) of a holding **without any percentage restriction**, as long as enough shares exist.
 
 ### Rule 2 — Large sells are limited
 
 When selling **more than 10 shares** in a single transaction, the portfolio **cannot sell more than 50% of the shares of the affected holding**.
 
-The percentage is calculated using the number of shares **held before the sale**.
+The percentage is calculated using the number of shares **held before the sale** (`getTotalShares()` returns `ShareQuantity`).
 
 > **Formal rule:**
 >
-> - If `sharesToSell <= 10` -> allowed
-> - If `sharesToSell > 10` -> must satisfy: 
->   sharesToSell <= holdingSharesBefore * 0.50
+> - If `sharesToSell.value() <= 10` -> allowed
+> - If `sharesToSell.value() > 10` -> must satisfy: 
+>   sharesToSell.value() <= holdingSharesBefore.value() * 0.50
 >   
 
 
@@ -947,8 +991,8 @@ The percentage is calculated using the number of shares **held before the sale**
 
 ### Example 1 — Valid (✅ small sell)
 
-* AAPL holding has **3 shares**
-* Sell request: **1 share**
+* AAPL holding has `ShareQuantity.of(3)` shares
+* Sell request: `ShareQuantity.of(1)`
 
 Result: allowed.
 
@@ -956,8 +1000,8 @@ Result: allowed.
 
 ### Example 2 — Valid (✅ boundary case)
 
-* AAPL holding has **12 shares**
-* Sell request: **10 shares**
+* AAPL holding has `ShareQuantity.of(12)` shares
+* Sell request: `ShareQuantity.of(10)`
 
 Result: allowed.
 
@@ -965,8 +1009,8 @@ Result: allowed.
 
 ### Example 3 — Valid (✅ large sell within limit)
 
-* AAPL holding has **22 shares**
-* Sell request: **11 shares**
+* AAPL holding has `ShareQuantity.of(22)` shares
+* Sell request: `ShareQuantity.of(11)`
 
 50% of 22 = 11 → allowed.
 
@@ -974,8 +1018,8 @@ Result: allowed.
 
 ### Example 4 — Invalid (❌ large sell exceeding limit)
 
-* AAPL holding has **20 shares**
-* Sell request: **11 shares**
+* AAPL holding has `ShareQuantity.of(20)` shares
+* Sell request: `ShareQuantity.of(11)`
 
 50% of 20 = 10 → not allowed.
 
@@ -1018,7 +1062,7 @@ Write at least some tests proving:
 * Selling **10 or fewer** shares always succeeds (if shares exist)
 * Selling **more than 10** shares succeeds only if it is **≤ 50%** of the holding
 * Selling **more than 10** shares and **exceeding 50%** fails with `ExcessiveSaleException`
-* Tests run **without infrastructure**
+* Tests run **without infrastructure** (pure domain unit tests using `ShareQuantity`, `Price`, etc.)
 
 ---
 
@@ -1039,7 +1083,8 @@ Write at least some tests proving:
   - Why is `Ticker` a value object while `Lot` is an entity?
   - Why is `Money` a value object while `Portfolio` is an entity?
   - What would happen if `SellResult` had an ID and was persisted as an entity?
-- Propose converting `Ticker` into an entity with validation rules (e.g., must be uppercase, 1-5 characters). Would this be a good design? Why or why not?
+  - Why are `PortfolioId`, `HoldingId`, and `LotId` value objects even though they represent identity? (Hint: they are identity *values*, not entities themselves.)
+- Propose converting `Ticker` into an entity with validation rules (e.g., must be uppercase, 1-5 characters). Would this be a good design? Why or why not? (Note: `Ticker` already validates its format at construction time as a Value Object.)
 
 ---
 
@@ -1065,6 +1110,8 @@ They are both **driven adapters** (outbound): the application calls them through
 
 Your task is to add a **third adapter**, using a different provider, with the same contract and behavior.
 
+Note that `StockPriceProviderPort.fetchStockPrice(Ticker)` returns a `StockPrice` record containing a `Ticker`, a `Price` value object, and an `Instant`. Your adapter must construct this return value using the proper Value Objects.
+
 ---
 
 ## Provider Options (examples)
@@ -1078,10 +1125,9 @@ Pick **one** provider that offers a free tier or freemium plan. You may choose a
 * **Alpaca Market Data**
 
 You can also pick another provider not listed here, as long as:
-
 * it exposes a "latest price" endpoint,
 * it authenticates via API key,
-* it returns data you can map to your domain `StockPrice` model.
+* it returns data you can map to your domain `StockPrice` model (which contains `Ticker`, `Price`, and `Instant`).
 
 ---
 
@@ -1102,7 +1148,9 @@ package cat.gencat.agaur.hexastock.adapter.out.twelvedata;
 
 import cat.gencat.agaur.hexastock.application.port.out.StockPriceProviderPort;
 import cat.gencat.agaur.hexastock.model.Ticker;
+import cat.gencat.agaur.hexastock.model.Price;
 import cat.gencat.agaur.hexastock.model.StockPrice;
+import java.time.Instant;
 
 public class TwelveDataStockPriceProviderAdapter implements StockPriceProviderPort {
 
@@ -1110,7 +1158,9 @@ public class TwelveDataStockPriceProviderAdapter implements StockPriceProviderPo
     public StockPrice fetchStockPrice(Ticker ticker) {
         // 1) Call provider HTTP API
         // 2) Parse JSON response
-        // 3) Map to domain object StockPrice
+        // 3) Map to domain Value Objects:
+        //    Price price = Price.of(parsedPrice);
+        //    return StockPrice.of(ticker, price, Instant.now());
         // 4) Handle errors/rate limits in a consistent way
         throw new UnsupportedOperationException("TODO");
     }
@@ -1189,7 +1239,7 @@ Write one of these:
 
     * correct URL is called,
     * ticker is passed correctly,
-    * response JSON is mapped correctly to `StockPrice`.
+    * response JSON is mapped correctly to `StockPrice` (containing `Price` and `Ticker` value objects).
 
 **Option B: Run the existing sell integration test with your adapter**
 
@@ -1239,5 +1289,6 @@ Work through these exercises in order. Each builds on concepts from earlier exer
 - **Integration Tests:** `src/test/java/cat/gencat/agaur/hexastock/adapter/in/PortfolioRestControllerIntegrationTest.java`
 - **Domain Tests:** `src/test/java/cat/gencat/agaur/hexastock/model/PortfolioTest.java`
 - **Source Code:** `src/main/java/cat/gencat/agaur/hexastock/`
+- **Value Object Tests:** `src/test/java/cat/gencat/agaur/hexastock/model/MoneyTest.java`, `ShareQuantityTest.java`, etc.
 
 ---

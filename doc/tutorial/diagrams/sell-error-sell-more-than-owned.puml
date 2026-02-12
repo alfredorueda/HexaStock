@@ -12,35 +12,37 @@ participant "GlobalExceptionHandler" as Handler
 Client -> Controller: POST /api/portfolios/abc-123/sales\n{"ticker":"AAPL", "quantity":100}
 activate Controller
 
-Controller -> Service: sellStock("abc-123", ticker, 100)
+Controller -> Controller: Create Value Objects:\nPortfolioId.of("abc-123")\nTicker.of("AAPL")\nShareQuantity.positive(100)
+
+Controller -> Service: sellStock(PortfolioId, Ticker, ShareQuantity)
 activate Service
 
-Service -> Service: fetch portfolio\n(owns 10 AAPL shares)
-Service -> Service: fetch price
+Service -> Service: fetch portfolio\n(owns ShareQuantity(10) AAPL shares)
+Service -> Service: fetch price → Price
 
-Service -> Portfolio: sell(ticker, 100, price)
+Service -> Portfolio: sell(Ticker, ShareQuantity(100), Price)
 activate Portfolio
 
-Portfolio -> Portfolio: validate quantity > 0 ✓
-Portfolio -> Portfolio: check holdings exist ✓
+Portfolio -> Portfolio: validate quantity.isPositive() ✓
+Portfolio -> Portfolio: check holdings.containsKey(ticker) ✓
 
-Portfolio -> Holding: sell(100, price)
+Portfolio -> Holding: sell(ShareQuantity(100), Price)
 activate Holding
 
-Holding -> Holding: check getTotalShares() < quantity
+Holding -> Holding: check getTotalShares().value() < quantity.value()
 note right of Holding
   Business rule:
   Cannot sell more
   shares than owned
   
-  getTotalShares() = 10
-  quantity = 100
+  getTotalShares() = ShareQuantity(10)
+  quantity = ShareQuantity(100)
   10 < 100 → FAIL
 end note
 
-Holding -> Holding: if (getTotalShares() < quantity)\n  throw ConflictQuantityException()
+Holding -> Holding: throw ConflictQuantityException(\n"Not enough shares to sell.\nAvailable: 10, Requested: 100")
 
-Holding --> Portfolio: throw ConflictQuantityException("Not enough shares to sell")
+Holding --> Portfolio: throw ConflictQuantityException
 deactivate Holding
 
 Portfolio --> Service: throw ConflictQuantityException
@@ -52,19 +54,20 @@ deactivate Service
 Controller -> Handler: handle exception
 activate Handler
 
-Handler -> Handler: create ProblemDetail:\n- status: 409\n- title: "Conflict Quantity"\n- detail: "Not enough shares to sell"
+Handler -> Handler: create ProblemDetail:\n- status: 409\n- title: "Conflict Quantity"\n- detail: "Not enough shares to sell.\nAvailable: 10, Requested: 100"
 
 Handler --> Controller: ResponseEntity<ProblemDetail>
 deactivate Handler
 
-Controller --> Client: HTTP 409 CONFLICT\n{\n  "title": "Conflict Quantity",\n  "detail": "Not enough shares to sell",\n  "status": 409\n}
+Controller --> Client: HTTP 409 CONFLICT\n{\n  "title": "Conflict Quantity",\n  "detail": "Not enough shares to sell. Available: 10, Requested: 100",\n  "status": 409\n}
 deactivate Controller
 
 note over Client, Handler
   **Domain Exception → HTTP Status**
   ConflictQuantityException → 409 Conflict
   
-  The Holding entity protects this invariant.
+  The Holding entity protects this invariant
+  using ShareQuantity comparisons.
   The aggregate root delegates the check.
 end note
 

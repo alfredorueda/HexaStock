@@ -250,7 +250,7 @@ HexaStock implements Hexagonal Architecture, which organizes code into three pri
 The core of the application contains business entities and logic with no dependencies on external frameworks:
 
 - **Entities**: Portfolio (aggregate root), Holding, Lot, Transaction
-- **Value Objects**: Money, Ticker
+- **Value Objects**: Money, Price, ShareQuantity, Ticker, PortfolioId, HoldingId, LotId, TransactionId, SellResult, StockPrice
 - **Domain Exceptions**: Business rule violations expressed in domain language
 
 ### Application Layer
@@ -290,7 +290,7 @@ Represents a specific purchase of shares. Records the quantity, price, and purch
 
 ### Transaction
 
-Records all financial activities within a portfolio. Types include BUY, SELL, DEPOSIT, and WITHDRAWAL. Stores details like price, quantity, and timestamp. For sales, includes profit/loss calculations.
+Records all financial activities within a portfolio. Types include PURCHASE, SALE, DEPOSIT, and WITHDRAWAL. Stores details like price (`Price`), quantity (`ShareQuantity`), and timestamp. For sales, includes profit/loss calculations using `Money`.
 
 ## Further Reading
 

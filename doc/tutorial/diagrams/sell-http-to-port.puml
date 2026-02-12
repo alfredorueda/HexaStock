@@ -12,33 +12,37 @@ activate Controller
 
 Controller -> Controller: Extract path variable: id
 Controller -> Controller: Parse request body: SaleRequestDTO
-Controller -> Controller: Create domain object: Ticker.of("AAPL")
+Controller -> Controller: Create Value Objects:\nPortfolioId.of(id)\nTicker.of("AAPL")\nShareQuantity.positive(5)
 
-Controller -> Port: sellStock(id, ticker, quantity)
+Controller -> Port: sellStock(PortfolioId, Ticker, ShareQuantity)
 note right
   Controller depends on the
   **interface**, not the implementation.
   This is Dependency Inversion.
+  
+  All parameters are **Value Objects**,
+  not primitives. Type safety prevents
+  accidentally swapping arguments.
 end note
 activate Port
 
-Port -> Service: sellStock(id, ticker, quantity)
+Port -> Service: sellStock(PortfolioId, Ticker, ShareQuantity)
 activate Service
-
 Service --> Port: SellResult
 deactivate Service
 
 Port --> Controller: SellResult
 deactivate Port
 
-Controller -> Controller: Convert to DTO:\nSaleResponseDTO
-Controller --> Client: HTTP 200 OK\n{"proceeds":750, "costBasis":625, "profit":125}
+Controller -> Controller: Convert to DTO:\nSaleResponseDTO\n(extracts BigDecimal from Money)
+
+Controller --> Client: HTTP 200 OK\n{"proceeds":750.00, "costBasis":625.00, "profit":125.00}
 deactivate Controller
 
 note over Controller
   The controller is a **Driving Adapter**.
-  It translates HTTP into use case calls.
+  It translates HTTP primitives into
+  domain Value Objects and vice versa.
   It has no business logic.
 end note
-
 @enduml

@@ -49,22 +49,20 @@ Here is the actual implementation:
 
 ```java
 @Override
-public SellResult sellStock(String portfolioId, Ticker ticker, int quantity) {
+public SellResult sellStock(PortfolioId portfolioId, Ticker ticker, ShareQuantity quantity) {
     Portfolio portfolio = portfolioPort.getPortfolioById(portfolioId)
-        .orElseThrow(() -> new PortfolioNotFoundException(portfolioId));
+        .orElseThrow(() -> new PortfolioNotFoundException(portfolioId.value()));
     
     StockPrice stockPrice = stockPriceProviderPort.fetchStockPrice(ticker);
+    Price price = stockPrice.price();
     
-    SellResult sellResult = portfolio.sell(ticker, quantity, 
-        BigDecimal.valueOf(stockPrice.price()));
+    SellResult sellResult = portfolio.sell(ticker, quantity, price);
     
     portfolioPort.savePortfolio(portfolio);
     
     Transaction transaction = Transaction.createSale(
-        portfolioId, ticker, quantity, 
-        BigDecimal.valueOf(stockPrice.price()), 
-        sellResult.proceeds(), 
-        sellResult.profit());
+        portfolioId, ticker, quantity, price,
+        sellResult.proceeds(), sellResult.profit());
     transactionPort.save(transaction);
     
     return sellResult;
@@ -78,6 +76,8 @@ Notice what this service **does not do**:
 - ❌ It does NOT handle HTTP requests or JSON serialization
 
 The service depends exclusively on **abstractions** (interfaces/ports), never on concrete implementations. This is the essence of the Dependency Inversion Principle.
+
+> **💡 Value Objects in the Port Contract:** Notice how the method signature uses `PortfolioId`, `Ticker`, and `ShareQuantity` instead of `String`, `String`, and `int`. This makes the contract self-documenting and type-safe—you cannot accidentally swap a portfolio ID for a ticker symbol.
 
 ---
 
@@ -93,7 +93,7 @@ public interface StockPriceProviderPort {
      * Fetches the current price for a given stock ticker.
      * 
      * @param ticker The ticker symbol of the stock to get the price for
-     * @return A StockPrice object containing the current price and related information
+     * @return A StockPrice record containing the ticker, price, and timestamp
      * @throws RuntimeException if the price cannot be retrieved for any reason
      */
     StockPrice fetchStockPrice(Ticker ticker);
@@ -101,8 +101,8 @@ public interface StockPriceProviderPort {
     /**
      * Fetches the current price for each given stock ticker.
      *
-     * @param sTickers The list of ticker's symbol of the stock to get the price for
-     * @return A Map<StockPrice> containing the current price and related information for each Ticker
+     * @param sTickers The set of ticker symbols to get prices for
+     * @return A Map containing the StockPrice for each Ticker
      * @throws RuntimeException if the price cannot be retrieved for any reason
      */
     default Map<Ticker, StockPrice> fetchStockPrice(Set<Ticker> sTickers) {
@@ -116,9 +116,9 @@ public interface StockPriceProviderPort {
 ```
 
 **Key characteristics of this port:**
-
 - **Defined in the application layer**, not in the infrastructure layer
-- Uses **domain objects** (`Ticker`, `StockPrice`) as parameters and return types, never infrastructure-specific types (no JSON, no HTTP)
+- Uses **domain Value Objects** (`Ticker`, `StockPrice`, `Price`) as parameters and return types, never infrastructure-specific types (no JSON, no HTTP)
+- The `StockPrice` record contains a `Ticker`, a `Price` value object, and an `Instant`—all domain concepts
 - Represents a **capability** the application needs, without specifying how that capability is implemented
 - Multiple implementations can exist simultaneously, activated by different Spring profiles
 
@@ -173,9 +173,10 @@ public class FinhubStockPriceAdapter implements StockPriceProviderPort {
         
         double currentPrice = quoteJson.get("c").asDouble();
         
-        return new StockPrice(ticker, currentPrice, 
-            LocalDateTime.now().atZone(ZoneId.of("Europe/Madrid")).toInstant(), 
-            "USD");
+        return new StockPrice(
+            ticker,
+            Price.of(currentPrice),
+            Instant.now());
     }
 }
 ```
@@ -185,7 +186,7 @@ This adapter handles:
 - JSON parsing to extract the price from Finnhub's response format
 - Error handling specific to the Finnhub API
 - Rate limiting to avoid exceeding free-tier quotas
-- Conversion from Finnhub's data format to the domain's `StockPrice` model
+- Conversion from Finnhub's raw data into domain Value Objects (`Price.of(currentPrice)`, `StockPrice` record)
 
 ### 2. AlphaVantageStockPriceAdapter
 
@@ -233,17 +234,19 @@ public class AlphaVantageStockPriceAdapter implements StockPriceProviderPort {
         double currentPrice = Double.parseDouble(
             responseJson.get("Global Quote").get("05. price").asText());
         
-        return new StockPrice(ticker, currentPrice, 
-            LocalDateTime.now().atZone(ZoneId.of("Europe/Madrid")).toInstant(), 
-            "USD");
+        return new StockPrice(
+            ticker,
+            Price.of(currentPrice),
+            Instant.now());
     }
 }
 ```
 
 Notice that despite calling different APIs with different response formats:
 - Both adapters implement the **same interface** (`StockPriceProviderPort`)
-- Both return the **same domain object** (`StockPrice`)
+- Both return the **same domain record** (`StockPrice` containing `Ticker`, `Price`, and `Instant`)
 - Both handle their provider-specific details **internally**
+- Both construct domain Value Objects (`Price.of(...)`) from raw primitive data at the adapter boundary
 
 The application core has no knowledge of which adapter is being used at runtime.
 
@@ -264,9 +267,9 @@ public ResponseEntity<SaleResponseDTO> sellStock(
         @RequestBody SaleRequestDTO request) {
     
     SellResult result = portfolioStockOperationsUseCase.sellStock(
-        id, 
-        Ticker.of(request.ticker()), 
-        request.quantity());
+        PortfolioId.of(id),
+        Ticker.of(request.ticker()),
+        ShareQuantity.positive(request.quantity()));
     
     return ResponseEntity.ok(
         new SaleResponseDTO(id, request.ticker(), request.quantity(), result));
@@ -276,9 +279,10 @@ public ResponseEntity<SaleResponseDTO> sellStock(
 **Responsibilities:**
 - Receives the HTTP POST request at `/api/portfolios/{id}/sales`
 - Extracts path variables (`id`) and request body (`ticker`, `quantity`)
-- Converts HTTP-specific data (JSON) into domain objects (`Ticker`)
+- Converts HTTP-specific primitives into domain **Value Objects** (`PortfolioId.of(id)`, `Ticker.of(...)`, `ShareQuantity.positive(...)`)
+- `ShareQuantity.positive(...)` validates that the quantity is greater than zero at the adapter boundary
 - Calls the **primary port** (`PortfolioStockOperationsUseCase`), not the concrete service
-- Converts the domain result (`SellResult`) into a DTO for HTTP response
+- Converts the domain result (`SellResult` containing `Money` values) into a DTO for HTTP response
 
 **Dependency direction:** The controller depends on the `PortfolioStockOperationsUseCase` **interface**, not on `PortfolioStockOperationsService` implementation.
 
@@ -290,9 +294,11 @@ This is a **primary port** (input port or driving port) that defines the use cas
 
 ```java
 public interface PortfolioStockOperationsUseCase {
-    SellResult sellStock(String portfolioId, Ticker ticker, int quantity);
+    SellResult sellStock(PortfolioId portfolioId, Ticker ticker, ShareQuantity quantity);
 }
 ```
+
+> **💡 Type-safe contract:** The port uses `PortfolioId`, `Ticker`, and `ShareQuantity` instead of `String`, `String`, and `int`. This makes it impossible to accidentally swap parameters—the compiler enforces correctness.
 
 **Implementation:** `PortfolioStockOperationsService` (package: `cat.gencat.agaur.hexastock.application.service`)
 
@@ -302,7 +308,7 @@ The service is annotated with `@Transactional` to ensure ACID guarantees across 
 
 ```java
 Portfolio portfolio = portfolioPort.getPortfolioById(portfolioId)
-    .orElseThrow(() -> new PortfolioNotFoundException(portfolioId));
+    .orElseThrow(() -> new PortfolioNotFoundException(portfolioId.value()));
 ```
 
 **Dependency:** `PortfolioPort` (secondary port/interface)
@@ -310,10 +316,10 @@ Portfolio portfolio = portfolioPort.getPortfolioById(portfolioId)
 **Actual implementation:** A JPA repository adapter (`JpaPortfolioRepository`) in the infrastructure layer
 
 **What happens:**
-- The service calls the port method `getPortfolioById()`
-- The JPA adapter queries the database
-- The adapter converts JPA entities to domain objects
-- Returns an `Optional<Portfolio>` (domain model)
+- The service calls the port method `getPortfolioById(PortfolioId)`
+- The JPA adapter extracts the `String` value from `PortfolioId` and queries the database
+- The adapter converts JPA entities to domain objects, wrapping primitives back into Value Objects (`Money`, `ShareQuantity`, `Price`, `PortfolioId`, etc.)
+- Returns an `Optional<Portfolio>` (domain model with Value Objects)
 
 The service has no knowledge of SQL, JPA annotations, or database technology.
 
@@ -321,6 +327,7 @@ The service has no knowledge of SQL, JPA annotations, or database technology.
 
 ```java
 StockPrice stockPrice = stockPriceProviderPort.fetchStockPrice(ticker);
+Price price = stockPrice.price();
 ```
 
 **Dependency:** `StockPriceProviderPort` (secondary port/interface)
@@ -328,36 +335,37 @@ StockPrice stockPrice = stockPriceProviderPort.fetchStockPrice(ticker);
 **Actual implementation at runtime:** Either `FinhubStockPriceAdapter` or `AlphaVantageStockPriceAdapter`, depending on the active Spring profile
 
 **What happens:**
-- The service calls the port method `fetchStockPrice()`
+- The service calls the port method `fetchStockPrice(Ticker)`
 - Spring's dependency injection resolves which adapter is active
 - The active adapter makes an HTTP call to the external API
 - The adapter parses the JSON response
-- The adapter converts the response into a `StockPrice` domain object
-- Returns `StockPrice` (domain model)
+- The adapter converts the raw price into a `Price` value object and constructs a `StockPrice` record
+- Returns `StockPrice` (domain record containing `Ticker`, `Price`, and `Instant`)
+- The service extracts the `Price` from the `StockPrice` record
 
 The service has no knowledge of HTTP, JSON parsing, API endpoints, or which provider is being used.
 
 ### Step 5: Service Delegates Business Logic to Domain Model
 
 ```java
-SellResult sellResult = portfolio.sell(ticker, quantity, 
-    BigDecimal.valueOf(stockPrice.price()));
+SellResult sellResult = portfolio.sell(ticker, quantity, price);
 ```
 
 **Component:** `Portfolio` aggregate root (package: `cat.gencat.agaur.hexastock.model`)
 
 **What happens inside the domain:**
-1. The `Portfolio` validates that quantity is positive
-2. Checks that the holding exists for the given ticker
+1. The `Portfolio` validates that `quantity.isPositive()` (using the `ShareQuantity` method)
+2. Checks that the holding exists for the given `Ticker`
 3. Delegates to the `Holding` entity to execute the sale
 4. The `Holding` applies **FIFO accounting** across multiple `Lot` entities
-5. Each `Lot` reduces its remaining quantity
-6. The `Holding` calculates cost basis from the original purchase prices
-7. The `Holding` calculates proceeds and profit/loss
-8. The `Portfolio` adds the proceeds to its cash balance
-9. Returns a `SellResult` value object containing financial details
+5. Each `Lot` reduces its `remainingShares` (`ShareQuantity`) and calculates cost basis via `calculateCostBasis(ShareQuantity)` → returns `Money`
+6. The `Holding` calculates proceeds using `Price.multiply(ShareQuantity)` → returns `Money`
+7. The `Holding` creates `SellResult.of(proceeds, costBasis)` which auto-calculates profit
+8. Empty lots are removed via `lots.removeIf(Lot::isEmpty)` to keep the aggregate lean
+9. The `Portfolio` adds the proceeds (`Money`) to its cash balance
+10. Returns a `SellResult` value object containing `Money` proceeds, `Money` costBasis, and `Money` profit
 
-**Critical point:** All business rules and invariants are enforced within the domain model, not in the service.
+**Critical point:** All business rules and invariants are enforced within the domain model, not in the service. Value Objects provide an additional layer of protection by making invalid states unrepresentable.
 
 ### Step 6: Service Persists Updated Portfolio
 
@@ -369,7 +377,8 @@ portfolioPort.savePortfolio(portfolio);
 
 **What happens:**
 - The service calls the port method `savePortfolio()`
-- The JPA adapter converts domain objects back to JPA entities
+- The JPA adapter extracts primitive values from Value Objects (`PortfolioId.value()`, `Money.amount()`, `ShareQuantity.value()`, `Price.value()`, etc.)
+- The adapter converts domain objects to JPA entities using these primitives
 - The adapter saves entities to the database
 - Changes are committed as part of the `@Transactional` boundary
 
@@ -377,17 +386,15 @@ portfolioPort.savePortfolio(portfolio);
 
 ```java
 Transaction transaction = Transaction.createSale(
-    portfolioId, ticker, quantity, 
-    BigDecimal.valueOf(stockPrice.price()), 
-    sellResult.proceeds(), 
-    sellResult.profit());
+    portfolioId, ticker, quantity, price,
+    sellResult.proceeds(), sellResult.profit());
 transactionPort.save(transaction);
 ```
 
 **Dependency:** `TransactionPort` (secondary port/interface)
 
 **What happens:**
-- A `Transaction` domain object is created with sale details
+- A `Transaction` domain object is created using the `createSale` factory method with Value Objects (`PortfolioId`, `Ticker`, `ShareQuantity`, `Price`, `Money`, `Money`)
 - The service calls the port method `save()`
 - The JPA adapter persists the transaction record
 
@@ -399,7 +406,7 @@ If this operation fails, the `@Transactional` annotation ensures that all previo
 return sellResult;
 ```
 
-The service returns the `SellResult` (domain object) to the controller.
+The service returns the `SellResult` (domain Value Object containing `Money` fields) to the controller.
 
 ### Step 9: Controller Converts to DTO and Returns HTTP Response
 
@@ -408,7 +415,7 @@ return ResponseEntity.ok(
     new SaleResponseDTO(id, request.ticker(), request.quantity(), result));
 ```
 
-The controller wraps the domain result in a DTO and returns HTTP 200 OK.
+The controller wraps the domain result in a DTO (which extracts `BigDecimal` values from `Money` via `.amount()` for JSON serialization) and returns HTTP 200 OK.
 
 ---
 
@@ -513,7 +520,7 @@ It does NOT mention:
 - ❌ Authentication mechanisms
 - ❌ Specific provider names (Finnhub, Alpha Vantage)
 
-The interface is expressed in the **ubiquitous language** of the domain: "fetch stock price for a ticker."
+The interface is expressed in the **ubiquitous language** of the domain: "fetch stock price for a ticker." Both `Ticker` (input) and `StockPrice` (output, containing `Price`) are domain Value Objects, not infrastructure types.
 
 ### 5. Spring Dependency Injection Resolves the Concrete Implementation
 
@@ -564,17 +571,21 @@ void sellStock_shouldCalculateProfitCorrectly() {
         mockTransactionPort
     );
     
-    // Set up test data
+    // Set up test data using Value Objects
     Portfolio portfolio = createTestPortfolio();
-    when(mockPortfolioPort.getPortfolioById("123")).thenReturn(Optional.of(portfolio));
-    when(mockPriceProvider.fetchStockPrice(Ticker.of("AAPL")))
-        .thenReturn(new StockPrice(Ticker.of("AAPL"), 150.0, Instant.now(), "USD"));
+    PortfolioId portfolioId = PortfolioId.of("123");
+    Ticker aapl = Ticker.of("AAPL");
+    
+    when(mockPortfolioPort.getPortfolioById(portfolioId))
+        .thenReturn(Optional.of(portfolio));
+    when(mockPriceProvider.fetchStockPrice(aapl))
+        .thenReturn(StockPrice.of(aapl, Price.of(150.0), Instant.now()));
     
     // Act: Execute the use case
-    SellResult result = service.sellStock("123", Ticker.of("AAPL"), 10);
+    SellResult result = service.sellStock(portfolioId, aapl, ShareQuantity.of(10));
     
     // Assert: Verify business logic
-    assertThat(result.proceeds()).isEqualTo(BigDecimal.valueOf(1500.0));
+    assertThat(result.proceeds()).isEqualTo(Money.of(1500.0));
     verify(mockPortfolioPort).savePortfolio(portfolio);
     verify(mockTransactionPort).save(any(Transaction.class));
 }
@@ -648,7 +659,9 @@ public class TwelveDataStockPriceAdapter implements StockPriceProviderPort {
     public StockPrice fetchStockPrice(Ticker ticker) {
         // Call Twelve Data API
         // Parse their specific JSON format
-        // Return StockPrice domain object
+        // Convert to domain Value Objects:
+        //   Price price = Price.of(parsedPrice);
+        //   return StockPrice.of(ticker, price, Instant.now());
     }
 }
 ```
@@ -671,7 +684,7 @@ The entire application continues to work without any modification to the core lo
 
 ### Benefit 4: Domain Model Remains Pure
 
-The domain model (`Portfolio`, `Holding`, `Lot`, `SellResult`) contains **zero infrastructure dependencies**:
+The domain model (`Portfolio`, `Holding`, `Lot`, `SellResult`, `Money`, `Price`, `ShareQuantity`, `Ticker`) contains **zero infrastructure dependencies**:
 
 - No JPA annotations (like `@Entity`, `@Table`)
 - No HTTP-related imports (like `HttpClient`, `RestTemplate`)
@@ -682,6 +695,7 @@ This means:
 - The domain can be **tested in isolation** with plain JUnit tests
 - The domain can be **reused** in different contexts (CLI application, batch job, message queue consumer)
 - The domain can be **evolved** independently of infrastructure concerns
+- Value Objects enforce domain rules at construction time (e.g., `Price` must be positive, `ShareQuantity` must be non-negative)
 
 ### Benefit 5: Improved Error Handling and Resilience
 
@@ -757,7 +771,7 @@ public class AuditedFinhubAdapter implements StockPriceProviderPort {
             .eventType("STOCK_PRICE_FETCHED")
             .provider("Finnhub")
             .ticker(ticker.value())
-            .price(price.price())
+            .price(price.price().amount())
             .timestamp(Instant.now())
             .build());
         

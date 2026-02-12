@@ -10,37 +10,42 @@ participant "TransactionPort\n(Secondary Port)" as TransactionPort
 
 activate Service
 
-Service -> PortfolioPort: getPortfolioById(portfolioId)
+Service -> PortfolioPort: getPortfolioById(PortfolioId)
 activate PortfolioPort
 PortfolioPort --> Service: Optional<Portfolio>
 deactivate PortfolioPort
 
 Service -> Service: portfolio = optional.orElseThrow()
 
-Service -> PricePort: fetchStockPrice(ticker)
+Service -> PricePort: fetchStockPrice(Ticker)
 activate PricePort
 PricePort --> Service: StockPrice
 deactivate PricePort
 
+Service -> Service: Price price = stockPrice.price()
+
 note right of Service
   The service **orchestrates**:
   1. Fetch data from ports
-  2. Call the aggregate root
-  3. Save results
+  2. Extract Price from StockPrice
+  3. Call the aggregate root
+  4. Save results
   
   It does NOT contain
   business logic!
 end note
 
-Service -> Portfolio: sell(ticker, quantity, price)
+Service -> Portfolio: sell(Ticker, ShareQuantity, Price)
 activate Portfolio
-Portfolio --> Service: SellResult
+Portfolio --> Service: SellResult(Money, Money, Money)
 deactivate Portfolio
 
 Service -> PortfolioPort: savePortfolio(portfolio)
 activate PortfolioPort
 PortfolioPort --> Service: void
 deactivate PortfolioPort
+
+Service -> Service: Transaction.createSale(\nPortfolioId, Ticker, ShareQuantity,\nPrice, Money proceeds, Money profit)
 
 Service -> TransactionPort: save(transaction)
 activate TransactionPort

@@ -16,8 +16,8 @@
 ---
 
 ## 02. Rich Domain Model
-- Entities: **Portfolio**, **Holding**, **Transaction** with embedded logic
-- Value Objects: **Money**, **Ticker**, **Quantity** enforce correctness
+- Entities: **Portfolio**, **Holding**, **Lot**, **Transaction** with embedded logic
+- Value Objects: **Money**, **Price**, **ShareQuantity**, **Ticker**, **PortfolioId**, **HoldingId**, **LotId**, **TransactionId**, **SellResult**, **StockPrice** enforce correctness
 - Business rules (cash checks, FIFO, transactions) live inside the model:
   - https://deepwiki.com/alfredorueda/HexaStock/3.1-core-entities#fifo-accounting-implementation
 - Show the **UML Class Diagram** to illustrate relationships in the domain
