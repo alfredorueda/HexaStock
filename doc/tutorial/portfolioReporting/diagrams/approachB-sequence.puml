@@ -1,0 +1,66 @@
+@startuml approachB-sequence
+!theme plain
+skinparam backgroundColor #FEFEFE
+
+title Approach B — DB-Powered Query Side (GROUP BY Aggregation)
+
+participant "PortfolioRestController\n(Driving Adapter)" as Controller
+participant "ReportingService\n(Application Service)" as Service
+participant "PortfolioPort\n(Secondary Port)" as PortfolioPort
+participant "HoldingsPerformanceQueryPort\n(Secondary Port — new)" as QueryPort
+participant "StockPriceProviderPort\n(Secondary Port)" as PricePort
+
+activate Controller
+Controller -> Service: getHoldingsPerfomance(portfolioId)
+activate Service
+
+== 1. Validate portfolio exists ==
+Service -> PortfolioPort: getPortfolioById(PortfolioId)
+activate PortfolioPort
+PortfolioPort --> Service: Optional<Portfolio>
+deactivate PortfolioPort
+Service -> Service: portfolio.orElseThrow()
+
+== 2. DB aggregation — O(1) app memory, O(T) DB scan ==
+Service -> QueryPort: getAggregatedHoldings(PortfolioId)
+activate QueryPort
+
+note right of QueryPort
+  **SQL executed by the DB engine:**
+  SELECT ticker,
+         SUM(CASE WHEN type='PURCHASE' THEN quantity END)  AS total_bought,
+         SUM(CASE WHEN type='PURCHASE'
+             THEN quantity * unit_price END)                AS total_cost,
+         SUM(CASE WHEN type='SALE' THEN profit END)        AS realized_gain
+  FROM transactions
+  WHERE portfolio_id = ?
+  GROUP BY ticker
+
+  Returns projection DTOs — no full
+  Transaction objects materialized.
+end note
+
+QueryPort --> Service: List<TickerAggregateDTO>
+deactivate QueryPort
+
+== 3. Fetch live prices ==
+Service -> PricePort: fetchStockPrice(Set<Ticker>)
+activate PricePort
+PricePort --> Service: Map<Ticker, StockPrice>
+deactivate PricePort
+
+== 4. Assemble final DTOs ==
+Service -> Service: combine aggregates + prices\n+ portfolio holdings (remaining shares)
+
+note right of Service
+  Application layer maps
+  DB projections + live prices
+  into HoldingDTO list.
+  Rounding is applied here.
+end note
+
+Service --> Controller: List<HoldingDTO>
+deactivate Service
+Controller --> : HTTP 200 JSON
+deactivate Controller
+@enduml

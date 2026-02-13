@@ -1,0 +1,78 @@
+@startuml approachC-sequence
+!theme plain
+skinparam backgroundColor #FEFEFE
+
+title Approach C — Hybrid (DB Pre-Aggregation + Domain Finalization)
+
+participant "PortfolioRestController\n(Driving Adapter)" as Controller
+participant "ReportingService\n(Application Service)" as Service
+participant "PortfolioPort\n(Secondary Port)" as PortfolioPort
+participant "TransactionQueryPort\n(Secondary Port — new)" as QueryPort
+participant "HoldingPerformanceCalculator\n(Domain Service)" as Calculator
+participant "StockPriceProviderPort\n(Secondary Port)" as PricePort
+
+activate Controller
+Controller -> Service: getHoldingsPerfomance(portfolioId)
+activate Service
+
+== 1. Validate portfolio exists ==
+Service -> PortfolioPort: getPortfolioById(PortfolioId)
+activate PortfolioPort
+PortfolioPort --> Service: Optional<Portfolio>
+deactivate PortfolioPort
+Service -> Service: portfolio.orElseThrow()
+
+== 2. DB pre-aggregation — raw sums, no rounding ==
+Service -> QueryPort: getRawAggregates(PortfolioId)
+activate QueryPort
+
+note right of QueryPort
+  **SQL returns raw numeric sums**
+  per ticker — intentionally no
+  rounding in the query.
+
+  SELECT ticker,
+    SUM(CASE WHEN type='PURCHASE'
+        THEN quantity END)               AS bought_qty,
+    SUM(CASE WHEN type='PURCHASE'
+        THEN quantity * unit_price END)  AS bought_cost,
+    SUM(CASE WHEN type='SALE'
+        THEN profit END)                 AS realized
+  FROM transactions
+  WHERE portfolio_id = ?
+  GROUP BY ticker
+end note
+
+QueryPort --> Service: List<RawTickerAggregate>
+deactivate QueryPort
+
+== 3. Fetch live prices ==
+Service -> PricePort: fetchStockPrice(Set<Ticker>)
+activate PricePort
+PricePort --> Service: Map<Ticker, StockPrice>
+deactivate PricePort
+
+== 4. Domain finalization — rounding & business rules ==
+Service -> Calculator: finalize(\n  portfolio, rawAggregates, tickerPrices)
+activate Calculator
+
+note right of Calculator
+  **Domain service applies:**
+  • BigDecimal division with SCALE=2, HALF_UP
+  • Average purchase price = cost / qty
+  • Unrealized gain from Holding model
+  • Missing-price fallback logic
+  • Returns immutable List.copyOf(...)
+
+  Rounding stays in Java — never
+  delegated to the DB engine.
+end note
+
+Calculator --> Service: List<HoldingDTO>  (immutable)
+deactivate Calculator
+
+Service --> Controller: List<HoldingDTO>
+deactivate Service
+Controller --> : HTTP 200 JSON
+deactivate Controller
+@enduml

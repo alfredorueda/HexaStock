@@ -1,0 +1,76 @@
+@startuml snapshot-architecture
+!theme plain
+skinparam backgroundColor #FEFEFE
+skinparam componentStyle rectangle
+
+title Snapshot / CQRS Read Model Architecture
+
+rectangle "Write Side (Commands)" as WriteSide {
+    component "PortfolioStockOperationsService\n(Application Service)" as WriteService
+    component "Portfolio\n(Aggregate Root)" as Aggregate
+    database "portfolio / holding / lot\n(Write Tables)" as WriteDB
+
+    WriteService --> Aggregate : buy() / sell()
+    WriteService --> WriteDB : savePortfolio()
+}
+
+rectangle "Snapshot Synchronization" as Sync {
+    component "SnapshotUpdater\n(Domain Service or Listener)" as Updater
+
+    note bottom of Updater
+        **Synchronous path (simple):**
+        Called after each buy/sell commit.
+        Updates snapshot row in same transaction.
+
+        **Async path (scalable):**
+        Listens to domain events (TransactionCreated).
+        Updates snapshot outside command transaction.
+        Introduces eventual consistency.
+    end note
+}
+
+database "holdings_snapshot\n(Materialized Read Table)" as SnapshotDB #LightGreen
+
+rectangle "Read Side (Queries)" as ReadSide {
+    component "ReportingService\n(Application Service)" as ReadService
+    component "StockPriceProviderPort\n(Secondary Port)" as PricePort
+
+    ReadService --> SnapshotDB : SELECT * FROM holdings_snapshot\nWHERE portfolio_id = ?
+    ReadService --> PricePort : fetchStockPrice(Set<Ticker>)
+}
+
+WriteService ..> Updater : "after commit:\nupdate snapshot"
+Updater --> SnapshotDB : "UPSERT per ticker:\ntotal_bought_qty,\ntotal_bought_cost,\nrealized_gain,\nremaining_shares"
+
+note right of SnapshotDB
+    **Snapshot table structure:**
+    ┌──────────────────────────────────┐
+    │ holdings_snapshot                 │
+    ├──────────────────────────────────┤
+    │ portfolio_id   VARCHAR PK        │
+    │ ticker         VARCHAR PK        │
+    │ total_bought_qty    DECIMAL      │
+    │ total_bought_cost   DECIMAL      │
+    │ remaining_shares    INT          │
+    │ realized_gain       DECIMAL      │
+    │ last_updated_at     TIMESTAMP    │
+    └──────────────────────────────────┘
+
+    Query is O(H) — reads H rows
+    instead of scanning T transactions.
+end note
+
+rectangle "Reconciliation (Periodic)" as Recon {
+    component "ReconciliationJob\n(Scheduled Task)" as ReconJob
+    ReconJob --> WriteDB : "recompute from\nsource-of-truth\ntransactions"
+    ReconJob --> SnapshotDB : "compare & fix\ndrifted snapshots"
+}
+
+note bottom of Recon
+    Catches bugs, missed events,
+    or partial failures.
+    Runs hourly / daily depending
+    on SLA requirements.
+end note
+
+@enduml
