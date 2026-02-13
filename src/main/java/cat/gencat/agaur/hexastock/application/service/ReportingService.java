@@ -11,43 +11,48 @@ import cat.gencat.agaur.hexastock.model.service.HoldingPerformanceCalculator;
 import jakarta.transaction.Transactional;
 
 import java.util.List;
-import java.util.Map;
 import java.util.stream.Collectors;
 
-
-/*
-
-For 20,000 transactions, in-memory processing with Java Streams is likely the best approach for your hexagonal architecture. This keeps your business logic in the domain layer where it belongs while maintaining reasonable performance.
-
-Here's why:
-
-
-Memory consumption is manageable: 20,000 transaction objects would typically consume between 10-50MB of heap space (depending on object size), which is insignificant for modern JVMs.
-
-
-Domain logic clarity: Complex financial calculations are more clearly expressed and maintained in your domain layer using Java than in SQL.
-
-
-Architectural integrity: This approach maintains the hexagonal architecture principle of keeping business logic in the domain.
-
-
-Practical Thresholds
-The threshold where in-memory processing becomes problematic typically occurs around:
-
-
-100,000-500,000 transactions depending on transaction complexity
-When total memory consumption exceeds ~25% of available heap space
-When calculation time exceeds acceptable response times for your use case
-
-Hybrid Approach for Scalability
-As your system grows, consider these optimizations:
-
-
-Implement lazy loading patterns for transactions when feasible
-Create specialized read models for performance-critical calculations
-Consider pagination or windowing for extremely large portfolios
+/**
+ * Application service that orchestrates the holdings-performance report.
+ *
+ * <p>This service sits in the <strong>application layer</strong> of the hexagonal
+ * architecture.  It coordinates infrastructure ports (persistence, stock-price
+ * provider) and delegates the actual computation to the domain-layer
+ * {@link HoldingPerformanceCalculator}.</p>
+ *
+ * <h2>Current design — sequential price fetching</h2>
+ * <p>Stock prices are fetched sequentially via the default implementation of
+ * {@link StockPriceProviderPort#fetchStockPrice(java.util.Set)}, which iterates
+ * the ticker set and calls the single-ticker method one by one.  This is
+ * intentional: the free-tier API (Finnhub) enforces strict rate limits, and
+ * parallel calls would quickly trigger HTTP 429 responses.</p>
+ *
+ * <h2>Future improvements (not implemented — documented for pedagogy)</h2>
+ * <ol>
+ *   <li><strong>Batch price fetching</strong> — If the provider exposes a
+ *       multi-symbol endpoint (e.g., {@code /quote?symbols=AAPL,MSFT}), the
+ *       adapter can override the default method to fetch all prices in a single
+ *       HTTP call, eliminating the N+1 problem entirely.</li>
+ *   <li><strong>Parallel fetching with a bounded executor</strong> — Replace the
+ *       sequential loop with {@code ExecutorService} (virtual threads or a
+ *       fixed-size pool) to fetch prices concurrently while respecting rate
+ *       limits.  This avoids the common-pool contention problem of
+ *       {@code parallelStream()} and gives explicit control over concurrency.</li>
+ *   <li><strong>Short-lived caching (e.g., 30 s TTL)</strong> — A Caffeine or
+ *       Spring {@code @Cacheable} layer in front of the price adapter would
+ *       deduplicate calls for the same ticker within a short window, reducing
+ *       both latency and API quota consumption.</li>
+ * </ol>
+ * <p>These optimisations are omitted here because the current dataset size
+ * (single-digit tickers per portfolio) does not justify the added complexity,
+ * and the free-tier API would not benefit from parallelism.</p>
+ *
+ * <h2>Scalability thresholds</h2>
+ * <p>In-memory processing with Java Streams is appropriate for up to ~100 000
+ * transactions.  Beyond that, consider specialised read models, pagination, or
+ * pushing aggregation into the persistence layer.</p>
  */
-
 @Transactional
 public class ReportingService implements ReportingUseCase {
 
@@ -60,27 +65,42 @@ public class ReportingService implements ReportingUseCase {
                             StockPriceProviderPort stockPriceProviderPort,
                             PortfolioPort portfolioPort,
                             HoldingPerformanceCalculator holdingPerformanceCalculator) {
-        // Constructor injection for required ports and services
-        // This ensures that the service has all dependencies it needs to function correctly
         this.transactionPort = transactionPort;
         this.stockPriceProviderPort = stockPriceProviderPort;
         this.portfolioPort = portfolioPort;
         this.holdingPerformanceCalculator = holdingPerformanceCalculator;
     }
 
+    /**
+     * {@inheritDoc}
+     *
+     * <p>Orchestration steps:</p>
+     * <ol>
+     *   <li>Load the portfolio aggregate (or throw if not found).</li>
+     *   <li>Load the full transaction list for this portfolio.</li>
+     *   <li>Collect the distinct tickers from the portfolio's holdings.</li>
+     *   <li>Fetch live prices for those tickers (sequentially — see class-level doc).</li>
+     *   <li>Delegate to {@link HoldingPerformanceCalculator} for the O(T) computation.</li>
+     * </ol>
+     */
     @Override
     public List<HoldingDTO> getHoldingsPerfomance(String portfolioId) {
-        PortfolioId id = PortfolioId.of(portfolioId);
-        Portfolio portfolio = portfolioPort.getPortfolioById(id)
-                .orElseThrow(() -> new PortfolioNotFoundException(portfolioId));
-        List<Transaction> transactions = transactionPort.getTransactionsByPortfolioId(id);
+        var id = PortfolioId.of(portfolioId);
 
+        var portfolio = portfolioPort.getPortfolioById(id)
+                .orElseThrow(() -> new PortfolioNotFoundException(portfolioId));
+
+        var transactions = transactionPort.getTransactionsByPortfolioId(id);
+
+        // Collect distinct tickers from current holdings (not from transactions,
+        // because closed positions with zero shares are removed from holdings).
         var tickers = portfolio.getHoldings().stream()
                 .map(Holding::getTicker)
                 .collect(Collectors.toSet());
 
-        Map<Ticker, StockPrice> tickerStockPriceMap = stockPriceProviderPort.fetchStockPrice(tickers);
-        return holdingPerformanceCalculator.getHoldingsPerformance(portfolio, transactions, tickerStockPriceMap);
-    }
+        var tickerPrices = stockPriceProviderPort.fetchStockPrice(tickers);
 
+        return holdingPerformanceCalculator.getHoldingsPerformance(
+                portfolio, transactions, tickerPrices);
+    }
 }

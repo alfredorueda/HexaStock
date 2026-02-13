@@ -1,6 +1,5 @@
 package cat.gencat.agaur.hexastock.adapter;
 
-
 import cat.gencat.agaur.hexastock.application.port.in.*;
 import cat.gencat.agaur.hexastock.application.port.out.PortfolioPort;
 import cat.gencat.agaur.hexastock.application.port.out.StockPriceProviderPort;
@@ -32,13 +31,13 @@ public class SpringAppConfig {
   PortfolioPort portfolioPort;
 
   @Bean
-  ReportingUseCase getReportingUseCase() {
-    return new ReportingService(transactionPort, stockPriceProviderPort, portfolioPort, holdingPerformanceCalculator() );
+  HoldingPerformanceCalculator holdingPerformanceCalculator() {
+    return new HoldingPerformanceCalculator();
   }
 
   @Bean
-  HoldingPerformanceCalculator holdingPerformanceCalculator() {
-    return new HoldingPerformanceCalculator();
+  ReportingUseCase getReportingUseCase() {
+    return new ReportingService(transactionPort, stockPriceProviderPort, portfolioPort, holdingPerformanceCalculator());
   }
 
   @Bean
@@ -60,11 +59,4 @@ public class SpringAppConfig {
   TransactionUseCase getTransactionUseCase() {
     return new TransactionService(transactionPort);
   }
-
-  @Bean
-  HoldingPerformanceCalculator getHoldingPerformanceCalculator() {
-    return new HoldingPerformanceCalculator();
-  }
-
-
 }
