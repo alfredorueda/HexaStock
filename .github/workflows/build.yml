@@ -18,6 +18,9 @@ jobs:
 
     env:
       MAVEN_OPTS: "-Xmx2g"
+      # Docker Engine 27+ on ubuntu-latest requires API version ≥ 1.44.
+      # Testcontainers' docker-java client defaults to 1.32, which gets rejected.
+      DOCKER_API_VERSION: "1.44"
 
     steps:
       - name: Checkout code

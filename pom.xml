@@ -29,6 +29,10 @@
     </scm>
     <properties>
         <java.version>21</java.version>
+        <!-- Override Spring Boot's managed Testcontainers version to fix
+             Docker API negotiation with Docker Engine 27+ on GitHub Actions.
+             See: https://github.com/testcontainers/testcontainers-java/issues/9925 -->
+        <testcontainers.version>1.21.3</testcontainers.version>
     </properties>
     <dependencies>
         <dependency>
