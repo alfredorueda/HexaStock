@@ -238,7 +238,7 @@ public class PortfolioRestController {
     @GetMapping("/{id}/holdings")
     public ResponseEntity<List<HoldingDTO>> getHoldings(@PathVariable String id) {
 
-        List<HoldingDTO> lHoldings = reportingUseCase.getHoldingsPerfomance(id);
+        List<HoldingDTO> lHoldings = reportingUseCase.getHoldingsPerformance(id);
 
         return ResponseEntity.ok(lHoldings);
     }

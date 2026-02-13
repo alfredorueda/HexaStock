@@ -84,7 +84,7 @@ public class ReportingService implements ReportingUseCase {
      * </ol>
      */
     @Override
-    public List<HoldingDTO> getHoldingsPerfomance(String portfolioId) {
+    public List<HoldingDTO> getHoldingsPerformance(String portfolioId) {
         var id = PortfolioId.of(portfolioId);
 
         var portfolio = portfolioPort.getPortfolioById(id)

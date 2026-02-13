@@ -6,6 +6,6 @@ import java.util.List;
 
 public interface ReportingUseCase {
 
-    List<HoldingDTO> getHoldingsPerfomance(String portfolioId);
+    List<HoldingDTO> getHoldingsPerformance(String portfolioId);
 
 }

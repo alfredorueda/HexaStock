@@ -67,7 +67,7 @@ class ReportingServiceTest {
                     .thenReturn(Optional.empty());
 
             assertThrows(PortfolioNotFoundException.class,
-                    () -> reportingService.getHoldingsPerfomance(unknownId));
+                    () -> reportingService.getHoldingsPerformance(unknownId));
 
             // Verify no further port calls were made
             verifyNoInteractions(transactionPort);
@@ -89,7 +89,7 @@ class ReportingServiceTest {
             when(transactionPort.getTransactionsByPortfolioId(id)).thenReturn(List.of());
             when(stockPriceProviderPort.fetchStockPrice(Set.of())).thenReturn(Map.of());
 
-            var result = reportingService.getHoldingsPerfomance(id.value());
+            var result = reportingService.getHoldingsPerformance(id.value());
 
             assertTrue(result.isEmpty());
         }
@@ -111,7 +111,7 @@ class ReportingServiceTest {
             when(stockPriceProviderPort.fetchStockPrice(Set.of(AAPL)))
                     .thenReturn(Map.of(AAPL, livePrice));
 
-            var result = reportingService.getHoldingsPerfomance(id.value());
+            var result = reportingService.getHoldingsPerformance(id.value());
 
             assertEquals(1, result.size());
             var h = result.getFirst();
@@ -136,7 +136,7 @@ class ReportingServiceTest {
             when(transactionPort.getTransactionsByPortfolioId(id)).thenReturn(List.of());
             when(stockPriceProviderPort.fetchStockPrice(anySet())).thenReturn(Map.of());
 
-            reportingService.getHoldingsPerfomance(id.value());
+            reportingService.getHoldingsPerformance(id.value());
 
             // Verify ordering: portfolio first, then transactions, then prices
             var inOrder = inOrder(portfolioPort, transactionPort, stockPriceProviderPort);
