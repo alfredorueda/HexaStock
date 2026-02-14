@@ -14,7 +14,7 @@ This tutorial reverse-engineers the **SELL STOCK** use case from the HexaStock c
 
 ## Main Document
 
-**[SELL-STOCK-TUTORIAL.md](./SELL-STOCK-TUTORIAL.md)**
+**[SELL-STOCK-TUTORIAL.md](./sellStocks/SELL-STOCK-TUTORIAL.md)**
 
 This is the comprehensive tutorial covering:
 1. Domain context and business rules
@@ -30,7 +30,7 @@ This is the comprehensive tutorial covering:
 
 ## PlantUML Diagrams
 
-All diagrams are in the `diagrams/` folder. Pre-rendered PNG and SVG outputs are in `diagrams/Rendered/`.
+All diagrams are in the `sellStocks/diagrams/` folder. Pre-rendered PNG and SVG outputs are in `sellStocks/diagrams/Rendered/`.
 
 ### Architecture & Flow Diagrams
 
@@ -38,26 +38,26 @@ All diagrams are in the `diagrams/` folder. Pre-rendered PNG and SVG outputs are
    - Shows how HTTP request reaches the primary port
    - Demonstrates dependency inversion
 
-[![Sell HTTP to Port](diagrams/Rendered/sell-http-to-port.png)](diagrams/Rendered/sell-http-to-port.svg)
+[![Sell HTTP to Port](sellStocks/diagrams/Rendered/sell-http-to-port.png)](sellStocks/diagrams/Rendered/sell-http-to-port.svg)
 
 2. **`sell-application-service.puml`**
    - Application service orchestration
    - Calls to secondary ports (PortfolioPort, StockPriceProviderPort, TransactionPort)
 
-[![Sell Application Service](diagrams/Rendered/sell-application-service.png)](diagrams/Rendered/sell-application-service.svg)
+[![Sell Application Service](sellStocks/diagrams/Rendered/sell-application-service.png)](sellStocks/diagrams/Rendered/sell-application-service.svg)
 
 3. **`sell-domain-fifo.puml`**
    - Domain model enforcing invariants
    - FIFO algorithm implementation
    - Portfolio → Holding → Lot delegation
 
-[![Sell Domain FIFO](diagrams/Rendered/sell-domain-fifo.png)](diagrams/Rendered/sell-domain-fifo.svg)
+[![Sell Domain FIFO](sellStocks/diagrams/Rendered/sell-domain-fifo.png)](sellStocks/diagrams/Rendered/sell-domain-fifo.svg)
 
 4. **`sell-persistence-adapter.puml`**
    - Domain model to JPA entity mapping
    - Adapter implementation pattern
 
-[![Sell Persistence Adapter](diagrams/Rendered/sell-persistence-adapter.png)](diagrams/Rendered/sell-persistence-adapter.svg)
+[![Sell Persistence Adapter](sellStocks/diagrams/Rendered/sell-persistence-adapter.png)](sellStocks/diagrams/Rendered/sell-persistence-adapter.svg)
 
 ### DDD Core Concept
 
@@ -66,31 +66,31 @@ All diagrams are in the `diagrams/` folder. Pre-rendered PNG and SVG outputs are
    - Shows anti-pattern: Service directly manipulating entities
    - Visual explanation of DDD aggregate boundaries
 
-[![Sell Orchestrator vs Aggregate](diagrams/Rendered/sell-orchestrator-vs-aggregate.png)](diagrams/Rendered/sell-orchestrator-vs-aggregate.svg)
+[![Sell Orchestrator vs Aggregate](sellStocks/diagrams/Rendered/sell-orchestrator-vs-aggregate.png)](sellStocks/diagrams/Rendered/sell-orchestrator-vs-aggregate.svg)
 
 ### Error Handling
 
 6. **`sell-error-portfolio-not-found.puml`**
    - PortfolioNotFoundException → HTTP 404
 
-[![Sell Error Portfolio Not Found](diagrams/Rendered/sell-error-portfolio-not-found.png)](diagrams/Rendered/sell-error-portfolio-not-found.svg)
+[![Sell Error Portfolio Not Found](sellStocks/diagrams/Rendered/sell-error-portfolio-not-found.png)](sellStocks/diagrams/Rendered/sell-error-portfolio-not-found.svg)
 
 7. **`sell-error-invalid-quantity.puml`**
    - InvalidQuantityException → HTTP 400
 
-[![Sell Error Invalid Quantity](diagrams/Rendered/sell-error-invalid-quantity.png)](diagrams/Rendered/sell-error-invalid-quantity.svg)
+[![Sell Error Invalid Quantity](sellStocks/diagrams/Rendered/sell-error-invalid-quantity.png)](sellStocks/diagrams/Rendered/sell-error-invalid-quantity.svg)
 
 8. **`sell-error-sell-more-than-owned.puml`**
    - ConflictQuantityException → HTTP 409
 
-[![Sell Error Sell More Than Owned](diagrams/Rendered/sell-error-sell-more-than-owned.png)](diagrams/Rendered/sell-error-sell-more-than-owned.svg)
+[![Sell Error Sell More Than Owned](sellStocks/diagrams/Rendered/sell-error-sell-more-than-owned.png)](sellStocks/diagrams/Rendered/sell-error-sell-more-than-owned.svg)
 
 ### Domain Model
 
 9. **`hexastock-domain-model.puml`**
    - Full UML class diagram of the domain model
 
-[![HexaStock Domain Model](diagrams/Rendered/HexaStock%20Domain%20Model.png)](diagrams/Rendered/HexaStock%20Domain%20Model.svg)
+[![HexaStock Domain Model](sellStocks/diagrams/Rendered/HexaStock%20Domain%20Model.png)](sellStocks/diagrams/Rendered/HexaStock%20Domain%20Model.svg)
 
 ---
 
@@ -98,7 +98,7 @@ All diagrams are in the `diagrams/` folder. Pre-rendered PNG and SVG outputs are
 
 ### For Students
 
-1. **Read the tutorial first:** Start with `SELL-STOCK-TUTORIAL.md` section by section
+1. **Read the tutorial first:** Start with `sellStocks/SELL-STOCK-TUTORIAL.md` section by section
 2. **Follow the code:** Use the file paths to locate actual implementation in `src/main/java/`
 3. **View the diagrams:** Pre-rendered PNGs are embedded above; click any diagram to open the high-resolution SVG
 4. **Complete exercises:** See section 12 of the tutorial
@@ -161,10 +161,10 @@ brew install plantuml  # macOS
 # or download from https://plantuml.com/download
 
 # Generate PNG
-plantuml diagrams/sell-orchestrator-vs-aggregate.puml
+plantuml sellStocks/diagrams/sell-orchestrator-vs-aggregate.puml
 
 # Generate SVG
-plantuml -tsvg diagrams/sell-orchestrator-vs-aggregate.puml
+plantuml -tsvg sellStocks/diagrams/sell-orchestrator-vs-aggregate.puml
 ```
 
 ---
@@ -174,20 +174,21 @@ plantuml -tsvg diagrams/sell-orchestrator-vs-aggregate.puml
 ```
 doc/tutorial/
 ├── README.md (this file)
-├── SELL-STOCK-TUTORIAL.md (main tutorial)
-└── diagrams/
-    ├── hexastock-domain-model.puml
-    ├── sell-http-to-port.puml
-    ├── sell-application-service.puml
-    ├── sell-domain-fifo.puml
-    ├── sell-persistence-adapter.puml
-    ├── sell-orchestrator-vs-aggregate.puml
-    ├── sell-error-portfolio-not-found.puml
-    ├── sell-error-invalid-quantity.puml
-    ├── sell-error-sell-more-than-owned.puml
-    └── Rendered/          ← auto-generated PNG & SVG (do not edit)
-        ├── *.png
-        └── *.svg
+├── sellStocks/
+│   ├── SELL-STOCK-TUTORIAL.md (main tutorial)
+│   └── diagrams/
+│       ├── hexastock-domain-model.puml
+│       ├── sell-http-to-port.puml
+│       ├── sell-application-service.puml
+│       ├── sell-domain-fifo.puml
+│       ├── sell-persistence-adapter.puml
+│       ├── sell-orchestrator-vs-aggregate.puml
+│       ├── sell-error-portfolio-not-found.puml
+│       ├── sell-error-invalid-quantity.puml
+│       ├── sell-error-sell-more-than-owned.puml
+│       └── Rendered/          ← auto-generated PNG & SVG (do not edit)
+│           ├── *.png
+│           └── *.svg
 ```
 
 ---

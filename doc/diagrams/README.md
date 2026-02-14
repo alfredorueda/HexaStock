@@ -17,9 +17,9 @@ For every PlantUML source file, the rendered outputs are placed in a sibling `Re
 Example:
 
 ```
-doc/tutorial/diagrams/sell-domain-fifo.puml
-doc/tutorial/diagrams/Rendered/sell-domain-fifo.svg
-doc/tutorial/diagrams/Rendered/sell-domain-fifo.png
+doc/tutorial/sellStocks/diagrams/sell-domain-fifo.puml
+doc/tutorial/sellStocks/diagrams/Rendered/sell-domain-fifo.svg
+doc/tutorial/sellStocks/diagrams/Rendered/sell-domain-fifo.png
 ```
 
 ## Embedding in Markdown
