@@ -18,9 +18,6 @@ jobs:
 
     env:
       MAVEN_OPTS: "-Xmx2g"
-      # Docker Engine 27+ on ubuntu-latest requires API version ≥ 1.44.
-      # Testcontainers' docker-java client defaults to 1.32, which gets rejected.
-      DOCKER_API_VERSION: "1.44"
 
     steps:
       - name: Checkout code
@@ -35,8 +32,19 @@ jobs:
           distribution: 'temurin'
           cache: maven
 
-      - name: Verify Docker is available
-        run: docker info
+      # Diagnostics: confirm Docker Engine version and API level
+      - name: Docker version info
+        run: |
+          docker version
+          docker info
+
+      # Workaround: Docker Engine 29+ requires API ≥ 1.44, but docker-java
+      # (used by Testcontainers) negotiates with 1.32 which gets rejected.
+      # docker-java reads ~/.docker-java.properties at startup.
+      # Remove this step once Testcontainers ships a docker-java version
+      # that negotiates properly (track: https://github.com/testcontainers/testcontainers-java/issues/11212)
+      - name: Fix docker-java API version for Testcontainers
+        run: echo "api.version=1.44" >> ~/.docker-java.properties
 
       - name: Run clean build and tests
         run: ./mvnw -B -U -ntp clean verify
