@@ -29,11 +29,13 @@ This document presents a comprehensive guide to implementing an automated market
   - [Duplicate Prevention](#duplicate-prevention)
   - [Testing Strategy](#testing-strategy)
   - [Sequence Diagrams](#sequence-diagrams)
+- [Clarification: CQRS in This Tutorial vs. Full CQRS](#clarification-cqrs-in-this-tutorial-vs-full-cqrs)
 - [How This Would Evolve in Production](#how-this-would-evolve-in-production)
   - [Event Publishing](#event-publishing)
   - [Alert State Tracking](#alert-state-tracking)
   - [Horizontal Scaling](#horizontal-scaling)
   - [Architectural Stability](#architectural-stability)
+- [Further Reading](#further-reading)
 
 ---
 
@@ -89,6 +91,8 @@ This asymmetry is the essence of **Command Query Responsibility Segregation (CQR
 
 - **Commands** (writes) go through the rich domain model, loading aggregates and enforcing business rules
 - **Queries** (reads) bypass the domain model entirely, using optimized database projections
+
+> **A note on terminology:** The term CQRS was coined by Greg Young, building on Bertrand Meyer's Command-Query Separation (CQS) principle. In its strict definition—as described by Martin Fowler—CQRS involves maintaining *separate conceptual models* for updates and reads, which may extend to separate data stores and synchronization mechanisms. In this tutorial, we apply a **pragmatic form** of CQRS: the command and query paths use distinct models and code paths, but share the same underlying database. This is a deliberate pedagogical choice that captures the core insight of the pattern—separating read and write responsibilities—without introducing the operational complexity of fully independent data stores. See the [Clarification](#clarification-cqrs-in-this-tutorial-vs-full-cqrs) section for a more detailed discussion.
 
 By separating these concerns, we can:
 - Preserve the integrity and expressiveness of our domain model for writes
@@ -704,6 +708,46 @@ The following PlantUML diagrams illustrate the key flows:
 
 ---
 
+## Clarification: CQRS in This Tutorial vs. Full CQRS
+
+This tutorial uses the term CQRS to describe the separation of command (write) and query (read) paths within the watchlist feature. It is important to situate this approach within the broader spectrum of what CQRS means in the literature.
+
+### What Fowler Describes as CQRS
+
+In his 2011 article, Martin Fowler defines CQRS as the notion that "you can use a different model to update information than the model you use to read information." In its full form, this pattern implies:
+
+- **Separate conceptual models** for the write side and the read side, each optimized for its respective purpose.
+- **Potentially separate data stores**, where the write model persists into one store and changes are propagated—often asynchronously via domain events—to a denormalized read store.
+- **Eventual consistency** between the write and read sides, which introduces synchronization complexity.
+- **Increased architectural overhead**, which Fowler explicitly warns should not be adopted without a clear justification.
+
+Fowler emphasizes that CQRS "adds a significant amount of complexity" and should be applied selectively—typically to specific bounded contexts where the read and write requirements diverge significantly—rather than as a system-wide architectural style.
+
+### What This Tutorial Demonstrates
+
+This tutorial applies a **pragmatic, single-database form of responsibility segregation**:
+
+- **Command path**: Use cases that create, update, or delete watchlists load the full `Watchlist` aggregate, enforce domain invariants, and persist changes through the standard repository.
+- **Query path**: The Market Sentinel bypasses the aggregate entirely, using optimized projection queries (`WatchlistQueryPort`) to read directly from the same database without materializing domain objects.
+
+Both paths share the **same underlying relational database and schema**. There is no separate read store, no event-driven synchronization, and no eventual consistency to manage. The read side simply uses different query strategies (projections, joins, filtering at the database level) against the same tables that the write side populates.
+
+This approach is sometimes referred to as **"thin CQRS"** or **"same-store CQRS"**. It captures the essential architectural insight—that read and write operations benefit from different code paths and data access strategies—while avoiding the operational complexity of fully decoupled models.
+
+### Why This Distinction Matters
+
+Understanding this distinction is valuable for several reasons:
+
+1. **Using projections or optimized SQL queries does not, by itself, constitute full CQRS.** It is a well-established performance optimization technique. What makes our approach CQRS-adjacent is the deliberate separation of *models and responsibilities*, not merely the use of efficient queries.
+
+2. **Full CQRS introduces additional concerns** that are absent here: event publishing to synchronize models, handling of eventual consistency, potential for stale reads, and the need for idempotent event consumers. These are production-grade concerns discussed in the [How This Would Evolve in Production](#how-this-would-evolve-in-production) section.
+
+3. **The pedagogical value is in the separation itself.** By designing distinct command and query paths—with different port interfaces, different data access patterns, and different design priorities—students internalize the core principle of CQRS. The step from this pragmatic form to a fully decoupled architecture is then an infrastructure evolution, not a conceptual leap.
+
+> **In summary:** This tutorial demonstrates a pragmatic separation of command and query responsibilities against a shared data store. It embodies the *principle* of CQRS without adopting its full architectural weight. This is an intentional and appropriate choice for a pedagogical context, and it aligns with Fowler's own advice to apply CQRS judiciously and only where the complexity is warranted.
+
+---
+
 ## How This Would Evolve in Production
 
 The architecture presented in this assignment is intentionally simplified for pedagogical purposes. Here's how it would evolve in a production environment.
@@ -794,6 +838,18 @@ This is the power of Hexagonal Architecture combined with DDD and CQRS:
 > **The core architecture remains stable. Infrastructure evolves.**
 
 Business logic is protected. Technical concerns are isolated in adapters. New requirements can be met by adding or replacing adapters, not by rewriting the core.
+
+---
+
+## Further Reading
+
+- **Martin Fowler — CQRS** (2011): [https://martinfowler.com/bliki/CQRS.html](https://martinfowler.com/bliki/CQRS.html)
+  Fowler's concise articulation of the pattern, its benefits, and its risks. Essential reading for understanding when CQRS is—and is not—appropriate.
+
+- **Greg Young — CQRS Documents** (2010): Greg Young originated the term CQRS, extending Bertrand Meyer's Command-Query Separation (CQS) principle from the method level to the architectural level. His writings and presentations provide the foundational rationale for separating write and read models in complex domains.
+
+- **Martin Fowler — Command Query Separation**: [https://martinfowler.com/bliki/CommandQuerySeparation.html](https://martinfowler.com/bliki/CommandQuerySeparation.html)
+  The predecessor principle by Bertrand Meyer, which states that a method should either change state or return a result, but not both. CQRS elevates this idea to the level of system architecture.
 
 ---
 
