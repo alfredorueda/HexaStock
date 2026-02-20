@@ -1,0 +1,771 @@
+openapi: 3.0.3
+info:
+  title: HexaStock — Stock Portfolio API
+  description: |
+    REST API for managing investment portfolios, stock trading, and performance reporting.
+
+    Reverse-engineered from the HexaStock codebase. Code and tests are the single source of truth.
+
+    ## Architecture
+    Built with **Hexagonal Architecture** (Ports & Adapters) and **Domain-Driven Design**.
+    Controllers are primary adapters; persistence and stock-price providers are secondary adapters.
+
+    ## Error Contract
+    All error responses follow **RFC 7807 Problem Detail** (`application/problem+json`).
+    See the `ProblemDetail` schema under `components/schemas`.
+  version: 0.0.1-SNAPSHOT
+  contact:
+    name: HexaStock Team
+
+servers:
+  - url: http://localhost:8080
+    description: Local development
+
+tags:
+  - name: Portfolios
+    description: Portfolio CRUD and cash management
+  - name: Stock Trading
+    description: Buy and sell shares
+  - name: Transactions
+    description: Transaction history
+  - name: Holdings
+    description: Holdings performance reporting
+  - name: Stock Prices
+    description: Stock price lookup
+
+# ═══════════════════════════════════════════════════════════════════════
+#  PATHS
+# ═══════════════════════════════════════════════════════════════════════
+paths:
+  # ── Portfolios collection ──────────────────────────────────────────
+  /api/portfolios:
+    post:
+      operationId: createPortfolio
+      tags: [Portfolios]
+      summary: Create a new portfolio
+      description: |
+        Creates a new investment portfolio with a generated UUID and zero cash balance.
+        Returns **201 Created** with a `Location` header.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreatePortfolioRequest'
+            example:
+              ownerName: "Alice"
+      responses:
+        '201':
+          description: Portfolio created successfully
+          headers:
+            Location:
+              description: URI of the newly created portfolio
+              schema:
+                type: string
+                format: uri
+                example: http://localhost:8080/api/portfolios/550e8400-e29b-41d4-a716-446655440000
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CreatePortfolioResponse'
+    get:
+      operationId: getAllPortfolios
+      tags: [Portfolios]
+      summary: List all portfolios
+      description: Returns all portfolios in the system.
+      responses:
+        '200':
+          description: List of portfolios (may be empty)
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/PortfolioResponse'
+
+  # ── Single portfolio ───────────────────────────────────────────────
+  /api/portfolios/{id}:
+    get:
+      operationId: getPortfolio
+      tags: [Portfolios]
+      summary: Get portfolio by ID
+      description: Retrieves a single portfolio by its unique identifier.
+      parameters:
+        - $ref: '#/components/parameters/PortfolioId'
+      responses:
+        '200':
+          description: Portfolio found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PortfolioResponse'
+        '404':
+          $ref: '#/components/responses/PortfolioNotFound'
+
+  # ── Deposits ───────────────────────────────────────────────────────
+  /api/portfolios/{id}/deposits:
+    post:
+      operationId: deposit
+      tags: [Portfolios]
+      summary: Deposit funds into a portfolio
+      description: |
+        Adds the specified amount to the portfolio's cash balance.
+        A DEPOSIT transaction is recorded.
+        Amount must be strictly positive.
+      parameters:
+        - $ref: '#/components/parameters/PortfolioId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AmountRequest'
+            example:
+              amount: 10000.00
+      responses:
+        '200':
+          description: Deposit successful (empty body)
+        '400':
+          $ref: '#/components/responses/InvalidAmount'
+        '404':
+          $ref: '#/components/responses/PortfolioNotFound'
+
+  # ── Withdrawals ────────────────────────────────────────────────────
+  /api/portfolios/{id}/withdrawals:
+    post:
+      operationId: withdraw
+      tags: [Portfolios]
+      summary: Withdraw funds from a portfolio
+      description: |
+        Deducts the specified amount from the portfolio's cash balance.
+        A WITHDRAWAL transaction is recorded.
+        Amount must be strictly positive and ≤ current balance.
+      parameters:
+        - $ref: '#/components/parameters/PortfolioId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AmountRequest'
+            example:
+              amount: 500.00
+      responses:
+        '200':
+          description: Withdrawal successful (empty body)
+        '400':
+          $ref: '#/components/responses/InvalidAmount'
+        '404':
+          $ref: '#/components/responses/PortfolioNotFound'
+        '409':
+          $ref: '#/components/responses/InsufficientFunds'
+
+  # ── Purchases ──────────────────────────────────────────────────────
+  /api/portfolios/{id}/purchases:
+    post:
+      operationId: buyStock
+      tags: [Stock Trading]
+      summary: Buy shares of a stock
+      description: |
+        Purchases the specified quantity of shares at the current market price
+        (fetched automatically from the stock price provider).
+
+        - Ticker must match `^[A-Z]{1,5}$`.
+        - Quantity must be > 0.
+        - Portfolio must have sufficient funds.
+
+        A new Lot is created in the holding. A PURCHASE transaction is recorded.
+      parameters:
+        - $ref: '#/components/parameters/PortfolioId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TradeRequest'
+            example:
+              ticker: "AAPL"
+              quantity: 10
+      responses:
+        '200':
+          description: Purchase successful (empty body)
+        '400':
+          description: |
+            Bad request. Possible causes:
+            - Invalid ticker format → `title: "Invalid Ticker"`
+            - Non-positive quantity → `title: "Invalid Quantity"`
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+        '404':
+          $ref: '#/components/responses/PortfolioNotFound'
+        '409':
+          $ref: '#/components/responses/InsufficientFunds'
+        '503':
+          $ref: '#/components/responses/ExternalApiError'
+
+  # ── Sales ──────────────────────────────────────────────────────────
+  /api/portfolios/{id}/sales:
+    post:
+      operationId: sellStock
+      tags: [Stock Trading]
+      summary: Sell shares of a stock
+      description: |
+        Sells the specified quantity of shares at the current market price
+        using **FIFO** (First-In-First-Out) accounting.
+
+        - Ticker must match `^[A-Z]{1,5}$`.
+        - Quantity must be > 0.
+        - Portfolio must hold the ticker with ≥ requested shares.
+
+        Returns sale details including proceeds, cost basis, and profit/loss.
+        A SALE transaction is recorded.
+      parameters:
+        - $ref: '#/components/parameters/PortfolioId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TradeRequest'
+            example:
+              ticker: "AAPL"
+              quantity: 5
+      responses:
+        '200':
+          description: Sale successful
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SaleResponse'
+        '400':
+          description: |
+            Bad request. Possible causes:
+            - Invalid ticker format → `title: "Invalid Ticker"`
+            - Non-positive quantity → `title: "Invalid Quantity"`
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+        '404':
+          description: |
+            Not found. Possible causes:
+            - Portfolio not found → `title: "Portfolio Not Found"`
+            - Holding not found for ticker → `title: "Holding Not Found"`
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+        '409':
+          description: Not enough shares to sell
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+              example:
+                type: "about:blank"
+                title: "Conflict Quantity"
+                status: 409
+                detail: "Not enough shares to sell. Available: 5, Requested: 10"
+                instance: "/api/portfolios/550e8400/sales"
+        '503':
+          $ref: '#/components/responses/ExternalApiError'
+
+  # ── Transactions ───────────────────────────────────────────────────
+  /api/portfolios/{id}/transactions:
+    get:
+      operationId: getTransactions
+      tags: [Transactions]
+      summary: Get transaction history
+      description: |
+        Retrieves the transaction history for a portfolio.
+
+        **Note:** The `type` query parameter is accepted by the controller but
+        is **not currently used for filtering** — all transactions are always
+        returned regardless of the value passed.
+      parameters:
+        - $ref: '#/components/parameters/PortfolioId'
+        - name: type
+          in: query
+          required: false
+          description: |
+            Transaction type filter. Accepted values: `DEPOSIT`, `WITHDRAWAL`,
+            `PURCHASE`, `SALE`. **Currently ignored by the implementation.**
+          schema:
+            type: string
+            enum: [DEPOSIT, WITHDRAWAL, PURCHASE, SALE]
+      responses:
+        '200':
+          description: List of transactions (may be empty)
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/TransactionDTO'
+
+  # ── Holdings performance ───────────────────────────────────────────
+  /api/portfolios/{id}/holdings:
+    get:
+      operationId: getHoldings
+      tags: [Holdings]
+      summary: Get holdings performance
+      description: |
+        Returns per-ticker performance metrics for the portfolio's current holdings.
+
+        For each ticker the response includes:
+        - Total shares purchased, shares remaining
+        - Weighted average purchase price
+        - Live market price (0.00 if provider unavailable)
+        - Unrealized and realized gains
+      parameters:
+        - $ref: '#/components/parameters/PortfolioId'
+      responses:
+        '200':
+          description: Holdings performance (may be empty)
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/HoldingDTO'
+        '404':
+          $ref: '#/components/responses/PortfolioNotFound'
+
+  # ── Stock prices ───────────────────────────────────────────────────
+  /api/stocks/{symbol}:
+    get:
+      operationId: getStockPrice
+      tags: [Stock Prices]
+      summary: Get current stock price
+      description: |
+        Retrieves the current market price for the given ticker symbol.
+        Ticker must match `^[A-Z]{1,5}$`.
+      parameters:
+        - name: symbol
+          in: path
+          required: true
+          description: Stock ticker symbol (1–5 uppercase letters)
+          schema:
+            type: string
+            pattern: '^[A-Z]{1,5}$'
+            example: AAPL
+      responses:
+        '200':
+          description: Stock price found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StockPriceDTO'
+        '400':
+          description: Invalid ticker format
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+              example:
+                type: "about:blank"
+                title: "Invalid Ticker"
+                status: 400
+                detail: "Invalid ticker: lowercase"
+                instance: "/api/stocks/lowercase"
+        '503':
+          $ref: '#/components/responses/ExternalApiError'
+
+# ═══════════════════════════════════════════════════════════════════════
+#  COMPONENTS
+# ═══════════════════════════════════════════════════════════════════════
+components:
+  # ── Parameters ─────────────────────────────────────────────────────
+  parameters:
+    PortfolioId:
+      name: id
+      in: path
+      required: true
+      description: Unique portfolio identifier (UUID string)
+      schema:
+        type: string
+        example: 550e8400-e29b-41d4-a716-446655440000
+
+  # ── Reusable responses ─────────────────────────────────────────────
+  responses:
+    PortfolioNotFound:
+      description: Portfolio not found
+      content:
+        application/problem+json:
+          schema:
+            $ref: '#/components/schemas/ProblemDetail'
+          example:
+            type: "about:blank"
+            title: "Portfolio Not Found"
+            status: 404
+            detail: "El portfolio no existe hulio: 550e8400-e29b-41d4-a716-446655440000"
+            instance: "/api/portfolios/550e8400-e29b-41d4-a716-446655440000"
+
+    InvalidAmount:
+      description: Amount must be strictly positive
+      content:
+        application/problem+json:
+          schema:
+            $ref: '#/components/schemas/ProblemDetail'
+          example:
+            type: "about:blank"
+            title: "Invalid Amount"
+            status: 400
+            detail: "Deposit amount must be positive"
+            instance: "/api/portfolios/550e8400/deposits"
+
+    InsufficientFunds:
+      description: Insufficient funds in portfolio
+      content:
+        application/problem+json:
+          schema:
+            $ref: '#/components/schemas/ProblemDetail'
+          example:
+            type: "about:blank"
+            title: "Insufficient Funds"
+            status: 409
+            detail: "Insufficient funds for withdrawal"
+            instance: "/api/portfolios/550e8400/withdrawals"
+
+    ExternalApiError:
+      description: Stock price provider unavailable
+      content:
+        application/problem+json:
+          schema:
+            $ref: '#/components/schemas/ProblemDetail'
+          example:
+            type: "about:blank"
+            title: "External API Error"
+            status: 503
+            detail: "Failed to fetch price for ticker AAPL"
+            instance: "/api/portfolios/550e8400/purchases"
+
+  # ── Schemas ────────────────────────────────────────────────────────
+  schemas:
+    # ·· Error schema (RFC 7807) ····································
+    ProblemDetail:
+      type: object
+      description: |
+        RFC 7807 Problem Detail, produced by Spring's `ProblemDetail` class
+        via `ExceptionHandlingAdvice`.
+      properties:
+        type:
+          type: string
+          format: uri
+          description: URI reference identifying the problem type
+          example: "about:blank"
+        title:
+          type: string
+          description: Short human-readable summary
+          example: "Portfolio Not Found"
+        status:
+          type: integer
+          description: HTTP status code
+          example: 404
+        detail:
+          type: string
+          description: Human-readable explanation specific to this occurrence
+          example: "El portfolio no existe hulio: 550e8400"
+        instance:
+          type: string
+          format: uri
+          description: URI reference identifying the specific occurrence
+          example: "/api/portfolios/550e8400"
+      required:
+        - type
+        - title
+        - status
+
+    # ·· Request DTOs ···············································
+    CreatePortfolioRequest:
+      type: object
+      description: Request body for creating a new portfolio.
+      required:
+        - ownerName
+      properties:
+        ownerName:
+          type: string
+          description: Name of the portfolio owner
+          example: "Alice"
+
+    AmountRequest:
+      type: object
+      description: Request body for deposit and withdrawal operations.
+      required:
+        - amount
+      properties:
+        amount:
+          type: number
+          format: double
+          description: Monetary amount (must be > 0)
+          example: 10000.00
+
+    TradeRequest:
+      type: object
+      description: Request body for buy and sell operations.
+      required:
+        - ticker
+        - quantity
+      properties:
+        ticker:
+          type: string
+          description: Stock ticker symbol (1–5 uppercase letters)
+          pattern: '^[A-Z]{1,5}$'
+          example: "AAPL"
+        quantity:
+          type: integer
+          format: int32
+          description: Number of shares (must be > 0)
+          minimum: 1
+          example: 10
+
+    # ·· Response DTOs ··············································
+    CreatePortfolioResponse:
+      type: object
+      description: Response body after creating a portfolio.
+      properties:
+        id:
+          type: string
+          description: Generated UUID of the portfolio
+          example: "550e8400-e29b-41d4-a716-446655440000"
+        ownerName:
+          type: string
+          description: Owner name
+          example: "Alice"
+        cashBalance:
+          type: number
+          format: double
+          description: Initial cash balance (always 0.00)
+          example: 0.00
+        currency:
+          type: string
+          description: Currency code (always "USD")
+          example: "USD"
+      required:
+        - id
+        - ownerName
+        - cashBalance
+        - currency
+
+    PortfolioResponse:
+      type: object
+      description: Portfolio details.
+      properties:
+        id:
+          type: string
+          description: Portfolio UUID
+          example: "550e8400-e29b-41d4-a716-446655440000"
+        ownerName:
+          type: string
+          description: Owner name
+          example: "Alice"
+        balance:
+          type: number
+          format: double
+          description: Current cash balance
+          example: 10000.00
+        createdAt:
+          type: string
+          format: date-time
+          description: Portfolio creation timestamp (ISO 8601, no timezone — LocalDateTime)
+          example: "2025-01-15T10:30:00"
+      required:
+        - id
+        - ownerName
+        - balance
+        - createdAt
+
+    SaleResponse:
+      type: object
+      description: Result of a stock sale operation.
+      properties:
+        portfolioId:
+          type: string
+          description: Portfolio UUID
+          example: "550e8400-e29b-41d4-a716-446655440000"
+        ticker:
+          type: string
+          description: Ticker symbol sold
+          example: "AAPL"
+        quantity:
+          type: integer
+          format: int32
+          description: Number of shares sold
+          example: 5
+        proceeds:
+          type: number
+          format: double
+          description: Total money received (quantity × sell price)
+          example: 901.25
+        costBasis:
+          type: number
+          format: double
+          description: Original purchase cost of the sold shares (FIFO)
+          example: 877.50
+        profit:
+          type: number
+          format: double
+          description: Profit or loss (proceeds − costBasis). Can be negative.
+          example: 23.75
+      required:
+        - portfolioId
+        - ticker
+        - quantity
+        - proceeds
+        - costBasis
+        - profit
+
+    TransactionDTO:
+      type: object
+      description: |
+        Wraps the raw `Transaction` domain object.
+
+        **Note:** The current implementation serialises domain value objects
+        as nested objects (e.g., `"id": {"value": "..."}`) rather than
+        flattened primitives. This is a known issue — see Follow-up Issue #2
+        in the API specification document.
+      properties:
+        transaction:
+          $ref: '#/components/schemas/TransactionDomain'
+
+    TransactionDomain:
+      type: object
+      description: |
+        Raw domain Transaction object as serialised by Jackson.
+        Value objects appear as nested objects with their internal field names.
+      properties:
+        id:
+          type: object
+          properties:
+            value:
+              type: string
+              example: "a1b2c3d4-e5f6-7890-abcd-ef1234567890"
+        portfolioId:
+          type: object
+          properties:
+            value:
+              type: string
+              example: "550e8400-e29b-41d4-a716-446655440000"
+        type:
+          type: string
+          enum: [DEPOSIT, WITHDRAWAL, PURCHASE, SALE]
+          example: "PURCHASE"
+        ticker:
+          type: object
+          nullable: true
+          description: "null for DEPOSIT/WITHDRAWAL"
+          properties:
+            value:
+              type: string
+              example: "AAPL"
+        quantity:
+          type: object
+          properties:
+            value:
+              type: integer
+              format: int32
+              example: 10
+        unitPrice:
+          type: object
+          nullable: true
+          description: "null for DEPOSIT/WITHDRAWAL"
+          properties:
+            value:
+              type: number
+              format: double
+              example: 150.00
+        totalAmount:
+          type: object
+          properties:
+            amount:
+              type: number
+              format: double
+              example: 1500.00
+        profit:
+          type: object
+          properties:
+            amount:
+              type: number
+              format: double
+              example: 0.00
+        createdAt:
+          type: string
+          format: date-time
+          example: "2025-01-15T10:30:00"
+
+    HoldingDTO:
+      type: object
+      description: Per-ticker holding performance metrics.
+      properties:
+        ticker:
+          type: string
+          description: Stock symbol
+          example: "AAPL"
+        quantity:
+          type: number
+          format: double
+          description: Total shares ever purchased (all BUY transactions)
+          example: 10
+        remaining:
+          type: number
+          format: double
+          description: Shares currently held (after sells)
+          example: 7
+        averagePurchasePrice:
+          type: number
+          format: double
+          description: Weighted average purchase price (totalCost / totalQty, scale 2)
+          example: 106.67
+        currentPrice:
+          type: number
+          format: double
+          description: Live market price (0.00 if provider unavailable)
+          example: 120.00
+        unrealizedGain:
+          type: number
+          format: double
+          description: Unrealized gain/loss based on current vs purchase price per lot
+          example: 200.00
+        realizedGain:
+          type: number
+          format: double
+          description: Sum of profit from all SALE transactions for this ticker
+          example: 80.00
+      required:
+        - ticker
+        - quantity
+        - remaining
+        - averagePurchasePrice
+        - currentPrice
+        - unrealizedGain
+        - realizedGain
+
+    StockPriceDTO:
+      type: object
+      description: Current stock price information.
+      properties:
+        symbol:
+          type: string
+          description: Ticker symbol
+          example: "AAPL"
+        price:
+          type: number
+          format: double
+          description: Current market price
+          example: 178.50
+        time:
+          type: string
+          format: date-time
+          description: Timestamp when the price was recorded (ISO 8601 / Instant)
+          example: "2025-01-15T15:30:00Z"
+        currency:
+          type: string
+          description: Currency code (always "USD")
+          example: "USD"
+      required:
+        - symbol
+        - price
+        - time
+        - currency
