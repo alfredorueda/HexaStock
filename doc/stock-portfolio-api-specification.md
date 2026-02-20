@@ -1,557 +1,628 @@
 # Stock Portfolio API Specification
 
-## 1. USER STORIES
+> **Reverse-engineered from the HexaStock codebase.**
+> Code and tests are the single source of truth. This document reflects actual implemented behavior.
 
-### 1.1 Buy Stocks User Story
-**As an** investor with a portfolio  
-**I want to** purchase shares of a specific stock by simply providing the ticker symbol and quantity  
-**So that** I can build my investment portfolio without needing to manually research current market prices
+---
 
-**Acceptance Criteria:**
-- I must have sufficient funds in my portfolio balance to cover the total purchase amount
-- I only need to specify the stock ticker symbol and the desired quantity of shares
-- The system will automatically fetch the current market price for the specified stock
-- The system validates that both the quantity is positive and the fetched price is valid
-- If validation fails or I have insufficient funds, the operation is rejected with a clear error message
-- Upon success, the system:
-  - Creates a new "lot" recording the purchase details (quantity, price, date)
-  - Adds this lot to my existing holding of this stock (or creates a new holding if this is my first purchase)
-  - Deducts the total cost from my portfolio's cash balance
-  - Records a PURCHASE transaction in my transaction history
-  - Returns a confirmation of the successful purchase
+## Table of Contents
 
-### 1.2 Sell Stocks User Story
-**As an** investor with existing stock holdings  
-**I want to** sell shares of a specific stock by simply providing the ticker symbol and quantity  
-**So that** I can realize profits, cut losses, or rebalance my portfolio based on current market conditions
+1. [Global Error Contract](#1-global-error-contract)
+2. [User Stories](#2-user-stories)
+   - 2.1 [Create Portfolio](#21-us-01--create-portfolio)
+   - 2.2 [Get Portfolio](#22-us-02--get-portfolio)
+   - 2.3 [List All Portfolios](#23-us-03--list-all-portfolios)
+   - 2.4 [Deposit Funds](#24-us-04--deposit-funds)
+   - 2.5 [Withdraw Funds](#25-us-05--withdraw-funds)
+   - 2.6 [Buy Stocks](#26-us-06--buy-stocks)
+   - 2.7 [Sell Stocks](#27-us-07--sell-stocks)
+   - 2.8 [Get Transaction History](#28-us-08--get-transaction-history)
+   - 2.9 [Get Holdings Performance](#29-us-09--get-holdings-performance)
+   - 2.10 [Get Stock Price](#210-us-10--get-stock-price)
+3. [Domain Model](#3-domain-model)
+4. [PlantUML Diagram](#4-plantuml-diagram)
+5. [HTTP Request File](#5-http-request-file)
+6. [Suggested Future Evolutions](#6-suggested-future-evolutions)
+7. [Implementation Notes and Deviations](#7-implementation-notes-and-deviations)
+8. [Follow-up Issue Suggestions](#8-follow-up-issue-suggestions)
+9. [Change Log](#9-change-log)
 
-**Acceptance Criteria:**
-- I must have sufficient shares of the specified stock in my holdings
-- I only need to specify the stock ticker symbol and the quantity I wish to sell
-- The system will automatically fetch the current market price for the specified stock
-- The system validates that both the quantity is positive and the fetched price is valid
-- If validation fails or I have insufficient shares, the operation is rejected with a clear error message
-- Upon success, the system:
-  - Sells shares using FIFO (First-In-First-Out) accounting method (oldest shares are sold first)
-  - Calculates the cost basis of the sold shares based on their original purchase prices
-  - Calculates the proceeds (quantity × current price) and profit/loss (proceeds - cost basis)
-  - Increases my portfolio's cash balance by the proceeds amount
-  - Records a SALE transaction in my transaction history, including the profit/loss information
-  - Removes the sold shares from my holdings (and removes the holding entirely if all shares are sold)
-  - Returns detailed results including proceeds, cost basis, and profit/loss
+---
 
-### 1.3 Deposit Funds User Story
+## 1. Global Error Contract
+
+All error responses use the **RFC 7807 Problem Detail** format (`application/problem+json`), produced by Spring's `ProblemDetail` class via `ExceptionHandlingAdvice`.
+
+```json
+{
+  "type":     "about:blank",
+  "title":    "<Human-readable error title>",
+  "status":   <HTTP status code as integer>,
+  "detail":   "<Specific error message from the exception>",
+  "instance": "<Request URI>"
+}
+```
+
+### Exception → HTTP Status Mapping
+
+| Exception Class | HTTP Status | `title` value | Typical `detail` examples |
+|---|---|---|---|
+| `PortfolioNotFoundException` | **404** | `Portfolio Not Found` | `El portfolio no existe hulio: <id>` |
+| `HoldingNotFoundException` | **404** | `Holding Not Found` | `Holding not found in portfolio: <ticker>` / `Holding <ticker> not exists` |
+| `InvalidAmountException` | **400** | `Invalid Amount` | `Deposit amount must be positive` / `Withdrawal amount must be positive` / `Price must be positive: <value>` |
+| `InvalidQuantityException` | **400** | `Invalid Quantity` | `Quantity must be positive: <value>` / `Share quantity cannot be negative: <value>` |
+| `InvalidTickerException` | **400** | `Invalid Ticker` | `Ticker cannot be empty` / `Invalid ticker: <value>` |
+| `ConflictQuantityException` | **409** | `Conflict Quantity` | `Not enough shares to sell. Available: <n>, Requested: <m>` |
+| `InsufficientFundsException` | **409** | `Insufficient Funds` | `Insufficient funds for withdrawal` / `Insufficient funds to buy <n> shares of <ticker>` |
+| `ExternalApiException` | **503** | `External API Error` | *(provider-specific message)* |
+
+> **Implementation pointer:** `ExceptionHandlingAdvice` — `cat.gencat.agaur.hexastock.adapter.in.ExceptionHandlingAdvice`
+
+---
+
+## 2. User Stories
+
+---
+
+### 2.1 US-01 — Create Portfolio
+
+**As an** investor  
+**I want to** create a new investment portfolio  
+**So that** I can start managing my investments
+
+#### Preconditions
+
+- None.
+
+#### Acceptance Criteria
+
+| # | Given / When / Then |
+|---|---|
+| 1 | **Given** a valid owner name<br/>**When** I POST `/api/portfolios` with `{"ownerName":"Alice"}`<br/>**Then** I receive **201 Created** with a `Location` header pointing to `/api/portfolios/{id}` and a body containing `id`, `ownerName`, `cashBalance` (0.00), `currency` ("USD") |
+
+#### Success Response (201 Created)
+
+```json
+{
+  "id": "550e8400-e29b-41d4-a716-446655440000",
+  "ownerName": "Alice",
+  "cashBalance": 0.00,
+  "currency": "USD"
+}
+```
+
+Headers:
+```
+Location: http://localhost:8080/api/portfolios/550e8400-e29b-41d4-a716-446655440000
+```
+
+#### Implementation Pointers
+
+| Layer | Class / Method |
+|---|---|
+| Controller | `PortfolioRestController.createPortfolio(CreatePortfolioDTO)` |
+| Use Case | `PortfolioManagementUseCase.createPortfolio(String)` |
+| Service | `PortfolioManagementService.createPortfolio(String)` |
+| Domain | `Portfolio.create(String)` |
+| DTO (request) | `CreatePortfolioDTO(String ownerName)` |
+| DTO (response) | `CreatePortfolioResponseDTO(String id, String ownerName, BigDecimal cashBalance, String currency)` |
+| Tests | `PortfolioRestControllerIntegrationTest` — `createPortfolio()` helper, `ListAllPortfolios` nested class |
+
+---
+
+### 2.2 US-02 — Get Portfolio
+
+**As an** investor  
+**I want to** retrieve my portfolio details  
+**So that** I can see my current balance and account information
+
+#### Preconditions
+
+- Portfolio with the given ID must exist.
+
+#### Acceptance Criteria
+
+| # | Given / When / Then |
+|---|---|
+| 1 | **Given** an existing portfolio<br/>**When** I GET `/api/portfolios/{id}`<br/>**Then** I receive **200 OK** with `id`, `ownerName`, `balance`, `createdAt` |
+| 2 | **Given** a non-existent portfolio ID<br/>**When** I GET `/api/portfolios/{id}`<br/>**Then** I receive **404 Not Found** with ProblemDetail `title: "Portfolio Not Found"` |
+
+#### Success Response (200 OK)
+
+```json
+{
+  "id": "550e8400-e29b-41d4-a716-446655440000",
+  "ownerName": "Alice",
+  "balance": 10000.00,
+  "createdAt": "2025-01-15T10:30:00"
+}
+```
+
+#### Implementation Pointers
+
+| Layer | Class / Method |
+|---|---|
+| Controller | `PortfolioRestController.getPortfolio(String id)` |
+| Use Case | `PortfolioManagementUseCase.getPortfolio(PortfolioId)` |
+| Service | `PortfolioManagementService.getPortfolio(PortfolioId)` |
+| DTO (response) | `PortfolioResponseDTO(String id, String ownerName, BigDecimal balance, LocalDateTime createdAt)` |
+| Tests | `PortfolioRestControllerIntegrationTest.WhenPortfolioExists.HappyPath.getPortfolio_returnsDtoWithBasicFields()`, `WhenPortfolioDoesNotExist.getNonExistentPortfolio_returns404()` |
+
+---
+
+### 2.3 US-03 — List All Portfolios
+
+**As an** administrator or investor  
+**I want to** list all portfolios in the system  
+**So that** I can get an overview of all accounts
+
+#### Preconditions
+
+- None.
+
+#### Acceptance Criteria
+
+| # | Given / When / Then |
+|---|---|
+| 1 | **Given** multiple portfolios exist<br/>**When** I GET `/api/portfolios`<br/>**Then** I receive **200 OK** with a JSON array of portfolio objects, each containing `id`, `ownerName`, `balance`, `createdAt` |
+| 2 | **Given** no portfolios exist<br/>**When** I GET `/api/portfolios`<br/>**Then** I receive **200 OK** with an empty array `[]` |
+
+#### Success Response (200 OK)
+
+```json
+[
+  {
+    "id": "...",
+    "ownerName": "Alice",
+    "balance": 1000.00,
+    "createdAt": "2025-01-15T10:30:00"
+  },
+  {
+    "id": "...",
+    "ownerName": "Bob",
+    "balance": 2500.00,
+    "createdAt": "2025-01-15T11:00:00"
+  }
+]
+```
+
+#### Implementation Pointers
+
+| Layer | Class / Method |
+|---|---|
+| Controller | `PortfolioRestController.getAllPortfolios()` |
+| Use Case | `PortfolioManagementUseCase.getAllPortfolios()` |
+| Service | `PortfolioManagementService.getAllPortfolios()` |
+| Port (out) | `PortfolioPort.getAllPortfolios()` |
+| Tests | `PortfolioRestControllerIntegrationTest.ListAllPortfolios.returnsAllCreatedPortfoliosWithCorrectBalances()` |
+
+---
+
+### 2.4 US-04 — Deposit Funds
+
 **As an** investor managing my portfolio  
 **I want to** add money to my portfolio's cash balance  
 **So that** I have funds available for future stock purchases
 
-**Acceptance Criteria:**
-- I must specify a positive amount to deposit
-- Upon success, the system:
-  - Increases my portfolio's cash balance by the deposited amount
-  - Records a DEPOSIT transaction in my transaction history
-  - Returns a confirmation of the successful deposit
+#### Preconditions
 
-### 1.4 Withdraw Funds User Story
+- Portfolio must exist.
+- Deposit amount must be positive (> 0).
+
+#### Acceptance Criteria
+
+| # | Given / When / Then |
+|---|---|
+| 1 | **Given** an existing portfolio with balance $5000<br/>**When** I POST `/api/portfolios/{id}/deposits` with `{"amount": 2000}`<br/>**Then** I receive **200 OK** (empty body) and the balance becomes $7000 |
+| 2 | **Given** an existing portfolio<br/>**When** I deposit amount `0`<br/>**Then** I receive **400 Bad Request** with `title: "Invalid Amount"`, `detail` containing `"amount"` |
+| 3 | **Given** an existing portfolio<br/>**When** I deposit a negative amount<br/>**Then** I receive **400 Bad Request** with `title: "Invalid Amount"`, `detail` containing `"amount"` |
+| 4 | **Given** a non-existent portfolio ID<br/>**When** I deposit any amount<br/>**Then** I receive **404 Not Found** with `title: "Portfolio Not Found"` |
+
+#### Implementation Pointers
+
+| Layer | Class / Method |
+|---|---|
+| Controller | `PortfolioRestController.deposit(String id, DepositRequestDTO request)` |
+| Use Case | `PortfolioManagementUseCase.deposit(PortfolioId, Money)` |
+| Service | `PortfolioManagementService.deposit(PortfolioId, Money)` |
+| Domain | `Portfolio.deposit(Money)` — throws `InvalidAmountException` if not positive |
+| DTO (request) | `DepositRequestDTO(BigDecimal amount)` |
+| Tests | `PortfolioRestControllerIntegrationTest.WhenPortfolioExists.DepositsAndWithdrawals` — `deposit_updatesBalance()`, `depositZeroAmount_returns400()`, `depositNegativeAmount_returns400()`, `WhenPortfolioDoesNotExist.depositToNonExistentPortfolio_returns404()` |
+
+> **Note:** The domain `Portfolio.deposit()` method's Javadoc incorrectly references `InsufficientFundsException`, but the actual code throws `InvalidAmountException` when the amount is not positive. Tests confirm `InvalidAmountException` (400).
+
+---
+
+### 2.5 US-05 — Withdraw Funds
+
 **As an** investor managing my portfolio  
 **I want to** withdraw money from my portfolio's cash balance  
-**So that** I can use these funds elsewhere or realize investment gains
+**So that** I can use these funds elsewhere
 
-**Acceptance Criteria:**
-- I must specify a positive amount to withdraw
-- I must have sufficient funds in my portfolio's cash balance
-- If I have insufficient funds, the withdrawal is rejected with a clear error message
-- Upon success, the system:
-  - Decreases my portfolio's cash balance by the withdrawn amount
-  - Records a WITHDRAWAL transaction in my transaction history
-  - Returns a confirmation of the successful withdrawal
+#### Preconditions
 
-### 1.5 View Portfolio Performance User Story
+- Portfolio must exist.
+- Withdrawal amount must be positive (> 0).
+- Portfolio balance must be ≥ withdrawal amount.
+
+#### Acceptance Criteria
+
+| # | Given / When / Then |
+|---|---|
+| 1 | **Given** a portfolio with balance $5000<br/>**When** I POST `/api/portfolios/{id}/withdrawals` with `{"amount": 2000}`<br/>**Then** I receive **200 OK** (empty body) and the balance becomes $3000 |
+| 2 | **Given** a portfolio<br/>**When** I withdraw amount `0`<br/>**Then** I receive **400 Bad Request** with `title: "Invalid Amount"` |
+| 3 | **Given** a portfolio<br/>**When** I withdraw a negative amount<br/>**Then** I receive **400 Bad Request** with `title: "Invalid Amount"` |
+| 4 | **Given** a portfolio with balance $100<br/>**When** I withdraw $200<br/>**Then** I receive **409 Conflict** with `title: "Insufficient Funds"`, `detail` containing `"Insufficient funds"` |
+| 5 | **Given** a portfolio with balance $0<br/>**When** I withdraw $1<br/>**Then** I receive **409 Conflict** with `title: "Insufficient Funds"` |
+| 6 | **Given** a non-existent portfolio ID<br/>**When** I withdraw any amount<br/>**Then** I receive **404 Not Found** with `title: "Portfolio Not Found"` |
+
+#### Implementation Pointers
+
+| Layer | Class / Method |
+|---|---|
+| Controller | `PortfolioRestController.withdraw(String id, WithdrawalRequestDTO request)` |
+| Use Case | `PortfolioManagementUseCase.withdraw(PortfolioId, Money)` |
+| Service | `PortfolioManagementService.withdraw(PortfolioId, Money)` |
+| Domain | `Portfolio.withdraw(Money)` — throws `InvalidAmountException` if not positive, `InsufficientFundsException` if balance < amount |
+| DTO (request) | `WithdrawalRequestDTO(BigDecimal amount)` |
+| Tests | `PortfolioRestControllerIntegrationTest.WhenPortfolioExists.DepositsAndWithdrawals` — `withdraw_updatesBalance()`, `withdrawZeroAmount_returns400()`, `withdrawNegativeAmount_returns400()`, `withdrawMoreThanBalance_returns409()`, `withdrawFromZeroBalance_returns409()`, `WhenPortfolioDoesNotExist.withdrawFromNonExistentPortfolio_returns404()` |
+
+---
+
+### 2.6 US-06 — Buy Stocks
+
+**As an** investor with a portfolio  
+**I want to** purchase shares of a specific stock by providing the ticker symbol and quantity  
+**So that** I can build my investment portfolio without needing to manually research current market prices
+
+#### Preconditions
+
+- Portfolio must exist.
+- Ticker must be valid: 1–5 uppercase letters matching `^[A-Z]{1,5}$`.
+- Quantity must be positive (> 0).
+- Portfolio balance must be ≥ total cost (quantity × current market price).
+
+#### Acceptance Criteria
+
+| # | Given / When / Then |
+|---|---|
+| 1 | **Given** a funded portfolio<br/>**When** I POST `/api/portfolios/{id}/purchases` with `{"ticker":"AAPL","quantity":5}`<br/>**Then** I receive **200 OK** (empty body), balance decreases by (5 × market price), and a holding for AAPL appears with 5 remaining shares |
+| 2 | **Given** a portfolio with existing AAPL holding<br/>**When** I buy more AAPL shares<br/>**Then** a new lot is added to the existing holding |
+| 3 | **Given** a portfolio with insufficient funds<br/>**When** I buy stock<br/>**Then** I receive **409 Conflict** with `title: "Insufficient Funds"`, `detail` containing `"Insufficient funds"` |
+| 4 | **Given** a portfolio<br/>**When** I buy with quantity `0`<br/>**Then** I receive **400 Bad Request** with `title: "Invalid Quantity"`, `detail` containing `"Quantity must be positive"` |
+| 5 | **Given** a portfolio<br/>**When** I buy with negative quantity<br/>**Then** I receive **400 Bad Request** with `title: "Invalid Quantity"`, `detail` containing `"Quantity must be positive"` |
+| 6 | **Given** a portfolio<br/>**When** I buy with an invalid ticker (e.g., `"ZZZZ_INVALID"`)<br/>**Then** I receive **400 Bad Request** with `title: "Invalid Ticker"`, `detail` containing the invalid ticker string, and no holding is created |
+| 7 | **Given** a portfolio<br/>**When** I buy with an empty ticker `""`<br/>**Then** I receive **400 Bad Request** with `title: "Invalid Ticker"` |
+| 8 | **Given** a non-existent portfolio ID<br/>**When** I buy stock<br/>**Then** I receive **404 Not Found** with `title: "Portfolio Not Found"` |
+
+#### Implementation Pointers
+
+| Layer | Class / Method |
+|---|---|
+| Controller | `PortfolioRestController.buyStock(String id, PurchaseDTO request)` |
+| Use Case | `PortfolioStockOperationsUseCase.buyStock(PortfolioId, Ticker, ShareQuantity)` |
+| Service | `PortfolioStockOperationsService.buyStock(...)` — fetches price via `StockPriceProviderPort`, delegates to `Portfolio.buy()`, saves, records transaction |
+| Domain | `Portfolio.buy(Ticker, ShareQuantity, Price)` — validates quantity positive, checks sufficient funds, finds/creates holding |
+| Domain | `Holding.buy(ShareQuantity, Price)` — creates a new `Lot` |
+| Domain | `Lot.create(ShareQuantity, Price)` — validates positive quantity |
+| Validation | `Ticker(String)` constructor — validates format `^[A-Z]{1,5}$`; `ShareQuantity.positive(int)` — validates > 0 |
+| DTO (request) | `PurchaseDTO(String ticker, int quantity)` |
+| Tests | `PortfolioRestControllerIntegrationTest.WhenPortfolioExists.BuyingShares` — `buyReducesBalanceAndAddsHolding()`, `buyWithInsufficientFunds_returns409()`, `buyWithZeroQuantity_returns400()`, `buyWithNegativeQuantity_returns400()`, `buyWithInvalidTicker_returns400_andNoHoldingCreated()`, `buyWithEmptyTicker_returns400()`, `multipleBuysAndSellsAcrossTickers()` |
+
+> **Note:** The controller calls `ShareQuantity.positive(request.quantity())` which throws `InvalidQuantityException` for values ≤ 0 *before* the domain `Portfolio.buy()` method is reached. The `Ticker.of(request.ticker())` call also validates the ticker format at the controller level.
+
+---
+
+### 2.7 US-07 — Sell Stocks
+
+**As an** investor with existing stock holdings  
+**I want to** sell shares of a specific stock by providing the ticker symbol and quantity  
+**So that** I can realize profits, cut losses, or rebalance my portfolio
+
+#### Preconditions
+
+- Portfolio must exist.
+- Ticker must be valid: 1–5 uppercase letters.
+- Quantity must be positive (> 0).
+- Portfolio must hold the specified ticker.
+- Portfolio must hold ≥ requested quantity of shares for that ticker.
+
+#### Acceptance Criteria
+
+| # | Given / When / Then |
+|---|---|
+| 1 | **Given** a portfolio holding 5 shares of AAPL<br/>**When** I POST `/api/portfolios/{id}/sales` with `{"ticker":"AAPL","quantity":3}`<br/>**Then** I receive **200 OK** with `portfolioId`, `ticker`, `quantity`, `proceeds` (> 0), `costBasis`, `profit`; 2 shares remain |
+| 2 | **Given** the sale uses FIFO accounting<br/>**When** I sell 8 shares from lots [10@$100, 5@$120]<br/>**Then** 8 shares are sold from the oldest lot first; cost basis = 8 × $100 = $800 |
+| 3 | **Given** a portfolio holding 5 shares of AAPL<br/>**When** I sell 10 shares<br/>**Then** I receive **409 Conflict** with `title: "Conflict Quantity"`, `detail` containing `"Not enough shares to sell"` |
+| 4 | **Given** a portfolio<br/>**When** I sell with quantity `0`<br/>**Then** I receive **400 Bad Request** with `title: "Invalid Quantity"`, `detail` containing `"Quantity must be positive"` |
+| 5 | **Given** a portfolio<br/>**When** I sell with negative quantity<br/>**Then** I receive **400 Bad Request** with `title: "Invalid Quantity"`, `detail` containing `"Quantity must be positive"` |
+| 6 | **Given** a portfolio that does NOT hold MSFT<br/>**When** I sell MSFT<br/>**Then** I receive **404 Not Found** with `title: "Holding Not Found"` |
+| 7 | **Given** a non-existent portfolio ID<br/>**When** I sell stock<br/>**Then** I receive **404 Not Found** with `title: "Portfolio Not Found"` |
+
+#### Success Response (200 OK)
+
+```json
+{
+  "portfolioId": "550e8400-e29b-41d4-a716-446655440000",
+  "ticker": "AAPL",
+  "quantity": 3,
+  "proceeds": 540.00,
+  "costBasis": 300.00,
+  "profit": 240.00
+}
+```
+
+#### Implementation Pointers
+
+| Layer | Class / Method |
+|---|---|
+| Controller | `PortfolioRestController.sellStock(String id, SaleRequestDTO request)` |
+| Use Case | `PortfolioStockOperationsUseCase.sellStock(PortfolioId, Ticker, ShareQuantity)` |
+| Service | `PortfolioStockOperationsService.sellStock(...)` — fetches price via `StockPriceProviderPort`, delegates to `Portfolio.sell()`, saves, records transaction |
+| Domain | `Portfolio.sell(Ticker, ShareQuantity, Price)` — validates quantity positive, checks holding exists (`HoldingNotFoundException`), delegates to `Holding.sell()`, adds proceeds to balance |
+| Domain | `Holding.sell(ShareQuantity, Price)` — FIFO lot iteration, throws `ConflictQuantityException` if insufficient shares, removes empty lots |
+| Domain | `Lot.reduce(ShareQuantity)`, `Lot.calculateCostBasis(ShareQuantity)` |
+| Domain | `SellResult.of(Money proceeds, Money costBasis)` — calculates profit |
+| DTO (request) | `SaleRequestDTO(String ticker, int quantity)` |
+| DTO (response) | `SaleResponseDTO(String portfolioId, String ticker, int quantity, BigDecimal proceeds, BigDecimal costBasis, BigDecimal profit)` |
+| Tests | `PortfolioRestControllerIntegrationTest.WhenPortfolioExists.SellingShares` — `sellReturnsProceeds_andUpdatesHoldings()`, `sellMoreThanOwned_returns409()`, `sellWithZeroQuantity_returns400()`, `sellWithNegativeQuantity_returns400()`, `sellTickerNotOwned_returns404()`, `WhenPortfolioDoesNotExist.sellOnNonExistentPortfolio_returns404()` |
+| Domain Tests | `HoldingTest.SellingOperations` — FIFO, cross-lot, loss scenarios; `PortfolioTest.StockOperations` |
+
+---
+
+### 2.8 US-08 — Get Transaction History
+
+**As an** investor  
+**I want to** view my portfolio's transaction history  
+**So that** I can review past financial activities
+
+#### Preconditions
+
+- Portfolio ID must be a non-blank string (validated by `PortfolioId`).
+
+#### Acceptance Criteria
+
+| # | Given / When / Then |
+|---|---|
+| 1 | **Given** a portfolio with transactions<br/>**When** I GET `/api/portfolios/{id}/transactions`<br/>**Then** I receive **200 OK** with a JSON array of transaction objects |
+| 2 | **Given** a portfolio with transactions<br/>**When** I GET `/api/portfolios/{id}/transactions?type=PURCHASE`<br/>**Then** I receive **200 OK** with a JSON array (**NOTE: the `type` query parameter is accepted but currently NOT used for filtering — all transactions are returned regardless**) |
+
+#### Success Response (200 OK)
+
+Each element in the array wraps the full `Transaction` domain object:
+
+```json
+[
+  {
+    "transaction": {
+      "id": { "value": "..." },
+      "portfolioId": { "value": "..." },
+      "type": "PURCHASE",
+      "ticker": { "value": "AAPL" },
+      "quantity": { "value": 10 },
+      "unitPrice": { "value": 150.00 },
+      "totalAmount": { "amount": 1500.00 },
+      "profit": { "amount": 0.00 },
+      "createdAt": "2025-01-15T10:30:00"
+    }
+  }
+]
+```
+
+> **⚠️ Observed behavior:** The `TransactionDTO` record wraps the raw `Transaction` domain object (`TransactionDTO(Transaction transaction)`). This means the JSON serialization exposes internal value-object structure (e.g., `{"value": "..."}` for `PortfolioId`, `Ticker`, etc.) rather than flattened primitives. See [Follow-up Issue #2](#follow-up-issue-2-transactiondto-exposes-domain-internals).
+
+> **⚠️ Observed behavior:** The `type` query parameter is accepted by the controller but the `TransactionService.getTransactions()` method ignores it — it always returns all transactions for the portfolio. See [Follow-up Issue #1](#follow-up-issue-1-transaction-type-filter-not-implemented).
+
+#### Implementation Pointers
+
+| Layer | Class / Method |
+|---|---|
+| Controller | `PortfolioRestController.getTransactions(String id, String type)` — `@RequestParam(required = false) String type` |
+| Use Case | `TransactionUseCase.getTransactions(String portfolioId, Optional<String> type)` |
+| Service | `TransactionService.getTransactions(String, Optional<String>)` — retrieves all transactions, wraps each in `TransactionDTO`, **does not filter by type** |
+| Port (out) | `TransactionPort.getTransactionsByPortfolioId(PortfolioId)` |
+| DTO (response) | `TransactionDTO(Transaction transaction)` — wraps raw domain object |
+| Tests | *No dedicated integration tests for the transactions endpoint exist in the current test suite* |
+
+---
+
+### 2.9 US-09 — Get Holdings Performance
+
 **As an** investor monitoring my investments  
-**I want to** see a summary of my portfolio's performance  
-**So that** I can assess how my investments are doing and make informed decisions
+**I want to** see a performance summary of each stock in my portfolio  
+**So that** I can assess how my investments are doing
 
-**Acceptance Criteria:**
-- The system provides a comprehensive performance summary for each stock in my portfolio
-- For each stock, the summary includes:
-  - Current market price (automatically fetched)
-  - Total shares owned
-  - Average purchase price
-  - Total cost basis
-  - Current market value
-  - Unrealized gain/loss (both absolute and percentage)
-- I can optionally limit the number of stocks shown in the results
-- The results are sorted with best-performing stocks first
+#### Preconditions
 
-## 2. REST ENDPOINTS
+- Portfolio must exist.
 
-### 2.1 Buy Stocks Endpoint
+#### Acceptance Criteria
 
-#### OpenAPI 3 Specification
-```yaml
-paths:
-  /api/portfolios/{id}/purchases:
-    post:
-      summary: Buy shares of a stock for a specific portfolio
-      description: Purchases a specified quantity of a stock at the current market price
-      tags:
-        - Portfolio Operations
-      parameters:
-        - name: id
-          in: path
-          required: true
-          description: Unique identifier of the portfolio
-          schema:
-            type: string
-            format: uuid
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              required:
-                - ticker
-                - quantity
-              properties:
-                ticker:
-                  type: string
-                  description: The stock symbol/ticker (e.g., AAPL, MSFT)
-                  example: "AAPL"
-                quantity:
-                  type: integer
-                  description: Number of shares to purchase
-                  minimum: 1
-                  example: 10
-      responses:
-        '200':
-          description: Stock purchase successful
-          content:
-            application/json:
-              schema:
-                type: object
-                properties: {}
-        '400':
-          description: Invalid request
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  error:
-                    type: string
-                    example: "Invalid quantity"
-                  details:
-                    type: string
-        '404':
-          description: Portfolio not found
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  error:
-                    type: string
-                    example: "Portfolio not found with id: 123e4567-e89b-12d3-a456-426614174000"
-        '409':
-          description: Insufficient funds
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  error:
-                    type: string
-                    example: "Insufficient funds for withdrawal"
+| # | Given / When / Then |
+|---|---|
+| 1 | **Given** a portfolio with holdings<br/>**When** I GET `/api/portfolios/{id}/holdings`<br/>**Then** I receive **200 OK** with a JSON array of holding performance objects |
+| 2 | **Given** a newly created portfolio with no holdings<br/>**When** I GET `/api/portfolios/{id}/holdings`<br/>**Then** I receive **200 OK** with an empty array `[]` |
+| 3 | **Given** a non-existent portfolio ID<br/>**When** I GET `/api/portfolios/{id}/holdings`<br/>**Then** I receive **404 Not Found** with `title: "Portfolio Not Found"` |
+
+#### Success Response (200 OK)
+
+```json
+[
+  {
+    "ticker": "AAPL",
+    "quantity": 10,
+    "remaining": 10,
+    "averagePurchasePrice": 150.00,
+    "currentPrice": 160.00,
+    "unrealizedGain": 100.00,
+    "realizedGain": 0.00
+  }
+]
 ```
 
-**Explanation:**
-This endpoint allows an investor to purchase shares of a stock by specifying just the ticker symbol and quantity. The system automatically fetches the current market price, verifies that the portfolio has sufficient funds, executes the purchase, creates a new lot in the appropriate holding, and updates the portfolio's cash balance. The portfolio ID is specified in the path, while the ticker and quantity are passed in the request body. The endpoint returns a 200 OK response on success with no specific content, or appropriate error responses when the operation fails.
+| Field | Description |
+|---|---|
+| `ticker` | Stock symbol |
+| `quantity` | Total shares ever purchased (all BUY transactions) |
+| `remaining` | Shares currently held (after sells) |
+| `averagePurchasePrice` | Weighted average of all purchase prices (totalCost / totalQty) |
+| `currentPrice` | Live market price (0.00 if provider unavailable) |
+| `unrealizedGain` | (currentPrice − purchasePrice) × remainingShares per lot, summed |
+| `realizedGain` | Sum of `profit` from all SALE transactions for this ticker |
 
-### 2.2 Sell Stocks Endpoint
+#### Implementation Pointers
 
-#### OpenAPI 3 Specification
-```yaml
-paths:
-  /api/portfolios/{id}/sales:
-    post:
-      summary: Sell shares of a stock from a specific portfolio
-      description: Sells a specified quantity of a stock at the current market price using FIFO accounting method
-      tags:
-        - Portfolio Operations
-      parameters:
-        - name: id
-          in: path
-          required: true
-          description: Unique identifier of the portfolio
-          schema:
-            type: string
-            format: uuid
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              required:
-                - ticker
-                - quantity
-              properties:
-                ticker:
-                  type: string
-                  description: The stock symbol/ticker (e.g., AAPL, MSFT)
-                  example: "AAPL"
-                quantity:
-                  type: integer
-                  description: Number of shares to sell
-                  minimum: 1
-                  example: 5
-      responses:
-        '200':
-          description: Stock sale successful
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  proceeds:
-                    type: number
-                    format: decimal
-                    description: Total amount received from the sale
-                    example: 901.25
-                  costBasis:
-                    type: number
-                    format: decimal
-                    description: Original cost of the sold shares
-                    example: 877.50
-                  profit:
-                    type: number
-                    format: decimal
-                    description: Profit or loss from the sale (proceeds - costBasis)
-                    example: 23.75
-        '400':
-          description: Invalid request
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  error:
-                    type: string
-                    example: "Invalid quantity"
-                  details:
-                    type: string
-        '404':
-          description: Portfolio or holding not found
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  error:
-                    type: string
-                    example: "No holding found for ticker: AAPL"
-        '409':
-          description: Insufficient shares
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  error:
-                    type: string
-                    example: "Not enough shares of AAPL to sell"
+| Layer | Class / Method |
+|---|---|
+| Controller | `PortfolioRestController.getHoldings(String id)` |
+| Use Case | `ReportingUseCase.getHoldingsPerformance(String portfolioId)` |
+| Service | `ReportingService.getHoldingsPerformance(String)` — loads portfolio, transactions, fetches live prices, delegates to calculator |
+| Domain Service | `HoldingPerformanceCalculator.getHoldingsPerformance(Portfolio, List<Transaction>, Map<Ticker,StockPrice>)` — single-pass O(T) aggregation |
+| Domain | `Holding.getUnrealizedGain(Price)`, `Holding.getRemainingSharesPurchasePrice()`, `Holding.getTheoreticSalePrice(Price)` |
+| DTO (response) | `HoldingDTO(String ticker, BigDecimal quantity, BigDecimal remaining, BigDecimal averagePurchasePrice, BigDecimal currentPrice, BigDecimal unrealizedGain, BigDecimal realizedGain)` |
+| Tests | `PortfolioRestControllerIntegrationTest.WhenPortfolioExists.HappyPath` — `getHoldings_emptyAfterCreation()`, `endToEnd_depositBuySellWithdraw()`; `ReportingServiceTest`; `HoldingPerformanceCalculatorTest` (comprehensive unit tests) |
+
+> **Note:** The previous spec documented this endpoint as `/api/portfolios/{id}/performance`. The actual implementation uses **`/api/portfolios/{id}/holdings`**. The `/performance` endpoint does not exist.
+
+---
+
+### 2.10 US-10 — Get Stock Price
+
+**As an** investor  
+**I want to** look up the current market price of a stock  
+**So that** I can make informed trading decisions
+
+#### Preconditions
+
+- Ticker symbol must be valid (1–5 uppercase letters).
+
+#### Acceptance Criteria
+
+| # | Given / When / Then |
+|---|---|
+| 1 | **Given** a valid ticker symbol<br/>**When** I GET `/api/stocks/{symbol}`<br/>**Then** I receive **200 OK** with `symbol`, `price`, `time`, `currency` |
+| 2 | **Given** an invalid ticker format<br/>**When** I GET `/api/stocks/{symbol}`<br/>**Then** I receive **400 Bad Request** with `title: "Invalid Ticker"` |
+
+#### Success Response (200 OK)
+
+```json
+{
+  "symbol": "AAPL",
+  "price": 178.50,
+  "time": "2025-01-15T15:30:00Z",
+  "currency": "USD"
+}
 ```
 
-**Explanation:**
-This endpoint enables an investor to sell shares from their portfolio by providing only the ticker and quantity. The system automatically fetches the current market price, verifies the investor has sufficient shares, sells the shares using FIFO accounting, and returns detailed information about the sale. The response includes the total proceeds from the sale, the original cost basis of the shares sold, and the profit or loss realized from the transaction. The portfolio ID is specified in the path, while the ticker and quantity are passed in the request body.
+#### Implementation Pointers
 
-### 2.3 Additional Implemented Endpoints
+| Layer | Class / Method |
+|---|---|
+| Controller | `StockRestController.getStockPrice(String symbol)` — `@GetMapping("/{symbol}")` |
+| Use Case | `GetStockPriceUseCase.getPrice(Ticker)` |
+| Service | `GetStockPriceService.getPrice(Ticker)` — delegates to `StockPriceProviderPort` |
+| Port (out) | `StockPriceProviderPort.fetchStockPrice(Ticker)` |
+| DTO (response) | `StockPriceDTO(String symbol, double price, Instant time, String currency)` |
+| Tests | *No dedicated integration tests for this endpoint in the current test suite* |
 
-The system also implements several other important portfolio operations:
+---
 
-#### Create Portfolio
-```yaml
-paths:
-  /api/portfolios:
-    post:
-      summary: Create a new portfolio
-      description: Creates a new investment portfolio for a user
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              required:
-                - ownerName
-              properties:
-                ownerName:
-                  type: string
-      responses:
-        '201':
-          description: Portfolio created successfully
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Portfolio'
-```
-
-#### Get Portfolio
-```yaml
-paths:
-  /api/portfolios/{id}:
-    get:
-      summary: Get portfolio details
-      description: Retrieves a portfolio by its ID
-      parameters:
-        - name: id
-          in: path
-          required: true
-          schema:
-            type: string
-      responses:
-        '200':
-          description: Portfolio found
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Portfolio'
-        '404':
-          description: Portfolio not found
-```
-
-#### Deposit Funds
-```yaml
-paths:
-  /api/portfolios/{id}/deposits:
-    post:
-      summary: Deposit funds into a portfolio
-      description: Adds funds to a portfolio's cash balance
-      parameters:
-        - name: id
-          in: path
-          required: true
-          schema:
-            type: string
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              required:
-                - amount
-              properties:
-                amount:
-                  type: number
-                  format: decimal
-      responses:
-        '200':
-          description: Deposit successful
-```
-
-#### Withdraw Funds
-```yaml
-paths:
-  /api/portfolios/{id}/withdrawals:
-    post:
-      summary: Withdraw funds from a portfolio
-      description: Removes funds from a portfolio's cash balance
-      parameters:
-        - name: id
-          in: path
-          required: true
-          schema:
-            type: string
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              required:
-                - amount
-              properties:
-                amount:
-                  type: number
-                  format: decimal
-      responses:
-        '200':
-          description: Withdrawal successful
-        '409':
-          description: Insufficient funds
-```
-
-#### Get Transaction History
-```yaml
-paths:
-  /api/portfolios/{id}/transactions:
-    get:
-      summary: Get transaction history
-      description: Retrieves the transaction history for a portfolio with optional filters
-      parameters:
-        - name: id
-          in: path
-          required: true
-          schema:
-            type: string
-        - name: ticker
-          in: query
-          required: false
-          schema:
-            type: string
-        - name: type
-          in: query
-          required: false
-          schema:
-            type: string
-        - name: fromDate
-          in: query
-          required: false
-          schema:
-            type: string
-            format: date
-        - name: toDate
-          in: query
-          required: false
-          schema:
-            type: string
-            format: date
-        - name: minAmount
-          in: query
-          required: false
-          schema:
-            type: number
-        - name: maxAmount
-          in: query
-          required: false
-          schema:
-            type: number
-      responses:
-        '200':
-          description: List of transactions
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/Transaction'
-```
-
-#### Get Portfolio Performance
-```yaml
-paths:
-  /api/portfolios/{id}/performance:
-    get:
-      summary: Get portfolio performance summary
-      description: Retrieves performance metrics for a portfolio
-      parameters:
-        - name: id
-          in: path
-          required: true
-          schema:
-            type: string
-        - name: limit
-          in: query
-          required: false
-          schema:
-            type: integer
-      responses:
-        '200':
-          description: Performance summary
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/InvestmentSummary'
-```
-
-## 3. DOMAIN MODEL
+## 3. Domain Model
 
 ### 3.1 Domain Entities
 
-#### Portfolio
-- **Description**: Represents an investor's investment account containing cash and stock holdings. This is the **Aggregate Root** in DDD terms.
-- **Attributes**:
-  - `id`: `PortfolioId` — Unique identifier (Value Object wrapping String)
+#### Portfolio (Aggregate Root)
+
+- **Attributes:**
+  - `id`: `PortfolioId` — UUID-based unique identifier
   - `ownerName`: `String` — Name of the portfolio owner
-  - `balance`: `Money` — Cash balance available for investments (Value Object wrapping BigDecimal)
-  - `createdAt`: `LocalDateTime` — Timestamp when the portfolio was created
-  - `holdings`: `Map<Ticker, Holding>` — Collection of stock holdings indexed by ticker
-- **Responsibilities**:
-  - Managing cash through deposits and withdrawals
-  - Facilitating stock purchases and sales
-  - Tracking all holdings
-  - Enforcing business rules (e.g., preventing purchases with insufficient funds)
+  - `balance`: `Money` — Cash balance (scale 2, HALF_UP)
+  - `createdAt`: `LocalDateTime` — Creation timestamp
+  - `holdings`: `Map<Ticker, Holding>` — Stock holdings indexed by ticker
+- **Key Methods:**
+  - `create(String ownerName)` — factory, generates UUID, zero balance
+  - `deposit(Money)` — throws `InvalidAmountException` if ≤ 0
+  - `withdraw(Money)` — throws `InvalidAmountException` if ≤ 0, `InsufficientFundsException` if balance < amount
+  - `buy(Ticker, ShareQuantity, Price)` — throws `InvalidQuantityException` if ≤ 0, `InsufficientFundsException` if insufficient funds
+  - `sell(Ticker, ShareQuantity, Price)` → `SellResult` — throws `InvalidQuantityException` if ≤ 0, `HoldingNotFoundException` if ticker not held
+  - `addHolding(Holding)` — for reconstitution; throws `EntityExistsException` if duplicate
+  - `getHolding(Ticker)` — throws `HoldingNotFoundException` if not found
 
-#### Holding
-- **Description**: Represents ownership of a specific stock within a portfolio
-- **Attributes**:
-  - `id`: `HoldingId` — Unique identifier (Value Object wrapping String)
-  - `ticker`: `Ticker` — Stock symbol (Value Object, e.g., `Ticker.of("AAPL")`)
-  - `lots`: `List<Lot>` — Chronologically ordered collection of purchase lots
-- **Responsibilities**:
-  - Tracking all purchase lots for a specific stock
-  - Managing the selling process using FIFO accounting
-  - Calculating total shares owned (`ShareQuantity`)
+#### Holding (Entity)
 
-#### Lot
-- **Description**: Represents a specific purchase of shares at a certain price and time
-- **Attributes**:
-  - `id`: `LotId` — Unique identifier (Value Object wrapping String)
-  - `initialShares`: `ShareQuantity` — Original number of shares purchased (Value Object wrapping int)
-  - `remainingShares`: `ShareQuantity` — Current number of shares remaining in this lot
-  - `unitPrice`: `Price` — Price per share paid (Value Object wrapping BigDecimal)
-  - `purchasedAt`: `LocalDateTime` — Date and time of purchase
-- **Responsibilities**:
-  - Tracking the original purchase details
-  - Managing the reduction of shares when sales occur (`reduce(ShareQuantity)`)
-  - Calculating cost basis (`calculateCostBasis(ShareQuantity)` → `Money`)
+- **Attributes:**
+  - `id`: `HoldingId` — UUID-based unique identifier
+  - `ticker`: `Ticker` — Stock symbol
+  - `lots`: `List<Lot>` — Chronologically ordered purchase lots
+- **Key Methods:**
+  - `create(Ticker)` — factory
+  - `buy(ShareQuantity, Price)` — creates and adds a new `Lot`
+  - `sell(ShareQuantity, Price)` → `SellResult` — FIFO accounting, throws `ConflictQuantityException` if insufficient shares, removes empty lots
+  - `getTotalShares()` → `ShareQuantity`
+  - `getRemainingSharesPurchasePrice()` → `Money` — sum of (unitPrice × remainingShares) per lot
+  - `getTheoreticSalePrice(Price)` → `Money`
+  - `getUnrealizedGain(Price)` → `Money`
+  - `addLot(Lot)` — throws `EntityExistsException` if duplicate ID
 
-#### Transaction
-- **Description**: Records financial activities within a portfolio (separate aggregate)
-- **Attributes**:
-  - `id`: `TransactionId` — Unique identifier (Value Object wrapping String)
-  - `portfolioId`: `PortfolioId` — Portfolio this transaction belongs to
-  - `type`: `TransactionType` — Type of transaction (PURCHASE, SALE, DEPOSIT, WITHDRAWAL)
-  - `ticker`: `Ticker` — Stock symbol (for PURCHASE/SALE transactions)
-  - `quantity`: `ShareQuantity` — Number of shares (for PURCHASE/SALE transactions)
-  - `unitPrice`: `Price` — Price per share (for PURCHASE/SALE transactions)
-  - `totalAmount`: `Money` — Total transaction amount
-  - `profit`: `Money` — Profit or loss for SALE transactions
-  - `createdAt`: `LocalDateTime` — Date and time of the transaction
-- **Responsibilities**:
-  - Providing a historical record of all financial activities
-  - Supporting transaction history and reporting
+#### Lot (Entity)
+
+- **Attributes:**
+  - `id`: `LotId` — UUID-based unique identifier
+  - `initialShares`: `ShareQuantity`
+  - `remainingShares`: `ShareQuantity`
+  - `unitPrice`: `Price`
+  - `purchasedAt`: `LocalDateTime`
+- **Key Methods:**
+  - `create(ShareQuantity, Price)` — factory; throws `InvalidQuantityException` if ≤ 0
+  - `reduce(ShareQuantity)` — throws `ConflictQuantityException` if quantity > remaining
+  - `calculateCostBasis(ShareQuantity)` → `Money`
+  - `isEmpty()` → `boolean` — true when remainingShares is zero
+
+#### Transaction (Separate Aggregate)
+
+- **Attributes:**
+  - `id`: `TransactionId`
+  - `portfolioId`: `PortfolioId`
+  - `type`: `TransactionType` — enum: `DEPOSIT`, `WITHDRAWAL`, `PURCHASE`, `SALE`
+  - `ticker`: `Ticker` — null for DEPOSIT/WITHDRAWAL
+  - `quantity`: `ShareQuantity` — ZERO for DEPOSIT/WITHDRAWAL
+  - `unitPrice`: `Price` — null for DEPOSIT/WITHDRAWAL
+  - `totalAmount`: `Money`
+  - `profit`: `Money` — only meaningful for SALE; ZERO otherwise
+  - `createdAt`: `LocalDateTime`
+- **Factory Methods:**
+  - `createDeposit(PortfolioId, Money)`
+  - `createWithdrawal(PortfolioId, Money)`
+  - `createPurchase(PortfolioId, Ticker, ShareQuantity, Price)`
+  - `createSale(PortfolioId, Ticker, ShareQuantity, Price, Money totalAmount, Money profit)`
 
 ### 3.2 Value Objects
-The domain uses Value Objects to replace primitive types, enforcing domain rules at construction time:
 
-| Value Object | Wraps | Purpose |
-|---|---|---|
-| `Money` | `BigDecimal` | Monetary amounts (balance, proceeds, cost basis, profit) |
-| `Price` | `BigDecimal` | Per-share stock prices (must be positive) |
-| `ShareQuantity` | `int` | Number of shares (must be non-negative) |
-| `Ticker` | `String` | Stock symbol identifiers |
-| `PortfolioId` | `String` | Portfolio unique identifiers |
-| `HoldingId` | `String` | Holding unique identifiers |
-| `LotId` | `String` | Lot unique identifiers |
-| `TransactionId` | `String` | Transaction unique identifiers |
-| `SellResult` | `Money` × 3 | Sale outcome (proceeds, costBasis, profit) |
-| `StockPrice` | `Ticker`, `Price`, `Instant` | Stock price at a moment in time |
+| Value Object | Wraps | Validation | Purpose |
+|---|---|---|---|
+| `Money` | `BigDecimal` (scale 2, HALF_UP) | Not null | Monetary amounts |
+| `Price` | `BigDecimal` (scale 2, HALF_UP) | Must be > 0 (`InvalidAmountException`) | Per-share price |
+| `ShareQuantity` | `int` | Must be ≥ 0 (`InvalidQuantityException`); `.positive()` requires > 0 | Number of shares |
+| `Ticker` | `String` | Not null/blank, must match `^[A-Z]{1,5}$` (`InvalidTickerException`) | Stock symbol |
+| `PortfolioId` | `String` | Not null, not blank | Portfolio identity |
+| `HoldingId` | `String` | Not null, not blank | Holding identity |
+| `LotId` | `String` | Not null, not blank | Lot identity |
+| `TransactionId` | `String` | Not null, not blank | Transaction identity |
+| `SellResult` | `Money` × 3 | — | Sale outcome: `proceeds`, `costBasis`, `profit` |
+| `StockPrice` | `Ticker`, `Price`, `Instant` | — | Stock price at a point in time |
 
 ### 3.3 Relationships
-- A **Portfolio** contains multiple **Holdings** (one-to-many, indexed by `Ticker`)
-- A **Holding** contains multiple **Lots** (one-to-many, ordered chronologically)
-- A **Portfolio** is associated with multiple **Transactions** (separate aggregate, linked by `PortfolioId`)
 
-## 4. PLANTUML DIAGRAM
+- A **Portfolio** contains 0..* **Holdings** (one-to-many, indexed by `Ticker`)
+- A **Holding** contains 0..* **Lots** (one-to-many, ordered chronologically)
+- A **Portfolio** is associated with 0..* **Transactions** (separate aggregate, linked by `PortfolioId`)
+
+---
+
+## 4. PlantUML Diagram
 
 ```plantuml
 @startuml "Portfolio Domain Model"
-
 class Portfolio <<Aggregate Root>> {
   -id: PortfolioId
   -ownerName: String
@@ -563,6 +634,8 @@ class Portfolio <<Aggregate Root>> {
   +withdraw(money: Money): void
   +buy(ticker: Ticker, quantity: ShareQuantity, price: Price): void
   +sell(ticker: Ticker, quantity: ShareQuantity, price: Price): SellResult
+  +addHolding(holding: Holding): void
+  +getHolding(ticker: Ticker): Holding
   +getId(): PortfolioId
   +getOwnerName(): String
   +getBalance(): Money
@@ -578,6 +651,10 @@ class Holding <<Entity>> {
   +buy(quantity: ShareQuantity, unitPrice: Price): void
   +sell(quantity: ShareQuantity, sellPrice: Price): SellResult
   +getTotalShares(): ShareQuantity
+  +getRemainingSharesPurchasePrice(): Money
+  +getTheoreticSalePrice(currentPrice: Price): Money
+  +getUnrealizedGain(currentPrice: Price): Money
+  +addLot(lot: Lot): void
   +getTicker(): Ticker
 }
 
@@ -606,17 +683,17 @@ class Transaction <<Separate Aggregate>> {
   -totalAmount: Money
   -profit: Money
   -createdAt: LocalDateTime
-  +{static} createPurchase(portfolioId: PortfolioId, ticker: Ticker, quantity: ShareQuantity, unitPrice: Price): Transaction
-  +{static} createSale(portfolioId: PortfolioId, ticker: Ticker, quantity: ShareQuantity, unitPrice: Price, totalAmount: Money, profit: Money): Transaction
-  +{static} createDeposit(portfolioId: PortfolioId, amount: Money): Transaction
-  +{static} createWithdrawal(portfolioId: PortfolioId, amount: Money): Transaction
+  +{static} createPurchase(...)
+  +{static} createSale(...)
+  +{static} createDeposit(...)
+  +{static} createWithdrawal(...)
 }
 
 enum TransactionType {
-  PURCHASE
-  SALE
   DEPOSIT
   WITHDRAWAL
+  PURCHASE
+  SALE
 }
 
 class SellResult <<Value Object>> {
@@ -630,7 +707,7 @@ class SellResult <<Value Object>> {
 
 class Money <<Value Object>> {
   -amount: BigDecimal
-  +{static} of(value: BigDecimal): Money
+  +{static} of(value): Money
   +add(augend: Money): Money
   +subtract(subtrahend: Money): Money
   +isPositive(): boolean
@@ -639,7 +716,7 @@ class Money <<Value Object>> {
 
 class Price <<Value Object>> {
   -value: BigDecimal
-  +{static} of(value: double): Price
+  +{static} of(value): Price
   +multiply(quantity: ShareQuantity): Money
 }
 
@@ -659,17 +736,14 @@ class Ticker <<Value Object>> {
   +{static} of(value: String): Ticker
 }
 
-class PortfolioId <<Value Object>> {
-  -value: String
-  +{static} of(value: String): PortfolioId
-  +{static} generate(): PortfolioId
+class HoldingPerformanceCalculator <<Domain Service>> {
+  +getHoldingsPerformance(portfolio, transactions, tickerPrices): List<HoldingDTO>
 }
 
 Portfolio "1" *-- "0..*" Holding : contains >
 Holding "1" *-- "0..*" Lot : contains >
 Portfolio "1" -- "0..*" Transaction : has >
 Transaction -- TransactionType : has >
-
 Portfolio --> PortfolioId : identified by
 Portfolio --> Money : balance
 Holding --> Ticker : identifies
@@ -677,11 +751,12 @@ Lot --> ShareQuantity : tracks shares
 Lot --> Price : unitPrice
 Transaction --> PortfolioId : references
 SellResult --> Money : contains
-
 @enduml
 ```
 
-## 5. HTTP REQUEST FILE
+---
+
+## 5. HTTP Request File
 
 ```http
 ### Create a new portfolio
@@ -692,6 +767,12 @@ Content-Type: application/json
   "ownerName": "John Doe"
 }
 
+### List all portfolios
+GET http://localhost:8080/api/portfolios
+
+### Get portfolio details
+GET http://localhost:8080/api/portfolios/550e8400-e29b-41d4-a716-446655440000
+
 ### Deposit funds into a portfolio
 POST http://localhost:8080/api/portfolios/550e8400-e29b-41d4-a716-446655440000/deposits
 Content-Type: application/json
@@ -700,7 +781,15 @@ Content-Type: application/json
   "amount": 10000.00
 }
 
-### Buy Stocks Request
+### Withdraw funds from a portfolio
+POST http://localhost:8080/api/portfolios/550e8400-e29b-41d4-a716-446655440000/withdrawals
+Content-Type: application/json
+
+{
+  "amount": 500.00
+}
+
+### Buy Stocks
 POST http://localhost:8080/api/portfolios/550e8400-e29b-41d4-a716-446655440000/purchases
 Content-Type: application/json
 
@@ -709,7 +798,7 @@ Content-Type: application/json
   "quantity": 10
 }
 
-### Sell Stocks Request
+### Sell Stocks
 POST http://localhost:8080/api/portfolios/550e8400-e29b-41d4-a716-446655440000/sales
 Content-Type: application/json
 
@@ -718,23 +807,25 @@ Content-Type: application/json
   "quantity": 5
 }
 
-### Get portfolio details
-GET http://localhost:8080/api/portfolios/550e8400-e29b-41d4-a716-446655440000
-
 ### Get transaction history
 GET http://localhost:8080/api/portfolios/550e8400-e29b-41d4-a716-446655440000/transactions
 
-### Get filtered transactions (example: only AAPL buys)
-GET http://localhost:8080/api/portfolios/550e8400-e29b-41d4-a716-446655440000/transactions?ticker=AAPL&type=BUY
+### Get transaction history with type filter (NOTE: filter is accepted but NOT applied)
+GET http://localhost:8080/api/portfolios/550e8400-e29b-41d4-a716-446655440000/transactions?type=PURCHASE
 
-### Get portfolio performance
-GET http://localhost:8080/api/portfolios/550e8400-e29b-41d4-a716-446655440000/performance
+### Get holdings performance
+GET http://localhost:8080/api/portfolios/550e8400-e29b-41d4-a716-446655440000/holdings
+
+### Get stock price
+GET http://localhost:8080/api/stocks/AAPL
 ```
 
-## 6. SUGGESTED FUTURE EVOLUTIONS
+---
+
+## 6. Suggested Future Evolutions
 
 ### 6.1 Portfolio Performance Analysis
-Implement additional metrics and endpoints to enhance the existing performance analysis:
+
 - Day-to-day change in portfolio value
 - Sector-based diversification analysis
 - Performance comparison with market benchmarks
@@ -742,50 +833,108 @@ Implement additional metrics and endpoints to enhance the existing performance a
 - Portfolio allocation visualization
 
 ### 6.2 Tax Reporting
-Develop functionality to generate tax reports for investment activity:
+
 - Annual realized gains/losses report
 - Long-term vs. short-term capital gains classification
 - Tax lot optimization strategies (beyond simple FIFO)
 - Export capabilities for tax preparation software
 
-## 7. IMPLEMENTATION NOTES AND DEVIATIONS
+### 6.3 Enhanced Transaction Filtering
+
+- Implement the `type` query parameter filtering (see Follow-up Issue #1)
+- Add date range filtering (`fromDate`, `toDate`)
+- Add amount range filtering (`minAmount`, `maxAmount`)
+- Add ticker filtering
+- Pagination support
+
+---
+
+## 7. Implementation Notes and Deviations
 
 ### 7.1 Automated Stock Price Fetching
-The current implementation automatically fetches stock prices at the time of transaction, rather than requiring clients to provide prices. This approach has several implications:
 
-- **Advantages**:
-  - Simplifies the client API by requiring fewer parameters
-  - Ensures all transactions use legitimate market prices
-  - Prevents price manipulation by clients
-
-- **Disadvantages**:
-  - Creates a dependency on the stock price service
-  - Makes historical testing more difficult
-  - May cause issues if the price service is unavailable
+The current implementation automatically fetches stock prices at the time of transaction via `StockPriceProviderPort`. The `mockfinhub` profile provides a mock adapter for testing that returns random yet reasonable prices.
 
 ### 7.2 REST Design Considerations
 
-The current API follows a resource-oriented design with some notable characteristics:
-
-- **Collection Resources**:
-  - Uses noun-based endpoints for collections (`/purchases`, `/sales`, `/deposits`, `/withdrawals`)
-  - Each collection is properly nested under its parent portfolio resource
-
-- **HTTP Status Codes**:
-  - Returns 200 OK for successful operations rather than 201 Created for new resources
-  - Uses appropriate error codes (404, 409) for different failure conditions
-
-- **Potential Improvements**:
-  - Consider using PUT for idempotent operations
-  - Return 201 Created with a location header for resource creation operations
-  - Include more detailed responses for successful operations
+- **POST operations** (deposit, withdraw, buy) return **200 OK** with empty body (no resource representation returned).
+- **Create Portfolio** returns **201 Created** with `Location` header and a response body — this is the only endpoint that returns 201.
+- **Sell** returns **200 OK** with a `SaleResponseDTO` body containing sale details.
+- All error responses use **RFC 7807 ProblemDetail** format.
 
 ### 7.3 Transaction Recording
 
-The system maintains a comprehensive transaction history for all financial operations:
+All financial operations (deposit, withdrawal, purchase, sale) are recorded as `Transaction` objects via `TransactionPort.save()` in the respective service methods.
 
-- Each deposit, withdrawal, purchase, and sale is recorded as a Transaction
-- Transactions are immutable records of the financial history
-- The transaction history can be filtered and queried through the API
+### 7.4 FIFO Accounting
 
-This approach provides full auditability and supports detailed reporting, but requires careful database design to handle potentially large transaction volumes efficiently.
+Sales use First-In-First-Out accounting. When selling shares:
+1. Iterate lots in chronological order (insertion order).
+2. Sell from each lot up to its remaining shares.
+3. Calculate cost basis from the original purchase prices of the sold lots.
+4. Remove fully depleted lots (`lots.removeIf(Lot::isEmpty)`).
+
+### 7.5 Single-Currency Assumption
+
+All monetary values are assumed to be in USD. The `CreatePortfolioResponseDTO` and `StockPriceDTO` include a hardcoded `"USD"` currency field.
+
+---
+
+## 8. Follow-up Issue Suggestions
+
+### Follow-up Issue #1: Transaction Type Filter Not Implemented
+
+**Observed behavior in code/tests:**
+The `GET /api/portfolios/{id}/transactions?type=PURCHASE` endpoint accepts the `type` query parameter (controller method signature: `@RequestParam(required = false) String type`), passes it to `TransactionUseCase.getTransactions(String, Optional<String>)`, but the `TransactionService` implementation completely ignores it — it always returns all transactions.
+
+**Reproduction pointers:**
+- `PortfolioRestController.getTransactions()` — line receiving `type` param
+- `TransactionService.getTransactions()` — `type` parameter is received as `Optional<String>` but never used in the body
+- The previous spec (section 2.3) documented multiple query params (`ticker`, `type`, `fromDate`, `toDate`, `minAmount`, `maxAmount`), but only `type` is accepted by the controller and none are actually applied.
+
+**Suggested fix:** Implement filtering in `TransactionService` using `Stream.filter()` or push it to the `TransactionPort` query.
+
+---
+
+### Follow-up Issue #2: TransactionDTO Exposes Domain Internals
+
+**Observed behavior in code/tests:**
+`TransactionDTO` is defined as `record TransactionDTO(Transaction transaction)` which wraps the raw domain `Transaction` object. When serialized to JSON, this exposes the internal value-object structure (e.g., `"id": {"value": "..."}`, `"ticker": {"value": "AAPL"}`, `"totalAmount": {"amount": 1500.00}`) rather than providing a flattened API-friendly representation.
+
+**Reproduction pointers:**
+- `TransactionDTO.java` — wraps `Transaction` directly
+- Compare with `PortfolioResponseDTO` and `SaleResponseDTO` which properly flatten domain objects to primitives
+
+**Suggested fix:** Flatten `TransactionDTO` to expose primitive fields (String, BigDecimal, etc.) like other DTOs in the project.
+
+---
+
+### Follow-up Issue #3: Portfolio Not Found Message Contains Informal Language
+
+**Observed behavior in code/tests:**
+`PortfolioNotFoundException` produces the message `"El portfolio no existe hulio: <id>"`. Integration tests only assert `containsString(FAKE_ID)`, so they pass despite the informal Spanish text.
+
+**Reproduction pointers:**
+- `PortfolioNotFoundException.java` — constructor concatenates `"El portfolio no existe hulio: " + portfolioId`
+- `PortfolioRestControllerIntegrationTest.WhenPortfolioDoesNotExist` — tests assert `body("detail", containsString(FAKE_ID))` which passes
+
+**Suggested fix:** Standardize to English: `"Portfolio not found with id: " + portfolioId`.
+
+---
+
+### Follow-up Issue #4: Previous Spec Documented Non-Existent `/performance` Endpoint
+
+**Observed behavior in code:**
+The previous spec documented `GET /api/portfolios/{id}/performance` with a `limit` query param. The actual endpoint is `GET /api/portfolios/{id}/holdings` with no query parameters. The controller method `getHoldings()` does not accept a `limit` parameter.
+
+**Reproduction pointers:**
+- `PortfolioRestController.getHoldings(String id)` — no `limit` param
+- No `/performance` mapping exists in any controller
+
+---
+
+## 9. Change Log
+
+| Date | Author | Description |
+|---|---|---|
+| 2025-07-14 | Reverse-engineering pass | **Full rewrite.** Reverse-engineered from codebase (controllers, DTOs, exception handlers, domain model, integration tests, unit tests). Key changes: (1) Added US-03 List All Portfolios, US-09 Get Holdings (replacing non-existent `/performance`), US-10 Get Stock Price — all implemented but previously undocumented or wrongly documented. (2) Replaced all acceptance criteria with Given/When/Then format using real status codes and real ProblemDetail payload shape. (3) Added global error contract section documenting RFC 7807 ProblemDetail format and complete exception→HTTP mapping table. (4) Added implementation pointers under every story linking to controllers, use cases, services, domain methods, and tests. (5) Corrected endpoint path from `/performance` to `/holdings`. (6) Removed non-existent query params (`ticker`, `fromDate`, `toDate`, `minAmount`, `maxAmount`) from transactions endpoint. (7) Added follow-up issue suggestions for type-filter not implemented, TransactionDTO leaking domain internals, informal error message, and phantom `/performance` endpoint. (8) Created companion `doc/openapi.yaml`. |
