@@ -2,7 +2,54 @@
 
 # HexaStock
 
-HexaStock is a financial portfolio management system built with Spring Boot, Domain-Driven Design (DDD), and Hexagonal Architecture. This educational project demonstrates practical implementation of these architectural patterns in a real-world domain: financial portfolio management.
+## Core Documentation
+
+HexaStock is a Spring Boot project that teaches Domain-Driven Design and Hexagonal Architecture through a realistic financial portfolio domain. It is built for engineering students, workshop participants, and anyone who wants to see how these patterns work in practice with real business rules, not toy examples. The codebase is fully testable, uses multiple interchangeable adapters, and is designed to be explored, extended, and broken apart for learning.
+
+Two documents form the backbone of HexaStock's documentation. Start with either one depending on whether you want the big picture or a guided deep dive.
+
+### Stock Portfolio API Specification
+
+> **[doc/stock-portfolio-api-specification.md](doc/stock-portfolio-api-specification.md)**
+
+This document is the functional reference for the entire system. Inside you will find:
+
+- Complete **User Stories** covering portfolio creation, deposits, withdrawals, buying and selling stocks, holdings, transactions, and stock price queries
+- **Global error handling** following RFC 7807 Problem Details
+- A **domain model overview** with PlantUML diagrams
+- **HTTP request/response examples** for every endpoint
+- Implementation notes and suggested follow-ups
+
+Use it to understand what the application does and how business requirements map to the current codebase.
+
+### Sell Stock Deep Dive (Use Case Tutorial)
+
+> **[doc/tutorial/sellStocks/SELL-STOCK-TUTORIAL.md](doc/tutorial/sellStocks/SELL-STOCK-TUTORIAL.md)**
+
+This tutorial walks through the Sell Stock use case from end to end:
+
+- Traces the full execution path: REST adapter → application service → domain model → persistence
+- Explains DDD concepts (aggregates, value objects, FIFO accounting) directly from production-style code
+- Shows how the application service orchestrates while the aggregate protects invariants
+- Includes hands-on exercises to reinforce each concept
+
+It is the best starting point for training sessions, workshops, or self-guided study of the architecture.
+
+### Documentation Map
+
+| Document | Description |
+|----------|-------------|
+| [API Specification](doc/stock-portfolio-api-specification.md) | User stories, domain model, error handling, HTTP examples |
+| [Sell Stock Tutorial](doc/tutorial/sellStocks/SELL-STOCK-TUTORIAL.md) | End-to-end use case walkthrough with exercises |
+| [HTTP Requests](doc/calls.http) | Pre-built requests for manual API testing in IntelliJ |
+| [OpenAPI Definition](doc/openapi.yaml) | Machine-readable API contract |
+| [DDD Portfolio and Transactions](doc/DDD%20Portfolio%20and%20Transactions.md) | Domain design notes for portfolios and transactions |
+| [Remove Zero-Quantity Lots](doc/Remove%20Lots%20with%20Zero%20Remaining%20Quantity%20from%20Portfolio%20Aggregate.md) | Design discussion on aggregate cleanup |
+| [Dependency Inversion (Selling)](doc/tutorial/DEPENDENCY-INVERSION-STOCK-SELLING.md) | Tutorial on dependency inversion in the sell flow |
+| [Concurrency and Pessimistic Locking](doc/tutorial/CONCURRENCY-PESSIMISTIC-LOCKING.md) | Handling concurrent portfolio updates |
+| [DDD Hexagonal Exercise](doc/tutorial/DDD-Hexagonal-exercise.md) | Guided exercise on hexagonal patterns |
+| [Holdings Performance at Scale](doc/tutorial/portfolioReporting/HOLDINGS-PERFORMANCE-AT-SCALE.md) | Reporting and performance considerations |
+| [Watchlists: Market Sentinel](doc/tutorial/watchlists/WATCHLISTS-MARKET-SENTINEL.md) | Watchlist feature design and tutorial |
 
 ## Project Overview
 
@@ -296,21 +343,18 @@ Records all financial activities within a portfolio. Types include PURCHASE, SAL
 
 Now that you have the application running and understand the basic structure, explore these resources:
 
-### Deep Dive Tutorial
+### Tutorials and Guides
 
-Read the comprehensive [tutorial on the sell stock use case](doc/tutorial/sellStocks/SELL-STOCK-TUTORIAL.md).
-
-This document traces the execution path from HTTP request to domain logic to persistence, explaining why application services orchestrate while aggregates protect invariants. It includes hands-on exercises to reinforce your understanding.
+- [Stock Portfolio API Specification](doc/stock-portfolio-api-specification.md) — full functional reference with user stories, error handling, and HTTP examples
+- [Sell Stock Tutorial](doc/tutorial/sellStocks/SELL-STOCK-TUTORIAL.md) — end-to-end use case walkthrough from HTTP request to persistence
+- [Dependency Inversion in Stock Selling](doc/tutorial/DEPENDENCY-INVERSION-STOCK-SELLING.md) — how ports and adapters decouple the sell flow
+- [Concurrency and Pessimistic Locking](doc/tutorial/CONCURRENCY-PESSIMISTIC-LOCKING.md) — handling concurrent updates to portfolios
 
 ### Codebase Exploration
 
 Start from the REST controllers in `adapter.in`, follow calls through application services in `application.service`, and examine domain logic in the `model` package.
 
 Review the test classes to understand how domain rules are verified in isolation and how integration tests validate end-to-end behavior.
-
-### Additional Documentation
-
-Explore the documentation in the `doc/` directory for API specifications, architectural diagrams, and design decisions.
 
 ## Test Coverage
 
