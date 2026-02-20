@@ -23,6 +23,6 @@ public class PortfolioNotFoundException extends DomainException {
      * @param portfolioId The ID of the portfolio that could not be found
      */
     public PortfolioNotFoundException(String portfolioId) {
-        super("El portfolio no existe hulio: " + portfolioId);
+        super("Portfolio not found with id: " + portfolioId);
     }
 }

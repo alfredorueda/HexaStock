@@ -400,7 +400,7 @@ components:
             type: "about:blank"
             title: "Portfolio Not Found"
             status: 404
-            detail: "El portfolio no existe hulio: 550e8400-e29b-41d4-a716-446655440000"
+            detail: "Portfolio not found with id: 550e8400-e29b-41d4-a716-446655440000"
             instance: "/api/portfolios/550e8400-e29b-41d4-a716-446655440000"
 
     InvalidAmount:
@@ -467,7 +467,7 @@ components:
         detail:
           type: string
           description: Human-readable explanation specific to this occurrence
-          example: "El portfolio no existe hulio: 550e8400"
+          example: "Portfolio not found with id: 550e8400"
         instance:
           type: string
           format: uri

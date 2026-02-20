@@ -47,7 +47,7 @@ All error responses use the **RFC 7807 Problem Detail** format (`application/pro
 
 | Exception Class | HTTP Status | `title` value | Typical `detail` examples |
 |---|---|---|---|
-| `PortfolioNotFoundException` | **404** | `Portfolio Not Found` | `El portfolio no existe hulio: <id>` |
+| `PortfolioNotFoundException` | **404** | `Portfolio Not Found` | `Portfolio not found with id: <id>` |
 | `HoldingNotFoundException` | **404** | `Holding Not Found` | `Holding not found in portfolio: <ticker>` / `Holding <ticker> not exists` |
 | `InvalidAmountException` | **400** | `Invalid Amount` | `Deposit amount must be positive` / `Withdrawal amount must be positive` / `Price must be positive: <value>` |
 | `InvalidQuantityException` | **400** | `Invalid Quantity` | `Quantity must be positive: <value>` / `Share quantity cannot be negative: <value>` |
@@ -911,14 +911,7 @@ The `GET /api/portfolios/{id}/transactions?type=PURCHASE` endpoint accepts the `
 
 ### Follow-up Issue #3: Portfolio Not Found Message Contains Informal Language
 
-**Observed behavior in code/tests:**
-`PortfolioNotFoundException` produces the message `"El portfolio no existe hulio: <id>"`. Integration tests only assert `containsString(FAKE_ID)`, so they pass despite the informal Spanish text.
-
-**Reproduction pointers:**
-- `PortfolioNotFoundException.java` — constructor concatenates `"El portfolio no existe hulio: " + portfolioId`
-- `PortfolioRestControllerIntegrationTest.WhenPortfolioDoesNotExist` — tests assert `body("detail", containsString(FAKE_ID))` which passes
-
-**Suggested fix:** Standardize to English: `"Portfolio not found with id: " + portfolioId`.
+Already fixed in the current codebase 
 
 ---
 
