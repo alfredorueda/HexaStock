@@ -21,7 +21,7 @@
 6. [Suggested Future Evolutions](#6-suggested-future-evolutions)
 7. [Implementation Notes and Deviations](#7-implementation-notes-and-deviations)
 8. [Follow-up Issue Suggestions](#8-follow-up-issue-suggestions)
-9. [Change Log](#9-change-log)
+
 
 ---
 
@@ -921,9 +921,3 @@ The previous spec documented `GET /api/portfolios/{id}/performance` with a `limi
 - No `/performance` mapping exists in any controller
 
 ---
-
-## 9. Change Log
-
-| Date | Author | Description |
-|---|---|---|
-| 2025-07-14 | Reverse-engineering pass | **Full rewrite.** Reverse-engineered from codebase (controllers, DTOs, exception handlers, domain model, integration tests, unit tests). Key changes: (1) Added US-03 List All Portfolios, US-09 Get Holdings (replacing non-existent `/performance`), US-10 Get Stock Price — all implemented but previously undocumented or wrongly documented. (2) Replaced all acceptance criteria with Given/When/Then format using real status codes and real ProblemDetail payload shape. (3) Added global error contract section documenting RFC 7807 ProblemDetail format and complete exception→HTTP mapping table. (4) Added implementation pointers under every story linking to controllers, use cases, services, domain methods, and tests. (5) Corrected endpoint path from `/performance` to `/holdings`. (6) Removed non-existent query params (`ticker`, `fromDate`, `toDate`, `minAmount`, `maxAmount`) from transactions endpoint. (7) Added follow-up issue suggestions for type-filter not implemented, TransactionDTO leaking domain internals, informal error message, and phantom `/performance` endpoint. (8) Created companion `doc/openapi.yaml`. |
