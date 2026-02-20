@@ -1,8 +1,4 @@
 # Stock Portfolio API Specification
-
-> **Reverse-engineered from the HexaStock codebase.**
-> Code and tests are the single source of truth. This document reflects actual implemented behavior.
-
 ---
 
 ## Table of Contents
