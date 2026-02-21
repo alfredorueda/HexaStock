@@ -1312,7 +1312,7 @@ Business logic is protected. Technical concerns are isolated in adapters. New re
 This tutorial benefited from the proactive contribution of **Lluna de Gea**
 (LinkedIn: [https://www.linkedin.com/in/lluna-de-gea/](https://www.linkedin.com/in/lluna-de-gea/)).
 
-Lluna worked on this project with seriousness and dedication, completing the assigned exercises with a level of commitment that went clearly beyond the minimum requirements. Her engagement with the subject matter was genuine and sustained throughout.
+Lluna worked on this project with seriousness and dedication, completing the assigned exercises with a level of commitment that went well beyond the scope set by the professor. Her engagement with the subject was genuine and sustained throughout.
 
 Most notably, she independently identified and recommended the article
 [*How to Set Stock Price Alerts*](https://pro.stockalarm.io/blog/how-to-set-stock-price-alerts)
