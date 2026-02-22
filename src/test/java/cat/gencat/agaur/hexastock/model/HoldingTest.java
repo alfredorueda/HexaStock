@@ -188,7 +188,7 @@ class HoldingTest {
             LotId lotId = LotId.generate();
             Lot lot = new Lot(lotId, ShareQuantity.of(10), ShareQuantity.of(10), PRICE_100, LocalDateTime.now());
 
-            holding.addLot(lot);
+            holding.addLotFromPersistence(lot);
 
             assertEquals(1, holding.getLots().size());
             assertEquals(lotId, holding.getLots().get(0).getId());
@@ -202,9 +202,9 @@ class HoldingTest {
             Lot lot1 = new Lot(lotId, ShareQuantity.of(10), ShareQuantity.of(10), PRICE_100, LocalDateTime.now());
             Lot lot2 = new Lot(lotId, ShareQuantity.of(5), ShareQuantity.of(5), PRICE_120, LocalDateTime.now());
 
-            holding.addLot(lot1);
+            holding.addLotFromPersistence(lot1);
 
-            assertThrows(EntityExistsException.class, () -> holding.addLot(lot2));
+            assertThrows(EntityExistsException.class, () -> holding.addLotFromPersistence(lot2));
         }
     }
 

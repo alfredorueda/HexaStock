@@ -11,7 +11,7 @@ public class HoldingMapper {
     public static Holding toModelEntity(HoldingJpaEntity jpaEntity) {
         Holding holding = new Holding(HoldingId.of(jpaEntity.getId()), Ticker.of(jpaEntity.getTicker()));
         for (var lotJpaEntity : jpaEntity.getLots()) {
-            holding.addLot(LotMapper.toModelEntity(lotJpaEntity));
+            holding.addLotFromPersistence(LotMapper.toModelEntity(lotJpaEntity));
         }
         return holding;
     }

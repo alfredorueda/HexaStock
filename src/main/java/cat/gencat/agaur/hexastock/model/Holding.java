@@ -93,7 +93,11 @@ public class Holding {
         return List.copyOf(lots);
     }
 
-    public void addLot(Lot lot) {
+    /**
+     * Persistence-only hook used to reconstitute the aggregate from storage.
+     * Not a business operation. Do not call from application services.
+     */
+    public void addLotFromPersistence(Lot lot) {
         boolean exists = lots.stream().anyMatch(l -> l.getId().equals(lot.getId()));
         if (exists) {
             throw new EntityExistsException("Lot " + lot.getId() + " already exists");
