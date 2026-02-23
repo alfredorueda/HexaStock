@@ -290,7 +290,7 @@ Make the architecture observable through execution flow.
 
 ### Purpose
 
-Simulate integration with a new external provider.
+Implement integration with a new external provider.
 
 ### What Engineering Teams Gain
 
