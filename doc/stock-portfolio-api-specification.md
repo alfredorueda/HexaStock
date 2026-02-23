@@ -269,7 +269,7 @@ Location: http://localhost:8080/api/portfolios/550e8400-e29b-41d4-a716-446655440
 
 **As an** investor with a portfolio  
 **I want to** purchase shares of a specific stock by providing the ticker symbol and quantity  
-**So that** I can build my investment portfolio without needing to manually research current market prices
+**So that** I can build my investment portfolio
 
 #### Preconditions
 
