@@ -328,7 +328,7 @@ Extend business logic (LIFO, Highest Cost Basis) using specification-first evolu
 ### What Engineering Teams Gain
 
 - Controlled domain growth
-- Strategy implementation inside aggregates
+- Evolve implementation inside aggregates
 - Invariant preservation
 - Safe refactoring discipline
 
