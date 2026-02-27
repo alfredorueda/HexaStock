@@ -119,7 +119,7 @@ Swagger UI is available at `http://localhost:8081/swagger-ui.html`.
 
 ## Acknowledgments
 
-The pedagogical idea behind HexaStock — building a financial portfolio system as a Project-Based Learning experience — was first encountered during software engineering training engagements delivered in collaboration with [Neueda](https://neueda.com/), where the author works as an instructor and consultant for major international financial institutions. That experience inspired the later creation and expansion of HexaStock as a dedicated open-source project focused on Hexagonal Architecture and Domain-Driven Design.
+The pedagogical idea behind HexaStock — building a financial portfolio system as a Project-Based Learning experience — was first encountered during software engineering training engagements delivered in collaboration with [Neueda](https://neueda.com/), where the author works as an instructor for major international financial institutions. That experience inspired the later creation and expansion of HexaStock as a dedicated open-source project focused on Hexagonal Architecture and Domain-Driven Design.
 
 A special acknowledgment goes to [Agència de Gestió d'Ajuts Universitaris i de Recerca (AGAUR)](https://agaur.gencat.cat/ca/inici), part of the Public Administration of Catalonia, where HexaStock was first formally adopted for institutional training.
 
