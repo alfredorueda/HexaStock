@@ -115,7 +115,12 @@ Pre-configured HTTP requests are in [doc/calls.http](doc/calls.http).
 
 Swagger UI is available at `http://localhost:8081/swagger-ui.html`.
 
-## Contributing
+## Acknowledgments
 
-This is an educational project. Students are encouraged to experiment with adding new features or modifying existing behaviour to gain practical experience with the architectural patterns in action.
+The pedagogical idea behind HexaStock — building a financial portfolio system as a Project-Based Learning experience — was first encountered during software engineering training engagements delivered in collaboration with Neueda, where the author works as an instructor and consultant for major international financial institutions. That experience inspired the later creation and expansion of HexaStock as a dedicated open-source project focused on Hexagonal Architecture and Domain-Driven Design.
 
+A special acknowledgment goes to Agència de Gestió d'Ajuts Universitaris i de Recerca (AGAUR), part of the Public Administration of Catalonia, where HexaStock was first formally adopted for institutional training.
+
+Particular thanks to Francisco José Nebrera, whose initiative led to that first organizational implementation.
+
+The original Java package prefix cat.gencat.agaur.hexastock reflects this early institutional context. The project was later open-sourced and continued to evolve.
