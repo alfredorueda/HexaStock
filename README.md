@@ -2,38 +2,34 @@
 
 # HexaStock
 
+HexaStock is a Spring Boot project that teaches Domain-Driven Design and Hexagonal Architecture through a realistic financial portfolio domain. Built for engineering students and workshop participants, it provides a complete, testable system with real business rules, multiple interchangeable adapters, and clear architectural boundaries.
+
 ## Core Documentation
 
-HexaStock is a Spring Boot project that teaches Domain-Driven Design and Hexagonal Architecture through a realistic financial portfolio domain. It is built for engineering students, workshop participants, and anyone who wants to see how these patterns work in practice with real business rules, not toy examples. The codebase is fully testable, uses multiple interchangeable adapters, and is designed to be explored, extended, and broken apart for learning.
-
-Two documents form the backbone of HexaStock's documentation. Start with either one depending on whether you want the big picture or a guided deep dive.
+Two documents form the backbone of HexaStock's documentation.
 
 ### Stock Portfolio API Specification
 
 > **[doc/stock-portfolio-api-specification.md](doc/stock-portfolio-api-specification.md)**
 
-This document is the functional reference for the entire system. Inside you will find:
+The functional reference for the entire system:
 
-- Complete **User Stories** covering portfolio creation, deposits, withdrawals, buying and selling stocks, holdings, transactions, and stock price queries
-- **Global error handling** following RFC 7807 Problem Details
-- A **domain model overview** with PlantUML diagrams
-- **HTTP request/response examples** for every endpoint
-- Implementation notes and suggested follow-ups
+- User stories covering portfolio creation, deposits, withdrawals, buying/selling stocks, holdings, transactions, and stock price queries
+- Global error handling following RFC 7807 Problem Details
+- Domain model overview with PlantUML diagrams
+- HTTP request/response examples for every endpoint
 
-Use it to understand what the application does and how business requirements map to the current codebase.
-
-### Sell Stock Deep Dive (Use Case Tutorial)
+### Sell Stock Deep Dive (Reference Use Case)
 
 > **[doc/tutorial/sellStocks/SELL-STOCK-TUTORIAL.md](doc/tutorial/sellStocks/SELL-STOCK-TUTORIAL.md)**
 
-This tutorial walks through the Sell Stock use case from end to end:
+The sell stock use case is the architectural reference of the project. It concentrates the highest density of domain logic and best illustrates DDD and Hexagonal Architecture in practice. The tutorial covers:
 
-- Traces the full execution path: REST adapter → application service → domain model → persistence
-- Explains DDD concepts (aggregates, value objects, FIFO accounting) directly from production-style code
-- Shows how the application service orchestrates while the aggregate protects invariants
-- Includes hands-on exercises to reinforce each concept
-
-It is the best starting point for training sessions, workshops, or self-guided study of the architecture.
+- Full execution trace: REST adapter → application service → domain model → persistence
+- Aggregate boundary protection (`Portfolio` as aggregate root enforcing invariants)
+- FIFO accounting logic implemented entirely in the domain layer
+- Orchestration by application services vs. rule enforcement by the aggregate
+- Hands-on exercises for training sessions and self-guided study
 
 ### Documentation Map
 
@@ -51,318 +47,75 @@ It is the best starting point for training sessions, workshops, or self-guided s
 | [Holdings Performance at Scale](doc/tutorial/portfolioReporting/HOLDINGS-PERFORMANCE-AT-SCALE.md) | Reporting and performance considerations |
 | [Watchlists: Market Sentinel](doc/tutorial/watchlists/WATCHLISTS-MARKET-SENTINEL.md) | Watchlist feature design and tutorial |
 
-## Project Overview
-
-HexaStock is designed as a teaching tool for engineering students learning Hexagonal Architecture and Domain-Driven Design. Rather than theoretical examples, it provides a complete, testable system that handles realistic business requirements.
-
-The system allows users to manage investment portfolios, including:
-
-- Creating portfolios and managing cash through deposits and withdrawals
-- Buying and selling stocks using real-time market prices
-- Tracking holdings with detailed purchase history (lots)
-- Viewing transaction history and calculating profit/loss using FIFO accounting
-
-What makes this project particularly valuable for learning is its implementation of DDD tactical patterns (aggregates, value objects, domain services) and Hexagonal Architecture (ports and adapters), making the separation between business logic and infrastructure concerns explicit and testable.
-
-## Why the Sell Stock Use Case Matters
-
-The sell stock use case has been deliberately chosen as the central reference example because it is the richest and most sophisticated one in the project. It concentrates the highest amount of domain logic and therefore illustrates particularly well the power of Domain-Driven Design and Hexagonal Architecture.
-
-This use case demonstrates:
-
-- Aggregate boundary protection (Portfolio as aggregate root)
-- FIFO accounting logic implemented in the domain layer
-- Transactional consistency across multiple operations
-- Domain exception handling and HTTP status code mapping
-- Orchestration by application services while aggregates enforce invariants
-
-By understanding this use case thoroughly, students will be able to progress confidently through the rest of the practice and apply the same patterns to other use cases.
-
-For a comprehensive deep dive into the sell stock execution flow, including step-by-step traces, architectural decisions, and hands-on exercises, refer to the dedicated [Sell Stock Tutorial](doc/tutorial/sellStocks/SELL-STOCK-TUTORIAL.md).
-
 ## Prerequisites
 
-Before starting, ensure you have the following installed:
-
-- Java Development Kit (JDK) 21 or higher
+- JDK 21 or higher
 - Apache Maven 3.6 or higher
-- IntelliJ IDEA Ultimate (recommended for full Spring Boot support)
+- IntelliJ IDEA Ultimate (recommended)
 - Docker (for running MySQL in a container)
 - Git
 
-You should have basic knowledge of Java, object-oriented programming, and familiarity with Spring Boot concepts.
+## Running the Application
 
-## Getting Started
+### Mandatory Spring Profiles
 
-### Cloning the Repository
+The application will **not start** without activating the required profiles. You must specify:
 
-Clone the repository from GitHub:
+- **Persistence (mandatory):** `jpa`
+- **Stock price provider (choose one):** `finhub` or `alphaVantage`
 
-```bash
-git clone https://github.com/alfredorueda/HexaStock.git
-cd HexaStock
-```
-
-### Opening the Project in IntelliJ IDEA
-
-1. Launch IntelliJ IDEA
-2. Select "Open" from the welcome screen
-3. Navigate to the cloned HexaStock directory
-4. Select the `pom.xml` file and choose "Open as Project"
-5. Wait for Maven to download dependencies and index the project
-
-IntelliJ IDEA will automatically detect the Spring Boot configuration and Maven structure.
-
-### Starting the Database
-
-Start MySQL using Docker:
-
-```bash
-docker-compose up -d
-```
-
-This will start a MySQL container on port 3307 with the required database configuration.
-
-### Running Tests
-
-HexaStock includes comprehensive unit and integration tests that verify both domain logic and infrastructure adapters.
-
-#### Running Tests from Command Line
-
-Execute all tests using Maven:
-
-```bash
-./mvnw clean test
-```
-
-This runs unit tests (classes ending in `Test.java`) using the Surefire plugin. To run both unit and integration tests:
-
-```bash
-./mvnw clean verify
-```
-
-This executes unit tests and integration tests (classes ending in `IT.java`) using the Failsafe plugin, and generates a merged code coverage report.
-
-#### Running Tests from IntelliJ IDEA
-
-To run all tests:
-
-1. Open the Project view
-2. Right-click on `src/test/java`
-3. Select "Run 'All Tests'"
-
-To run a specific test class:
-
-1. Navigate to the test class (e.g., `PortfolioTest.java`)
-2. Right-click on the class name
-3. Select "Run 'PortfolioTest'"
-
-#### Understanding Test Types
-
-HexaStock distinguishes between two categories of tests:
-
-**Domain Unit Tests** verify business logic in isolation without any infrastructure dependencies. Examples include `PortfolioTest`, `HoldingTest`, `LotTest`, and `MoneyTest`. These tests run fast and validate that domain invariants are correctly enforced.
-
-**Integration Tests** verify the interaction between adapters and the application core. Examples include `PortfolioRestControllerIntegrationTest`. These tests use Testcontainers to spin up a real MySQL database and validate end-to-end flows through the REST API.
-
-### Running the Application
-
-#### Mandatory Spring Profiles
-
-**CRITICAL:** The application will NOT start unless you activate the required Spring profiles. You must specify:
-
-1. **Persistence profile (mandatory):**
-    - `jpa` - Activates JPA/Hibernate persistence with MySQL
-
-2. **Stock price provider profile (exactly one must be chosen):**
-    - `finhub` - Uses the Finnhub API for stock prices
-    - `alphaVantage` - Uses the AlphaVantage API for stock prices
-
-Valid profile combinations:
+Valid combinations:
 - `jpa,finhub`
 - `jpa,alphaVantage`
 
-#### Running from IntelliJ IDEA
-
-1. Locate the main class: `src/main/java/cat/gencat/agaur/hexastock/HexaStockApplication.java`
-2. Right-click on the class and select "Run 'HexaStockApplication'"
-3. The application will fail to start because profiles are not set
-4. Open "Run > Edit Configurations"
-5. Select the HexaStockApplication run configuration
-6. In the "Active profiles" field, enter the profiles as a comma-separated list:
-    - For Finnhub: `jpa,finhub`
-    - For AlphaVantage: `jpa,alphaVantage`
-7. Click "OK" and run the application again
-
-The application will start on port 8081. You should see log messages indicating successful startup.
-
-#### Running from Command Line
+**From the command line:**
 
 ```bash
 ./mvnw spring-boot:run -Dspring-boot.run.profiles=jpa,finhub
 ```
 
-or
+**From IntelliJ IDEA:** open *Run > Edit Configurations*, set the *Active profiles* field to `jpa,finhub` or `jpa,alphaVantage`, then run.
 
-```bash
-./mvnw spring-boot:run -Dspring-boot.run.profiles=jpa,alphaVantage
-```
-
-Each profile configures a different adapter for the `StockPriceProviderPort`. The Finnhub adapter calls the Finnhub API, while the AlphaVantage adapter calls the AlphaVantage API. The domain and application layers remain unchanged regardless of which adapter is active. This demonstrates the flexibility of Hexagonal Architecture.
+The application starts on port **8081**.
 
 ## API Keys Configuration
 
-Both stock price providers require API keys. Currently, all API keys are configured directly in the single existing file:
-
-```
-src/main/resources/application.properties
-```
-
-Open this file and locate the following properties:
+All configuration is centralized in `src/main/resources/application.properties`. Profile-specific files (`application-finhub.properties`, `application-alphavantage.properties`) do **not** exist yet.
 
 ```properties
-# Finhub API settings (used when profile is set to 'finhub')
+# Finnhub (active when profile = finhub)
 finhub.api.url=https://finnhub.io/api/v1
 finhub.api.key=your_finhub_key_here
 
-# Alpha Vantage API configuration (used when profile is set to 'alphaVantage')
+# Alpha Vantage (active when profile = alphaVantage)
 alphaVantage.api.base-url=https://www.alphavantage.co/query
 alphaVantage.api.key=your_alphavantage_key_here
 ```
 
-**Note:** Profile-specific properties files (such as `application-finhub.properties` or `application-alphavantage.properties`) do NOT exist yet. All configuration is currently centralized in the main `application.properties` file.
+Free-tier keys: [finnhub.io](https://finnhub.io/) · [alphavantage.co](https://www.alphavantage.co/)
 
-You can obtain free-tier API keys from:
-
-- Finnhub: https://finnhub.io/
-- AlphaVantage: https://www.alphavantage.co/
-
-Replace the placeholder values with your actual API keys. Alternatively, you can set them as environment variables to keep credentials out of version control.
+You can also supply keys as environment variables to keep credentials out of version control.
 
 ## Interacting with the Application
 
-### Using the HTTP Client
+Pre-configured HTTP requests are in [doc/calls.http](doc/calls.http).
 
-HexaStock provides pre-configured HTTP requests for testing the REST API manually. These requests are located in:
+**To use in IntelliJ IDEA:**
+1. Open `doc/calls.http`
+2. Ensure the application is running
+3. Click the green **Run** arrow next to any request
 
-[doc/calls.http](doc/calls.http)
-
-#### Opening the HTTP Client in IntelliJ IDEA
-
-1. Navigate to [doc/calls.http](doc/calls.http)
-2. Open the file in the editor
-3. Ensure the application is running
-4. Click the green "Run" arrow next to any request to execute it
-
-#### Example Workflow
-
-Execute the requests in sequence to simulate a complete portfolio lifecycle:
-
+**Example workflow:**
 1. Create a portfolio
-2. Deposit cash into the portfolio
-3. Buy stocks (AAPL, MSFT, etc.)
+2. Deposit cash
+3. Buy stocks (e.g. AAPL, MSFT)
 4. Check portfolio status
 5. Sell stocks
 6. View transaction history
 
-Each request includes example payloads and expected responses.
-
-### API Documentation
-
-Access the Swagger UI to explore and test the API interactively:
-
-```
-http://localhost:8081/swagger-ui.html
-```
-
-### Main Endpoints
-
-| Endpoint | Method | Description | Request Body | Response |
-|----------|--------|-------------|--------------|----------|
-| `/api/portfolios` | POST | Create a new portfolio | `{"ownerName":"John Doe"}` | Portfolio details |
-| `/api/portfolios/{id}` | GET | Get portfolio details | - | Portfolio details |
-| `/api/portfolios/{id}/deposits` | POST | Deposit cash | `{"amount":1000.00}` | Status 200 |
-| `/api/portfolios/{id}/withdrawals` | POST | Withdraw cash | `{"amount":500.00}` | Status 200 |
-| `/api/portfolios/{id}/purchases` | POST | Buy stock | `{"ticker":"AAPL","quantity":10}` | Status 200 |
-| `/api/portfolios/{id}/sales` | POST | Sell stock | `{"ticker":"AAPL","quantity":5}` | Sale result with profit/loss |
-| `/api/portfolios/{id}/transactions` | GET | Get transaction history | - | List of transactions |
-| `/api/stocks/{symbol}` | GET | Get current stock price | - | Stock price information |
-
-## Architecture Overview
-
-HexaStock implements Hexagonal Architecture, which organizes code into three primary layers: domain, application, and adapters.
-
-### Domain Layer
-
-The core of the application contains business entities and logic with no dependencies on external frameworks:
-
-- **Entities**: Portfolio (aggregate root), Holding, Lot, Transaction
-- **Value Objects**: Money, Price, ShareQuantity, Ticker, PortfolioId, HoldingId, LotId, TransactionId, SellResult, StockPrice
-- **Domain Exceptions**: Business rule violations expressed in domain language
-
-### Application Layer
-
-Defines use case interfaces (ports) and implements orchestration logic in application services:
-
-- **Inbound Ports**: Use cases the application provides (e.g., `PortfolioStockOperationsUseCase`)
-- **Outbound Ports**: Services the application needs (e.g., `PortfolioPort`, `StockPriceProviderPort`)
-- **Application Services**: Coordinate domain objects, call ports, manage transactions
-
-### Adapters Layer
-
-Connects the application to the outside world:
-
-- **Inbound Adapters**: REST controllers that receive HTTP requests and call use case ports
-- **Outbound Adapters**: JPA repositories, HTTP clients for external APIs (Finnhub, AlphaVantage)
-
-This separation enables independent testing of business logic, flexible adapter replacement, and clear architectural boundaries that prevent infrastructure concerns from leaking into business rules.
-
-### UML Class Diagram
-
-[![HexaStock Domain Model](doc/tutorial/sellStocks/diagrams/Rendered/HexaStock%20Domain%20Model.png)](doc/tutorial/sellStocks/diagrams/Rendered/HexaStock%20Domain%20Model.svg)
-
-## Domain Concepts
-
-### Portfolio
-
-The central aggregate root in the system. A portfolio maintains a cash balance and contains a collection of holdings. It enforces business rules such as preventing purchases with insufficient funds and ensuring all changes to contained entities maintain consistency.
-
-### Holding
-
-Represents ownership of a specific stock identified by a ticker symbol (e.g., AAPL for Apple). Contains a collection of lots and manages selling using FIFO (First-In-First-Out) accounting.
-
-### Lot
-
-Represents a specific purchase of shares. Records the quantity, price, and purchase date. Tracks how many shares remain unsold and is used for calculating cost basis and profit/loss when selling.
-
-### Transaction
-
-Records all financial activities within a portfolio. Types include PURCHASE, SALE, DEPOSIT, and WITHDRAWAL. Stores details like price (`Price`), quantity (`ShareQuantity`), and timestamp. For sales, includes profit/loss calculations using `Money`.
-
-## Further Reading
-
-Now that you have the application running and understand the basic structure, explore these resources:
-
-### Tutorials and Guides
-
-- [Stock Portfolio API Specification](doc/stock-portfolio-api-specification.md) — full functional reference with user stories, error handling, and HTTP examples
-- [Sell Stock Tutorial](doc/tutorial/sellStocks/SELL-STOCK-TUTORIAL.md) — end-to-end use case walkthrough from HTTP request to persistence
-- [Dependency Inversion in Stock Selling](doc/tutorial/DEPENDENCY-INVERSION-STOCK-SELLING.md) — how ports and adapters decouple the sell flow
-- [Concurrency and Pessimistic Locking](doc/tutorial/CONCURRENCY-PESSIMISTIC-LOCKING.md) — handling concurrent updates to portfolios
-
-### Codebase Exploration
-
-Start from the REST controllers in `adapter.in`, follow calls through application services in `application.service`, and examine domain logic in the `model` package.
-
-Review the test classes to understand how domain rules are verified in isolation and how integration tests validate end-to-end behavior.
-
-## Test Coverage
-
-HexaStock maintains high test coverage to ensure reliability and facilitate refactoring. The project uses JaCoCo for coverage reporting.
-
-<img width="1287" height="420" alt="image" src="https://github.com/user-attachments/assets/267beb7f-dfc1-4db0-8337-7b690848b5e5" />
+Swagger UI is available at `http://localhost:8081/swagger-ui.html`.
 
 ## Contributing
 
-This is an educational project. Students are encouraged to experiment with adding new features or modifying existing behavior to gain practical experience with the architectural patterns in action.
+This is an educational project. Students are encouraged to experiment with adding new features or modifying existing behaviour to gain practical experience with the architectural patterns in action.
 
