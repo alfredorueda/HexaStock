@@ -23,7 +23,7 @@ It is built around:
 * Automated architectural validation
 
 This is not pattern-based theory.
-It is boundary-driven engineering shaped by real enterprise constraints.
+It is boundary-driven engineering shaped by real enterprise constraints. 
 
 ---
 
