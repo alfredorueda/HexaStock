@@ -8,6 +8,9 @@ import cat.gencat.agaur.hexastock.model.exception.HoldingNotFoundException;
 import cat.gencat.agaur.hexastock.model.exception.ExternalApiException;
 import cat.gencat.agaur.hexastock.model.exception.InsufficientFundsException;
 import cat.gencat.agaur.hexastock.model.exception.InvalidTickerException;
+import cat.gencat.agaur.hexastock.model.exception.WatchlistNotFoundException;
+import cat.gencat.agaur.hexastock.model.exception.DuplicateAlertException;
+import cat.gencat.agaur.hexastock.model.exception.AlertNotFoundException;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -94,6 +97,46 @@ public class ExceptionHandlingAdvice {
     public ProblemDetail invalidTickerExceptionHandler(InvalidTickerException ex) {
         ProblemDetail pd = ProblemDetail.forStatus(HttpStatus.BAD_REQUEST);
         pd.setTitle("Invalid Ticker");
+        pd.setDetail(ex.getMessage());
+        return pd;
+    }
+
+    @ExceptionHandler(WatchlistNotFoundException.class)
+    @ResponseStatus(HttpStatus.NOT_FOUND)
+    @ResponseBody
+    public ProblemDetail watchlistNotFoundExceptionHandler(WatchlistNotFoundException ex) {
+        ProblemDetail pd = ProblemDetail.forStatus(HttpStatus.NOT_FOUND);
+        pd.setTitle("Watchlist Not Found");
+        pd.setDetail(ex.getMessage());
+        return pd;
+    }
+
+    @ExceptionHandler(AlertNotFoundException.class)
+    @ResponseStatus(HttpStatus.NOT_FOUND)
+    @ResponseBody
+    public ProblemDetail alertNotFoundExceptionHandler(AlertNotFoundException ex) {
+        ProblemDetail pd = ProblemDetail.forStatus(HttpStatus.NOT_FOUND);
+        pd.setTitle("Alert Not Found");
+        pd.setDetail(ex.getMessage());
+        return pd;
+    }
+
+    @ExceptionHandler(DuplicateAlertException.class)
+    @ResponseStatus(HttpStatus.CONFLICT)
+    @ResponseBody
+    public ProblemDetail duplicateAlertExceptionHandler(DuplicateAlertException ex) {
+        ProblemDetail pd = ProblemDetail.forStatus(HttpStatus.CONFLICT);
+        pd.setTitle("Duplicate Alert");
+        pd.setDetail(ex.getMessage());
+        return pd;
+    }
+
+    @ExceptionHandler(IllegalArgumentException.class)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    @ResponseBody
+    public ProblemDetail illegalArgumentExceptionHandler(IllegalArgumentException ex) {
+        ProblemDetail pd = ProblemDetail.forStatus(HttpStatus.BAD_REQUEST);
+        pd.setTitle("Invalid Request");
         pd.setDetail(ex.getMessage());
         return pd;
     }
