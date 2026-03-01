@@ -1,15 +1,19 @@
 package cat.gencat.agaur.hexastock.adapter;
 
 import cat.gencat.agaur.hexastock.application.port.in.*;
+import cat.gencat.agaur.hexastock.application.port.out.NotificationPort;
 import cat.gencat.agaur.hexastock.application.port.out.PortfolioPort;
 import cat.gencat.agaur.hexastock.application.port.out.StockPriceProviderPort;
 import cat.gencat.agaur.hexastock.application.port.out.TransactionPort;
+import cat.gencat.agaur.hexastock.application.port.out.WatchlistPort;
+import cat.gencat.agaur.hexastock.application.port.out.WatchlistQueryPort;
 import cat.gencat.agaur.hexastock.application.service.*;
 import cat.gencat.agaur.hexastock.model.service.HoldingPerformanceCalculator;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.cache.annotation.EnableCaching;
 import org.springframework.context.annotation.Bean;
+import org.springframework.scheduling.annotation.EnableScheduling;
 
 /**
  * Spring application configuration, making Spring beans from services defined in application
@@ -19,6 +23,7 @@ import org.springframework.context.annotation.Bean;
  */
 @SpringBootApplication
 @EnableCaching
+@EnableScheduling
 public class SpringAppConfig {
 
   @Autowired
@@ -29,6 +34,15 @@ public class SpringAppConfig {
 
   @Autowired
   PortfolioPort portfolioPort;
+
+  @Autowired
+  WatchlistPort watchlistPort;
+
+  @Autowired
+  WatchlistQueryPort watchlistQueryPort;
+
+  @Autowired
+  NotificationPort notificationPort;
 
   @Bean
   HoldingPerformanceCalculator holdingPerformanceCalculator() {
@@ -58,5 +72,15 @@ public class SpringAppConfig {
   @Bean
   TransactionUseCase getTransactionUseCase() {
     return new TransactionService(transactionPort);
+  }
+
+  @Bean
+  WatchlistManagementUseCase getWatchlistManagementUseCase() {
+    return new WatchlistManagementService(watchlistPort);
+  }
+
+  @Bean
+  MarketSentinelService getMarketSentinelService() {
+    return new MarketSentinelService(watchlistQueryPort, stockPriceProviderPort, notificationPort);
   }
 }
