@@ -323,17 +323,108 @@ Location: http://localhost:8080/api/portfolios/550e8400-e29b-41d4-a716-446655440
 - Portfolio must hold the specified ticker.
 - Portfolio must hold ≥ requested quantity of shares for that ticker.
 
+#### FIFO Accounting Rule
+
+Sales apply **First-In, First-Out (FIFO)** lot consumption. When shares are sold, the system iterates through the holding's lots in chronological order (oldest first) and consumes shares from each lot until the requested quantity is fulfilled:
+
+1. Start with the **oldest lot** (the one purchased earliest).
+2. Take the **minimum** of the lot's remaining shares and the shares still to sell.
+3. Reduce the lot's remaining shares by that amount.
+4. Accumulate the **cost basis** contribution: shares taken from that lot × lot's unit purchase price.
+5. If the lot reaches **zero remaining shares**, it becomes empty and is removed.
+6. Move to the **next oldest lot** and repeat until all requested shares are sold.
+
+#### Financial Definitions
+
+| Term | Formula | Description |
+|---|---|---|
+| **Sale Price** | *(market price at sell time)* | The current market price obtained when executing the sell order |
+| **Proceeds** | `quantitySold × salePrice` | Total revenue from the sale |
+| **Cost Basis** | `Σ (sharesFromLotᵢ × purchasePriceᵢ)` applying FIFO | The original acquisition cost of the sold shares, computed by summing each lot's contribution |
+| **Profit** | `proceeds − costBasis` | Realized gain (positive) or loss (negative) from the sale |
+
 #### Acceptance Criteria
 
 | # | Given / When / Then |
 |---|---|
 | 1 | **Given** a portfolio holding 5 shares of AAPL<br/>**When** I POST `/api/portfolios/{id}/sales` with `{"ticker":"AAPL","quantity":3}`<br/>**Then** I receive **200 OK** with `portfolioId`, `ticker`, `quantity`, `proceeds` (> 0), `costBasis`, `profit`; 2 shares remain |
-| 2 | **Given** the sale uses FIFO accounting<br/>**When** I sell 8 shares from lots [10@$100, 5@$120]<br/>**Then** 8 shares are sold from the oldest lot first; cost basis = 8 × $100 = $800 |
+| 2 | **Given** the sale uses FIFO accounting<br/>**When** I sell 8 shares from lots [10@$100, 5@$120] at a sale price of $150<br/>**Then** 8 shares are sold from the oldest lot first; costBasis = 8 × $100 = $800; proceeds = 8 × $150 = $1200; profit = $400 |
 | 3 | **Given** a portfolio holding 5 shares of AAPL<br/>**When** I sell 10 shares<br/>**Then** I receive **409 Conflict** with `title: "Conflict Quantity"`, `detail` containing `"Not enough shares to sell"` |
 | 4 | **Given** a portfolio<br/>**When** I sell with quantity `0`<br/>**Then** I receive **400 Bad Request** with `title: "Invalid Quantity"`, `detail` containing `"Quantity must be positive"` |
 | 5 | **Given** a portfolio<br/>**When** I sell with negative quantity<br/>**Then** I receive **400 Bad Request** with `title: "Invalid Quantity"`, `detail` containing `"Quantity must be positive"` |
 | 6 | **Given** a portfolio that does NOT hold MSFT<br/>**When** I sell MSFT<br/>**Then** I receive **404 Not Found** with `title: "Holding Not Found"` |
 | 7 | **Given** a non-existent portfolio ID<br/>**When** I sell stock<br/>**Then** I receive **404 Not Found** with `title: "Portfolio Not Found"` |
+
+#### FIFO Sell Scenarios (Detailed Gherkin)
+
+The following scenarios use a shared background and provide exact numeric expectations suitable for deriving automated tests.
+
+```gherkin
+Feature: Sell Stocks with FIFO Lot Consumption
+
+  Background:
+    Given a portfolio exists for owner "Alice"
+    And the portfolio holds AAPL with the following lots (in purchase order):
+      | Lot # | Shares | Purchase Price |
+      |     1 |     10 |        100.00  |
+      |     2 |      5 |        120.00  |
+    And the current market price for AAPL is 150.00
+
+  Scenario: Selling shares consumed entirely from a single lot
+    When I sell 8 shares of AAPL
+    Then the sale response contains:
+      | Field     | Value   |
+      | ticker    | AAPL    |
+      | quantity  |       8 |
+      | proceeds  | 1200.00 |
+      | costBasis |  800.00 |
+      | profit    |  400.00 |
+    And FIFO consumed 8 shares from Lot #1 at 100.00
+    And the AAPL holding lots are now:
+      | Lot # | Initial Shares | Remaining Shares | Purchase Price |
+      |     1 |             10 |                2 |        100.00  |
+      |     2 |              5 |                5 |        120.00  |
+    And the portfolio cash balance has increased by 1200.00
+
+  # Calculation breakdown:
+  #   FIFO step 1: Lot #1 has 10 remaining → take min(10, 8) = 8 shares
+  #                costBasis contribution = 8 × 100.00 = 800.00
+  #                Lot #1 remaining: 10 − 8 = 2
+  #   Total shares sold: 8 (request fulfilled)
+  #   proceeds  = 8 × 150.00  = 1200.00
+  #   costBasis = 800.00
+  #   profit    = 1200.00 − 800.00 = 400.00
+
+  Scenario: Selling shares consumed across multiple lots
+    When I sell 12 shares of AAPL
+    Then the sale response contains:
+      | Field     | Value   |
+      | ticker    | AAPL    |
+      | quantity  |      12 |
+      | proceeds  | 1800.00 |
+      | costBasis | 1240.00 |
+      | profit    |  560.00 |
+    And FIFO consumed 10 shares from Lot #1 at 100.00 and 2 shares from Lot #2 at 120.00
+    And Lot #1 is fully depleted and removed
+    And the AAPL holding lots are now:
+      | Lot # | Initial Shares | Remaining Shares | Purchase Price |
+      |     2 |              5 |                3 |        120.00  |
+    And the portfolio cash balance has increased by 1800.00
+
+  # Calculation breakdown:
+  #   FIFO step 1: Lot #1 has 10 remaining → take min(10, 12) = 10 shares
+  #                costBasis contribution = 10 × 100.00 = 1000.00
+  #                Lot #1 remaining: 10 − 10 = 0 → lot is empty, removed
+  #                Shares still to sell: 12 − 10 = 2
+  #   FIFO step 2: Lot #2 has 5 remaining → take min(5, 2) = 2 shares
+  #                costBasis contribution = 2 × 120.00 = 240.00
+  #                Lot #2 remaining: 5 − 2 = 3
+  #                Shares still to sell: 2 − 2 = 0
+  #   Total shares sold: 12 (request fulfilled)
+  #   proceeds  = 12 × 150.00 = 1800.00
+  #   costBasis = 1000.00 + 240.00 = 1240.00
+  #   profit    = 1800.00 − 1240.00 = 560.00
+```
 
 #### Success Response (200 OK)
 
