@@ -19,6 +19,7 @@ class HoldingTest {
     private static final Price PRICE_120 = Price.of("120.00");
     private static final Price PRICE_90 = Price.of("90.00");
     private static final Price PRICE_110 = Price.of("110.00");
+    private static final Price PRICE_150 = Price.of("150.00");
 
     private Holding holding;
 
@@ -175,6 +176,30 @@ class HoldingTest {
             assertEquals(ShareQuantity.of(30), lot5.getRemainingShares());
             assertEquals(Price.of("120.00"), lot5.getUnitPrice());
             assertEquals(Money.of("1150.00"), result.profit());
+        }
+
+        @Test
+        @DisplayName("Should sell shares across multiple lots using FIFO (Gherkin scenario)")
+        void shouldSellSharesAcrossMultipleLots_GherkinScenario() {
+            // Background: buy 10 shares @ 100, then 5 shares @ 120
+            holding.buy(ShareQuantity.of(10), PRICE_100);
+            holding.buy(ShareQuantity.of(5), PRICE_120);
+
+            // When: sell 12 shares @ 150 (market price from Gherkin)
+            SellResult result = holding.sell(ShareQuantity.of(12), PRICE_150);
+
+            // Then: 3 remaining shares, only Lot #2 survives
+            assertEquals(ShareQuantity.of(3), holding.getTotalShares());
+            assertEquals(1, holding.getLots().size());
+
+            Lot remainingLot = holding.getLots().get(0);
+            assertEquals(ShareQuantity.of(3), remainingLot.getRemainingShares());
+            assertEquals(PRICE_120, remainingLot.getUnitPrice());
+
+            // And: financial results match Gherkin expectations
+            assertEquals(Money.of("1800.00"), result.proceeds());
+            assertEquals(Money.of("1240.00"), result.costBasis());
+            assertEquals(Money.of("560.00"), result.profit());
         }
     }
 
