@@ -210,7 +210,7 @@ Feature: Sell Stocks with FIFO Lot Consumption
 
 The behaviour described in the Gherkin scenarios above is validated by automated unit tests at the domain level. These tests run without any infrastructure (no database, no Spring context) and verify the FIFO accounting logic directly on the `Holding` entity.
 
-**Test source:** [HoldingTest.java — shouldSellSharesAcrossMultipleLots_GherkinScenario](https://github.com/alfredorueda/HexaStock/blob/5cb51ead3c97ed81eb06388af1a60a78bdc4354b/src/test/java/cat/gencat/agaur/hexastock/model/HoldingTest.java#L101)
+**Test source:** [HoldingTest.java — shouldSellSharesAcrossMultipleLots_GherkinScenario](https://github.com/alfredorueda/HexaStock/blob/44fa1ff6e29b79faccb0952a5103475eb4f03061/src/test/java/cat/gencat/agaur/hexastock/model/HoldingTest.java#L181)
 
 ```java
 @Test
