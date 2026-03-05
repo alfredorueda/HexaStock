@@ -113,7 +113,7 @@ As you read through sections 3–9, you'll trace a real HTTP request flowing thr
 
 ## 1. Purpose and Learning Objectives
 
-This tutorial walks through a complete software engineering workflow applied to a real use case in the HexaStock system: **selling stocks from a portfolio**. The tutorial starts from observable behaviour, moving through domain modelling and architectural reasoning, and arriving at a fully traced design with UML diagrams at every stage.
+This tutorial walks through a complete software engineering workflow applied to a real use case in the HexaStock system: **selling stocks from a portfolio**. This tutorial walks through a complete software engineering workflow applied to a real use case in the HexaStock system: selling stocks from a portfolio. The tutorial starts with observable behaviour, moves through domain modelling and architectural reasoning, and arrives at a fully traced design with UML diagrams at every stage.
 
 You will progressively move from specification to design to implementation, learning how each engineering phase feeds into the next. By the end, you will understand:
 
