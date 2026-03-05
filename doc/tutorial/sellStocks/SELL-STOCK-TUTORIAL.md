@@ -98,7 +98,7 @@ Understanding this structure is critical because:
 
 ### How This Tutorial Maps to the Diagram
 
-The sell stock use case flows through these architectural layers:
+The sell stock use case flows through these architectural layers: 
 
 - **Primary (Driving) Adapters** → `PortfolioRestController` in package `adapter.in`
 - **Inbound Ports** → `PortfolioStockOperationsUseCase` interface in `application.port.in`
