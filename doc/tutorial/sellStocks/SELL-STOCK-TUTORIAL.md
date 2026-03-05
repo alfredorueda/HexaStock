@@ -5,6 +5,8 @@
 - [Architecture Overview (Hexagonal / Ports & Adapters)](#architecture-overview-hexagonal--ports--adapters)
   - [How This Tutorial Maps to the Diagram](#how-this-tutorial-maps-to-the-diagram)
 - [1. Purpose and Learning Objectives](#1-purpose-and-learning-objectives)
+- [Functional Specification (Behaviour)](#functional-specification-behaviour)
+- [Executable Specification (JUnit)](#executable-specification-junit)
 - [2. Domain Context: What "Selling Stocks" Means in HexaStock](#2-domain-context-what-selling-stocks-means-in-hexastock)
 - [3. Entry Point: The REST Endpoint (Driving Adapter)](#3-entry-point-the-rest-endpoint-driving-adapter)
 - [4. Hexagonal Architecture Map for the SELL Use Case](#4-hexagonal-architecture-map-for-the-sell-use-case)
@@ -119,6 +121,115 @@ This tutorial explains a **real use case** from the HexaStock codebase: **sellin
 - How FIFO accounting is implemented at the domain level
 - How domain exceptions translate to HTTP responses
 - How **Value Objects** (`Money`, `Price`, `ShareQuantity`, `Ticker`, `PortfolioId`, etc.) replace primitives to enforce domain rules at construction time and make the ubiquitous language explicit in code
+
+---
+
+## Functional Specification (Behaviour)
+
+Before designing the domain model or writing implementation code, we start by defining the **observable behaviour** of the sell use case. The Gherkin scenarios below describe what the system must do in business terms, independent of any technical design decisions.
+
+**Source of truth:** [US-07 — Sell Stocks (API Specification)](https://github.com/alfredorueda/HexaStock/blob/main/doc/stock-portfolio-api-specification.md#27-us-07--sell-stocks)
+
+```gherkin
+Feature: Sell Stocks with FIFO Lot Consumption
+
+  Background:
+    Given a portfolio exists for owner "Alice"
+    And the portfolio holds AAPL with the following lots (in purchase order):
+      | Lot # | Shares | Purchase Price |
+      |     1 |     10 |        100.00  |
+      |     2 |      5 |        120.00  |
+    And the current market price for AAPL is 150.00
+
+  Scenario: Selling shares consumed entirely from a single lot
+    When I sell 8 shares of AAPL
+    Then the sale response contains:
+      | Field     | Value   |
+      | ticker    | AAPL    |
+      | quantity  |       8 |
+      | proceeds  | 1200.00 |
+      | costBasis |  800.00 |
+      | profit    |  400.00 |
+    And FIFO consumed 8 shares from Lot #1 at 100.00
+    And the AAPL holding lots are now:
+      | Lot # | Initial Shares | Remaining Shares | Purchase Price |
+      |     1 |             10 |                2 |        100.00  |
+      |     2 |              5 |                5 |        120.00  |
+    And the portfolio cash balance has increased by 1200.00
+
+  # Calculation breakdown:
+  #   FIFO step 1: Lot #1 has 10 remaining → take min(10, 8) = 8 shares
+  #                costBasis contribution = 8 × 100.00 = 800.00
+  #                Lot #1 remaining: 10 − 8 = 2
+  #   Total shares sold: 8 (request fulfilled)
+  #   proceeds  = 8 × 150.00  = 1200.00
+  #   costBasis = 800.00
+  #   profit    = 1200.00 − 800.00 = 400.00
+
+  Scenario: Selling shares consumed across multiple lots
+    When I sell 12 shares of AAPL
+    Then the sale response contains:
+      | Field     | Value   |
+      | ticker    | AAPL    |
+      | quantity  |      12 |
+      | proceeds  | 1800.00 |
+      | costBasis | 1240.00 |
+      | profit    |  560.00 |
+    And FIFO consumed 10 shares from Lot #1 at 100.00 and 2 shares from Lot #2 at 120.00
+    And Lot #1 is fully depleted and removed
+    And the AAPL holding lots are now:
+      | Lot # | Initial Shares | Remaining Shares | Purchase Price |
+      |     2 |              5 |                3 |        120.00  |
+    And the portfolio cash balance has increased by 1800.00
+
+  # Calculation breakdown:
+  #   FIFO step 1: Lot #1 has 10 remaining → take min(10, 12) = 10 shares
+  #                costBasis contribution = 10 × 100.00 = 1000.00
+  #                Lot #1 remaining: 10 − 10 = 0 → lot is empty, removed
+  #                Shares still to sell: 12 − 10 = 2
+  #   FIFO step 2: Lot #2 has 5 remaining → take min(5, 2) = 2 shares
+  #                costBasis contribution = 2 × 120.00 = 240.00
+  #                Lot #2 remaining: 5 − 2 = 3
+  #                Shares still to sell: 2 − 2 = 0
+  #   Total shares sold: 12 (request fulfilled)
+  #   proceeds  = 12 × 150.00 = 1800.00
+  #   costBasis = 1000.00 + 240.00 = 1240.00
+  #   profit    = 1800.00 − 1240.00 = 560.00
+```
+
+---
+
+## Executable Specification (JUnit)
+
+The behaviour described in the Gherkin scenarios above is validated by automated unit tests at the domain level. These tests run without any infrastructure (no database, no Spring context) and verify the FIFO accounting logic directly on the `Holding` entity.
+
+**Test source:** [HoldingTest.java — shouldSellSharesAcrossMultipleLots_GherkinScenario](https://github.com/alfredorueda/HexaStock/blob/5cb51ead3c97ed81eb06388af1a60a78bdc4354b/src/test/java/cat/gencat/agaur/hexastock/model/HoldingTest.java#L101)
+
+```java
+@Test
+@DisplayName("Should sell shares across multiple lots using FIFO (Gherkin scenario)")
+void shouldSellSharesAcrossMultipleLots_GherkinScenario() {
+    // Background: buy 10 shares @ 100, then 5 shares @ 120
+    holding.buy(ShareQuantity.of(10), PRICE_100);
+    holding.buy(ShareQuantity.of(5), PRICE_120);
+
+    // When: sell 12 shares @ 150 (market price from Gherkin)
+    SellResult result = holding.sell(ShareQuantity.of(12), PRICE_150);
+
+    // Then: 3 remaining shares, only Lot #2 survives
+    assertEquals(ShareQuantity.of(3), holding.getTotalShares());
+    assertEquals(1, holding.getLots().size());
+
+    Lot remainingLot = holding.getLots().getFirst();
+    assertEquals(ShareQuantity.of(3), remainingLot.getRemainingShares());
+    assertEquals(PRICE_120, remainingLot.getUnitPrice());
+
+    // And: financial results match Gherkin expectations
+    assertEquals(Money.of("1800.00"), result.proceeds());
+    assertEquals(Money.of("1240.00"), result.costBasis());
+    assertEquals(Money.of("560.00"), result.profit());
+}
+```
 
 ---
 
