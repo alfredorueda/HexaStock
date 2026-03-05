@@ -192,7 +192,7 @@ class HoldingTest {
             assertEquals(ShareQuantity.of(3), holding.getTotalShares());
             assertEquals(1, holding.getLots().size());
 
-            Lot remainingLot = holding.getLots().get(0);
+            Lot remainingLot = holding.getLots().getFirst();
             assertEquals(ShareQuantity.of(3), remainingLot.getRemainingShares());
             assertEquals(PRICE_120, remainingLot.getUnitPrice());
 
