@@ -113,14 +113,21 @@ As you read through sections 3–9, you'll trace a real HTTP request flowing thr
 
 ## 1. Purpose and Learning Objectives
 
-This tutorial explains a **real use case** from the HexaStock codebase: **selling stocks from a portfolio**. By following the actual execution path through real code, you will learn:
+This tutorial walks through a complete software engineering workflow applied to a real use case in the HexaStock system: **selling stocks from a portfolio**. Rather than jumping straight into code, the tutorial follows the same progression that professional teams use to design and implement production systems — starting from observable behaviour, moving through domain modelling and architectural reasoning, and arriving at a fully traced implementation with UML diagrams at every stage.
 
-- How **Hexagonal Architecture** separates concerns between adapters, ports, and domain logic
-- How **Domain-Driven Design (DDD)** protects business invariants through aggregate roots
-- Why application services **orchestrate** while aggregates **decide**
-- How FIFO accounting is implemented at the domain level
-- How domain exceptions translate to HTTP responses
-- How **Value Objects** (`Money`, `Price`, `ShareQuantity`, `Ticker`, `PortfolioId`, etc.) replace primitives to enforce domain rules at construction time and make the ubiquitous language explicit in code
+You will progressively move from specification to design to implementation, learning how each engineering phase feeds into the next. By the end, you will understand:
+
+- How **functional specifications written in Gherkin** capture expected behaviour in business language before any design decisions are made
+- How **executable specifications expressed as JUnit tests** validate that behaviour directly against the domain model, with no infrastructure required
+- How **Domain-Driven Design (DDD)** shapes the model into aggregates (`Portfolio`, `Holding`, `Lot`) that enforce business invariants at their boundaries
+- How the **aggregate root pattern** ensures that all state changes pass through a single consistency boundary, preventing invalid states
+- How **Hexagonal Architecture** separates the system into adapters, ports, and domain logic — and why that separation matters for testability and maintainability
+- How **application services orchestrate** use cases without containing business logic, while **aggregates decide** and protect invariants
+- How **FIFO (First-In-First-Out) accounting** is implemented entirely within the domain model as a core business rule
+- How **UML class diagrams** illustrate the domain model's entities, value objects, and their relationships
+- How **UML sequence diagrams** trace the sell use case as it flows through each architectural layer — from REST adapter to port to service to aggregate
+- How **Value Objects** (`Money`, `Price`, `ShareQuantity`, `Ticker`, `PortfolioId`, `HoldingId`, `LotId`, etc.) replace primitives to enforce domain constraints at construction time and make the ubiquitous language explicit in code
+- How **domain exceptions** propagate from the aggregate through the application service and are translated by adapters into meaningful HTTP/REST responses
 
 ---
 
