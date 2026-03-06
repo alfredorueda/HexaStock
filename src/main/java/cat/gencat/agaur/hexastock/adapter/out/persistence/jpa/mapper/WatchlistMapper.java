@@ -3,8 +3,11 @@ package cat.gencat.agaur.hexastock.adapter.out.persistence.jpa.mapper;
 import cat.gencat.agaur.hexastock.adapter.out.persistence.jpa.entity.WatchlistEntryJpaEntity;
 import cat.gencat.agaur.hexastock.adapter.out.persistence.jpa.entity.WatchlistJpaEntity;
 import cat.gencat.agaur.hexastock.model.*;
-import java.util.Currency;
+
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.ArrayList;
+import java.util.Currency;
 import java.util.List;
 
 /**
@@ -49,13 +52,16 @@ public class WatchlistMapper {
         List<WatchlistEntry> entries = new ArrayList<>();
 
         for (WatchlistEntryJpaEntity entryEntity : entity.getEntries()) {
+            // Normalize BigDecimal scale to match currency requirements
+            // MySQL may return values with more decimals than the currency allows (e.g., 150.0000 for USD)
+            Currency currency = Currency.getInstance(entryEntity.getCurrency());
+            BigDecimal normalizedAmount = entryEntity.getThresholdPrice()
+                    .setScale(currency.getDefaultFractionDigits(), RoundingMode.HALF_UP);
+
             WatchlistEntry entry = new WatchlistEntry(
                     entryEntity.getId(),
                     Ticker.of(entryEntity.getTicker()),
-                    new Money(
-                            Currency.getInstance(entryEntity.getCurrency()),  // String → Currency (primero)
-                            entryEntity.getThresholdPrice()                   // BigDecimal (segundo)
-                    )
+                    new Money(currency, normalizedAmount)
             );
             entries.add(entry);
         }
