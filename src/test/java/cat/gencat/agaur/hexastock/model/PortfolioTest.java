@@ -197,6 +197,44 @@ class PortfolioTest {
             assertThrows(ConflictQuantityException.class,
                     () -> portfolio.sell(APPLE, ShareQuantity.of(15), Price.of("60.00")));
         }
+
+        @Test
+        @DisplayName("Should sell shares across multiple lots using FIFO through the aggregate root (Gherkin scenario)")
+        void shouldSellSharesUsingFIFOThroughPortfolioAggregateRoot_GherkinScenario() {
+            // Background: a portfolio with sufficient funds to buy AAPL lots
+            Price purchasePrice1 = Price.of("100.00");
+            Price purchasePrice2 = Price.of("120.00");
+            Price marketSellPrice = Price.of("150.00");
+
+            Portfolio fundedPortfolio = new Portfolio(
+                    PortfolioId.generate(), "Alice", Money.of("10000.00"), LocalDateTime.now());
+
+            // Background: buy 10 shares of AAPL @ 100, then 5 shares @ 120
+            fundedPortfolio.buy(APPLE, ShareQuantity.of(10), purchasePrice1);
+            fundedPortfolio.buy(APPLE, ShareQuantity.of(5), purchasePrice2);
+
+            Money balanceBeforeSell = fundedPortfolio.getBalance(); // 10000 - 1000 - 600 = 8400
+
+            // When: sell 12 shares of AAPL @ 150 through the aggregate root
+            SellResult result = fundedPortfolio.sell(APPLE, ShareQuantity.of(12), marketSellPrice);
+
+            // Then: financial results match Gherkin expectations
+            assertEquals(Money.of("1800.00"), result.proceeds());   // 12 × 150
+            assertEquals(Money.of("1240.00"), result.costBasis());   // (10 × 100) + (2 × 120)
+            assertEquals(Money.of("560.00"), result.profit());       // 1800 − 1240
+
+            // And: portfolio balance increased by proceeds
+            assertEquals(balanceBeforeSell.add(Money.of("1800.00")), fundedPortfolio.getBalance());
+
+            // And: FIFO lot consumption — only Lot #2 survives with 3 remaining shares
+            Holding aaplHolding = fundedPortfolio.getHolding(APPLE);
+            assertEquals(ShareQuantity.of(3), aaplHolding.getTotalShares());
+            assertEquals(1, aaplHolding.getLots().size());
+
+            Lot remainingLot = aaplHolding.getLots().getFirst();
+            assertEquals(ShareQuantity.of(3), remainingLot.getRemainingShares());
+            assertEquals(purchasePrice2, remainingLot.getUnitPrice());
+        }
     }
 
     @Nested
