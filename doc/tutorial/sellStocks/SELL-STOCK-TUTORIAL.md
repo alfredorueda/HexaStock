@@ -208,7 +208,64 @@ Feature: Sell Stocks with FIFO Lot Consumption
 
 ## Executable Specification (JUnit)
 
-The behaviour described in the Gherkin scenarios above is validated by automated unit tests at the domain level. These tests run without any infrastructure (no database, no Spring context) and verify the FIFO accounting logic directly on the `Holding` entity.
+The Gherkin scenarios above describe observable behaviour at the **Portfolio level** — the aggregate root in our DDD model. Therefore, the primary executable specification must validate the scenario through `Portfolio.sell(...)`, not through the internal entity `Holding` directly. This is a deliberate DDD design choice: business behaviour is exposed by the aggregate root, and tests should reflect that boundary.
+
+HexaStock validates this behaviour at **two complementary levels**:
+
+1. **Aggregate-level behaviour verification** — a `Portfolio` test that exercises the complete sell operation through the aggregate root, verifying financial results, balance updates, and FIFO lot consumption as a single consistent unit.
+2. **Focused algorithm verification** — a `Holding` test that verifies the internal FIFO lot-consumption algorithm in isolation, independent of portfolio-level concerns like cash balance.
+
+### Primary: Aggregate Root Test (`Portfolio`)
+
+This test is the direct executable translation of the Gherkin scenario. It invokes `Portfolio.sell(...)` exactly as the application service would, and asserts every observable outcome described in the specification: proceeds, cost basis, profit, balance update, and FIFO lot state.
+
+**Test source:** [PortfolioTest.java — shouldSellSharesUsingFIFOThroughPortfolioAggregateRoot_GherkinScenario](https://github.com/alfredorueda/HexaStock/blob/9f52de7b30dd683952b5a1b10ac63c878535444a/src/test/java/cat/gencat/agaur/hexastock/model/PortfolioTest.java#L201)
+
+```java
+@Test
+@DisplayName("Should sell shares across multiple lots using FIFO through the aggregate root (Gherkin scenario)")
+void shouldSellSharesUsingFIFOThroughPortfolioAggregateRoot_GherkinScenario() {
+    // Background: a portfolio with sufficient funds to buy AAPL lots
+    Price purchasePrice1 = Price.of("100.00");
+    Price purchasePrice2 = Price.of("120.00");
+    Price marketSellPrice = Price.of("150.00");
+
+    Portfolio fundedPortfolio = new Portfolio(
+            PortfolioId.generate(), "Alice", Money.of("10000.00"), LocalDateTime.now());
+
+    // Background: buy 10 shares of AAPL @ 100, then 5 shares @ 120
+    fundedPortfolio.buy(APPLE, ShareQuantity.of(10), purchasePrice1);
+    fundedPortfolio.buy(APPLE, ShareQuantity.of(5), purchasePrice2);
+
+    Money balanceBeforeSell = fundedPortfolio.getBalance(); // 10000 - 1000 - 600 = 8400
+
+    // When: sell 12 shares of AAPL @ 150 through the aggregate root
+    SellResult result = fundedPortfolio.sell(APPLE, ShareQuantity.of(12), marketSellPrice);
+
+    // Then: financial results match Gherkin expectations
+    assertEquals(Money.of("1800.00"), result.proceeds());   // 12 × 150
+    assertEquals(Money.of("1240.00"), result.costBasis());   // (10 × 100) + (2 × 120)
+    assertEquals(Money.of("560.00"), result.profit());       // 1800 − 1240
+
+    // And: portfolio balance increased by proceeds
+    assertEquals(balanceBeforeSell.add(Money.of("1800.00")), fundedPortfolio.getBalance());
+
+    // And: FIFO lot consumption — only Lot #2 survives with 3 remaining shares
+    Holding aaplHolding = fundedPortfolio.getHolding(APPLE);
+    assertEquals(ShareQuantity.of(3), aaplHolding.getTotalShares());
+    assertEquals(1, aaplHolding.getLots().size());
+
+    Lot remainingLot = aaplHolding.getLots().getFirst();
+    assertEquals(ShareQuantity.of(3), remainingLot.getRemainingShares());
+    assertEquals(purchasePrice2, remainingLot.getUnitPrice());
+}
+```
+
+> **💡 Why test through the aggregate root?** The Gherkin scenario says *"the portfolio cash balance has increased by 1800.00"* — this is a Portfolio-level invariant. Only a test that calls `Portfolio.sell(...)` can verify that the balance update and the FIFO lot consumption happen together atomically and consistently. A `Holding`-level test cannot observe the balance at all.
+
+### Complementary: Internal FIFO Algorithm Test (`Holding`)
+
+HexaStock also contains a more focused domain test at the `Holding` level that verifies the FIFO lot-consumption algorithm in isolation. This lower-level test validates that the internal rule implementation is correct — shares are consumed from the oldest lot first, depleted lots are removed, and cost basis is calculated correctly — without involving portfolio-level concerns such as cash balance management.
 
 **Test source:** [HoldingTest.java — shouldSellSharesAcrossMultipleLots_GherkinScenario](https://github.com/alfredorueda/HexaStock/blob/44fa1ff6e29b79faccb0952a5103475eb4f03061/src/test/java/cat/gencat/agaur/hexastock/model/HoldingTest.java#L181)
 
@@ -237,6 +294,8 @@ void shouldSellSharesAcrossMultipleLots_GherkinScenario() {
     assertEquals(Money.of("560.00"), result.profit());
 }
 ```
+
+> **💡 Two levels, one truth:** Both tests verify the same FIFO financial results (proceeds, cost basis, profit). The Portfolio test additionally verifies aggregate consistency (balance update, aggregate encapsulation). The Holding test provides a fast, focused verification of the algorithm itself. Together they form a complete executable specification at the appropriate DDD abstraction levels.
 
 ---
 
