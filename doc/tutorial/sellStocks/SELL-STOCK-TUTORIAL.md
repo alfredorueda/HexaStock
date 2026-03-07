@@ -34,7 +34,13 @@
   - [About Hexagonal Architecture](#about-hexagonal-architecture)
   - [About Domain-Driven Design](#about-domain-driven-design)
 - [11. Summary: The Complete Sell Flow](#11-summary-the-complete-sell-flow)
-- [12. Exercises for Students](#12-exercises-for-students)
+- [12. Integration Testing: Verifying the Sell Use Case End-to-End](#12-integration-testing-verifying-the-sell-use-case-end-to-end)
+  - [Why Integration Tests Matter](#why-integration-tests-matter)
+  - [Test Architecture: One Abstract Base, Three Focused Test Classes](#test-architecture-one-abstract-base-three-focused-test-classes)
+  - [Hexagonal Proof: The FixedPriceStockPriceAdapter](#hexagonal-proof-the-fixedpricestockpriceadapter)
+  - [Gherkin FIFO Integration Tests](#gherkin-fifo-integration-tests)
+  - [Three Verification Levels](#three-verification-levels)
+- [13. Exercises for Students](#13-exercises-for-students)
   - [Exercise 1: Trace the Buy Flow](#exercise-1-trace-the-buy-flow)
   - [Exercise 2: Identify Aggregate Boundaries](#exercise-2-identify-aggregate-boundaries)
   - [Exercise 3: Map Domain Exceptions to HTTP Status Codes](#exercise-3-map-domain-exceptions-to-http-status-codes)
@@ -42,7 +48,7 @@
   - [Exercise 5: Add a Maximum Sell Percentage Invariant](#exercise-5-add-a-maximum-sell-percentage-invariant)
   - [Exercise 6: Distinguish Value Objects from Entities](#exercise-6-distinguish-value-objects-from-entities)
   - [Exercise 7: Add a Third Stock Price Provider Adapter (Prove the Hexagon Works)](#exercise-7-add-a-third-stock-price-provider-adapter-prove-the-hexagon-works)
-- [13. References](#13-references)
+- [14. References](#14-references)
 
 > **💡 How to use this Table of Contents:**  
 > Click any link to jump directly to that section. The structure follows the document's hierarchy: main sections (##) are at the top level, subsections (###) are indented once, and specific exercises or cases (####) are indented twice. Use your browser's back button or scroll to navigate between sections.
@@ -1058,7 +1064,120 @@ HTTP Response (SaleResponseDTO — primitives extracted from Value Objects)
 
 ---
 
-## 12. Exercises for Students
+## 12. Integration Testing: Verifying the Sell Use Case End-to-End
+
+The domain-level tests in sections above verify that the FIFO algorithm and aggregate invariants are correct **in isolation**. But a fully working system requires that the REST controller, application service, domain model, persistence adapter, and stock price adapter all collaborate correctly through real HTTP calls and a real database. This is the role of the **REST integration tests**.
+
+### Why Integration Tests Matter
+
+Domain unit tests catch **algorithm bugs** (wrong FIFO order, incorrect cost basis calculation). Integration tests catch **wiring and infrastructure bugs**:
+
+- JSON serialization/deserialization: Does the `SaleResponseDTO` correctly expose `proceeds`, `costBasis`, and `profit`?
+- HTTP status codes: Does a sell on a non-existent portfolio return `404`?
+- Persistence round-tripping: Are lots correctly saved and reloaded after a partial sell?
+- Value Object ↔ primitive mapping: Does `ShareQuantity.of(12)` arrive correctly at the domain layer from the REST endpoint?
+- Adapter substitution: Can we **swap the stock price adapter** at test time without changing any domain or application code?
+
+### Test Architecture: One Abstract Base, Three Focused Test Classes
+
+The integration tests follow a **split-by-responsibility** structure that mirrors the hexagonal architecture:
+
+| Test Class | Responsibility | Key Scenarios |
+|---|---|---|
+| `AbstractPortfolioRestIntegrationTest` | Shared infrastructure: Testcontainers, RestAssured, JSON builders, helper methods | (base class — not executed directly) |
+| `PortfolioLifecycleRestIntegrationTest` | Portfolio CRUD, deposits, withdrawals, listing | Create, deposit, withdraw, list all portfolios |
+| `PortfolioTradingRestIntegrationTest` | Buy, sell, end-to-end trading, **Gherkin FIFO** | Buy/sell happy paths, error paths, FIFO scenarios |
+| `PortfolioErrorHandlingRestIntegrationTest` | 404s on non-existent portfolios | Buy/sell/deposit/withdraw/get on missing portfolio |
+
+**Source:** `src/test/java/cat/gencat/agaur/hexastock/adapter/in/`
+
+### Hexagonal Proof: The FixedPriceStockPriceAdapter
+
+The `MockFinhubStockPriceAdapter` used in non-Gherkin tests returns random prices — useful for general testing but unsuitable for verifying exact FIFO calculations. The `PortfolioTradingRestIntegrationTest` overrides it with a `FixedPriceStockPriceAdapter` that accepts a **queue of deterministic prices**:
+
+```java
+// FixedPriceStockPriceAdapter — deterministic, queue-based stock price adapter
+//   Each enqueuePrice() provides the price for the next service call.
+//   When the queue is empty, it falls back to a default price (150.00).
+fixedPriceAdapter.enqueuePrice(Price.of("100.00"));  // next buy → 100.00
+fixedPriceAdapter.enqueuePrice(Price.of("120.00"));  // next buy → 120.00
+fixedPriceAdapter.enqueuePrice(Price.of("150.00"));  // next sell → 150.00
+```
+
+This pattern demonstrates a core hexagonal architecture benefit: **adapters are swappable**. The domain model and application service are completely unaware of which stock price provider is being used. The `@Primary` annotation ensures the fixed-price adapter takes precedence over the random-price mock during the trading tests:
+
+```java
+@TestConfiguration
+static class FixedPriceConfiguration {
+    @Bean
+    @Primary
+    FixedPriceStockPriceAdapter fixedPriceStockPriceAdapter() {
+        return new FixedPriceStockPriceAdapter();
+    }
+}
+```
+
+> **💡 Why this matters for students:** This is not just a testing trick — it's a **proof that the hexagon works**. In production you could swap the stock price adapter to use a different financial data provider (e.g., Finnhub, Alpha Vantage, Yahoo Finance) without changing a single line of domain or application code.
+
+### Gherkin FIFO Integration Tests
+
+Inside `PortfolioTradingRestIntegrationTest`, the `GherkinFifoScenarios` nested class directly maps the Gherkin scenarios from the Functional Specification to end-to-end HTTP tests:
+
+**Scenario 1 — Selling 8 shares from a single lot:**
+
+```java
+@Test
+@DisplayName("Selling 8 shares consumed entirely from a single lot (Gherkin Scenario 1)")
+void sellSharesConsumedFromSingleLot_FIFOGherkinScenario() {
+    fixedPriceAdapter.enqueuePrice(Price.of("150.00"));
+
+    sellPrecise(portfolioId, "AAPL", 8)
+            .statusCode(200)
+            .body("proceeds",  comparesEqualTo(new BigDecimal("1200.00")))
+            .body("costBasis", comparesEqualTo(new BigDecimal("800.00")))
+            .body("profit",    comparesEqualTo(new BigDecimal("400.00")));
+
+    getHoldings(portfolioId)
+            .body("find { it.ticker == 'AAPL' }.remaining", equalTo(7));
+}
+```
+
+**Scenario 2 — Selling 12 shares across multiple lots:**
+
+```java
+@Test
+@DisplayName("Selling 12 shares consumed across multiple lots (Gherkin Scenario 2)")
+void sellSharesAcrossMultipleLots_FIFOGherkinScenario() {
+    fixedPriceAdapter.enqueuePrice(Price.of("150.00"));
+
+    sellPrecise(portfolioId, "AAPL", 12)
+            .statusCode(200)
+            .body("proceeds",  comparesEqualTo(new BigDecimal("1800.00")))
+            .body("costBasis", comparesEqualTo(new BigDecimal("1240.00")))
+            .body("profit",    comparesEqualTo(new BigDecimal("560.00")));
+
+    getHoldings(portfolioId)
+            .body("find { it.ticker == 'AAPL' }.remaining", equalTo(3));
+}
+```
+
+> **💡 How does `costBasis` prove FIFO?** In Scenario 1, `costBasis = 800.00 = 8 × 100.00` — all shares came from Lot #1 (price 100.00). If LIFO were used, cost would be `5×120 + 3×100 = 900.00`. In Scenario 2, `costBasis = 1240.00 = (10 × 100.00) + (2 × 120.00)` — Lot #1 is fully depleted first, then 2 shares from Lot #2. The financial results are the **mathematical proof** of FIFO order.
+
+### Three Verification Levels
+
+The sell use case is now verified at three complementary levels:
+
+| Level | Test Class | What It Catches |
+|---|---|---|
+| **Domain algorithm** | `HoldingTest` | FIFO lot-consumption logic errors |
+| **Aggregate consistency** | `PortfolioTest` | Balance + FIFO invariant violations |
+| **Full stack** | `PortfolioTradingRestIntegrationTest` | Wiring, serialization, persistence, adapter integration |
+
+Together, these three levels form a complete verification pipeline from the Gherkin specification down to the HTTP endpoint.
+
+---
+
+## 13. Exercises for Students
 
 The following exercises form a progressive learning path designed to deepen your understanding of Hexagonal Architecture and Domain-Driven Design through hands-on work with the HexaStock codebase.
 
@@ -1452,10 +1571,13 @@ Work through these exercises in order. Each builds on concepts from earlier exer
 
 ---
 
-## 13. References
+## 14. References
 
 - **API Specification:** `doc/stock-portfolio-api-specification.md`
-- **Integration Tests:** `src/test/java/cat/gencat/agaur/hexastock/adapter/in/PortfolioRestControllerIntegrationTest.java`
+- **Integration Tests (shared base):** `src/test/java/cat/gencat/agaur/hexastock/adapter/in/AbstractPortfolioRestIntegrationTest.java`
+- **Integration Tests (trading + FIFO):** `src/test/java/cat/gencat/agaur/hexastock/adapter/in/PortfolioTradingRestIntegrationTest.java`
+- **Integration Tests (lifecycle):** `src/test/java/cat/gencat/agaur/hexastock/adapter/in/PortfolioLifecycleRestIntegrationTest.java`
+- **Integration Tests (error handling):** `src/test/java/cat/gencat/agaur/hexastock/adapter/in/PortfolioErrorHandlingRestIntegrationTest.java`
 - **Domain Tests:** `src/test/java/cat/gencat/agaur/hexastock/model/PortfolioTest.java`
 - **Source Code:** `src/main/java/cat/gencat/agaur/hexastock/`
 - **Value Object Tests:** `src/test/java/cat/gencat/agaur/hexastock/model/MoneyTest.java`, `ShareQuantityTest.java`, etc.
