@@ -2,7 +2,7 @@
 
 # HexaStock
 
-HexaStock is a Spring Boot project that teaches Domain-Driven Design and Hexagonal Architecture through a realistic financial portfolio domain. Built for engineering students and workshop participants, it provides a complete, testable system with real business rules, multiple interchangeable adapters, and clear architectural boundaries.
+HexaStock is a project that teaches Domain-Driven Design and Hexagonal Architecture through a realistic financial portfolio domain. Built for engineering students and workshop participants, it provides a complete, testable system with real business rules, multiple interchangeable adapters, and clear architectural boundaries.
 
 ## Core Documentation
 
