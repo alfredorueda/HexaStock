@@ -1,46 +1,49 @@
-# Selling Stocks in HexaStock: Hexagonal Architecture and DDD Tutorial
+# From Specification to Integration Test: Engineering a Stock Portfolio with DDD and Hexagonal Architecture
 
 ## Table of Contents
 
-- [Architecture Overview (Hexagonal / Ports & Adapters)](#architecture-overview-hexagonal--ports--adapters)
+- [1. Architecture Overview (Hexagonal / Ports & Adapters)](#1-architecture-overview-hexagonal--ports--adapters)
+  - [Core Architectural Layers](#core-architectural-layers)
+  - [Why This Architecture Matters for This Tutorial](#why-this-architecture-matters-for-this-tutorial)
   - [How This Tutorial Maps to the Diagram](#how-this-tutorial-maps-to-the-diagram)
-- [1. Purpose and Learning Objectives](#1-purpose-and-learning-objectives)
-- [Functional Specification (Behaviour)](#functional-specification-behaviour)
-- [Executable Specification (JUnit)](#executable-specification-junit)
-- [2. Domain Context: What "Selling Stocks" Means in HexaStock](#2-domain-context-what-selling-stocks-means-in-hexastock)
-- [3. Entry Point: The REST Endpoint (Driving Adapter)](#3-entry-point-the-rest-endpoint-driving-adapter)
-- [4. Hexagonal Architecture Map for the SELL Use Case](#4-hexagonal-architecture-map-for-the-sell-use-case)
-- [5. Step-by-Step Execution Trace: Happy Path](#5-step-by-step-execution-trace-happy-path)
+- [2. Purpose and Learning Objectives](#2-purpose-and-learning-objectives)
+- [3. Functional Specification (Behaviour)](#3-functional-specification-behaviour)
+- [4. Executable Specification (JUnit)](#4-executable-specification-junit)
+  - [Primary: Aggregate Root Test (Portfolio)](#primary-aggregate-root-test-portfolio)
+  - [Complementary: Internal FIFO Algorithm Test (Holding)](#complementary-internal-fifo-algorithm-test-holding)
+- [5. Testing Strategy Overview](#5-testing-strategy-overview)
+- [6. Domain Context: What "Selling Stocks" Means in HexaStock](#6-domain-context-what-selling-stocks-means-in-hexastock)
+- [7. Entry Point: The REST Endpoint (Driving Adapter)](#7-entry-point-the-rest-endpoint-driving-adapter)
+- [8. Hexagonal Architecture Map for the SELL Use Case](#8-hexagonal-architecture-map-for-the-sell-use-case)
+- [9. Step-by-Step Execution Trace: Happy Path](#9-step-by-step-execution-trace-happy-path)
   - [Step 1: Controller Receives Request](#step-1-controller-receives-request)
   - [Step 2: Controller Calls Inbound Port](#step-2-controller-calls-inbound-port)
   - [Step 3: Application Service Orchestrates](#step-3-application-service-orchestrates)
   - [Step 4: Domain Model Enforces Invariants](#step-4-domain-model-enforces-invariants)
   - [Step 5: Persistence Adapter Saves Changes](#step-5-persistence-adapter-saves-changes)
   - [Step 6: Response Returns to Client](#step-6-response-returns-to-client)
-- [6. Why Application Services Orchestrate and Aggregates Protect Invariants](#6--why-application-services-orchestrate-and-aggregates-protect-invariants)
+- [10. Why Application Services Orchestrate and Aggregates Protect Invariants](#10-why-application-services-orchestrate-and-aggregates-protect-invariants)
   - [A) Roles Explained with Real Code](#a-roles-explained-with-real-code)
   - [B) Concrete Domain Example: Why Direct Manipulation Breaks Invariants](#b-concrete-domain-example-why-direct-manipulation-breaks-invariants)
   - [C) Sequence Diagram: Orchestrator vs Aggregate Root](#c-sequence-diagram-orchestrator-vs-aggregate-root)
   - [D) Teaching Note](#d-teaching-note)
-- [7. Transactionality and Consistency](#7-transactionality-and-consistency)
-- [8. Persistence Mapping](#8-persistence-mapping)
+- [11. Transactionality and Consistency](#11-transactionality-and-consistency)
+- [12. Persistence Mapping](#12-persistence-mapping)
   - [Domain Model → JPA Entities](#domain-model--jpa-entities)
   - [Repositories](#repositories)
-- [9. Error Flows](#9-error-flows)
+- [13. Error Flows](#13-error-flows)
   - [Error 1: Portfolio Not Found](#error-1-portfolio-not-found)
   - [Error 2: Invalid Quantity](#error-2-invalid-quantity)
   - [Error 3: Selling More Than Owned](#error-3-selling-more-than-owned)
-- [10. Key Takeaways](#10-key-takeaways)
-  - [About Hexagonal Architecture](#about-hexagonal-architecture)
-  - [About Domain-Driven Design](#about-domain-driven-design)
-- [11. Summary: The Complete Sell Flow](#11-summary-the-complete-sell-flow)
-- [12. Integration Testing: Verifying the Sell Use Case End-to-End](#12-integration-testing-verifying-the-sell-use-case-end-to-end)
+- [14. Key Takeaways](#14-key-takeaways)
+- [15. Summary: The Complete Sell Flow](#15-summary-the-complete-sell-flow)
+- [16. Integration Testing: Verifying the Sell Use Case End-to-End](#16-integration-testing-verifying-the-sell-use-case-end-to-end)
   - [Why Integration Tests Matter](#why-integration-tests-matter)
   - [Test Architecture: One Abstract Base, Three Focused Test Classes](#test-architecture-one-abstract-base-three-focused-test-classes)
   - [Hexagonal Proof: The FixedPriceStockPriceAdapter](#hexagonal-proof-the-fixedpricestockpriceadapter)
   - [Gherkin FIFO Integration Tests](#gherkin-fifo-integration-tests)
   - [Three Verification Levels](#three-verification-levels)
-- [13. Exercises for Students](#13-exercises-for-students)
+- [17. Exercises for Students](#17-exercises-for-students)
   - [Exercise 1: Trace the Buy Flow](#exercise-1-trace-the-buy-flow)
   - [Exercise 2: Identify Aggregate Boundaries](#exercise-2-identify-aggregate-boundaries)
   - [Exercise 3: Map Domain Exceptions to HTTP Status Codes](#exercise-3-map-domain-exceptions-to-http-status-codes)
@@ -48,14 +51,14 @@
   - [Exercise 5: Add a Maximum Sell Percentage Invariant](#exercise-5-add-a-maximum-sell-percentage-invariant)
   - [Exercise 6: Distinguish Value Objects from Entities](#exercise-6-distinguish-value-objects-from-entities)
   - [Exercise 7: Add a Third Stock Price Provider Adapter (Prove the Hexagon Works)](#exercise-7-add-a-third-stock-price-provider-adapter-prove-the-hexagon-works)
-- [14. References](#14-references)
+- [18. References](#18-references)
 
-> **💡 How to use this Table of Contents:**  
-> Click any link to jump directly to that section. The structure follows the document's hierarchy: main sections (##) are at the top level, subsections (###) are indented once, and specific exercises or cases (####) are indented twice. Use your browser's back button or scroll to navigate between sections.
+> **💡 How to use this Table of Contents:**
+> Click any link to jump directly to that section. Main sections (##) are at the top level, subsections (###) are indented once. Use your browser's back button or scroll to navigate between sections.
 
 ---
 
-## Architecture Overview (Hexagonal / Ports & Adapters)
+## 1. Architecture Overview (Hexagonal / Ports & Adapters)
 
 Before diving into the execution flow of selling stocks, it's essential to understand the **architectural foundation** that shapes the entire codebase. HexaStock implements **Hexagonal Architecture** (also known as **Ports and Adapters**), a pattern designed to isolate business logic from external dependencies and infrastructure concerns.
 
@@ -75,6 +78,9 @@ Before diving into the execution flow of selling stocks, it's essential to under
 
 **Dependency Direction:** All dependencies point **inward** toward the domain. Adapters depend on ports, ports are defined by the core, and the domain has zero dependencies on infrastructure. This is **Dependency Inversion** in action.
 
+> **📝 A pragmatic note on architectural trade-offs:**
+> Not every system requires this level of architectural separation. In simpler CRUD applications the overhead may not always be justified. However, in domains with complex business rules, financial logic, external integrations, and a long expected lifespan, separating domain logic from infrastructure becomes extremely valuable. HexaStock falls squarely into this category — FIFO accounting, multi-lot management, and multiple stock price providers make the investment in proper architecture worthwhile.
+
 ### Why This Architecture Matters for This Tutorial
 
 Understanding this structure is critical because:
@@ -93,6 +99,7 @@ Understanding this structure is critical because:
 > *– Reference implementation: [BuckPal – A Hexagonal Architecture Example](https://github.com/thombergs/buckpal)*  
 > *Used for educational purposes with proper attribution.*
 
+The diagram above illustrates the core idea of Hexagonal Architecture in a simplified form: a domain-centered system surrounded by ports and adapters. The following diagram provides a more detailed architectural view. It shows how the same principles apply in a richer environment where multiple inbound and outbound ports coexist, and where architectural styles such as DDD, Hexagonal, Onion, and Clean Architecture can be combined. Together, these two diagrams illustrate both the conceptual foundation and a more complete architectural composition.
 
 <img width="876" height="657" alt="image" src="https://github.com/user-attachments/assets/91ddf125-0949-4251-87ac-ab0856698376" />
 
@@ -113,13 +120,13 @@ The sell stock use case flows through these architectural layers:
 - **Outbound Ports** → `PortfolioPort` (persistence abstraction), `StockPriceProviderPort` (external price data), `TransactionPort` (audit log)
 - **Secondary (Driven) Adapters** → JPA repositories (`PortfolioJpaAdapter`), external API clients (`FinnhubStockPriceAdapter`, `AlphaVantageStockPriceAdapter`), transaction repositories
 
-As you read through sections 3–9, you'll trace a real HTTP request flowing through these layers, observing how each component fulfills its architectural role while maintaining strict separation of concerns.
+As you read through sections 7–13, you'll trace a real HTTP request flowing through these layers, observing how each component fulfills its architectural role while maintaining strict separation of concerns.
 
 ---
 
-## 1. Purpose and Learning Objectives
+## 2. Purpose and Learning Objectives
 
-This tutorial walks through a complete software engineering workflow applied to a real use case in the HexaStock system: **selling stocks from a portfolio**. This tutorial walks through a complete software engineering workflow applied to a real use case in the HexaStock system: selling stocks from a portfolio. The tutorial starts with observable behaviour, moves through domain modelling and architectural reasoning, and arrives at a fully traced design with UML diagrams at every stage.
+This tutorial walks through a complete software engineering workflow applied to a real use case in the HexaStock system: **selling stocks from a portfolio**. Starting with observable behaviour, it moves through domain modelling and architectural reasoning, and arrives at a fully traced design with UML diagrams at every stage.
 
 You will progressively move from specification to design to implementation, learning how each engineering phase feeds into the next. By the end, you will understand:
 
@@ -137,9 +144,13 @@ You will progressively move from specification to design to implementation, lear
 
 ---
 
-## Functional Specification (Behaviour)
+## 3. Functional Specification (Behaviour)
 
-Before designing the domain model or writing implementation code, we start by defining the **observable behaviour** of the sell use case. The Gherkin scenarios below describe what the system must do in business terms, independent of any technical design decisions.
+Before designing the domain model or writing implementation code, we start by defining the **observable behaviour** of the sell use case.
+
+User stories typically capture the intent of a feature at a high level, but they are often too ambiguous to serve as executable specifications. Behavior-driven scenarios written in formats such as Gherkin describe concrete system behaviour through explicit inputs, actions, and expected outcomes. Because of this precision, automated tests can often be derived directly from Gherkin scenarios. For this reason, this tutorial uses Gherkin scenarios as the primary functional specification of the sell operation.
+
+The Gherkin scenarios below describe what the system must do in business terms, independent of any technical design decisions.
 
 **Source of truth:** [US-07 — Sell Stocks (API Specification)](https://github.com/alfredorueda/HexaStock/blob/main/doc/stock-portfolio-api-specification.md#27-us-07--sell-stocks)
 
@@ -212,7 +223,7 @@ Feature: Sell Stocks with FIFO Lot Consumption
 
 ---
 
-## Executable Specification (JUnit)
+## 4. Executable Specification (JUnit)
 
 The Gherkin scenarios above describe observable behaviour at the **Portfolio level** — the aggregate root in our DDD model. Therefore, the primary executable specification must validate the scenario through `Portfolio.sell(...)`, not through the internal entity `Holding` directly. This is a deliberate DDD design choice: business behaviour is exposed by the aggregate root, and tests should reflect that boundary.
 
@@ -305,7 +316,19 @@ void shouldSellSharesAcrossMultipleLots_GherkinScenario() {
 
 ---
 
-## 2. Domain Context: What "Selling Stocks" Means in HexaStock
+## 5. Testing Strategy Overview
+
+HexaStock verifies the sell use case at three complementary testing levels:
+
+1. **Domain algorithm tests** — validate the FIFO lot-consumption logic in isolation (`HoldingTest`)
+2. **Aggregate behaviour tests** — validate portfolio invariants and financial consistency through the aggregate root (`PortfolioTest`)
+3. **Integration tests** — validate the complete flow through HTTP, application services, persistence, and adapters (`PortfolioTradingRestIntegrationTest`)
+
+The first two levels are introduced in sections 3–4, alongside the functional specification, because they verify domain logic independently of infrastructure. Integration tests appear later in section 16, once the full architecture — controllers, services, ports, adapters, and persistence — has been explained. This ordering reflects the natural direction of design: define behaviour first, model the domain, then verify the entire stack.
+
+---
+
+## 6. Domain Context: What "Selling Stocks" Means in HexaStock
 
 [![HexaStock Domain Model](diagrams/Rendered/HexaStock%20Domain%20Model.png)](diagrams/Rendered/HexaStock%20Domain%20Model.svg)
 
@@ -329,7 +352,7 @@ When you sell stocks in HexaStock:
 
 ---
 
-## 3. Entry Point: The REST Endpoint (Driving Adapter)
+## 7. Entry Point: The REST Endpoint (Driving Adapter)
 
 **File:** `src/main/java/cat/gencat/agaur/hexastock/adapter/in/PortfolioRestController.java`
 
@@ -372,7 +395,7 @@ This controller **drives** the application by calling its use cases. It does not
 
 ---
 
-## 4. Hexagonal Architecture Map for the SELL Use Case
+## 8. Hexagonal Architecture Map for the SELL Use Case
 
 Here is the complete architecture trace for selling stocks:
 
@@ -394,7 +417,7 @@ Here is the complete architecture trace for selling stocks:
 
 ---
 
-## 5. Step-by-Step Execution Trace: Happy Path
+## 9. Step-by-Step Execution Trace: Happy Path
 
 ### Step 1: Controller Receives Request
 
@@ -589,7 +612,7 @@ HTTP 200 OK
 
 ---
 
-## 6. 🎯 Why Application Services Orchestrate and Aggregates Protect Invariants
+## 10. Why Application Services Orchestrate and Aggregates Protect Invariants
 
 This is the **most important concept** in DDD and Hexagonal Architecture.
 
@@ -604,9 +627,9 @@ public interface PortfolioStockOperationsUseCase {
 }
 ```
 
-This interface defines **what** the application can do, not **how**. Notice the use of Value Objects (`PortfolioId`, `Ticker`, `ShareQuantity`) instead of primitives—the port speaks the domain's ubiquitous language.
+This interface defines **what** the application can do, not **how**. The port speaks the domain's ubiquitous language through Value Objects (`PortfolioId`, `Ticker`, `ShareQuantity`) instead of primitives.
 
-**Application Service (Orchestrator):**
+**Application Service (Orchestrator):** The full service code was shown in Section 9, Step 3. Here it is again for reference, with role annotations:
 
 ```java
 // application.service.PortfolioStockOperationsService
@@ -640,21 +663,9 @@ public class PortfolioStockOperationsService
 }
 ```
 
-**Role:** **DIRECTOR OF ORCHESTRA**
-- It retrieves the portfolio
-- It fetches the price
-- It **delegates the decision** to the aggregate root
-- It persists the changes
-- It records the transaction
+**Role:** The service is a **director of orchestra** — it retrieves, delegates, and persists, but never decides. It does **not** validate quantities, check holdings, implement FIFO, calculate profits, or update lots directly.
 
-**What it does NOT do:**
-- ❌ Validate quantities
-- ❌ Check if holdings exist
-- ❌ Implement FIFO logic
-- ❌ Calculate profit/loss
-- ❌ Update lot quantities directly
-
-**Aggregate Root (Decision Maker):**
+**Aggregate Root (Decision Maker):** As seen in Section 9, Step 4:
 
 ```java
 // model.Portfolio
@@ -672,11 +683,7 @@ public SellResult sell(Ticker ticker, ShareQuantity quantity, Price price) {
 }
 ```
 
-**Role:** **GUARDIAN OF INVARIANTS**
-- It enforces "quantity must be positive" (via `ShareQuantity.isPositive()`)
-- It enforces "you can only sell holdings you own"
-- It updates the balance (`Money`) **consistently** with the sale
-- It controls access to its nested entities (Holding, Lot)
+**Role:** The aggregate root is the **guardian of invariants** — it validates, delegates to controlled entities, updates balance consistently, and returns a complete result.
 
 ---
 
@@ -778,7 +785,7 @@ This diagram explicitly shows:
 
 ---
 
-## 7. Transactionality and Consistency
+## 11. Transactionality and Consistency
 
 The application service is annotated with `@Transactional`:
 
@@ -792,66 +799,44 @@ public class PortfolioStockOperationsService
 
 ### Why Transactions Matter for Stock Selling
 
-Selling stocks is a **critical financial operation** that must maintain strict consistency guarantees:
+Selling stocks involves multiple database writes — updating the portfolio balance, reducing lot quantities via FIFO, and recording an audit transaction. These must **all succeed or all fail together**; partial updates would corrupt the portfolio state. Spring's `@Transactional` ensures ACID guarantees:
 
-1. **Multi-Step Operation:** A single sell involves multiple database writes:
-   - Update portfolio balance (add proceeds as `Money`)
-   - Update holding lot quantities (reduce `ShareQuantity` via FIFO)
-   - Record transaction for audit trail
-   
-   These changes must **all succeed or all fail together**. Partial updates would corrupt the portfolio state.
-
-2. **Consistency Across Aggregates:** Portfolio state and transaction history must remain synchronized. If the transaction record fails to save, the portfolio changes must be rolled back to prevent discrepancies in financial reporting.
-
-3. **Invariant Protection:** The domain model enforces business rules (e.g., "cannot sell more than you own" via `ShareQuantity` comparisons), but the transaction boundary ensures these validations and subsequent state changes happen atomically—no other thread can observe an intermediate state.
-
-### ACID Guarantees in Action
-
-Spring's `@Transactional` ensures:
-
-1. **Atomicity:** All database operations (save portfolio, save transaction) succeed or fail together
+1. **Atomicity:** All database operations succeed or fail together
 2. **Consistency:** If the transaction record fails to save, the portfolio changes are rolled back
 3. **Isolation:** Concurrent sells on the same portfolio are serialized (preventing race conditions)
 4. **Durability:** Once committed, the sale is permanent
 
-**Important separation of concerns:** The domain enforces **business consistency** (invariants, validations via Value Objects), while infrastructure enforces **technical consistency** (ACID properties, transaction boundaries).
+**Key separation of concerns:** The domain enforces **business consistency** (invariants, validations via Value Objects), while infrastructure enforces **technical consistency** (ACID properties, transaction boundaries).
 
 ### Concurrency Risks in Financial Operations
 
-When multiple users (or concurrent requests from the same user) attempt to sell stocks from the same portfolio simultaneously, several problems can arise without proper synchronization:
+When concurrent requests target the same portfolio, several problems can arise without proper synchronization:
 
 **Lost Update Problem:**
 - Request 1 reads balance = `Money.of(1000)`
 - Request 2 reads balance = `Money.of(1000)` (stale)
 - Request 1 sells stock, adds proceeds → balance = `Money.of(1500)`, commits
 - Request 2 sells stock, adds proceeds → calculates `Money.of(1300)` based on stale read, commits
-- **Result:** Final balance is $1300, but should be $1800. The first update is lost.
+- **Result:** Final balance is $1300, but should be $1800.
 
 **Double-Spending:**
-- Request 1 reads holding: `ShareQuantity.of(10)` available
-- Request 2 reads holding: `ShareQuantity.of(10)` available (stale)
-- Request 1 sells 10 shares, commits
+- Both requests read `ShareQuantity.of(10)` available
+- Request 1 sells 10 shares and commits
 - Request 2 attempts to sell 10 shares, but only `ShareQuantity.ZERO` remain
-- Without proper isolation, Request 2 might observe an inconsistent intermediate state.
 
 **FIFO Corruption:**
-- Two concurrent sells might both attempt to reduce the same lot simultaneously
-- Without serialization, lot `ShareQuantity` values could become negative or inconsistent
-- The aggregate's invariants would be violated mid-operation
+- Two concurrent sells attempt to reduce the same lot simultaneously
+- Without serialization, lot `ShareQuantity` values could become negative
 
 ### How HexaStock Handles Concurrency
 
-HexaStock uses **database-level transaction isolation** to prevent these issues:
+HexaStock uses **database-level transaction isolation**:
 
-- The `@Transactional` annotation establishes a transaction boundary at the application service level
-- Database isolation (typically READ_COMMITTED or higher) ensures that concurrent transactions see consistent snapshots
-- For high-contention scenarios, **pessimistic locking** can be applied using JPA's `@Lock(LockModeType.PESSIMISTIC_WRITE)`, which serializes access to specific portfolio rows
-- This ensures that when Transaction 1 is processing a sale, Transaction 2 waits until Transaction 1 commits before reading the portfolio
+- `@Transactional` establishes the boundary at the application service level
+- Database isolation (typically READ_COMMITTED or higher) ensures consistent snapshots
+- For high-contention scenarios, **pessimistic locking** via `@Lock(LockModeType.PESSIMISTIC_WRITE)` serializes access to specific portfolio rows
 
-The transaction boundary is intentionally placed at the **application service**, not the domain model, because:
-- Domain objects should be technology-agnostic (pure business logic)
-- Transaction management is an infrastructure concern
-- The service coordinates multiple operations (fetch, execute domain logic, persist, audit) that must succeed or fail atomically
+The transaction boundary is placed at the **application service** — not the domain model — because transaction management is an infrastructure concern and domain objects should remain technology-agnostic.
 
 ---
 
@@ -868,7 +853,7 @@ The transaction boundary is intentionally placed at the **application service**,
 
 ---
 
-## 8. Persistence Mapping
+## 12. Persistence Mapping
 
 ### Domain Model → JPA Entities
 
@@ -889,7 +874,7 @@ PortfolioEntity jpaEntity = PortfolioMapper.toEntity(domainPortfolio);
 - `PortfolioRepository` (JPA) implements `PortfolioPort` (domain interface)
 - `TransactionRepository` (JPA) implements `TransactionPort` (domain interface)
 
-This inversion of dependencies is the essence of Hexagonal Architecture: the domain defines **what** it needs (ports), and adapters provide **how** (implementations). The persistence layer deals with primitives (`String`, `BigDecimal`, `int`), while the domain layer deals with Value Objects (`PortfolioId`, `Money`, `ShareQuantity`). The mapper handles the translation.
+The persistence layer deals with primitives (`String`, `BigDecimal`, `int`), while the domain layer uses Value Objects. The mapper handles the translation — this is Dependency Inversion as described in Section 1.
 
 **Diagram Reference:** See [`diagrams/sell-persistence-adapter.puml`](diagrams/sell-persistence-adapter.puml)
 
@@ -897,7 +882,7 @@ This inversion of dependencies is the essence of Hexagonal Architecture: the dom
 
 ---
 
-## 9. Error Flows
+## 13. Error Flows
 
 ### Error 1: Portfolio Not Found
 
@@ -1002,35 +987,26 @@ HTTP 409 Conflict
 
 ---
 
-## 10. Key Takeaways
+## 14. Key Takeaways
 
-### About Hexagonal Architecture
+### Hexagonal Architecture
 
-1. **Ports Define Contracts:** The application defines interfaces (ports) that adapters implement. This allows swapping implementations (e.g., change from Finnhub to AlphaVantage for stock prices) without changing the core.
+- **Ports define contracts** between the core and infrastructure — adapters implement them.
+- **Adapters are replaceable** without modifying domain or application code (e.g., swap Finnhub for AlphaVantage).
+- **Dependencies point inward** — adapters depend on ports, never the reverse.
+- **Testability follows naturally** — the domain can be tested with no infrastructure at all.
 
-2. **Dependency Inversion:** The controller depends on `PortfolioStockOperationsUseCase` (interface), not on the concrete service. The service depends on `PortfolioPort` (interface), not on the JPA repository.
+### Domain-Driven Design
 
-3. **Testability:** You can test the application service with mock ports. You can test the domain model with no infrastructure at all.
-
-4. **Adapters Are Replaceable:** The REST controller could be replaced with a CLI adapter, a gRPC service, or a message queue consumer—all using the same ports.
-
-### About Domain-Driven Design
-
-1. **Aggregate Roots Protect Boundaries:** `Portfolio` is the aggregate root. All changes to `Holding` and `Lot` must go through the `Portfolio`. This prevents inconsistent states.
-
-2. **Application Services Are Thin:** The service has **no business logic**. It only coordinates. If you see `if` statements, calculations, or validations in a service, you're doing it wrong.
-
-3. **Domain Exceptions Are Business Language:** `ConflictQuantityException` is not a technical exception like `NullPointerException`. It represents a business rule violation. This makes the code self-documenting.
-
-4. **FIFO Is Domain Logic:** The FIFO algorithm is in `Holding.sell()`, not in a service or adapter. This is where it belongs: close to the data it operates on, protected by the aggregate root.
-
-5. **Encapsulation Matters:** The `Portfolio` does not expose a `setBalance()` method. The only way to change the balance is through domain methods like `deposit()`, `withdraw()`, `buy()`, or `sell()`. This prevents corruption.
-
-6. **Value Objects Eliminate Primitive Obsession:** Types like `Money`, `Price`, `ShareQuantity`, `Ticker`, `PortfolioId`, `HoldingId`, and `LotId` replace raw `BigDecimal`, `int`, and `String`. This makes the code type-safe, self-validating, and expressive in the ubiquitous language. You cannot accidentally pass a `Money` where a `Price` is expected, even though both wrap `BigDecimal` internally.
+- **Aggregates protect invariants** — all state changes to `Holding` and `Lot` pass through the `Portfolio` root.
+- **Application services orchestrate** — they coordinate use cases without containing business logic.
+- **Value Objects eliminate primitive obsession** — types like `Money`, `Price`, `ShareQuantity`, `Ticker`, and `PortfolioId` enforce constraints at construction time and make the ubiquitous language explicit.
+- **Business rules live in the domain** — FIFO logic belongs in `Holding.sell()`, not in a service or adapter.
+- **Domain exceptions speak business language** — `ConflictQuantityException` represents a business rule violation, not a technical error.
 
 ---
 
-## 11. Summary: The Complete Sell Flow
+## 15. Summary: The Complete Sell Flow
 
 ```
 HTTP Request
@@ -1064,9 +1040,9 @@ HTTP Response (SaleResponseDTO — primitives extracted from Value Objects)
 
 ---
 
-## 12. Integration Testing: Verifying the Sell Use Case End-to-End
+## 16. Integration Testing: Verifying the Sell Use Case End-to-End
 
-The domain-level tests in sections above verify that the FIFO algorithm and aggregate invariants are correct **in isolation**. But a fully working system requires that the REST controller, application service, domain model, persistence adapter, and stock price adapter all collaborate correctly through real HTTP calls and a real database. This is the role of the **REST integration tests**.
+The domain-level tests in sections 3–4 verify that the FIFO algorithm and aggregate invariants are correct **in isolation**. But as outlined in the testing strategy (Section 5), a fully working system also requires that all layers collaborate correctly through real HTTP calls and a real database. This is the role of the **REST integration tests**.
 
 ### Why Integration Tests Matter
 
@@ -1177,9 +1153,9 @@ Together, these three levels form a complete verification pipeline from the Gher
 
 ---
 
-## 13. Exercises for Students
+## 17. Exercises for Students
 
-The following exercises form a progressive learning path designed to deepen your understanding of Hexagonal Architecture and Domain-Driven Design through hands-on work with the HexaStock codebase.
+The following exercises form a progressive learning path designed to deepen your understanding of Hexagonal Architecture and Domain-Driven Design through hands-on work with the HexaStock codebase. They are intended for deeper, self-directed learning — instructors may choose to assign them selectively depending on the course focus and level.
 
 ---
 
@@ -1189,7 +1165,7 @@ The following exercises form a progressive learning path designed to deepen your
 **Goal:** Understand how the `buyStock` use case mirrors the `sellStock` flow.
 
 **What to deliver:**
-- A written document (similar to section 5 of this tutorial) that traces the complete execution path for buying stocks
+- A written document (similar to Section 9 of this tutorial) that traces the complete execution path for buying stocks
 - Include: REST endpoint → Controller → Inbound Port → Application Service → Domain Model → Persistence
 - Identify which classes validate business rules and where ACID guarantees are enforced
 - Note one key difference between buy and sell operations
@@ -1236,22 +1212,22 @@ The following exercises form a progressive learning path designed to deepen your
 
 ---
 
-## Exercise 5: Add a Maximum Sell Percentage Invariant
+### Exercise 5: Add a Maximum Sell Percentage Invariant
 
 **Type:** Mixed (Design + Coding + Reasoning)
 **Goal:** Implement a non-trivial business invariant using Domain-Driven Design principles.
 
 ---
 
-## Business Rules
+### Business Rules
 
 In a single sell transaction, a portfolio must respect the following rules **per holding (per ticker)**:
 
-### Rule 1 — Small sells are always allowed
+#### Rule 1 — Small sells are always allowed
 
 A portfolio may sell **up to 10 shares** (`ShareQuantity.of(10)`) of a holding **without any percentage restriction**, as long as enough shares exist.
 
-### Rule 2 — Large sells are limited
+#### Rule 2 — Large sells are limited
 
 When selling **more than 10 shares** in a single transaction, the portfolio **cannot sell more than 50% of the shares of the affected holding**.
 
@@ -1267,7 +1243,7 @@ The percentage is calculated using the number of shares **held before the sale**
 
 ---
 
-## Clarifications
+### Clarifications
 
 * The rule applies **per holding (per ticker)**, not to the whole portfolio.
 * The rule is **not** evaluated per lot.
@@ -1275,9 +1251,9 @@ The percentage is calculated using the number of shares **held before the sale**
 
 ---
 
-## Examples (AAPL)
+### Examples (AAPL)
 
-### Example 1 — Valid (✅ small sell)
+#### Example 1 — Valid (✅ small sell)
 
 * AAPL holding has `ShareQuantity.of(3)` shares
 * Sell request: `ShareQuantity.of(1)`
@@ -1286,7 +1262,7 @@ Result: allowed.
 
 ---
 
-### Example 2 — Valid (✅ boundary case)
+#### Example 2 — Valid (✅ boundary case)
 
 * AAPL holding has `ShareQuantity.of(12)` shares
 * Sell request: `ShareQuantity.of(10)`
@@ -1295,7 +1271,7 @@ Result: allowed.
 
 ---
 
-### Example 3 — Valid (✅ large sell within limit)
+#### Example 3 — Valid (✅ large sell within limit)
 
 * AAPL holding has `ShareQuantity.of(22)` shares
 * Sell request: `ShareQuantity.of(11)`
@@ -1304,7 +1280,7 @@ Result: allowed.
 
 ---
 
-### Example 4 — Invalid (❌ large sell exceeding limit)
+#### Example 4 — Invalid (❌ large sell exceeding limit)
 
 * AAPL holding has `ShareQuantity.of(20)` shares
 * Sell request: `ShareQuantity.of(11)`
@@ -1316,9 +1292,9 @@ No state must change.
 
 ---
 
-## What to Deliver
+### What to Deliver
 
-### 1. Design Decision (written explanation)
+#### 1. Design Decision (written explanation)
 
 Decide **where this invariant should be implemented**:
 
@@ -1335,7 +1311,7 @@ Justify your choice using DDD concepts:
 
 ---
 
-### 2. Implementation (code)
+#### 2. Implementation (code)
 
 * Enforce the rule in the appropriate domain class
 * Introduce a new domain exception: `ExcessiveSaleException`
@@ -1343,7 +1319,7 @@ Justify your choice using DDD concepts:
 
 ---
 
-### 3. Test (code)
+#### 3. Test (code)
 
 Write at least some tests proving:
 
@@ -1354,7 +1330,7 @@ Write at least some tests proving:
 
 ---
 
-### 4. Reflection (written)
+#### 4. Reflection (written)
 
 * How would you support a future requirement where the 50% limit is **configurable per portfolio**?
 * Would that change **where the invariant lives**? Why or why not?
@@ -1402,7 +1378,7 @@ Note that `StockPriceProviderPort.fetchStockPrice(Ticker)` returns a `StockPrice
 
 ---
 
-## Provider Options (examples)
+### Provider Options (examples)
 
 Pick **one** provider that offers a free tier or freemium plan. You may choose any provider you find online, but here are common options:
 * **https://site.financialmodelingprep.com/**
@@ -1419,9 +1395,9 @@ You can also pick another provider not listed here, as long as:
 
 ---
 
-## What to deliver
+### What to deliver
 
-### 1) Implement the new adapter class (and its package)
+#### 1) Implement the new adapter class (and its package)
 
 Create a new package under `adapter.out`, for example:
 
@@ -1466,7 +1442,7 @@ This is the point of the exercise: **only infrastructure changes**.
 
 ---
 
-### 2) Add configuration to select the provider
+#### 2) Add configuration to select the provider
 
 Make it possible to switch providers without touching the core code. Use one of these approaches:
 
@@ -1494,7 +1470,7 @@ Your final result must allow:
 
 ---
 
-### 3) API key management (free-tier ready)
+#### 3) API key management (free-tier ready)
 
 * Store the API key outside code:
 
@@ -1504,7 +1480,7 @@ Your final result must allow:
 
 ---
 
-### 4) Error handling contract (keep behavior consistent)
+#### 4) Error handling contract (keep behavior consistent)
 
 Your adapter must handle, at minimum:
 
@@ -1516,7 +1492,7 @@ Your adapter must handle, at minimum:
 
 ---
 
-### 5) Tests (prove the adapter works without breaking the hexagon)
+#### 5) Tests (prove the adapter works without breaking the hexagon)
 
 Write one of these:
 
@@ -1537,7 +1513,7 @@ Write one of these:
 
 ---
 
-## Proof of Hexagonal Architecture (mandatory explanation)
+### Proof of Hexagonal Architecture (mandatory explanation)
 
 Write a short explanation (8–12 lines) answering:
 
@@ -1551,7 +1527,7 @@ Write a short explanation (8–12 lines) answering:
 
 ---
 
-## Extra Challenge (optional)
+### Extra Challenge (optional)
 
 Add a small "provider comparison" markdown note:
 
@@ -1571,7 +1547,7 @@ Work through these exercises in order. Each builds on concepts from earlier exer
 
 ---
 
-## 14. References
+## 18. References
 
 - **API Specification:** `doc/stock-portfolio-api-specification.md`
 - **Integration Tests (shared base):** `src/test/java/cat/gencat/agaur/hexastock/adapter/in/AbstractPortfolioRestIntegrationTest.java`
