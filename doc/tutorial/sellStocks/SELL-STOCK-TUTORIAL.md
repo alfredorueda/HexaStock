@@ -13,9 +13,9 @@
   - [Complementary: Internal FIFO Algorithm Test (Holding)](#complementary-internal-fifo-algorithm-test-holding)
 - [5. Testing Strategy Overview](#5-testing-strategy-overview)
 - [6. Domain Context: What "Selling Stocks" Means in HexaStock](#6-domain-context-what-selling-stocks-means-in-hexastock)
-- [7. Entry Point: The REST Endpoint (Driving Adapter)](#7-entry-point-the-rest-endpoint-driving-adapter)
+- [7. The REST Entry Point of the SELL Use Case](#7-the-rest-entry-point-of-the-sell-use-case)
 - [8. Hexagonal Architecture Map for the SELL Use Case](#8-hexagonal-architecture-map-for-the-sell-use-case)
-- [9. Step-by-Step Execution Trace: Happy Path](#9-step-by-step-execution-trace-happy-path)
+- [9. Execution Trace of the SELL Use Case (Happy Path)](#9-execution-trace-of-the-sell-use-case-happy-path)
   - [Step 1: Controller Receives Request](#step-1-controller-receives-request)
   - [Step 2: Controller Calls Inbound Port](#step-2-controller-calls-inbound-port)
   - [Step 3: Application Service Orchestrates](#step-3-application-service-orchestrates)
@@ -352,7 +352,7 @@ When you sell stocks in HexaStock:
 
 ---
 
-## 7. Entry Point: The REST Endpoint (Driving Adapter)
+## 7. The REST Entry Point of the SELL Use Case
 
 **File:** `src/main/java/cat/gencat/agaur/hexastock/adapter/in/PortfolioRestController.java`
 
@@ -393,6 +393,8 @@ This controller **drives** the application by calling its use cases. It does not
 
 [![Sell HTTP to Port](diagrams/Rendered/sell-http-to-port.png)](diagrams/Rendered/sell-http-to-port.svg)
 
+This controller represents the REST entry point of the SELL use case into the application core. Before tracing how a request flows through the system step by step, the next section presents the architectural map of the components involved in this use case.
+
 ---
 
 ## 8. Hexagonal Architecture Map for the SELL Use Case
@@ -417,7 +419,9 @@ Here is the complete architecture trace for selling stocks:
 
 ---
 
-## 9. Step-by-Step Execution Trace: Happy Path
+## 9. Execution Trace of the SELL Use Case (Happy Path)
+
+Now that we have seen both the entry point and the architectural components involved, we can trace how a sell request moves through the system step by step.
 
 ### Step 1: Controller Receives Request
 
