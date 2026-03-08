@@ -36,6 +36,8 @@ This document formalizes the design decision for structuring the **Portfolio** d
 
 This guide aims to illustrate how those principles can be applied to a concrete portfolio domain implemented using a hexagonal architecture, where persistence technologies can be swapped through adapters.
 
+In doing so, it also discusses a number of practical considerations that often arise in real systems, including:
+
 - **Aggregate size** and memory usage
 - **Dirty checking** and write amplification in Hibernate
 - **Optimistic locking contention** under concurrent operations
