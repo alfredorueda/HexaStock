@@ -34,7 +34,7 @@
 
 This document formalizes the design decision for structuring the **Portfolio** domain and its related concepts (**Holdings**, **Lots**, and **Transactions**) in alignment with **Domain-Driven Design (DDD)** principles, as introduced by **Eric Evans** in *Domain-Driven Design: Tackling Complexity in the Heart of Software* (2003) and further developed by **Vaughn Vernon** (*Implementing Domain-Driven Design*, 2013) and **Jimmy Nilsson** (*Applying Domain-Driven Design and Patterns*, 2006).
 
-However, this guide goes beyond the textbook. It addresses the **industrial reality** of building portfolio systems on a Spring Boot + JPA + relational database stack, covering:
+This guide aims to illustrate how those principles can be applied to a concrete portfolio domain implemented using a hexagonal architecture, where persistence technologies can be swapped through adapters.
 
 - **Aggregate size** and memory usage
 - **Dirty checking** and write amplification in Hibernate
