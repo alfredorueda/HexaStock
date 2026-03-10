@@ -1,0 +1,92 @@
+@startuml sell-use-case-flow
+!theme plain
+skinparam backgroundColor #FEFEFE
+skinparam activity {
+  BackgroundColor White
+  BorderColor Black
+  ArrowColor Black
+}
+skinparam note {
+  BackgroundColor #FFFFF0
+  BorderColor #CCCCAA
+}
+
+title Simplified Use Case Flow: Sell Stocks (Application Core Only)
+
+|#LightBlue| Application Service (Orchestrator) |
+start
+:Receive **Ticker**, **ShareQuantity**, **Price**
+(all Value Objects);
+note right
+  The service receives
+  domain types, not primitives.
+  How they arrive (REST, CLI…)
+  is not our concern here.
+end note
+
+:Load **Portfolio** from outbound port;
+note right
+  ""portfolioPort.getPortfolioById(id)""
+  The port is an abstraction —
+  we don't care about the
+  storage technology.
+end note
+
+|#LightGreen| Portfolio (Aggregate Root) |
+:portfolio.sell(Ticker, ShareQuantity, Price);
+
+:Validate: quantity **isPositive()**;
+if (quantity positive?) then (yes)
+else (no)
+  #Pink:throw **InvalidQuantityException**;
+  stop
+endif
+
+:Find **Holding** for the given Ticker;
+if (holding exists?) then (yes)
+else (no)
+  #Pink:throw **HoldingNotFoundException**;
+  stop
+endif
+
+|#LightYellow| Holding (Entity) |
+:holding.sell(ShareQuantity, Price);
+
+:Check: **getTotalShares() ≥ quantity**;
+if (enough shares?) then (yes)
+else (no)
+  #Pink:throw **ConflictQuantityException**;
+  stop
+endif
+
+:Iterate lots in **FIFO** order (oldest first);
+
+repeat
+  |#Wheat| Lot (Entity) |
+  :lot.reduce(sharesToSell);
+  :lot.calculateCostBasis(sharesToSell) → Money;
+  |#LightYellow| Holding (Entity) |
+  :Accumulate costBasis;
+  :Subtract sold shares from remainingToSell;
+repeat while (remainingToSell > 0?) is (yes)
+->no;
+
+:Remove depleted lots (isEmpty());
+:Calculate **proceeds** = price × quantity;
+:Create **SellResult**(proceeds, costBasis);
+note right
+  ""profit = proceeds − costBasis""
+  Calculated automatically
+  inside the Value Object.
+end note
+
+|#LightGreen| Portfolio (Aggregate Root) |
+:Update **balance** += proceeds;
+:Return **SellResult**;
+
+|#LightBlue| Application Service (Orchestrator) |
+:Save Portfolio through outbound port;
+:Return **SellResult**;
+stop
+
+@enduml

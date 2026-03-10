@@ -1,0 +1,135 @@
+@startuml domain-class-diagram
+!theme plain
+skinparam backgroundColor #FEFEFE
+skinparam classAttributeIconSize 0
+skinparam class {
+  BackgroundColor White
+  BorderColor Black
+  ArrowColor Black
+}
+skinparam note {
+  BackgroundColor #FFFFF0
+  BorderColor #CCCCAA
+}
+
+title HexaStock Domain Model — Entities and Value Objects
+
+package "Domain Model (pure Java — no infrastructure)" {
+
+  class Portfolio <<aggregate root>> {
+    - id: PortfolioId
+    - owner: String
+    - balance: Money
+    - holdings: Map<Ticker, Holding>
+    - createdAt: LocalDateTime
+    __
+    + sell(ticker: Ticker, quantity: ShareQuantity, price: Price): SellResult
+    + buy(ticker: Ticker, quantity: ShareQuantity, price: Price): void
+    + getHolding(ticker: Ticker): Holding
+    + getBalance(): Money
+  }
+
+  class Holding <<entity>> {
+    - id: HoldingId
+    - ticker: Ticker
+    - lots: List<Lot>  {ordered by purchase date}
+    __
+    + sell(quantity: ShareQuantity, price: Price): SellResult
+    + buy(quantity: ShareQuantity, price: Price): void
+    + getTotalShares(): ShareQuantity
+    + getLots(): List<Lot>
+  }
+
+  class Lot <<entity>> {
+    - id: LotId
+    - initialShares: ShareQuantity
+    - remainingShares: ShareQuantity
+    - unitPrice: Price
+    - purchasedAt: LocalDateTime
+    __
+    + reduce(quantity: ShareQuantity): void
+    + calculateCostBasis(quantity: ShareQuantity): Money
+    + getRemainingShares(): ShareQuantity
+    + isEmpty(): boolean
+  }
+
+  Portfolio "1" *-- "0..*" Holding : contains  >
+  Holding "1" *-- "1..*" Lot : contains\n{ordered FIFO}  >
+
+  note right of Portfolio
+    **Aggregate Root**
+    All state changes to Holding
+    and Lot must pass through
+    Portfolio.
+  end note
+
+  note right of Holding
+    Lots are ordered by **purchasedAt**.
+    FIFO consumes oldest lots first.
+  end note
+}
+
+package "Value Objects (immutable, validated at construction)" <<Rectangle>> {
+
+  class Money <<value object>> {
+    - amount: BigDecimal
+    __
+    + add(other: Money): Money
+    + subtract(other: Money): Money
+  }
+
+  class Price <<value object>> {
+    - amount: BigDecimal
+    __
+    + multiply(qty: ShareQuantity): Money
+    {rejects non-positive values}
+  }
+
+  class ShareQuantity <<value object>> {
+    - value: int
+    __
+    + min(other: ShareQuantity): ShareQuantity
+    + subtract(other: ShareQuantity): ShareQuantity
+    + isPositive(): boolean
+    + isZero(): boolean
+    {rejects negative values}
+  }
+
+  class Ticker <<value object>> {
+    - symbol: String
+  }
+
+  class PortfolioId <<value object>> {
+    - value: String (UUID)
+  }
+
+  class HoldingId <<value object>> {
+    - value: String
+  }
+
+  class LotId <<value object>> {
+    - value: String
+  }
+
+  class SellResult <<value object>> {
+    - proceeds: Money
+    - costBasis: Money
+    - profit: Money
+    __
+    profit = proceeds − costBasis
+  }
+}
+
+' Relationships from entities to value objects
+Portfolio ..> PortfolioId : uses
+Portfolio ..> Money : balance
+Portfolio ..> Ticker : keys holdings
+Holding ..> HoldingId : uses
+Holding ..> Ticker : uses
+Lot ..> LotId : uses
+Lot ..> ShareQuantity : uses
+Lot ..> Price : uses
+Holding ..> SellResult : returns
+Portfolio ..> SellResult : returns
+
+@enduml

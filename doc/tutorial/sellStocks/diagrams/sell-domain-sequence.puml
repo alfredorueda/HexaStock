@@ -1,0 +1,96 @@
+@startuml sell-domain-sequence
+!theme plain
+skinparam backgroundColor #FEFEFE
+skinparam note {
+  BackgroundColor #FFFFF0
+  BorderColor #CCCCAA
+}
+
+title Domain Sequence Diagram: Sell 12 Shares of AAPL @ 150.00 (Gherkin Scenario 2)
+
+participant "Application\nService" as Service #LightBlue
+participant "Portfolio\n(Aggregate Root)" as Portfolio #LightGreen
+participant "Holding\n(Entity)\nTicker: AAPL" as Holding #LightYellow
+participant "Lot #1\n(Entity)\nShares: 10 @ 100.00" as Lot1 #Wheat
+participant "Lot #2\n(Entity)\nShares: 5 @ 120.00" as Lot2 #Wheat
+
+Service -> Portfolio: sell(Ticker("AAPL"), ShareQuantity(12), Price(150.00))
+activate Service
+activate Portfolio
+
+Portfolio -> Portfolio: validate quantity.isPositive() ✓
+Portfolio -> Portfolio: check holdings.containsKey(Ticker("AAPL")) ✓
+
+Portfolio -> Holding: sell(ShareQuantity(12), Price(150.00))
+activate Holding
+
+Holding -> Holding: check getTotalShares() ≥ 12\n(10 + 5 = 15 ≥ 12) ✓
+
+note over Holding
+  **FIFO Algorithm starts**
+  remainingToSell = ShareQuantity(12)
+  costBasis = Money.ZERO
+end note
+
+== FIFO Step 1: Lot #1 (oldest) ==
+
+Holding -> Holding: sharesSoldFromLot =\nmin(ShareQuantity(10), ShareQuantity(12))\n= ShareQuantity(10)
+
+Holding -> Lot1: calculateCostBasis(ShareQuantity(10))
+activate Lot1
+Lot1 -> Lot1: Price(100.00) × 10 = Money(1000.00)
+Lot1 --> Holding: Money(1000.00)
+deactivate Lot1
+
+Holding -> Lot1: reduce(ShareQuantity(10))
+activate Lot1
+Lot1 -> Lot1: remainingShares =\nShareQuantity(10) − ShareQuantity(10)\n= ShareQuantity(0)
+Lot1 --> Holding
+deactivate Lot1
+
+Holding -> Holding: costBasis = Money(0) + Money(1000.00)\n= Money(1000.00)\nremainingToSell = ShareQuantity(12) − ShareQuantity(10)\n= ShareQuantity(2)
+
+== FIFO Step 2: Lot #2 (next oldest) ==
+
+Holding -> Holding: sharesSoldFromLot =\nmin(ShareQuantity(5), ShareQuantity(2))\n= ShareQuantity(2)
+
+Holding -> Lot2: calculateCostBasis(ShareQuantity(2))
+activate Lot2
+Lot2 -> Lot2: Price(120.00) × 2 = Money(240.00)
+Lot2 --> Holding: Money(240.00)
+deactivate Lot2
+
+Holding -> Lot2: reduce(ShareQuantity(2))
+activate Lot2
+Lot2 -> Lot2: remainingShares =\nShareQuantity(5) − ShareQuantity(2)\n= ShareQuantity(3)
+Lot2 --> Holding
+deactivate Lot2
+
+Holding -> Holding: costBasis = Money(1000.00) + Money(240.00)\n= Money(1240.00)\nremainingToSell = ShareQuantity(2) − ShareQuantity(2)\n= ShareQuantity(0) ✓
+
+== Finalize ==
+
+Holding -> Holding: lots.removeIf(Lot::isEmpty)\n→ Lot #1 removed (0 remaining)
+
+Holding -> Holding: proceeds = Price(150.00) × ShareQuantity(12)\n= Money(1800.00)
+
+Holding -> Holding: SellResult.of(\n  proceeds = Money(1800.00),\n  costBasis = Money(1240.00))\nprofit = Money(1800.00) − Money(1240.00)\n= Money(560.00)
+
+Holding --> Portfolio: SellResult(\nproceeds = Money(1800.00),\ncostBasis = Money(1240.00),\nprofit = Money(560.00))
+deactivate Holding
+
+Portfolio -> Portfolio: balance = balance.add(Money(1800.00))
+
+Portfolio --> Service: SellResult
+deactivate Portfolio
+deactivate Service
+
+note over Portfolio, Lot2
+  **After the sell operation:**
+  • Lot #1: **removed** (fully depleted)
+  • Lot #2: 3 shares remaining @ 120.00
+  • Portfolio balance: increased by Money(1800.00)
+  • SellResult proves FIFO: costBasis = (10×100) + (2×120) = 1240.00
+end note
+
+@enduml

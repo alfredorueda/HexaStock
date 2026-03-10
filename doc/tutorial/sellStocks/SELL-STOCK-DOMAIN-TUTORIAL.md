@@ -248,70 +248,11 @@ When the domain model sells stocks:
 
 The diagram below shows **only the domain model** — the entities and value objects that implement the business logic. No controllers, DTOs, JPA entities, adapters, or infrastructure classes appear here.
 
-```
-┌─────────────────────────────────────────────────────────────────────┐
-│                        «aggregate root»                             │
-│                          Portfolio                                   │
-│─────────────────────────────────────────────────────────────────────│
-│  - id: PortfolioId                                                  │
-│  - owner: String                                                    │
-│  - balance: Money                                                   │
-│  - holdings: Map<Ticker, Holding>                                   │
-│  - createdAt: LocalDateTime                                         │
-│─────────────────────────────────────────────────────────────────────│
-│  + sell(ticker: Ticker, quantity: ShareQuantity, price: Price)       │
-│       → SellResult                                                  │
-│  + buy(ticker: Ticker, quantity: ShareQuantity, price: Price): void  │
-│  + getHolding(ticker: Ticker): Holding                              │
-│  + getBalance(): Money                                              │
-└──────────────┬──────────────────────────────────────────────────────┘
-               │ 0..*
-               ▼
-┌─────────────────────────────────────────────────────────────────────┐
-│                          «entity»                                   │
-│                          Holding                                    │
-│─────────────────────────────────────────────────────────────────────│
-│  - id: HoldingId                                                    │
-│  - ticker: Ticker                                                   │
-│  - lots: List<Lot>       ← ordered by purchase date (FIFO)         │
-│─────────────────────────────────────────────────────────────────────│
-│  + sell(quantity: ShareQuantity, price: Price) → SellResult         │
-│  + buy(quantity: ShareQuantity, price: Price): void                 │
-│  + getTotalShares(): ShareQuantity                                  │
-│  + getLots(): List<Lot>                                             │
-└──────────────┬──────────────────────────────────────────────────────┘
-               │ 1..*
-               ▼
-┌─────────────────────────────────────────────────────────────────────┐
-│                          «entity»                                   │
-│                            Lot                                      │
-│─────────────────────────────────────────────────────────────────────│
-│  - id: LotId                                                        │
-│  - initialShares: ShareQuantity                                     │
-│  - remainingShares: ShareQuantity                                   │
-│  - unitPrice: Price                                                 │
-│  - purchasedAt: LocalDateTime                                       │
-│─────────────────────────────────────────────────────────────────────│
-│  + reduce(quantity: ShareQuantity): void                            │
-│  + calculateCostBasis(quantity: ShareQuantity): Money               │
-│  + getRemainingShares(): ShareQuantity                              │
-│  + isEmpty(): boolean                                               │
-└─────────────────────────────────────────────────────────────────────┘
+**Full UML diagram reference:** See [`diagrams/Rendered/domain-class-diagram.svg`](diagrams/Rendered/domain-class-diagram.svg)
 
-┌───────────────────────────────────────────────────────────────────────────┐
-│                          «value objects»                                  │
-│                                                                          │
-│  Money          – wraps BigDecimal, supports add/subtract               │
-│  Price          – wraps BigDecimal, rejects non-positive values         │
-│  ShareQuantity  – wraps int, rejects negative values                    │
-│  Ticker         – wraps String (e.g., "AAPL")                           │
-│  PortfolioId    – wraps String (UUID-based identity)                    │
-│  HoldingId      – wraps String (identity for persistence)              │
-│  LotId          – wraps String (identity for persistence)              │
-│  SellResult     – record with proceeds (Money), costBasis (Money),     │
-│                   profit (Money = proceeds − costBasis)                 │
-└───────────────────────────────────────────────────────────────────────────┘
-```
+[![Domain Class Diagram](diagrams/Rendered/domain-class-diagram.png)](diagrams/Rendered/domain-class-diagram.svg)
+
+[View PlantUML source](diagrams/domain-class-diagram.puml)
 
 **Key relationships:**
 - A `Portfolio` contains zero or more `Holding` objects, indexed by `Ticker`
@@ -319,103 +260,31 @@ The diagram below shows **only the domain model** — the entities and value obj
 - All state changes to `Holding` and `Lot` **must go through `Portfolio`** (the aggregate root)
 - Value Objects are immutable and enforce constraints at construction time
 
-**Full UML diagram reference:** See [`diagrams/Rendered/HexaStock Domain Model.svg`](diagrams/Rendered/HexaStock%20Domain%20Model.svg)
-
-[![HexaStock Domain Model](diagrams/Rendered/HexaStock%20Domain%20Model.png)](diagrams/Rendered/HexaStock%20Domain%20Model.svg)
-
 ---
 
 ## 7. Simplified Use Case Flow
 
-In a complete system, the sell operation passes through many architectural layers (REST controller → port → service → domain → persistence). In this tutorial, we focus only on the **application core**:
+In a complete system, the sell operation passes through many architectural layers (REST controller → port → service → domain → persistence). In this tutorial, we focus only on the **application core**.
 
-```
-Application Service (orchestrator)
-    │
-    │  1. Receives Ticker, ShareQuantity, Price (Value Objects)
-    │  2. Loads the Portfolio from a port (abstraction — we don't care how)
-    │
-    ├── delegates to ──→  Portfolio.sell(Ticker, ShareQuantity, Price)
-    │                         │
-    │                         │  validates quantity is positive
-    │                         │  finds Holding for the given Ticker
-    │                         │
-    │                         ├── delegates to ──→  Holding.sell(ShareQuantity, Price)
-    │                         │                         │
-    │                         │                         │  checks enough shares exist
-    │                         │                         │  iterates lots in FIFO order
-    │                         │                         │
-    │                         │                         ├── Lot.reduce(ShareQuantity)
-    │                         │                         ├── Lot.calculateCostBasis(ShareQuantity)
-    │                         │                         │
-    │                         │                         └── returns SellResult
-    │                         │
-    │                         │  updates balance with proceeds
-    │                         │
-    │                         └── returns SellResult
-    │
-    │  3. Saves the Portfolio through a port (abstraction)
-    │  4. Returns SellResult
-    │
-```
+The application service is a **thin orchestrator** — it loads data, calls the aggregate root, and saves the result. All business logic (validation, FIFO, profit calculation) lives inside the domain model. The activity diagram below traces this flow through each domain participant, including the three validation checkpoints and the FIFO loop.
 
-The application service is a **thin orchestrator** — it loads data, calls the aggregate root, and saves the result. All business logic (validation, FIFO, profit calculation) lives inside the domain model.
+**Full UML diagram reference:** See [`diagrams/Rendered/sell-use-case-flow.svg`](diagrams/Rendered/sell-use-case-flow.svg)
+
+[![Sell Use Case Flow](diagrams/Rendered/sell-use-case-flow.png)](diagrams/Rendered/sell-use-case-flow.svg)
+
+[View PlantUML source](diagrams/sell-use-case-flow.puml)
 
 ---
 
 ## 8. Domain Sequence Diagram: The SELL Operation
 
-The sequence below traces how the sell operation flows through the **domain model only** — from the moment the application service calls `Portfolio.sell()` to the moment `SellResult` is returned. No REST controllers, HTTP requests, or database operations appear.
+The sequence below traces how the sell operation flows through the **domain model only** — from the moment the application service calls `Portfolio.sell()` to the moment `SellResult` is returned. No REST controllers, HTTP requests, or database operations appear. It walks through the Gherkin Scenario 2 (selling 12 shares of AAPL at 150.00), showing both FIFO steps, lot depletion, and the final financial result.
 
-```
-Application Service              Portfolio                 Holding                  Lot
-       │                            │                        │                      │
-       │  sell(AAPL, 12, 150.00)    │                        │                      │
-       │───────────────────────────►│                        │                      │
-       │                            │                        │                      │
-       │                            │  validate: quantity    │                      │
-       │                            │  is positive ✓        │                      │
-       │                            │                        │                      │
-       │                            │  find holding for      │                      │
-       │                            │  Ticker("AAPL") ✓     │                      │
-       │                            │                        │                      │
-       │                            │  sell(12, 150.00)      │                      │
-       │                            │───────────────────────►│                      │
-       │                            │                        │                      │
-       │                            │                        │  check: totalShares  │
-       │                            │                        │  (15) ≥ 12 ✓        │
-       │                            │                        │                      │
-       │                            │                        │  FIFO: Lot #1        │
-       │                            │                        │  min(10, 12) = 10    │
-       │                            │                        │──────────────────────►│
-       │                            │                        │    reduce(10)         │
-       │                            │                        │    costBasis(10)      │
-       │                            │                        │     = 1000.00         │
-       │                            │                        │◄──────────────────────│
-       │                            │                        │  remaining: 2         │
-       │                            │                        │                      │
-       │                            │                        │  FIFO: Lot #2        │
-       │                            │                        │  min(5, 2) = 2       │
-       │                            │                        │──────────────────────►│
-       │                            │                        │    reduce(2)          │
-       │                            │                        │    costBasis(2)       │
-       │                            │                        │     = 240.00          │
-       │                            │                        │◄──────────────────────│
-       │                            │                        │  remaining: 0 ✓      │
-       │                            │                        │                      │
-       │                            │                        │  remove empty lots    │
-       │                            │                        │  (Lot #1 removed)     │
-       │                            │                        │                      │
-       │                            │  SellResult            │  proceeds = 1800.00  │
-       │                            │  (1800, 1240, 560)     │  costBasis = 1240.00 │
-       │                            │◄───────────────────────│  profit = 560.00     │
-       │                            │                        │                      │
-       │                            │  balance += 1800.00    │                      │
-       │                            │                        │                      │
-       │  SellResult                │                        │                      │
-       │  (1800, 1240, 560)         │                        │                      │
-       │◄──────────────────────────│                        │                      │
-```
+**Full UML sequence diagram reference:** See [`diagrams/Rendered/sell-domain-sequence.svg`](diagrams/Rendered/sell-domain-sequence.svg)
+
+[![Sell Domain Sequence](diagrams/Rendered/sell-domain-sequence.png)](diagrams/Rendered/sell-domain-sequence.svg)
+
+[View PlantUML source](diagrams/sell-domain-sequence.puml)
 
 **What this diagram shows:**
 - The **Portfolio** validates inputs and delegates to the correct `Holding`
@@ -424,9 +293,7 @@ Application Service              Portfolio                 Holding              
 - Depleted lots (Lot #1 with 0 remaining) are removed automatically
 - The **Portfolio** updates its `balance` with the proceeds before returning the `SellResult`
 
-**Full UML sequence diagram reference:** See [`diagrams/Rendered/sell-domain-fifo.svg`](diagrams/Rendered/sell-domain-fifo.svg)
-
-[![Sell Domain FIFO](diagrams/Rendered/sell-domain-fifo.png)](diagrams/Rendered/sell-domain-fifo.svg)
+> **💡 Complementary diagrams:** The repository also contains a more generic FIFO sequence diagram (selling 7 shares) and a diagram comparing correct vs anti-pattern service behaviour. See [`diagrams/Rendered/sell-domain-fifo.svg`](diagrams/Rendered/sell-domain-fifo.svg) and [`diagrams/Rendered/sell-orchestrator-vs-aggregate.svg`](diagrams/Rendered/sell-orchestrator-vs-aggregate.svg).
 
 ---
 
