@@ -14,6 +14,43 @@ import cat.gencat.agaur.hexastock.model.exception.InvalidQuantityException;
  *   <li>Quantity must be non-negative (zero is allowed for depleted lots)</li>
  *   <li>Provides arithmetic operations that maintain invariants</li>
  * </ul>
+ *
+ * <h3>Design Note: Why Zero Is Allowed</h3>
+ *
+ * <p>ShareQuantity enforces the invariant {@code value >= 0}, not {@code value > 0}.
+ * This is an intentional design decision. Zero quantities are valid <strong>domain state</strong>:
+ * a lot whose shares have been fully sold has {@code remainingShares = ShareQuantity.ZERO},
+ * and arithmetic operations such as {@link #subtract(ShareQuantity)} may legitimately
+ * produce zero as a result.</p>
+ *
+ * <p>However, <strong>operational commands</strong> (buy, sell) require strictly positive
+ * quantities. This validation is enforced by the aggregate root ({@code Portfolio.buy()},
+ * {@code Portfolio.sell()}) using {@link #isPositive()}, and at the system boundary
+ * using the {@link #positive(int)} factory method. The distinction is:</p>
+ *
+ * <ul>
+ *   <li><strong>State quantity</strong> — may be zero ({@code ShareQuantity >= 0})</li>
+ *   <li><strong>Operation quantity</strong> — must be positive ({@code > 0}), enforced by the caller</li>
+ * </ul>
+ *
+ * <h4>Alternative Modeling Options</h4>
+ *
+ * <p>Three valid DDD approaches exist for this validation boundary:</p>
+ * <ol>
+ *   <li><strong>Option A (current):</strong> A single ShareQuantity ({@code >= 0}).
+ *       Aggregate root operations validate positivity. Simple, minimal, and sufficient
+ *       for this domain.</li>
+ *   <li><strong>Option B:</strong> ShareQuantity enforces {@code > 0} everywhere.
+ *       Zero would not be representable, requiring a different mechanism for depleted
+ *       lots and arithmetic results.</li>
+ *   <li><strong>Option C:</strong> Two separate Value Objects — {@code ShareQuantity (>= 0)}
+ *       for state and a hypothetical {@code TradeQuantity (> 0)} for commands.
+ *       Type-safe but adds complexity that is not justified by the current domain.</li>
+ * </ol>
+ *
+ * <p>Option A was chosen for its simplicity. The {@link #positive(int)} factory method
+ * and the aggregate root guards provide sufficient protection without introducing
+ * additional types.</p>
  */
 public record ShareQuantity(int value) {
 

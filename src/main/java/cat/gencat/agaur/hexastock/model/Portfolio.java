@@ -142,6 +142,9 @@ public class Portfolio {
      * @throws InsufficientFundsException if there are insufficient funds for the purchase
      */
     public void buy(Ticker ticker, ShareQuantity quantity, Price price) {
+        // ShareQuantity allows zero for domain state (e.g. depleted lots, arithmetic results).
+        // Operational commands like buy require strictly positive quantities.
+        // See ShareQuantity Javadoc — "Design Note: Why Zero Is Allowed".
         if (!quantity.isPositive()) {
             throw new InvalidQuantityException("Quantity must be positive");
         }
@@ -180,9 +183,13 @@ public class Portfolio {
      * @throws DomainException if the ticker is not found in holdings
      */
     public SellResult sell(Ticker ticker, ShareQuantity quantity, Price price) {
+        // ShareQuantity allows zero for domain state (e.g. depleted lots, arithmetic results).
+        // Operational commands like sell require strictly positive quantities.
+        // See ShareQuantity Javadoc — "Design Note: Why Zero Is Allowed".
         if (!quantity.isPositive()) {
             throw new InvalidQuantityException("Quantity must be positive");
         }
+
         if (!holdings.containsKey(ticker)) {
             throw new HoldingNotFoundException("Holding not found in portfolio: " + ticker);
         }
