@@ -1,5 +1,7 @@
 package cat.gencat.agaur.hexastock.model;
 
+import cat.gencat.agaur.hexastock.SpecificationRef;
+import cat.gencat.agaur.hexastock.TestLevel;
 import cat.gencat.agaur.hexastock.model.exception.*;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -161,6 +163,7 @@ class PortfolioTest {
 
         @Test
         @DisplayName("Should increase balance and update holding when selling stock")
+        @SpecificationRef(value = "US-07.AC-1", level = TestLevel.DOMAIN)
         void shouldIncreaseBalanceAndUpdateHoldingWhenSelling() {
             portfolio.buy(APPLE, ShareQuantity.of(10), Price.of("50.00"));
             Price sellPrice = Price.of("60.00");
@@ -176,12 +179,14 @@ class PortfolioTest {
 
         @Test
         @DisplayName("Should throw exception when selling stock not in portfolio")
+        @SpecificationRef(value = "US-07.AC-6", level = TestLevel.DOMAIN)
         void shouldThrowExceptionWhenSellingStockNotInPortfolio() {
             assertThrows(HoldingNotFoundException.class, () -> portfolio.sell(MICROSOFT, ShareQuantity.of(5), Price.of("100.00")));
         }
 
         @Test
         @DisplayName("Should throw exception when selling invalid quantity")
+        @SpecificationRef(value = "US-07.AC-4", level = TestLevel.DOMAIN)
         void shouldThrowExceptionWhenSellingInvalidQuantity() {
             portfolio.buy(APPLE, ShareQuantity.of(10), Price.of("50.00"));
 
@@ -191,6 +196,7 @@ class PortfolioTest {
 
         @Test
         @DisplayName("Should throw exception when selling more shares than owned")
+        @SpecificationRef(value = "US-07.AC-3", level = TestLevel.DOMAIN)
         void shouldThrowExceptionWhenSellingMoreSharesThanOwned() {
             portfolio.buy(APPLE, ShareQuantity.of(10), Price.of("50.00"));
 
@@ -198,8 +204,11 @@ class PortfolioTest {
                     () -> portfolio.sell(APPLE, ShareQuantity.of(15), Price.of("60.00")));
         }
 
+        // Link to Gherkin scenario:
+        // https://github.com/alfredorueda/HexaStock/blob/main/doc/stock-portfolio-api-specification.md#27-us-07--sell-stocks
         @Test
         @DisplayName("Should sell shares across multiple lots using FIFO through the aggregate root (Gherkin scenario)")
+        @SpecificationRef(value = "US-07.FIFO-2", level = TestLevel.DOMAIN, feature = "sell-stocks.feature")
         void shouldSellSharesUsingFIFOThroughPortfolioAggregateRoot_GherkinScenario() {
             // Background: a portfolio with sufficient funds to buy AAPL lots
             Price purchasePrice1 = Price.of("100.00");

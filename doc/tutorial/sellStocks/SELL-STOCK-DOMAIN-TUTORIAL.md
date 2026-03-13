@@ -63,6 +63,8 @@ Before writing any code, we define the **observable behaviour** of the sell use 
 
 **Source of truth:** [US-07 — Sell Stocks (API Specification)](https://github.com/alfredorueda/HexaStock/blob/main/doc/stock-portfolio-api-specification.md#27-us-07--sell-stocks)
 
+> **Canonical Gherkin:** [`doc/features/sell-stocks.feature`](../../features/sell-stocks.feature) — the scenarios below are reproduced for readability; the `.feature` file is the single source referenced by `@SpecificationRef` annotations in tests.
+
 ```gherkin
 Feature: Sell Stocks with FIFO Lot Consumption
 

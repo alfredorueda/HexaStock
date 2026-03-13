@@ -1,5 +1,7 @@
 package cat.gencat.agaur.hexastock.model;
 
+import cat.gencat.agaur.hexastock.SpecificationRef;
+import cat.gencat.agaur.hexastock.TestLevel;
 import cat.gencat.agaur.hexastock.model.exception.ConflictQuantityException;
 import cat.gencat.agaur.hexastock.model.exception.EntityExistsException;
 import org.junit.jupiter.api.BeforeEach;
@@ -99,6 +101,7 @@ class HoldingTest {
 
         @Test
         @DisplayName("Should sell shares from oldest lot first (FIFO)")
+        @SpecificationRef(value = "US-07.AC-2", level = TestLevel.DOMAIN)
         void shouldSellSharesFromOldestLotFirst() {
             holding.buy(ShareQuantity.of(10), PRICE_100);
             holding.buy(ShareQuantity.of(5), PRICE_120);
@@ -116,6 +119,7 @@ class HoldingTest {
 
         @Test
         @DisplayName("Should sell shares across multiple lots if needed")
+        @SpecificationRef(value = "US-07.FIFO-2", level = TestLevel.DOMAIN, feature = "sell-stocks.feature")
         void shouldSellSharesAcrossMultipleLots() {
             holding.buy(ShareQuantity.of(10), PRICE_100);
             holding.buy(ShareQuantity.of(5), PRICE_120);
@@ -136,6 +140,7 @@ class HoldingTest {
 
         @Test
         @DisplayName("Should throw exception when selling more shares than available")
+        @SpecificationRef(value = "US-07.AC-3", level = TestLevel.DOMAIN)
         void shouldThrowExceptionWhenSellingMoreSharesThanAvailable() {
             holding.buy(ShareQuantity.of(10), PRICE_100);
 
@@ -144,6 +149,7 @@ class HoldingTest {
 
         @Test
         @DisplayName("Should handle selling at a loss")
+        @SpecificationRef(value = "US-07.AC-1", level = TestLevel.DOMAIN)
         void shouldHandleSellingAtALoss() {
             holding.buy(ShareQuantity.of(10), PRICE_100);
 
@@ -157,6 +163,7 @@ class HoldingTest {
 
         @Test
         @DisplayName("Should correctly sell shares across multiple lots with FIFO")
+        @SpecificationRef(value = "US-07.FIFO-2", level = TestLevel.DOMAIN, feature = "sell-stocks.feature")
         void testSellStockWithMultipleLots() {
             holding.buy(ShareQuantity.of(10), Price.of("100.00"));
             holding.buy(ShareQuantity.of(15), Price.of("105.00"));
@@ -180,6 +187,7 @@ class HoldingTest {
 
         @Test
         @DisplayName("Should sell shares across multiple lots using FIFO (Gherkin scenario)")
+        @SpecificationRef(value = "US-07.FIFO-2", level = TestLevel.DOMAIN, feature = "sell-stocks.feature")
         void shouldSellSharesAcrossMultipleLots_GherkinScenario() {
             // Background: buy 10 shares @ 100, then 5 shares @ 120
             holding.buy(ShareQuantity.of(10), PRICE_100);

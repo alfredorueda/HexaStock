@@ -426,6 +426,8 @@ Feature: Sell Stocks with FIFO Lot Consumption
   #   profit    = 1800.00 − 1240.00 = 560.00
 ```
 
+> **Canonical source:** [`doc/features/sell-stocks.feature`](../features/sell-stocks.feature) — the Gherkin above is maintained as a standalone `.feature` file for traceability. Tests reference it via `@SpecificationRef`.
+
 #### Success Response (200 OK)
 
 ```json

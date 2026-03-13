@@ -1,5 +1,7 @@
 package cat.gencat.agaur.hexastock.adapter.in;
 
+import cat.gencat.agaur.hexastock.SpecificationRef;
+import cat.gencat.agaur.hexastock.TestLevel;
 import cat.gencat.agaur.hexastock.application.port.out.StockPriceProviderPort;
 import cat.gencat.agaur.hexastock.model.Price;
 import cat.gencat.agaur.hexastock.model.StockPrice;
@@ -50,6 +52,7 @@ class PortfolioTradingRestIntegrationTest extends AbstractPortfolioRestIntegrati
         }
 
         @Test
+        @SpecificationRef(value = "US-07.AC-1", level = TestLevel.INTEGRATION)
         void endToEnd_depositBuySellWithdraw() {
             deposit(portfolioId, 100_000);
 
@@ -206,6 +209,7 @@ class PortfolioTradingRestIntegrationTest extends AbstractPortfolioRestIntegrati
             }
 
             @Test
+            @SpecificationRef(value = "US-07.AC-1", level = TestLevel.INTEGRATION)
             void sellReturnsProceeds_andUpdatesHoldings() {
                 sell(portfolioId, "AAPL", 3)
                         .statusCode(200)
@@ -219,6 +223,7 @@ class PortfolioTradingRestIntegrationTest extends AbstractPortfolioRestIntegrati
             }
 
             @Test
+            @SpecificationRef(value = "US-07.AC-3", level = TestLevel.INTEGRATION)
             void sellMoreThanOwned_returns409() {
                 sell(portfolioId, "AAPL", 10)
                         .statusCode(409)
@@ -228,6 +233,7 @@ class PortfolioTradingRestIntegrationTest extends AbstractPortfolioRestIntegrati
             }
 
             @Test
+            @SpecificationRef(value = "US-07.AC-4", level = TestLevel.INTEGRATION)
             void sellWithZeroQuantity_returns400() {
                 RestAssured.given()
                         .contentType(ContentType.JSON)
@@ -241,6 +247,7 @@ class PortfolioTradingRestIntegrationTest extends AbstractPortfolioRestIntegrati
             }
 
             @Test
+            @SpecificationRef(value = "US-07.AC-5", level = TestLevel.INTEGRATION)
             void sellWithNegativeQuantity_returns400() {
                 RestAssured.given()
                         .contentType(ContentType.JSON)
@@ -254,6 +261,7 @@ class PortfolioTradingRestIntegrationTest extends AbstractPortfolioRestIntegrati
             }
 
             @Test
+            @SpecificationRef(value = "US-07.AC-6", level = TestLevel.INTEGRATION)
             void sellTickerNotOwned_returns404() {
                 sell(portfolioId, "MSFT", 1)
                         .statusCode(404)
@@ -376,6 +384,7 @@ class PortfolioTradingRestIntegrationTest extends AbstractPortfolioRestIntegrati
 
         @Test
         @DisplayName("Selling 8 shares consumed entirely from a single lot (Gherkin Scenario 1)")
+        @SpecificationRef(value = "US-07.FIFO-1", level = TestLevel.INTEGRATION, feature = "sell-stocks.feature")
         void sellSharesConsumedFromSingleLot_FIFOGherkinScenario() {
             // When: sell 8 shares of AAPL at market price 150.00
             fixedPriceAdapter.enqueuePrice(Price.of("150.00"));
@@ -401,8 +410,11 @@ class PortfolioTradingRestIntegrationTest extends AbstractPortfolioRestIntegrati
                     .body("find { it.ticker == 'AAPL' }.remaining", equalTo(7));
         }
 
+        // Link to Gherkin scenario:
+        // https://github.com/alfredorueda/HexaStock/blob/main/doc/stock-portfolio-api-specification.md#27-us-07--sell-stocks
         @Test
         @DisplayName("Selling 12 shares consumed across multiple lots (Gherkin Scenario 2)")
+        @SpecificationRef(value = "US-07.FIFO-2", level = TestLevel.INTEGRATION, feature = "sell-stocks.feature")
         void sellSharesAcrossMultipleLots_FIFOGherkinScenario() {
             // When: sell 12 shares of AAPL at market price 150.00
             fixedPriceAdapter.enqueuePrice(Price.of("150.00"));

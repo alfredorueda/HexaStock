@@ -1,5 +1,7 @@
 package cat.gencat.agaur.hexastock.adapter.in;
 
+import cat.gencat.agaur.hexastock.SpecificationRef;
+import cat.gencat.agaur.hexastock.TestLevel;
 import io.restassured.RestAssured;
 import io.restassured.http.ContentType;
 import org.junit.jupiter.api.Nested;
@@ -32,6 +34,7 @@ class PortfolioErrorHandlingRestIntegrationTest extends AbstractPortfolioRestInt
         }
 
         @Test
+        @SpecificationRef(value = "US-07.AC-7", level = TestLevel.INTEGRATION)
         void sellOnNonExistentPortfolio_returns404() {
             RestAssured.given()
                     .contentType(ContentType.JSON)
