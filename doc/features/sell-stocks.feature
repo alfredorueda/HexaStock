@@ -1,9 +1,35 @@
-# Canonical source for US-07 (Sell Stocks) Gherkin scenarios.
+# ═══════════════════════════════════════════════════════════════════════════════
+# BEHAVIOURAL SPECIFICATION — Sell Stocks (US-07)
+# ═══════════════════════════════════════════════════════════════════════════════
+#
+# This file describes the functional behaviour of the Sell Stocks use case
+# in a human-readable format using Gherkin syntax.
+#
+# It serves as the CANONICAL BEHAVIOURAL SPECIFICATION for US-07. The Gherkin
+# scenarios here define the expected system behaviour independently of any
+# implementation detail — they describe WHAT the system does, not HOW.
+#
+# WHY a .feature file?
+#   - Gherkin is readable by developers and non-developers alike.
+#   - Each scenario has a stable identifier (US-07.FIFO-1, US-07.FIFO-2)
+#     that Java tests reference via the @SpecificationRef annotation.
+#   - This creates an explicit, navigable chain:
+#
+#       Requirement  →  Scenario (.feature)  →  Test (JUnit)  →  Code
+#
+#   - When a test is annotated with @SpecificationRef(value = "US-07.FIFO-1"),
+#     a reader can look up this file to understand the business behaviour
+#     the test is verifying.
+#
+# This file is NOT executed by Cucumber or any BDD framework.
+# It is a specification document — the tests are the executable layer.
+#
 # Referenced by tutorials and annotated tests via @SpecificationRef.
 #
-# IDs:
+# Scenario IDs:
 #   US-07.FIFO-1 → Scenario: Selling shares consumed entirely from a single lot
 #   US-07.FIFO-2 → Scenario: Selling shares consumed across multiple lots
+# ═══════════════════════════════════════════════════════════════════════════════
 
 Feature: Sell Stocks with FIFO Lot Consumption
 

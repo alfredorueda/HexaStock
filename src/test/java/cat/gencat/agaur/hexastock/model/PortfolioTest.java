@@ -161,6 +161,7 @@ class PortfolioTest {
             assertThrows(InvalidQuantityException.class, () -> portfolio.buy(APPLE, zeroQuantity, price));
         }
 
+        // Traceability: US-07.AC-1 = happy-path sell (acceptance criterion #1 in the API spec)
         @Test
         @DisplayName("Should increase balance and update holding when selling stock")
         @SpecificationRef(value = "US-07.AC-1", level = TestLevel.DOMAIN)
@@ -206,6 +207,8 @@ class PortfolioTest {
 
         // Link to Gherkin scenario:
         // https://github.com/alfredorueda/HexaStock/blob/main/doc/stock-portfolio-api-specification.md#27-us-07--sell-stocks
+        // Traceability: US-07.FIFO-2 corresponds to the Gherkin scenario
+        // "Selling shares consumed across multiple lots" in sell-stocks.feature
         @Test
         @DisplayName("Should sell shares across multiple lots using FIFO through the aggregate root (Gherkin scenario)")
         @SpecificationRef(value = "US-07.FIFO-2", level = TestLevel.DOMAIN, feature = "sell-stocks.feature")

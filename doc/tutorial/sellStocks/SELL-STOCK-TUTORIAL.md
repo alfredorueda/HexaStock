@@ -43,6 +43,7 @@
   - [Hexagonal Proof: The FixedPriceStockPriceAdapter](#hexagonal-proof-the-fixedpricestockpriceadapter)
   - [Gherkin FIFO Integration Tests](#gherkin-fifo-integration-tests)
   - [Three Verification Levels](#three-verification-levels)
+  - [Requirements Traceability: Linking Tests to Specifications](#requirements-traceability-linking-tests-to-specifications)
 - [17. Exercises for Students](#17-exercises-for-students)
   - [Exercise 1: Trace the Buy Flow](#exercise-1-trace-the-buy-flow)
   - [Exercise 2: Identify Aggregate Boundaries](#exercise-2-identify-aggregate-boundaries)
@@ -1159,6 +1160,25 @@ The sell use case is now verified at three complementary levels:
 
 Together, these three levels form a complete verification pipeline from the Gherkin specification down to the HTTP endpoint.
 
+### Requirements Traceability: Linking Tests to Specifications
+
+A natural question arises when a project reaches this level of testing maturity: **how do we know which tests verify which requirements?** In HexaStock, we answer this with a lightweight **requirements traceability** chain:
+
+```
+Requirement (API Spec)  →  Gherkin Scenario (.feature)  →  @SpecificationRef  →  Test Method  →  Production Code
+```
+
+Each link in this chain serves a distinct purpose:
+
+1. **API Specification** (`stock-portfolio-api-specification.md`) — defines acceptance criteria using IDs like `US-07.AC-1` (User Story 07, Acceptance Criterion 1).
+2. **Gherkin Scenarios** (`doc/features/sell-stocks.feature`) — translate acceptance criteria into concrete, readable behaviours with explicit inputs and expected outputs. Scenario IDs like `US-07.FIFO-1` extend the numbering scheme for detailed FIFO-specific scenarios.
+3. **`@SpecificationRef` annotation** — a custom Java annotation that tags each test method with the scenario ID it verifies and the testing level (DOMAIN or INTEGRATION).
+4. **Test methods** — the executable proof that the production code satisfies the requirement.
+
+This traceability is deliberately **lightweight and non-invasive**: no frameworks, no external tools, no runtime overhead. The annotation is purely informational — a human or tool can scan the codebase to produce a traceability matrix, but the tests themselves are unaffected.
+
+> **Why this matters for AI-assisted development:** When using AI tools to generate or modify tests, the `@SpecificationRef` annotation preserves institutional knowledge. An AI can read the annotation and understand *why* a test exists, not just *what* it asserts. This makes AI-generated changes safer because the tool can verify that every acceptance criterion remains covered.
+
 ---
 
 ## 17. Exercises for Students
@@ -1558,6 +1578,8 @@ Work through these exercises in order. Each builds on concepts from earlier exer
 ## 18. References
 
 - **API Specification:** `doc/stock-portfolio-api-specification.md`
+- **Gherkin Specification (canonical):** `doc/features/sell-stocks.feature`
+- **Traceability Annotation:** `src/test/java/cat/gencat/agaur/hexastock/specification/SpecificationRef.java`
 - **Integration Tests (shared base):** `src/test/java/cat/gencat/agaur/hexastock/adapter/in/AbstractPortfolioRestIntegrationTest.java`
 - **Integration Tests (trading + FIFO):** `src/test/java/cat/gencat/agaur/hexastock/adapter/in/PortfolioTradingRestIntegrationTest.java`
 - **Integration Tests (lifecycle):** `src/test/java/cat/gencat/agaur/hexastock/adapter/in/PortfolioLifecycleRestIntegrationTest.java`

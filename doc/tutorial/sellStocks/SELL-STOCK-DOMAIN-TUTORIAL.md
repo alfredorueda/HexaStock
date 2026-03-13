@@ -441,6 +441,7 @@ This tutorial intentionally omits everything outside the domain model. If you wa
 - **Domain tests need no infrastructure** — the `PortfolioTest` and `HoldingTest` examples run in milliseconds without Spring, without a database, and without any framework.
 - **Two levels verify one truth** — the aggregate test checks consistency (balance + FIFO together), the holding test checks the algorithm in isolation. Both verify the same financial results.
 - **Gherkin scenarios drive the tests** — the executable specifications are direct translations of the business behaviour, making them readable by non-developers.
+- **Requirements traceability is lightweight** — each test method carries a `@SpecificationRef` annotation linking it to the Gherkin scenario ID it verifies (e.g., `US-07.AC-2`). This creates a traceable chain from requirement to code: `API Spec → Gherkin Scenario → @SpecificationRef → Test → Production Code`. No frameworks needed — just a custom annotation and a naming convention.
 
 ---
 

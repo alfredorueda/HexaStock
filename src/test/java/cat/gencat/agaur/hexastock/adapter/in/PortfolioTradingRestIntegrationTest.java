@@ -51,6 +51,8 @@ class PortfolioTradingRestIntegrationTest extends AbstractPortfolioRestIntegrati
             portfolioId = createPortfolio("IntegrationUser");
         }
 
+        // Traceability: this end-to-end flow verifies US-07.AC-1 at the integration level —
+        // the same acceptance criterion is also verified by a domain-level test in PortfolioTest.
         @Test
         @SpecificationRef(value = "US-07.AC-1", level = TestLevel.INTEGRATION)
         void endToEnd_depositBuySellWithdraw() {
@@ -382,6 +384,9 @@ class PortfolioTradingRestIntegrationTest extends AbstractPortfolioRestIntegrati
                 .then();
         }
 
+        // Traceability: US-07.FIFO-1 corresponds to the Gherkin scenario
+        // "Selling shares consumed entirely from a single lot" in sell-stocks.feature.
+        // This integration test verifies the same scenario end-to-end through HTTP.
         @Test
         @DisplayName("Selling 8 shares consumed entirely from a single lot (Gherkin Scenario 1)")
         @SpecificationRef(value = "US-07.FIFO-1", level = TestLevel.INTEGRATION, feature = "sell-stocks.feature")
@@ -412,6 +417,8 @@ class PortfolioTradingRestIntegrationTest extends AbstractPortfolioRestIntegrati
 
         // Link to Gherkin scenario:
         // https://github.com/alfredorueda/HexaStock/blob/main/doc/stock-portfolio-api-specification.md#27-us-07--sell-stocks
+        // Traceability: US-07.FIFO-2 corresponds to the Gherkin scenario
+        // "Selling shares consumed across multiple lots" in sell-stocks.feature.
         @Test
         @DisplayName("Selling 12 shares consumed across multiple lots (Gherkin Scenario 2)")
         @SpecificationRef(value = "US-07.FIFO-2", level = TestLevel.INTEGRATION, feature = "sell-stocks.feature")

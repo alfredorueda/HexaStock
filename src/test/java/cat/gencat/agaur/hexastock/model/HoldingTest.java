@@ -99,6 +99,7 @@ class HoldingTest {
     @DisplayName("Selling Operations")
     class SellingOperations {
 
+        // Traceability: US-07.AC-2 = FIFO ordering acceptance criterion
         @Test
         @DisplayName("Should sell shares from oldest lot first (FIFO)")
         @SpecificationRef(value = "US-07.AC-2", level = TestLevel.DOMAIN)
@@ -185,6 +186,8 @@ class HoldingTest {
             assertEquals(Money.of("1150.00"), result.profit());
         }
 
+        // Traceability: US-07.FIFO-2 = Gherkin scenario "Selling shares consumed
+        // across multiple lots" in sell-stocks.feature
         @Test
         @DisplayName("Should sell shares across multiple lots using FIFO (Gherkin scenario)")
         @SpecificationRef(value = "US-07.FIFO-2", level = TestLevel.DOMAIN, feature = "sell-stocks.feature")

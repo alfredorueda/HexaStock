@@ -33,6 +33,7 @@ class PortfolioErrorHandlingRestIntegrationTest extends AbstractPortfolioRestInt
                     .body("status", equalTo(404));
         }
 
+        // Traceability: US-07.AC-7 = sell on non-existent portfolio → 404
         @Test
         @SpecificationRef(value = "US-07.AC-7", level = TestLevel.INTEGRATION)
         void sellOnNonExistentPortfolio_returns404() {
