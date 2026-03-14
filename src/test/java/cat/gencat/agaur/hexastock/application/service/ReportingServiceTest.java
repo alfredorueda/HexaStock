@@ -1,5 +1,7 @@
 package cat.gencat.agaur.hexastock.application.service;
 
+import cat.gencat.agaur.hexastock.SpecificationRef;
+import cat.gencat.agaur.hexastock.TestLevel;
 import cat.gencat.agaur.hexastock.application.port.out.PortfolioPort;
 import cat.gencat.agaur.hexastock.application.port.out.StockPriceProviderPort;
 import cat.gencat.agaur.hexastock.application.port.out.TransactionPort;
@@ -61,6 +63,7 @@ class ReportingServiceTest {
 
         @Test
         @DisplayName("should throw PortfolioNotFoundException for unknown ID")
+        @SpecificationRef(value = "US-09.AC-3", level = TestLevel.DOMAIN, feature = "get-holdings-performance.feature")
         void unknownId() {
             var unknownId = "non-existent-id";
             when(portfolioPort.getPortfolioById(PortfolioId.of(unknownId)))
@@ -81,6 +84,7 @@ class ReportingServiceTest {
 
         @Test
         @DisplayName("empty portfolio with no holdings — returns empty list")
+        @SpecificationRef(value = "US-09.AC-2", level = TestLevel.DOMAIN, feature = "get-holdings-performance.feature")
         void emptyPortfolio() {
             var portfolio = Portfolio.create("Owner");
             var id = portfolio.getId();
@@ -96,6 +100,7 @@ class ReportingServiceTest {
 
         @Test
         @DisplayName("portfolio with one holding — delegates to calculator correctly")
+        @SpecificationRef(value = "US-09.AC-1", level = TestLevel.DOMAIN, feature = "get-holdings-performance.feature")
         void singleHolding() {
             var portfolio = Portfolio.create("Owner");
             portfolio.deposit(Money.of("5000.00"));

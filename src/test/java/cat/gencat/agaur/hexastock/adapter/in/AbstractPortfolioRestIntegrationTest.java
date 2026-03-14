@@ -141,4 +141,21 @@ abstract class AbstractPortfolioRestIntegrationTest {
             .then()
                 .statusCode(200);
     }
+
+    /** GET transactions for a portfolio and assert 200. */
+    ValidatableResponse getTransactions(String portfolioId) {
+        return RestAssured.given()
+                .get("/api/portfolios/" + portfolioId + "/transactions")
+            .then()
+                .statusCode(200);
+    }
+
+    /** GET transactions for a portfolio with type filter and assert 200. */
+    ValidatableResponse getTransactions(String portfolioId, String type) {
+        return RestAssured.given()
+                .queryParam("type", type)
+                .get("/api/portfolios/" + portfolioId + "/transactions")
+            .then()
+                .statusCode(200);
+    }
 }

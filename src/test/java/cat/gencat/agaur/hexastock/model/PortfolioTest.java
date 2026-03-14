@@ -38,6 +38,7 @@ class PortfolioTest {
 
         @Test
         @DisplayName("Should create a portfolio with a factory method")
+        @SpecificationRef(value = "US-01.AC-1", level = TestLevel.DOMAIN, feature = "create-portfolio.feature")
         void shouldCreatePortfolioWithFactoryMethod() {
             Portfolio newPortfolio = Portfolio.create("Jane Doe");
 
@@ -55,6 +56,7 @@ class PortfolioTest {
 
         @Test
         @DisplayName("Should increase balance when depositing money")
+        @SpecificationRef(value = "US-04.AC-1", level = TestLevel.DOMAIN, feature = "deposit-funds.feature")
         void shouldIncreaseBalanceWhenDepositing() {
             Money deposit = Money.of("500.00");
 
@@ -65,6 +67,8 @@ class PortfolioTest {
 
         @Test
         @DisplayName("Should throw exception when depositing zero or negative amount")
+        @SpecificationRef(value = "US-04.AC-2", level = TestLevel.DOMAIN, feature = "deposit-funds.feature")
+        @SpecificationRef(value = "US-04.AC-3", level = TestLevel.DOMAIN, feature = "deposit-funds.feature")
         void shouldThrowExceptionWhenDepositingZeroOrNegative() {
             Money zeroDeposit = Money.ZERO;
             Money negativeDeposit = Money.of("-100.00");
@@ -75,6 +79,7 @@ class PortfolioTest {
 
         @Test
         @DisplayName("Should decrease balance when withdrawing money")
+        @SpecificationRef(value = "US-05.AC-1", level = TestLevel.DOMAIN, feature = "withdraw-funds.feature")
         void shouldDecreaseBalanceWhenWithdrawing() {
             Money withdrawal = Money.of("300.00");
 
@@ -85,6 +90,8 @@ class PortfolioTest {
 
         @Test
         @DisplayName("Should throw exception when withdrawing zero or negative amount")
+        @SpecificationRef(value = "US-05.AC-2", level = TestLevel.DOMAIN, feature = "withdraw-funds.feature")
+        @SpecificationRef(value = "US-05.AC-3", level = TestLevel.DOMAIN, feature = "withdraw-funds.feature")
         void shouldThrowExceptionWhenWithdrawingZeroOrNegative() {
             Money zeroWithdrawal = Money.ZERO;
             Money negativeWithdrawal = Money.of("-100.00");
@@ -95,6 +102,7 @@ class PortfolioTest {
 
         @Test
         @DisplayName("Should throw exception when withdrawing more than balance")
+        @SpecificationRef(value = "US-05.AC-4", level = TestLevel.DOMAIN, feature = "withdraw-funds.feature")
         void shouldThrowExceptionWhenWithdrawingMoreThanBalance() {
             Money excessiveWithdrawal = Money.of("1500.00");
 
@@ -108,6 +116,7 @@ class PortfolioTest {
 
         @Test
         @DisplayName("Should add holding and decrease balance when buying stock")
+        @SpecificationRef(value = "US-06.AC-1", level = TestLevel.DOMAIN, feature = "buy-stocks.feature")
         void shouldAddHoldingAndDecreaseBalanceWhenBuying() {
             ShareQuantity quantity = ShareQuantity.of(10);
             Price price = Price.of("50.00");
@@ -130,6 +139,7 @@ class PortfolioTest {
 
         @Test
         @DisplayName("Should add lot to existing holding when buying more of same stock")
+        @SpecificationRef(value = "US-06.AC-2", level = TestLevel.DOMAIN, feature = "buy-stocks.feature")
         void shouldAddLotToExistingHoldingWhenBuyingMore() {
             portfolio.buy(APPLE, ShareQuantity.of(5), Price.of("50.00"));
 
@@ -145,6 +155,7 @@ class PortfolioTest {
 
         @Test
         @DisplayName("Should throw exception when buying with insufficient funds")
+        @SpecificationRef(value = "US-06.AC-3", level = TestLevel.DOMAIN, feature = "buy-stocks.feature")
         void shouldThrowExceptionWhenBuyingWithInsufficientFunds() {
             ShareQuantity quantity = ShareQuantity.of(25);
             Price price = Price.of("50.00");
@@ -154,6 +165,7 @@ class PortfolioTest {
 
         @Test
         @DisplayName("Should throw exception when buying with invalid quantity")
+        @SpecificationRef(value = "US-06.AC-4", level = TestLevel.DOMAIN, feature = "buy-stocks.feature")
         void shouldThrowExceptionWhenBuyingWithInvalidQuantity() {
             ShareQuantity zeroQuantity = ShareQuantity.ZERO;
             Price price = Price.of("50.00");

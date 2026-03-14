@@ -97,6 +97,7 @@ class PortfolioTradingRestIntegrationTest extends AbstractPortfolioRestIntegrati
             }
 
             @Test
+            @SpecificationRef(value = "US-06.AC-1", level = TestLevel.INTEGRATION, feature = "buy-stocks.feature")
             void buyReducesBalanceAndAddsHolding() {
                 float balanceBefore = getPortfolio(portfolioId).extract().path("balance");
 
@@ -109,6 +110,16 @@ class PortfolioTradingRestIntegrationTest extends AbstractPortfolioRestIntegrati
                 getHoldings(portfolioId)
                         .body("size()", greaterThanOrEqualTo(1))
                         .body("find { it.ticker == 'AAPL' }.remaining", equalTo(5));
+            }
+
+            @Test
+            @SpecificationRef(value = "US-06.AC-2", level = TestLevel.INTEGRATION, feature = "buy-stocks.feature")
+            void buyMoreOfSameStock_addsNewLot() {
+                buy(portfolioId, "AAPL", 5);
+                buy(portfolioId, "AAPL", 3);
+
+                getHoldings(portfolioId)
+                        .body("find { it.ticker == 'AAPL' }.remaining", equalTo(8));
             }
 
             @Test
@@ -132,6 +143,7 @@ class PortfolioTradingRestIntegrationTest extends AbstractPortfolioRestIntegrati
             }
 
             @Test
+            @SpecificationRef(value = "US-06.AC-3", level = TestLevel.INTEGRATION, feature = "buy-stocks.feature")
             void buyWithInsufficientFunds_returns409() {
                 // Withdraw almost everything first so we know the balance is low
                 withdraw(portfolioId, 49_999);
@@ -148,6 +160,7 @@ class PortfolioTradingRestIntegrationTest extends AbstractPortfolioRestIntegrati
             }
 
             @Test
+            @SpecificationRef(value = "US-06.AC-4", level = TestLevel.INTEGRATION, feature = "buy-stocks.feature")
             void buyWithZeroQuantity_returns400() {
                 RestAssured.given()
                         .contentType(ContentType.JSON)
@@ -161,6 +174,7 @@ class PortfolioTradingRestIntegrationTest extends AbstractPortfolioRestIntegrati
             }
 
             @Test
+            @SpecificationRef(value = "US-06.AC-5", level = TestLevel.INTEGRATION, feature = "buy-stocks.feature")
             void buyWithNegativeQuantity_returns400() {
                 RestAssured.given()
                         .contentType(ContentType.JSON)
@@ -174,6 +188,7 @@ class PortfolioTradingRestIntegrationTest extends AbstractPortfolioRestIntegrati
             }
 
             @Test
+            @SpecificationRef(value = "US-06.AC-6", level = TestLevel.INTEGRATION, feature = "buy-stocks.feature")
             void buyWithInvalidTicker_returns400_andNoHoldingCreated() {
                 RestAssured.given()
                         .contentType(ContentType.JSON)
@@ -189,6 +204,7 @@ class PortfolioTradingRestIntegrationTest extends AbstractPortfolioRestIntegrati
             }
 
             @Test
+            @SpecificationRef(value = "US-06.AC-7", level = TestLevel.INTEGRATION, feature = "buy-stocks.feature")
             void buyWithEmptyTicker_returns400() {
                 RestAssured.given()
                         .contentType(ContentType.JSON)

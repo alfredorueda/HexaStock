@@ -21,6 +21,7 @@ class PortfolioErrorHandlingRestIntegrationTest extends AbstractPortfolioRestInt
         private static final String FAKE_ID = "non-existent-id";
 
         @Test
+        @SpecificationRef(value = "US-06.AC-8", level = TestLevel.INTEGRATION, feature = "buy-stocks.feature")
         void buyOnNonExistentPortfolio_returns404() {
             RestAssured.given()
                     .contentType(ContentType.JSON)
@@ -49,6 +50,7 @@ class PortfolioErrorHandlingRestIntegrationTest extends AbstractPortfolioRestInt
         }
 
         @Test
+        @SpecificationRef(value = "US-04.AC-4", level = TestLevel.INTEGRATION, feature = "deposit-funds.feature")
         void depositToNonExistentPortfolio_returns404() {
             RestAssured.given()
                     .contentType(ContentType.JSON)
@@ -62,6 +64,7 @@ class PortfolioErrorHandlingRestIntegrationTest extends AbstractPortfolioRestInt
         }
 
         @Test
+        @SpecificationRef(value = "US-05.AC-6", level = TestLevel.INTEGRATION, feature = "withdraw-funds.feature")
         void withdrawFromNonExistentPortfolio_returns404() {
             RestAssured.given()
                     .contentType(ContentType.JSON)
@@ -75,9 +78,22 @@ class PortfolioErrorHandlingRestIntegrationTest extends AbstractPortfolioRestInt
         }
 
         @Test
+        @SpecificationRef(value = "US-02.AC-2", level = TestLevel.INTEGRATION, feature = "get-portfolio.feature")
         void getNonExistentPortfolio_returns404() {
             RestAssured.given()
                     .get("/api/portfolios/" + FAKE_ID)
+                .then()
+                    .statusCode(404)
+                    .body("title", equalTo("Portfolio Not Found"))
+                    .body("detail", containsString(FAKE_ID))
+                    .body("status", equalTo(404));
+        }
+
+        @Test
+        @SpecificationRef(value = "US-09.AC-3", level = TestLevel.INTEGRATION, feature = "get-holdings-performance.feature")
+        void getHoldingsOnNonExistentPortfolio_returns404() {
+            RestAssured.given()
+                    .get("/api/portfolios/" + FAKE_ID + "/holdings")
                 .then()
                     .statusCode(404)
                     .body("title", equalTo("Portfolio Not Found"))

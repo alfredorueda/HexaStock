@@ -1,5 +1,7 @@
 package cat.gencat.agaur.hexastock.model.service;
 
+import cat.gencat.agaur.hexastock.SpecificationRef;
+import cat.gencat.agaur.hexastock.TestLevel;
 import cat.gencat.agaur.hexastock.adapter.in.webmodel.HoldingDTO;
 import cat.gencat.agaur.hexastock.model.*;
 import cat.gencat.agaur.hexastock.model.exception.HoldingNotFoundException;
@@ -24,6 +26,37 @@ import static org.junit.jupiter.api.Assertions.*;
  * its inputs in memory and asserts against the returned {@link HoldingDTO}
  * list.  Results are sorted by ticker before assertion so that tests are
  * independent of insertion order.</p>
+ *
+ * <h3>Why only some tests carry {@code @SpecificationRef}</h3>
+ *
+ * <p>This project aligns Gherkin scenarios, domain unit tests and integration
+ * tests through {@link SpecificationRef}.  Gherkin scenarios describe
+ * <em>user-visible behaviour exposed by the REST API</em> (see
+ * {@code doc/features/get-holdings-performance.feature}, US-09).  Only the
+ * tests that directly validate those scenarios are annotated:</p>
+ * <ul>
+ *   <li>{@code US-09.AC-1} — portfolio with holdings returns performance</li>
+ *   <li>{@code US-09.AC-2} — empty portfolio returns an empty list</li>
+ * </ul>
+ *
+ * <p>The remaining tests in this class intentionally have <strong>no</strong>
+ * {@code @SpecificationRef}.  They verify <em>internal domain correctness and
+ * safety guarantees</em> of the calculator that go beyond what the Gherkin
+ * scenarios express — for example:</p>
+ * <ul>
+ *   <li>Weighted-average price rounding (HALF_UP edge cases)</li>
+ *   <li>FIFO lot consumption across multiple purchase lots</li>
+ *   <li>Graceful handling of missing live prices</li>
+ *   <li>Defensive behaviour when a holding is absent from the portfolio</li>
+ *   <li>Immutability of returned collections</li>
+ *   <li>Correctness over large deterministic datasets</li>
+ *   <li>Filtering of deposit/withdrawal transactions (null ticker)</li>
+ * </ul>
+ *
+ * <p>These are implementation-level invariants of the domain model, not
+ * separate functional requirements expressed in Gherkin.  Annotating them
+ * with {@code @SpecificationRef} would blur the boundary between
+ * specification-level acceptance criteria and technical validation.</p>
  */
 @DisplayName("HoldingPerformanceCalculator")
 class HoldingPerformanceCalculatorTest {
@@ -71,6 +104,8 @@ class HoldingPerformanceCalculatorTest {
 
     // ====================================================================
     //  1. Empty / no-transaction scenarios
+    //     • emptyPortfolioNoTransactions  → Gherkin US-09.AC-2
+    //     • onlyDepositsAndWithdrawals    → domain: deposit/withdraw filtering
     // ====================================================================
 
     @Nested
@@ -79,6 +114,7 @@ class HoldingPerformanceCalculatorTest {
 
         @Test
         @DisplayName("should return empty list for empty portfolio with no transactions")
+        @SpecificationRef(value = "US-09.AC-2", level = TestLevel.DOMAIN, feature = "get-holdings-performance.feature")
         void emptyPortfolioNoTransactions() {
             var portfolio = Portfolio.create("Empty");
             var result = calculator.getHoldingsPerformance(
@@ -106,6 +142,8 @@ class HoldingPerformanceCalculatorTest {
 
     // ====================================================================
     //  2. Only BUY transactions
+    //     • singlePurchase               → Gherkin US-09.AC-1
+    //     • multiplePurchasesSameTicker   → domain: weighted-average elaboration
     // ====================================================================
 
     @Nested
@@ -114,6 +152,7 @@ class HoldingPerformanceCalculatorTest {
 
         @Test
         @DisplayName("single purchase — basic metrics")
+        @SpecificationRef(value = "US-09.AC-1", level = TestLevel.DOMAIN, feature = "get-holdings-performance.feature")
         void singlePurchase() {
             var portfolio = portfolioWithCash("5000.00");
             portfolio.buy(AAPL, ShareQuantity.of(10), Price.of("100.00"));
@@ -168,7 +207,7 @@ class HoldingPerformanceCalculatorTest {
     }
 
     // ====================================================================
-    //  3. BUY + partial SELL
+    //  3. BUY + partial SELL  (domain: FIFO lot consumption)
     // ====================================================================
 
     @Nested
@@ -248,7 +287,7 @@ class HoldingPerformanceCalculatorTest {
     }
 
     // ====================================================================
-    //  4. Full close (BUY + SELL everything)
+    //  4. Full close (BUY + SELL everything)  (domain: zero-remaining edge case)
     // ====================================================================
 
     @Nested
@@ -287,7 +326,7 @@ class HoldingPerformanceCalculatorTest {
     }
 
     // ====================================================================
-    //  5. Multiple tickers in one call
+    //  5. Multiple tickers in one call  (domain: per-ticker isolation)
     // ====================================================================
 
     @Nested
@@ -348,7 +387,7 @@ class HoldingPerformanceCalculatorTest {
     }
 
     // ====================================================================
-    //  6. Rounding edge cases
+    //  6. Rounding edge cases  (domain: arithmetic precision guarantees)
     // ====================================================================
 
     @Nested
@@ -391,7 +430,7 @@ class HoldingPerformanceCalculatorTest {
     }
 
     // ====================================================================
-    //  7. Missing price scenario
+    //  7. Missing price scenario  (domain: resilience when provider fails)
     // ====================================================================
 
     @Nested
@@ -428,7 +467,7 @@ class HoldingPerformanceCalculatorTest {
     }
 
     // ====================================================================
-    //  8. Holding not in portfolio (transaction exists but holding missing)
+    //  8. Holding not in portfolio  (defensive: data-consistency guard)
     // ====================================================================
 
     @Nested
@@ -452,7 +491,7 @@ class HoldingPerformanceCalculatorTest {
     }
 
     // ====================================================================
-    //  9. Result immutability
+    //  9. Result immutability  (defensive: enforces unmodifiable contract)
     // ====================================================================
 
     @Nested
@@ -482,6 +521,7 @@ class HoldingPerformanceCalculatorTest {
 
     // ====================================================================
     //  10. Large dataset — correctness (not timing)
+    //      domain: verifies accumulation over 5 000 transactions
     // ====================================================================
 
     @Nested

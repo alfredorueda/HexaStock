@@ -1,207 +1,134 @@
-# HexaStock Tutorial: Selling Stocks Use Case
+# Tutorial — Requirement Traceability Architecture
 
-## Tutorial Overview
+## Overview
 
-This tutorial reverse-engineers the **SELL STOCK** use case from the HexaStock codebase to teach:
-- **Hexagonal Architecture (Ports & Adapters)**
-- **Domain-Driven Design (DDD)**
-- **Aggregate Root Pattern**
-- **FIFO Accounting Implementation**
-
-**Critical:** Every code snippet, class name, and architectural decision is verified from the actual codebase. Nothing is invented or assumed.
-
----
-
-## Main Document
-
-**[SELL-STOCK-TUTORIAL.md](./sellStocks/SELL-STOCK-TUTORIAL.md)**
-
-This is the comprehensive tutorial covering:
-1. Domain context and business rules
-2. REST endpoint analysis
-3. Hexagonal Architecture mapping
-4. Step-by-step execution trace
-5. **Why application services orchestrate and aggregates protect invariants** 
-6. Transactionality and consistency
-7. Error flows and exception handling
-8. Key takeaways and exercises
-
----
-
-## PlantUML Diagrams
-
-All diagrams are in the `sellStocks/diagrams/` folder. Pre-rendered PNG and SVG outputs are in `sellStocks/diagrams/Rendered/`.
-
-### Architecture & Flow Diagrams
-
-1. **`sell-http-to-port.puml`**
-   - Shows how HTTP request reaches the primary port
-   - Demonstrates dependency inversion
-
-[![Sell HTTP to Port](sellStocks/diagrams/Rendered/sell-http-to-port.png)](sellStocks/diagrams/Rendered/sell-http-to-port.svg)
-
-2. **`sell-application-service.puml`**
-   - Application service orchestration
-   - Calls to secondary ports (PortfolioPort, StockPriceProviderPort, TransactionPort)
-
-[![Sell Application Service](sellStocks/diagrams/Rendered/sell-application-service.png)](sellStocks/diagrams/Rendered/sell-application-service.svg)
-
-3. **`sell-domain-fifo.puml`**
-   - Domain model enforcing invariants
-   - FIFO algorithm implementation
-   - Portfolio → Holding → Lot delegation
-
-[![Sell Domain FIFO](sellStocks/diagrams/Rendered/sell-domain-fifo.png)](sellStocks/diagrams/Rendered/sell-domain-fifo.svg)
-
-4. **`sell-persistence-adapter.puml`**
-   - Domain model to JPA entity mapping
-   - Adapter implementation pattern
-
-[![Sell Persistence Adapter](sellStocks/diagrams/Rendered/sell-persistence-adapter.png)](sellStocks/diagrams/Rendered/sell-persistence-adapter.svg)
-
-### DDD Core Concept
-
-5. **`sell-orchestrator-vs-aggregate.puml`**
-   - Shows correct pattern: Service → Aggregate Root → Entities
-   - Shows anti-pattern: Service directly manipulating entities
-   - Visual explanation of DDD aggregate boundaries
-
-[![Sell Orchestrator vs Aggregate](sellStocks/diagrams/Rendered/sell-orchestrator-vs-aggregate.png)](sellStocks/diagrams/Rendered/sell-orchestrator-vs-aggregate.svg)
-
-### Error Handling
-
-6. **`sell-error-portfolio-not-found.puml`**
-   - PortfolioNotFoundException → HTTP 404
-
-[![Sell Error Portfolio Not Found](sellStocks/diagrams/Rendered/sell-error-portfolio-not-found.png)](sellStocks/diagrams/Rendered/sell-error-portfolio-not-found.svg)
-
-7. **`sell-error-invalid-quantity.puml`**
-   - InvalidQuantityException → HTTP 400
-
-[![Sell Error Invalid Quantity](sellStocks/diagrams/Rendered/sell-error-invalid-quantity.png)](sellStocks/diagrams/Rendered/sell-error-invalid-quantity.svg)
-
-8. **`sell-error-sell-more-than-owned.puml`**
-   - ConflictQuantityException → HTTP 409
-
-[![Sell Error Sell More Than Owned](sellStocks/diagrams/Rendered/sell-error-sell-more-than-owned.png)](sellStocks/diagrams/Rendered/sell-error-sell-more-than-owned.svg)
-
-### Domain Model
-
-9. **`hexastock-domain-model.puml`**
-   - Full UML class diagram of the domain model
-
-[![HexaStock Domain Model](sellStocks/diagrams/Rendered/HexaStock%20Domain%20Model.png)](sellStocks/diagrams/Rendered/HexaStock%20Domain%20Model.svg)
-
----
-
-## How to Use This Tutorial
-
-### For Students
-
-1. **Read the tutorial first:** Start with `sellStocks/SELL-STOCK-TUTORIAL.md` section by section
-2. **Follow the code:** Use the file paths to locate actual implementation in `src/main/java/`
-3. **View the diagrams:** Pre-rendered PNGs are embedded above; click any diagram to open the high-resolution SVG
-4. **Complete exercises:** See section 12 of the tutorial
-5. **Compare with tests:** Check `src/test/java/` for integration and unit tests
-
-### For Instructors
-
-1. **Present section 6** ("Why Application Services Orchestrate...") as a standalone lecture
-2. **Use `sell-orchestrator-vs-aggregate.puml`** to visually explain DDD aggregate patterns
-3. **Show the anti-pattern** in the diagram to demonstrate what NOT to do
-4. **Run integration tests** to show the system working end-to-end
-5. **Assign exercises** from section 12 as homework
-
----
-
-## Key Learning Points
-
-### Hexagonal Architecture
-
-- **Ports** define contracts (interfaces)
-- **Adapters** implement contracts (REST controller, JPA repository)
-- **Dependency inversion:** Core depends on abstractions, not implementations
-- **Testability:** Can swap adapters without changing core logic
-
-### Domain-Driven Design
-
-- **Aggregate Root** (Portfolio) protects invariants
-- **Entities** (Holding, Lot) are controlled by the root
-- **Application Services** orchestrate, **never** contain business logic
-- **Domain Exceptions** represent business rule violations
-
-### FIFO Accounting
-
-- Implemented in `Holding.sell()` method
-- Sells from oldest lots first
-- Calculates cost basis from original purchase prices
-- Protected by aggregate root boundaries
-
----
-
-## Viewing Diagrams
-
-### Option 1: VS Code
-Install the "PlantUML" extension and preview `.puml` files.
-
-### Option 2: IntelliJ IDEA
-Install the "PlantUML integration" plugin.
-
-### Option 3: Online
-Copy diagram content to http://www.plantuml.com/plantuml/uml/
-
-### Option 4: Command Line
-
-```bash
-# From the repo root (uses Docker, no local install needed)
-./scripts/render-diagrams.sh
-
-# Or install PlantUML locally
-brew install plantuml  # macOS
-# or download from https://plantuml.com/download
-
-# Generate PNG
-plantuml sellStocks/diagrams/sell-orchestrator-vs-aggregate.puml
-
-# Generate SVG
-plantuml -tsvg sellStocks/diagrams/sell-orchestrator-vs-aggregate.puml
-```
-
----
-
-## File Structure
+This repository implements a **requirement traceability model** that creates an explicit, navigable chain from functional requirements to executable code:
 
 ```
-doc/tutorial/
-├── README.md (this file)
-├── sellStocks/
-│   ├── SELL-STOCK-TUTORIAL.md (main tutorial)
-│   └── diagrams/
-│       ├── hexastock-domain-model.puml
-│       ├── sell-http-to-port.puml
-│       ├── sell-application-service.puml
-│       ├── sell-domain-fifo.puml
-│       ├── sell-persistence-adapter.puml
-│       ├── sell-orchestrator-vs-aggregate.puml
-│       ├── sell-error-portfolio-not-found.puml
-│       ├── sell-error-invalid-quantity.puml
-│       ├── sell-error-sell-more-than-owned.puml
-│       └── Rendered/          ← auto-generated PNG & SVG (do not edit)
-│           ├── *.png
-│           └── *.svg
+Specification  →  Gherkin (.feature)  →  Tests (JUnit)  →  Code
 ```
 
----
+Every acceptance criterion in the [functional specification](../stock-portfolio-api-specification.md) is linked to a Gherkin scenario, which is in turn referenced by one or more Java tests via the `@SpecificationRef` annotation. This architecture ensures that:
 
-## Verified Code References
-
-All referenced code exists in:
-- `src/main/java/cat/gencat/agaur/hexastock/adapter/in/PortfolioRestController.java`
-- `src/main/java/cat/gencat/agaur/hexastock/application/service/PortfolioStockOperationsService.java`
-- `src/main/java/cat/gencat/agaur/hexastock/application/port/in/PortfolioStockOperationsUseCase.java`
-- `src/main/java/cat/gencat/agaur/hexastock/model/Portfolio.java`
-- `src/main/java/cat/gencat/agaur/hexastock/model/Holding.java`
-- `src/main/java/cat/gencat/agaur/hexastock/model/Lot.java`
+- Every requirement is verifiable and verified.
+- Every test can be traced back to the business behaviour it validates.
+- Changes to requirements are immediately visible in the test layer.
 
 ---
 
+## The Sell Stocks Pilot (US-07)
+
+The **Sell Stocks use case (US-07)** served as the **reference pilot** for this traceability architecture. It was chosen because it involves the most complex domain logic in the system — FIFO lot consumption with precise financial calculations — making it an ideal candidate for demonstrating the full traceability chain.
+
+The pilot established the patterns that were then extended to all 10 use cases:
+
+1. **Gherkin specification** — [`doc/features/sell-stocks.feature`](../features/sell-stocks.feature) defines two detailed FIFO scenarios with exact numeric expectations.
+2. **Domain-level tests** — `HoldingTest` and `PortfolioTest` verify FIFO mechanics and financial calculations, annotated with `@SpecificationRef`.
+3. **Integration-level tests** — `PortfolioTradingRestIntegrationTest` and `PortfolioErrorHandlingRestIntegrationTest` verify REST endpoint behaviour end-to-end.
+4. **Inline Gherkin in the specification** — The functional specification document embeds the Gherkin scenarios directly within the US-07 section, with a canonical source reference back to the `.feature` file.
+
+The Sell Stocks tutorials provide a deeper walkthrough:
+
+- [Sell Stock Tutorial](sellStocks/SELL-STOCK-TUTORIAL.md) — end-to-end tutorial covering the hexagonal architecture layers
+- [Sell Stock Domain Tutorial](sellStocks/SELL-STOCK-DOMAIN-TUTORIAL.md) — focused tutorial on the domain model and FIFO logic
+
+---
+
+## Traceability Chain Explained
+
+### 1. Functional Specification → Gherkin
+
+The [functional specification](../stock-portfolio-api-specification.md) defines acceptance criteria for each use case (US-01 through US-10) in a tabular Given/When/Then format. Each use case section now includes an embedded **Gherkin block** showing the exact scenarios, plus a **Canonical source** reference pointing to the standalone `.feature` file.
+
+### 2. Gherkin Feature Files
+
+The [`doc/features/`](../features/) directory contains 10 `.feature` files — one per use case:
+
+| Feature File | Use Case | Scenarios |
+|---|---|---|
+| [`create-portfolio.feature`](../features/create-portfolio.feature) | US-01 | 1 |
+| [`get-portfolio.feature`](../features/get-portfolio.feature) | US-02 | 2 |
+| [`list-portfolios.feature`](../features/list-portfolios.feature) | US-03 | 2 |
+| [`deposit-funds.feature`](../features/deposit-funds.feature) | US-04 | 4 |
+| [`withdraw-funds.feature`](../features/withdraw-funds.feature) | US-05 | 6 |
+| [`buy-stocks.feature`](../features/buy-stocks.feature) | US-06 | 8 |
+| [`sell-stocks.feature`](../features/sell-stocks.feature) | US-07 | 2 (FIFO) |
+| [`get-transaction-history.feature`](../features/get-transaction-history.feature) | US-08 | 2 |
+| [`get-holdings-performance.feature`](../features/get-holdings-performance.feature) | US-09 | 3 |
+| [`get-stock-price.feature`](../features/get-stock-price.feature) | US-10 | 2 |
+
+Each feature file includes:
+- A standard header comment explaining the traceability chain
+- A `Feature:` line with the use case identifier (e.g., `US-01`)
+- A user-story narrative (`As an... / I want to... / So that...`)
+- One or more scenarios with stable identifiers (`US-XX.AC-N`)
+
+These files are **not executed by Cucumber or any BDD framework**. They are specification documents — the tests are the executable layer.
+
+### 3. The `@SpecificationRef` Annotation
+
+The `@SpecificationRef` annotation is the mechanism that links Java tests to Gherkin scenarios:
+
+```java
+@SpecificationRef(
+    value = "US-07.FIFO-1",           // Scenario identifier
+    level = TestLevel.DOMAIN,          // DOMAIN or INTEGRATION
+    feature = "sell-stocks.feature"    // Source .feature file
+)
+```
+
+**Attributes:**
+
+| Attribute | Purpose |
+|---|---|
+| `value` | The scenario identifier (e.g., `US-04.AC-2`). Matches a scenario ID in the corresponding `.feature` file. |
+| `level` | Either `TestLevel.DOMAIN` (unit/domain tests) or `TestLevel.INTEGRATION` (REST integration tests). |
+| `feature` | The `.feature` file that contains the referenced scenario (optional for pre-existing annotations). |
+
+The annotation is `@Repeatable`, so a single test method can reference multiple acceptance criteria when it verifies more than one scenario.
+
+### 4. Tests → Code
+
+Tests annotated with `@SpecificationRef` exercise the production code through either:
+- **Domain-level tests** — direct invocation of domain entities and services (e.g., `PortfolioTest`, `HoldingTest`, `ReportingServiceTest`, `HoldingPerformanceCalculatorTest`)
+- **Integration-level tests** — HTTP requests via RestAssured against the running Spring Boot application (e.g., `PortfolioLifecycleRestIntegrationTest`, `PortfolioTradingRestIntegrationTest`, `PortfolioErrorHandlingRestIntegrationTest`)
+
+---
+
+## Identifier Convention
+
+All identifiers follow a consistent scheme:
+
+```
+US-{NN}.AC-{N}
+```
+
+- `US-{NN}` — the use case number (US-01 through US-10)
+- `AC-{N}` — the acceptance criterion number within that use case
+
+The sole exception is US-07, which uses `US-07.FIFO-1` and `US-07.FIFO-2` for its detailed FIFO lot consumption scenarios (in addition to `US-07.AC-1` through `US-07.AC-7` for the standard acceptance criteria).
+
+Identifiers are **never renumbered**. If a scenario is removed, its identifier is retired rather than reassigned.
+
+---
+
+## Other Tutorials
+
+This repository includes additional tutorials that complement the traceability architecture:
+
+- [DDD & Hexagonal Architecture Exercise](DDD-Hexagonal-exercise.md) — hands-on exercise exploring the hexagonal architecture pattern
+- [Dependency Inversion for Stock Selling](DEPENDENCY-INVERSION-STOCK-SELLING.md) — tutorial on dependency inversion in the context of stock operations
+- [Concurrency & Pessimistic Locking](CONCURRENCY-PESSIMISTIC-LOCKING.md) — tutorial on handling concurrent access to portfolios
+
+---
+
+## Summary
+
+This traceability architecture ensures that every functional requirement is:
+
+1. **Specified** in the functional specification document
+2. **Described** in Gherkin scenarios with stable identifiers
+3. **Tested** at the appropriate level (domain and/or integration)
+4. **Linked** via `@SpecificationRef` annotations
+
+The result is a professional, auditable traceability chain suitable for software engineering teaching, architecture demonstrations, and production-quality documentation.

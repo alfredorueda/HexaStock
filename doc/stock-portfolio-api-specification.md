@@ -76,6 +76,32 @@ All error responses use the **RFC 7807 Problem Detail** format (`application/pro
 |---|---|
 | 1 | **Given** a valid owner name<br/>**When** I POST `/api/portfolios` with `{"ownerName":"Alice"}`<br/>**Then** I receive **201 Created** with a `Location` header pointing to `/api/portfolios/{id}` and a body containing `id`, `ownerName`, `cashBalance` (0.00), `currency` ("USD") |
 
+#### Behavioural Scenarios (Gherkin)
+
+The following scenario defines the expected system behaviour for this use case. The scenario identifier (`US-01.AC-1`) is referenced by Java tests via `@SpecificationRef`.
+
+```gherkin
+Feature: Create Portfolio (US-01)
+
+  As an investor
+  I want to create a new investment portfolio
+  So that I can start managing my investments
+
+  Scenario: Creating a new portfolio with a valid owner name
+    Given a valid owner name "Alice"
+    When I POST /api/portfolios with {"ownerName": "Alice"}
+    Then I receive 201 Created
+    And the response contains a Location header pointing to /api/portfolios/{id}
+    And the response body contains:
+      | Field       | Value |
+      | id          | (generated UUID) |
+      | ownerName   | Alice |
+      | cashBalance | 0.00  |
+      | currency    | USD   |
+```
+
+> **Canonical source:** [`doc/features/create-portfolio.feature`](features/create-portfolio.feature) — the Gherkin above is maintained as a standalone `.feature` file for traceability. Tests reference it via `@SpecificationRef`.
+
 #### Success Response (201 Created)
 
 ```json
@@ -102,7 +128,7 @@ Location: http://localhost:8080/api/portfolios/550e8400-e29b-41d4-a716-446655440
 | Domain | `Portfolio.create(String)` |
 | DTO (request) | `CreatePortfolioDTO(String ownerName)` |
 | DTO (response) | `CreatePortfolioResponseDTO(String id, String ownerName, BigDecimal cashBalance, String currency)` |
-| Tests | `PortfolioRestControllerIntegrationTest` — `createPortfolio()` helper, `ListAllPortfolios` nested class |
+| Tests | `PortfolioLifecycleRestIntegrationTest.CreatePortfolio` — `createPortfolio_returns201WithExpectedFields()` (`@SpecificationRef("US-01.AC-1")`); Domain: `PortfolioTest.create()` |
 
 ---
 
@@ -123,6 +149,39 @@ Location: http://localhost:8080/api/portfolios/550e8400-e29b-41d4-a716-446655440
 | 1 | **Given** an existing portfolio<br/>**When** I GET `/api/portfolios/{id}`<br/>**Then** I receive **200 OK** with `id`, `ownerName`, `balance`, `createdAt` |
 | 2 | **Given** a non-existent portfolio ID<br/>**When** I GET `/api/portfolios/{id}`<br/>**Then** I receive **404 Not Found** with ProblemDetail `title: "Portfolio Not Found"` |
 
+#### Behavioural Scenarios (Gherkin)
+
+The following scenarios define the expected system behaviour for this use case. Each scenario identifier (`US-02.AC-1`, `US-02.AC-2`) is referenced by Java tests via `@SpecificationRef`.
+
+```gherkin
+Feature: Get Portfolio (US-02)
+
+  As an investor
+  I want to retrieve my portfolio details
+  So that I can see my current balance and account information
+
+  Scenario: Retrieving an existing portfolio
+    Given a portfolio exists for owner "Alice"
+    When I GET /api/portfolios/{id}
+    Then I receive 200 OK
+    And the response body contains:
+      | Field     | Value              |
+      | id        | (the portfolio ID) |
+      | ownerName | Alice              |
+      | balance   | (current balance)  |
+      | createdAt | (timestamp)        |
+
+  Scenario: Retrieving a non-existent portfolio
+    Given no portfolio exists with the given ID
+    When I GET /api/portfolios/{id}
+    Then I receive 404 Not Found with ProblemDetail:
+      | Field  | Value               |
+      | title  | Portfolio Not Found  |
+      | status | 404                  |
+```
+
+> **Canonical source:** [`doc/features/get-portfolio.feature`](features/get-portfolio.feature) — the Gherkin above is maintained as a standalone `.feature` file for traceability. Tests reference it via `@SpecificationRef`.
+
 #### Success Response (200 OK)
 
 ```json
@@ -142,7 +201,7 @@ Location: http://localhost:8080/api/portfolios/550e8400-e29b-41d4-a716-446655440
 | Use Case | `PortfolioManagementUseCase.getPortfolio(PortfolioId)` |
 | Service | `PortfolioManagementService.getPortfolio(PortfolioId)` |
 | DTO (response) | `PortfolioResponseDTO(String id, String ownerName, BigDecimal balance, LocalDateTime createdAt)` |
-| Tests | `PortfolioRestControllerIntegrationTest.WhenPortfolioExists.HappyPath.getPortfolio_returnsDtoWithBasicFields()`, `WhenPortfolioDoesNotExist.getNonExistentPortfolio_returns404()` |
+| Tests | `PortfolioLifecycleRestIntegrationTest.WhenPortfolioExists.getPortfolio_returnsDtoWithBasicFields()` (`@SpecificationRef("US-02.AC-1")`), `PortfolioErrorHandlingRestIntegrationTest.getNonExistentPortfolio_returns404()` (`@SpecificationRef("US-02.AC-2")`) |
 
 ---
 
@@ -162,6 +221,37 @@ Location: http://localhost:8080/api/portfolios/550e8400-e29b-41d4-a716-446655440
 |---|---|
 | 1 | **Given** multiple portfolios exist<br/>**When** I GET `/api/portfolios`<br/>**Then** I receive **200 OK** with a JSON array of portfolio objects, each containing `id`, `ownerName`, `balance`, `createdAt` |
 | 2 | **Given** no portfolios exist<br/>**When** I GET `/api/portfolios`<br/>**Then** I receive **200 OK** with an empty array `[]` |
+
+#### Behavioural Scenarios (Gherkin)
+
+The following scenarios define the expected system behaviour for this use case. Each scenario identifier (`US-03.AC-1`, `US-03.AC-2`) is referenced by Java tests via `@SpecificationRef`.
+
+```gherkin
+Feature: List All Portfolios (US-03)
+
+  As an administrator or investor
+  I want to list all portfolios in the system
+  So that I can get an overview of all accounts
+
+  Scenario: Listing all portfolios when several exist
+    Given portfolios exist for owners "Alice", "Bob", and "Charlie"
+    And Alice has deposited $1000, Bob has deposited $2500, Charlie has deposited $0
+    When I GET /api/portfolios
+    Then I receive 200 OK with a JSON array containing all three portfolios
+    And each entry contains id, ownerName, balance, createdAt
+    And the balances match:
+      | Owner   | Balance |
+      | Alice   | 1000.00 |
+      | Bob     | 2500.00 |
+      | Charlie |    0.00 |
+
+  Scenario: Listing portfolios when none exist
+    Given no portfolios exist in the system
+    When I GET /api/portfolios
+    Then I receive 200 OK with an empty array []
+```
+
+> **Canonical source:** [`doc/features/list-portfolios.feature`](features/list-portfolios.feature) — the Gherkin above is maintained as a standalone `.feature` file for traceability. Tests reference it via `@SpecificationRef`.
 
 #### Success Response (200 OK)
 
@@ -190,7 +280,7 @@ Location: http://localhost:8080/api/portfolios/550e8400-e29b-41d4-a716-446655440
 | Use Case | `PortfolioManagementUseCase.getAllPortfolios()` |
 | Service | `PortfolioManagementService.getAllPortfolios()` |
 | Port (out) | `PortfolioPort.getAllPortfolios()` |
-| Tests | `PortfolioRestControllerIntegrationTest.ListAllPortfolios.returnsAllCreatedPortfoliosWithCorrectBalances()` |
+| Tests | `PortfolioLifecycleRestIntegrationTest.ListAllPortfolios.returnsAllCreatedPortfoliosWithCorrectBalances()` (`@SpecificationRef("US-03.AC-1")`) |
 
 ---
 
@@ -214,6 +304,50 @@ Location: http://localhost:8080/api/portfolios/550e8400-e29b-41d4-a716-446655440
 | 3 | **Given** an existing portfolio<br/>**When** I deposit a negative amount<br/>**Then** I receive **400 Bad Request** with `title: "Invalid Amount"`, `detail` containing `"amount"` |
 | 4 | **Given** a non-existent portfolio ID<br/>**When** I deposit any amount<br/>**Then** I receive **404 Not Found** with `title: "Portfolio Not Found"` |
 
+#### Behavioural Scenarios (Gherkin)
+
+The following scenarios define the expected system behaviour for this use case. Each scenario identifier (`US-04.AC-1` through `US-04.AC-4`) is referenced by Java tests via `@SpecificationRef`.
+
+```gherkin
+Feature: Deposit Funds (US-04)
+
+  As an investor managing my portfolio
+  I want to add money to my portfolio's cash balance
+  So that I have funds available for future stock purchases
+
+  Scenario: Depositing a positive amount
+    Given an existing portfolio with balance $5000
+    When I POST /api/portfolios/{id}/deposits with {"amount": 2000}
+    Then I receive 200 OK
+    And the portfolio balance becomes $7000
+
+  Scenario: Depositing zero amount
+    Given an existing portfolio
+    When I deposit amount 0
+    Then I receive 400 Bad Request with ProblemDetail:
+      | Field  | Value          |
+      | title  | Invalid Amount |
+      | status | 400            |
+
+  Scenario: Depositing a negative amount
+    Given an existing portfolio
+    When I deposit amount -100
+    Then I receive 400 Bad Request with ProblemDetail:
+      | Field  | Value          |
+      | title  | Invalid Amount |
+      | status | 400            |
+
+  Scenario: Depositing to a non-existent portfolio
+    Given a non-existent portfolio ID
+    When I deposit any amount
+    Then I receive 404 Not Found with ProblemDetail:
+      | Field  | Value               |
+      | title  | Portfolio Not Found  |
+      | status | 404                  |
+```
+
+> **Canonical source:** [`doc/features/deposit-funds.feature`](features/deposit-funds.feature) — the Gherkin above is maintained as a standalone `.feature` file for traceability. Tests reference it via `@SpecificationRef`.
+
 #### Implementation Pointers
 
 | Layer | Class / Method |
@@ -223,7 +357,7 @@ Location: http://localhost:8080/api/portfolios/550e8400-e29b-41d4-a716-446655440
 | Service | `PortfolioManagementService.deposit(PortfolioId, Money)` |
 | Domain | `Portfolio.deposit(Money)` — throws `InvalidAmountException` if not positive |
 | DTO (request) | `DepositRequestDTO(BigDecimal amount)` |
-| Tests | `PortfolioRestControllerIntegrationTest.WhenPortfolioExists.DepositsAndWithdrawals` — `deposit_updatesBalance()`, `depositZeroAmount_returns400()`, `depositNegativeAmount_returns400()`, `WhenPortfolioDoesNotExist.depositToNonExistentPortfolio_returns404()` |
+| Tests | `PortfolioLifecycleRestIntegrationTest.DepositsAndWithdrawals` — `deposit_updatesBalance()` (`@SpecificationRef("US-04.AC-1")`), `depositZeroAmount_returns400()` (`@SpecificationRef("US-04.AC-2")`), `depositNegativeAmount_returns400()` (`@SpecificationRef("US-04.AC-3")`); `PortfolioErrorHandlingRestIntegrationTest.depositToNonExistentPortfolio_returns404()` (`@SpecificationRef("US-04.AC-4")`) |
 
 > **Note:** The domain `Portfolio.deposit()` method's Javadoc incorrectly references `InsufficientFundsException`, but the actual code throws `InvalidAmountException` when the amount is not positive. Tests confirm `InvalidAmountException` (400).
 
@@ -252,6 +386,67 @@ Location: http://localhost:8080/api/portfolios/550e8400-e29b-41d4-a716-446655440
 | 5 | **Given** a portfolio with balance $0<br/>**When** I withdraw $1<br/>**Then** I receive **409 Conflict** with `title: "Insufficient Funds"` |
 | 6 | **Given** a non-existent portfolio ID<br/>**When** I withdraw any amount<br/>**Then** I receive **404 Not Found** with `title: "Portfolio Not Found"` |
 
+#### Behavioural Scenarios (Gherkin)
+
+The following scenarios define the expected system behaviour for this use case. Each scenario identifier (`US-05.AC-1` through `US-05.AC-6`) is referenced by Java tests via `@SpecificationRef`.
+
+```gherkin
+Feature: Withdraw Funds (US-05)
+
+  As an investor managing my portfolio
+  I want to withdraw money from my portfolio's cash balance
+  So that I can use these funds elsewhere
+
+  Scenario: Withdrawing a valid amount
+    Given a portfolio with balance $5000
+    When I POST /api/portfolios/{id}/withdrawals with {"amount": 2000}
+    Then I receive 200 OK
+    And the portfolio balance becomes $3000
+
+  Scenario: Withdrawing zero amount
+    Given an existing portfolio
+    When I withdraw amount 0
+    Then I receive 400 Bad Request with ProblemDetail:
+      | Field  | Value          |
+      | title  | Invalid Amount |
+      | status | 400            |
+
+  Scenario: Withdrawing a negative amount
+    Given an existing portfolio
+    When I withdraw amount -50
+    Then I receive 400 Bad Request with ProblemDetail:
+      | Field  | Value          |
+      | title  | Invalid Amount |
+      | status | 400            |
+
+  Scenario: Withdrawing more than the balance
+    Given a portfolio with balance $100
+    When I withdraw $200
+    Then I receive 409 Conflict with ProblemDetail:
+      | Field  | Value              |
+      | title  | Insufficient Funds |
+      | status | 409                |
+      | detail | (contains "Insufficient funds") |
+
+  Scenario: Withdrawing from a zero-balance portfolio
+    Given a portfolio with balance $0
+    When I withdraw $1
+    Then I receive 409 Conflict with ProblemDetail:
+      | Field  | Value              |
+      | title  | Insufficient Funds |
+      | status | 409                |
+
+  Scenario: Withdrawing from a non-existent portfolio
+    Given a non-existent portfolio ID
+    When I withdraw any amount
+    Then I receive 404 Not Found with ProblemDetail:
+      | Field  | Value               |
+      | title  | Portfolio Not Found  |
+      | status | 404                  |
+```
+
+> **Canonical source:** [`doc/features/withdraw-funds.feature`](features/withdraw-funds.feature) — the Gherkin above is maintained as a standalone `.feature` file for traceability. Tests reference it via `@SpecificationRef`.
+
 #### Implementation Pointers
 
 | Layer | Class / Method |
@@ -261,7 +456,7 @@ Location: http://localhost:8080/api/portfolios/550e8400-e29b-41d4-a716-446655440
 | Service | `PortfolioManagementService.withdraw(PortfolioId, Money)` |
 | Domain | `Portfolio.withdraw(Money)` — throws `InvalidAmountException` if not positive, `InsufficientFundsException` if balance < amount |
 | DTO (request) | `WithdrawalRequestDTO(BigDecimal amount)` |
-| Tests | `PortfolioRestControllerIntegrationTest.WhenPortfolioExists.DepositsAndWithdrawals` — `withdraw_updatesBalance()`, `withdrawZeroAmount_returns400()`, `withdrawNegativeAmount_returns400()`, `withdrawMoreThanBalance_returns409()`, `withdrawFromZeroBalance_returns409()`, `WhenPortfolioDoesNotExist.withdrawFromNonExistentPortfolio_returns404()` |
+| Tests | `PortfolioLifecycleRestIntegrationTest.DepositsAndWithdrawals` — `withdraw_updatesBalance()` (`@SpecificationRef("US-05.AC-1")`), `withdrawZeroAmount_returns400()` (`@SpecificationRef("US-05.AC-2")`), `withdrawNegativeAmount_returns400()` (`@SpecificationRef("US-05.AC-3")`), `withdrawMoreThanBalance_returns409()` (`@SpecificationRef("US-05.AC-4")`), `withdrawFromZeroBalance_returns409()` (`@SpecificationRef("US-05.AC-5")`); `PortfolioErrorHandlingRestIntegrationTest.withdrawFromNonExistentPortfolio_returns404()` (`@SpecificationRef("US-05.AC-6")`) |
 
 ---
 
@@ -291,6 +486,85 @@ Location: http://localhost:8080/api/portfolios/550e8400-e29b-41d4-a716-446655440
 | 7 | **Given** a portfolio<br/>**When** I buy with an empty ticker `""`<br/>**Then** I receive **400 Bad Request** with `title: "Invalid Ticker"` |
 | 8 | **Given** a non-existent portfolio ID<br/>**When** I buy stock<br/>**Then** I receive **404 Not Found** with `title: "Portfolio Not Found"` |
 
+#### Behavioural Scenarios (Gherkin)
+
+The following scenarios define the expected system behaviour for this use case. Each scenario identifier (`US-06.AC-1` through `US-06.AC-8`) is referenced by Java tests via `@SpecificationRef`.
+
+```gherkin
+Feature: Buy Stocks (US-06)
+
+  As an investor with a portfolio
+  I want to purchase shares of a specific stock by providing the ticker symbol and quantity
+  So that I can build my investment portfolio
+
+  Background:
+    Given a portfolio exists for owner "Alice"
+    And the portfolio has a cash balance of $50000
+
+  Scenario: Buying stock with sufficient funds
+    When I POST /api/portfolios/{id}/purchases with {"ticker":"AAPL","quantity":5}
+    Then I receive 200 OK
+    And the balance decreases by (5 x market price)
+    And a holding for AAPL appears with 5 remaining shares
+
+  Scenario: Buying more shares of an already-held stock
+    Given the portfolio already holds 5 shares of AAPL
+    When I buy 3 more shares of AAPL
+    Then a new lot is added to the existing AAPL holding
+    And AAPL shows 8 remaining shares total
+
+  Scenario: Buying stock with insufficient funds
+    Given the portfolio has insufficient funds for the purchase
+    When I buy stock
+    Then I receive 409 Conflict with ProblemDetail:
+      | Field  | Value              |
+      | title  | Insufficient Funds |
+      | status | 409                |
+      | detail | (contains "Insufficient funds") |
+
+  Scenario: Buying stock with zero quantity
+    When I buy with quantity 0
+    Then I receive 400 Bad Request with ProblemDetail:
+      | Field  | Value            |
+      | title  | Invalid Quantity |
+      | status | 400              |
+      | detail | (contains "Quantity must be positive") |
+
+  Scenario: Buying stock with negative quantity
+    When I buy with quantity -5
+    Then I receive 400 Bad Request with ProblemDetail:
+      | Field  | Value            |
+      | title  | Invalid Quantity |
+      | status | 400              |
+      | detail | (contains "Quantity must be positive") |
+
+  Scenario: Buying stock with an invalid ticker
+    When I buy with ticker "ZZZZ_INVALID"
+    Then I receive 400 Bad Request with ProblemDetail:
+      | Field  | Value          |
+      | title  | Invalid Ticker |
+      | status | 400            |
+      | detail | (contains "ZZZZ_INVALID") |
+    And no holding is created for "ZZZZ_INVALID"
+
+  Scenario: Buying stock with an empty ticker
+    When I buy with ticker ""
+    Then I receive 400 Bad Request with ProblemDetail:
+      | Field  | Value          |
+      | title  | Invalid Ticker |
+      | status | 400            |
+
+  Scenario: Buying stock on a non-existent portfolio
+    Given a non-existent portfolio ID
+    When I buy stock
+    Then I receive 404 Not Found with ProblemDetail:
+      | Field  | Value               |
+      | title  | Portfolio Not Found  |
+      | status | 404                  |
+```
+
+> **Canonical source:** [`doc/features/buy-stocks.feature`](features/buy-stocks.feature) — the Gherkin above is maintained as a standalone `.feature` file for traceability. Tests reference it via `@SpecificationRef`.
+
 #### Implementation Pointers
 
 | Layer | Class / Method |
@@ -303,7 +577,7 @@ Location: http://localhost:8080/api/portfolios/550e8400-e29b-41d4-a716-446655440
 | Domain | `Lot.create(ShareQuantity, Price)` — validates positive quantity |
 | Validation | `Ticker(String)` constructor — validates format `^[A-Z]{1,5}$`; `ShareQuantity.positive(int)` — validates > 0 |
 | DTO (request) | `PurchaseDTO(String ticker, int quantity)` |
-| Tests | `PortfolioRestControllerIntegrationTest.WhenPortfolioExists.BuyingShares` — `buyReducesBalanceAndAddsHolding()`, `buyWithInsufficientFunds_returns409()`, `buyWithZeroQuantity_returns400()`, `buyWithNegativeQuantity_returns400()`, `buyWithInvalidTicker_returns400_andNoHoldingCreated()`, `buyWithEmptyTicker_returns400()`, `multipleBuysAndSellsAcrossTickers()` |
+| Tests | `PortfolioTradingRestIntegrationTest.BuyingShares` — `buyReducesBalanceAndAddsHolding()` (`@SpecificationRef("US-06.AC-1")`), `buyMoreOfSameStock_addsNewLot()` (`@SpecificationRef("US-06.AC-2")`), `buyWithInsufficientFunds_returns409()` (`@SpecificationRef("US-06.AC-3")`), `buyWithZeroQuantity_returns400()` (`@SpecificationRef("US-06.AC-4")`), `buyWithNegativeQuantity_returns400()` (`@SpecificationRef("US-06.AC-5")`), `buyWithInvalidTicker_returns400_andNoHoldingCreated()` (`@SpecificationRef("US-06.AC-6")`), `buyWithEmptyTicker_returns400()` (`@SpecificationRef("US-06.AC-7")`); `PortfolioErrorHandlingRestIntegrationTest.buyOnNonExistentPortfolio_returns404()` (`@SpecificationRef("US-06.AC-8")`) |
 
 > **Note:** The controller calls `ShareQuantity.positive(request.quantity())` which throws `InvalidQuantityException` for values ≤ 0 *before* the domain `Portfolio.buy()` method is reached. The `Ticker.of(request.ticker())` call also validates the ticker format at the controller level.
 
@@ -476,6 +750,39 @@ Feature: Sell Stocks with FIFO Lot Consumption
 | 1 | **Given** a portfolio with transactions<br/>**When** I GET `/api/portfolios/{id}/transactions`<br/>**Then** I receive **200 OK** with a JSON array of transaction objects |
 | 2 | **Given** a portfolio with transactions<br/>**When** I GET `/api/portfolios/{id}/transactions?type=PURCHASE`<br/>**Then** I receive **200 OK** with a JSON array (**NOTE: the `type` query parameter is accepted but currently NOT used for filtering — all transactions are returned regardless**) |
 
+#### Behavioural Scenarios (Gherkin)
+
+The following scenarios define the expected system behaviour for this use case. Each scenario identifier (`US-08.AC-1`, `US-08.AC-2`) is referenced by Java tests via `@SpecificationRef`.
+
+```gherkin
+Feature: Get Transaction History (US-08)
+
+  As an investor
+  I want to view my portfolio's transaction history
+  So that I can review past financial activities
+
+  Scenario: Retrieving transaction history for a portfolio with transactions
+    Given a portfolio exists for owner "Alice"
+    And Alice has deposited $10000
+    And Alice has bought 5 shares of AAPL
+    When I GET /api/portfolios/{id}/transactions
+    Then I receive 200 OK with a JSON array of transaction objects
+    And the array contains at least a DEPOSIT and a PURCHASE transaction
+    And each transaction object wraps the full Transaction domain object
+
+  Scenario: Retrieving transaction history with type filter parameter
+    Given a portfolio exists for owner "Alice"
+    And Alice has deposited $10000 and bought 5 shares of AAPL
+    When I GET /api/portfolios/{id}/transactions?type=PURCHASE
+    Then I receive 200 OK with a JSON array
+
+  # Note: the type query parameter is accepted by the controller but
+  # is currently NOT used for filtering — all transactions are returned
+  # regardless of the type value. See the specification for details.
+```
+
+> **Canonical source:** [`doc/features/get-transaction-history.feature`](features/get-transaction-history.feature) — the Gherkin above is maintained as a standalone `.feature` file for traceability. Tests reference it via `@SpecificationRef`.
+
 #### Success Response (200 OK)
 
 Each element in the array wraps the full `Transaction` domain object:
@@ -511,7 +818,7 @@ Each element in the array wraps the full `Transaction` domain object:
 | Service | `TransactionService.getTransactions(String, Optional<String>)` — retrieves all transactions, wraps each in `TransactionDTO`, **does not filter by type** |
 | Port (out) | `TransactionPort.getTransactionsByPortfolioId(PortfolioId)` |
 | DTO (response) | `TransactionDTO(Transaction transaction)` — wraps raw domain object |
-| Tests | *No dedicated integration tests for the transactions endpoint exist in the current test suite* |
+| Tests | `PortfolioTransactionHistoryRestIntegrationTest` — `getTransactions_returnsAllTransactions()` (`@SpecificationRef("US-08.AC-1")`), `getTransactions_withTypeParameter_returnsTransactions()` (`@SpecificationRef("US-08.AC-2")`) |
 
 ---
 
@@ -532,6 +839,49 @@ Each element in the array wraps the full `Transaction` domain object:
 | 1 | **Given** a portfolio with holdings<br/>**When** I GET `/api/portfolios/{id}/holdings`<br/>**Then** I receive **200 OK** with a JSON array of holding performance objects |
 | 2 | **Given** a newly created portfolio with no holdings<br/>**When** I GET `/api/portfolios/{id}/holdings`<br/>**Then** I receive **200 OK** with an empty array `[]` |
 | 3 | **Given** a non-existent portfolio ID<br/>**When** I GET `/api/portfolios/{id}/holdings`<br/>**Then** I receive **404 Not Found** with `title: "Portfolio Not Found"` |
+
+#### Behavioural Scenarios (Gherkin)
+
+The following scenarios define the expected system behaviour for this use case. Each scenario identifier (`US-09.AC-1` through `US-09.AC-3`) is referenced by Java tests via `@SpecificationRef`.
+
+```gherkin
+Feature: Get Holdings Performance (US-09)
+
+  As an investor monitoring my investments
+  I want to see a performance summary of each stock in my portfolio
+  So that I can assess how my investments are doing
+
+  Scenario: Getting holdings performance for a portfolio with holdings
+    Given a portfolio exists for owner "Alice"
+    And Alice has deposited $50000
+    And Alice has bought 10 shares of AAPL at $150.00
+    When I GET /api/portfolios/{id}/holdings
+    Then I receive 200 OK with a JSON array of holding performance objects
+    And each object contains:
+      | Field                | Description                              |
+      | ticker               | Stock symbol                             |
+      | quantity             | Total shares ever purchased              |
+      | remaining            | Shares currently held (after sells)      |
+      | averagePurchasePrice | Weighted average of all purchase prices  |
+      | currentPrice         | Live market price                        |
+      | unrealizedGain       | Gain/loss on shares still held           |
+      | realizedGain         | Gain/loss from completed sales           |
+
+  Scenario: Getting holdings performance for an empty portfolio
+    Given a newly created portfolio with no holdings
+    When I GET /api/portfolios/{id}/holdings
+    Then I receive 200 OK with an empty array []
+
+  Scenario: Getting holdings performance for a non-existent portfolio
+    Given a non-existent portfolio ID
+    When I GET /api/portfolios/{id}/holdings
+    Then I receive 404 Not Found with ProblemDetail:
+      | Field  | Value               |
+      | title  | Portfolio Not Found  |
+      | status | 404                  |
+```
+
+> **Canonical source:** [`doc/features/get-holdings-performance.feature`](features/get-holdings-performance.feature) — the Gherkin above is maintained as a standalone `.feature` file for traceability. Tests reference it via `@SpecificationRef`.
 
 #### Success Response (200 OK)
 
@@ -569,7 +919,7 @@ Each element in the array wraps the full `Transaction` domain object:
 | Domain Service | `HoldingPerformanceCalculator.getHoldingsPerformance(Portfolio, List<Transaction>, Map<Ticker,StockPrice>)` — single-pass O(T) aggregation |
 | Domain | `Holding.getUnrealizedGain(Price)`, `Holding.getRemainingSharesPurchasePrice()`, `Holding.getTheoreticSalePrice(Price)` |
 | DTO (response) | `HoldingDTO(String ticker, BigDecimal quantity, BigDecimal remaining, BigDecimal averagePurchasePrice, BigDecimal currentPrice, BigDecimal unrealizedGain, BigDecimal realizedGain)` |
-| Tests | `PortfolioRestControllerIntegrationTest.WhenPortfolioExists.HappyPath` — `getHoldings_emptyAfterCreation()`, `endToEnd_depositBuySellWithdraw()`; `ReportingServiceTest`; `HoldingPerformanceCalculatorTest` (comprehensive unit tests) |
+| Tests | `PortfolioLifecycleRestIntegrationTest.getHoldings_emptyAfterCreation()` (`@SpecificationRef("US-09.AC-2")`), `PortfolioTradingRestIntegrationTest.endToEnd_depositBuySellWithdraw()` (`@SpecificationRef("US-07.AC-1")`); Domain: `ReportingServiceTest` (`@SpecificationRef("US-09.AC-1")`, `@SpecificationRef("US-09.AC-2")`, `@SpecificationRef("US-09.AC-3")`); `HoldingPerformanceCalculatorTest` (comprehensive domain tests) |
 
 > **Note:** The previous spec documented this endpoint as `/api/portfolios/{id}/performance`. The actual implementation uses **`/api/portfolios/{id}/holdings`**. The `/performance` endpoint does not exist.
 
@@ -592,6 +942,39 @@ Each element in the array wraps the full `Transaction` domain object:
 | 1 | **Given** a valid ticker symbol<br/>**When** I GET `/api/stocks/{symbol}`<br/>**Then** I receive **200 OK** with `symbol`, `price`, `time`, `currency` |
 | 2 | **Given** an invalid ticker format<br/>**When** I GET `/api/stocks/{symbol}`<br/>**Then** I receive **400 Bad Request** with `title: "Invalid Ticker"` |
 
+#### Behavioural Scenarios (Gherkin)
+
+The following scenarios define the expected system behaviour for this use case. Each scenario identifier (`US-10.AC-1`, `US-10.AC-2`) is referenced by Java tests via `@SpecificationRef`.
+
+```gherkin
+Feature: Get Stock Price (US-10)
+
+  As an investor
+  I want to look up the current market price of a stock
+  So that I can make informed trading decisions
+
+  Scenario: Getting the current price for a valid stock ticker
+    Given a valid ticker symbol "AAPL"
+    When I GET /api/stocks/AAPL
+    Then I receive 200 OK
+    And the response body contains:
+      | Field    | Value  |
+      | symbol   | AAPL   |
+      | price    | (current market price) |
+      | time     | (timestamp)            |
+      | currency | USD                    |
+
+  Scenario: Getting the price for an invalid ticker format
+    Given an invalid ticker format "aapl_invalid"
+    When I GET /api/stocks/aapl_invalid
+    Then I receive 400 Bad Request with ProblemDetail:
+      | Field  | Value          |
+      | title  | Invalid Ticker |
+      | status | 400            |
+```
+
+> **Canonical source:** [`doc/features/get-stock-price.feature`](features/get-stock-price.feature) — the Gherkin above is maintained as a standalone `.feature` file for traceability. Tests reference it via `@SpecificationRef`.
+
 #### Success Response (200 OK)
 
 ```json
@@ -612,7 +995,7 @@ Each element in the array wraps the full `Transaction` domain object:
 | Service | `GetStockPriceService.getPrice(Ticker)` — delegates to `StockPriceProviderPort` |
 | Port (out) | `StockPriceProviderPort.fetchStockPrice(Ticker)` |
 | DTO (response) | `StockPriceDTO(String symbol, double price, Instant time, String currency)` |
-| Tests | *No dedicated integration tests for this endpoint in the current test suite* |
+| Tests | `StockPriceRestIntegrationTest` — `getStockPrice_validTicker_returns200()` (`@SpecificationRef("US-10.AC-1")`), `getStockPrice_invalidTicker_returns400()` (`@SpecificationRef("US-10.AC-2")`) |
 
 ---
 
