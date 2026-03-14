@@ -1,4 +1,5 @@
 [![Build Status](https://github.com/alfredorueda/HexaStock/workflows/CI/badge.svg)](https://github.com/alfredorueda/HexaStock/actions)
+[![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=alfredorueda_HexaStock&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=alfredorueda_HexaStock)
 
 # HexaStock
 
