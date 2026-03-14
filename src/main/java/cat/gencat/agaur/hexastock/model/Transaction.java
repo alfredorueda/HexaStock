@@ -90,78 +90,64 @@ public class Transaction {
 
     protected Transaction() {}
 
-    public Transaction(TransactionId id, PortfolioId portfolioId, TransactionType type, Ticker ticker,
-                       ShareQuantity quantity, Price unitPrice, Money totalAmount,
-                       Money profit, LocalDateTime createdAt) {
-        this.id = id;
-        this.portfolioId = portfolioId;
-        this.type = type;
-        this.ticker = ticker;
-        this.quantity = quantity;
-        this.unitPrice = unitPrice;
-        this.totalAmount = totalAmount;
-        this.profit = profit;
-        this.createdAt = createdAt;
+    /** Returns a new {@link Builder} for constructing a {@code Transaction}. */
+    public static Builder builder() {
+        return new Builder();
     }
 
     public static Transaction createDeposit(PortfolioId portfolioId, Money amount) {
-        return new Transaction(
-                TransactionId.generate(),
-                portfolioId,
-                TransactionType.DEPOSIT,
-                null,
-                ShareQuantity.ZERO,
-                null,
-                amount,
-                Money.ZERO,
-                LocalDateTime.now()
-        );
+        return builder()
+                .id(TransactionId.generate())
+                .portfolioId(portfolioId)
+                .type(TransactionType.DEPOSIT)
+                .quantity(ShareQuantity.ZERO)
+                .totalAmount(amount)
+                .profit(Money.ZERO)
+                .createdAt(LocalDateTime.now())
+                .build();
     }
 
     public static Transaction createWithdrawal(PortfolioId portfolioId, Money amount) {
-        return new Transaction(
-                TransactionId.generate(),
-                portfolioId,
-                TransactionType.WITHDRAWAL,
-                null,
-                ShareQuantity.ZERO,
-                null,
-                amount,
-                Money.ZERO,
-                LocalDateTime.now()
-        );
+        return builder()
+                .id(TransactionId.generate())
+                .portfolioId(portfolioId)
+                .type(TransactionType.WITHDRAWAL)
+                .quantity(ShareQuantity.ZERO)
+                .totalAmount(amount)
+                .profit(Money.ZERO)
+                .createdAt(LocalDateTime.now())
+                .build();
     }
 
     public static Transaction createPurchase(PortfolioId portfolioId, Ticker ticker,
                                              ShareQuantity quantity, Price unitPrice) {
-        Money totalAmount = unitPrice.multiply(quantity);
-        return new Transaction(
-                TransactionId.generate(),
-                portfolioId,
-                TransactionType.PURCHASE,
-                ticker,
-                quantity,
-                unitPrice,
-                totalAmount,
-                Money.ZERO,
-                LocalDateTime.now()
-        );
+        return builder()
+                .id(TransactionId.generate())
+                .portfolioId(portfolioId)
+                .type(TransactionType.PURCHASE)
+                .ticker(ticker)
+                .quantity(quantity)
+                .unitPrice(unitPrice)
+                .totalAmount(unitPrice.multiply(quantity))
+                .profit(Money.ZERO)
+                .createdAt(LocalDateTime.now())
+                .build();
     }
 
     public static Transaction createSale(PortfolioId portfolioId, Ticker ticker,
                                          ShareQuantity quantity, Price unitPrice,
                                          Money totalAmount, Money profit) {
-        return new Transaction(
-                TransactionId.generate(),
-                portfolioId,
-                TransactionType.SALE,
-                ticker,
-                quantity,
-                unitPrice,
-                totalAmount,
-                profit,
-                LocalDateTime.now()
-        );
+        return builder()
+                .id(TransactionId.generate())
+                .portfolioId(portfolioId)
+                .type(TransactionType.SALE)
+                .ticker(ticker)
+                .quantity(quantity)
+                .unitPrice(unitPrice)
+                .totalAmount(totalAmount)
+                .profit(profit)
+                .createdAt(LocalDateTime.now())
+                .build();
     }
 
     public TransactionId getId() {
@@ -198,5 +184,45 @@ public class Transaction {
 
     public LocalDateTime getCreatedAt() {
         return createdAt;
+    }
+
+    /**
+     * Fluent builder for {@link Transaction}.
+     * Eliminates the need for a constructor with more than seven parameters.
+     */
+    public static class Builder {
+        private TransactionId id;
+        private PortfolioId portfolioId;
+        private TransactionType type;
+        private Ticker ticker;
+        private ShareQuantity quantity;
+        private Price unitPrice;
+        private Money totalAmount;
+        private Money profit;
+        private LocalDateTime createdAt;
+
+        public Builder id(TransactionId id) { this.id = id; return this; }
+        public Builder portfolioId(PortfolioId portfolioId) { this.portfolioId = portfolioId; return this; }
+        public Builder type(TransactionType type) { this.type = type; return this; }
+        public Builder ticker(Ticker ticker) { this.ticker = ticker; return this; }
+        public Builder quantity(ShareQuantity quantity) { this.quantity = quantity; return this; }
+        public Builder unitPrice(Price unitPrice) { this.unitPrice = unitPrice; return this; }
+        public Builder totalAmount(Money totalAmount) { this.totalAmount = totalAmount; return this; }
+        public Builder profit(Money profit) { this.profit = profit; return this; }
+        public Builder createdAt(LocalDateTime createdAt) { this.createdAt = createdAt; return this; }
+
+        public Transaction build() {
+            var tx = new Transaction();
+            tx.id = this.id;
+            tx.portfolioId = this.portfolioId;
+            tx.type = this.type;
+            tx.ticker = this.ticker;
+            tx.quantity = this.quantity;
+            tx.unitPrice = this.unitPrice;
+            tx.totalAmount = this.totalAmount;
+            tx.profit = this.profit;
+            tx.createdAt = this.createdAt;
+            return tx;
+        }
     }
 }

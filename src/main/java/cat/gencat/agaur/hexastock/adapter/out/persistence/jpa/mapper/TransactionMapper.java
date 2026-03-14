@@ -5,30 +5,30 @@ import cat.gencat.agaur.hexastock.model.*;
 
 public class TransactionMapper {
     public static Transaction toModelEntity(TransactionJpaEntity jpaEntity) {
-        return new Transaction(
-                TransactionId.of(jpaEntity.getId()),
-                PortfolioId.of(jpaEntity.getPortfolioId()),
-                jpaEntity.getType(),
-                jpaEntity.getTicker() != null ? Ticker.of(jpaEntity.getTicker()) : null,
-                ShareQuantity.of(jpaEntity.getQuantity()),
-                jpaEntity.getUnitPrice() != null ? Price.of(jpaEntity.getUnitPrice()) : null,
-                Money.of(jpaEntity.getTotalAmount()),
-                Money.of(jpaEntity.getProfit()),
-                jpaEntity.getCreatedAt()
-        );
+        return Transaction.builder()
+                .id(TransactionId.of(jpaEntity.getId()))
+                .portfolioId(PortfolioId.of(jpaEntity.getPortfolioId()))
+                .type(jpaEntity.getType())
+                .ticker(jpaEntity.getTicker() != null ? Ticker.of(jpaEntity.getTicker()) : null)
+                .quantity(ShareQuantity.of(jpaEntity.getQuantity()))
+                .unitPrice(jpaEntity.getUnitPrice() != null ? Price.of(jpaEntity.getUnitPrice()) : null)
+                .totalAmount(Money.of(jpaEntity.getTotalAmount()))
+                .profit(Money.of(jpaEntity.getProfit()))
+                .createdAt(jpaEntity.getCreatedAt())
+                .build();
     }
 
     public static TransactionJpaEntity toJpaEntity(Transaction entity) {
-        return new TransactionJpaEntity(
-                entity.getId().value(),
-                entity.getPortfolioId().value(),
-                entity.getType(),
-                entity.getTicker() != null ? entity.getTicker().value() : null,
-                entity.getQuantity().value(),
-                entity.getUnitPrice() != null ? entity.getUnitPrice().value() : null,
-                entity.getTotalAmount().amount(),
-                entity.getProfit().amount(),
-                entity.getCreatedAt()
-        );
+        return TransactionJpaEntity.builder()
+                .id(entity.getId().value())
+                .portfolioId(entity.getPortfolioId().value())
+                .type(entity.getType())
+                .ticker(entity.getTicker() != null ? entity.getTicker().value() : null)
+                .quantity(entity.getQuantity().value())
+                .unitPrice(entity.getUnitPrice() != null ? entity.getUnitPrice().value() : null)
+                .totalAmount(entity.getTotalAmount().amount())
+                .profit(entity.getProfit().amount())
+                .createdAt(entity.getCreatedAt())
+                .build();
     }
 }

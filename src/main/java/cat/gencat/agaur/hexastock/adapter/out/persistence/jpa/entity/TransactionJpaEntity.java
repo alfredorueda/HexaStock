@@ -85,32 +85,10 @@ public class TransactionJpaEntity {
      * Protected default constructor required by JPA.
      */
     protected TransactionJpaEntity() {}
-    
-    /**
-     * Constructs a new TransactionJpaEntity with the specified properties.
-     * 
-     * @param id The unique identifier of the transaction
-     * @param portfolioId The ID of the portfolio this transaction belongs to
-     * @param type The type of transaction
-     * @param ticker The ticker symbol (for stock transactions)
-     * @param quantity The quantity of shares (for stock transactions)
-     * @param unitPrice The price per share (for stock transactions)
-     * @param totalAmount The total monetary amount of the transaction
-     * @param profit The profit or loss (for sale transactions)
-     * @param createdAt The timestamp when the transaction occurred
-     */
-    public TransactionJpaEntity(String id, String portfolioId, TransactionType type, String ticker,
-                                 int quantity, BigDecimal unitPrice, BigDecimal totalAmount,
-                                 BigDecimal profit, LocalDateTime createdAt) {
-        this.id = id;
-        this.portfolioId = portfolioId;
-        this.type = type;
-        this.ticker = ticker;
-        this.quantity = quantity;
-        this.unitPrice = unitPrice;
-        this.totalAmount = totalAmount;
-        this.profit = profit;
-        this.createdAt = createdAt;
+
+    /** Returns a new {@link Builder} for constructing a {@code TransactionJpaEntity}. */
+    public static Builder builder() {
+        return new Builder();
     }
 
     // Getters
@@ -197,5 +175,45 @@ public class TransactionJpaEntity {
      */
     public LocalDateTime getCreatedAt() {
         return createdAt;
+    }
+
+    /**
+     * Fluent builder for {@link TransactionJpaEntity}.
+     * Eliminates the need for a constructor with more than seven parameters.
+     */
+    public static class Builder {
+        private String id;
+        private String portfolioId;
+        private TransactionType type;
+        private String ticker;
+        private int quantity;
+        private BigDecimal unitPrice;
+        private BigDecimal totalAmount;
+        private BigDecimal profit;
+        private LocalDateTime createdAt;
+
+        public Builder id(String id) { this.id = id; return this; }
+        public Builder portfolioId(String portfolioId) { this.portfolioId = portfolioId; return this; }
+        public Builder type(TransactionType type) { this.type = type; return this; }
+        public Builder ticker(String ticker) { this.ticker = ticker; return this; }
+        public Builder quantity(int quantity) { this.quantity = quantity; return this; }
+        public Builder unitPrice(BigDecimal unitPrice) { this.unitPrice = unitPrice; return this; }
+        public Builder totalAmount(BigDecimal totalAmount) { this.totalAmount = totalAmount; return this; }
+        public Builder profit(BigDecimal profit) { this.profit = profit; return this; }
+        public Builder createdAt(LocalDateTime createdAt) { this.createdAt = createdAt; return this; }
+
+        public TransactionJpaEntity build() {
+            var entity = new TransactionJpaEntity();
+            entity.id = this.id;
+            entity.portfolioId = this.portfolioId;
+            entity.type = this.type;
+            entity.ticker = this.ticker;
+            entity.quantity = this.quantity;
+            entity.unitPrice = this.unitPrice;
+            entity.totalAmount = this.totalAmount;
+            entity.profit = this.profit;
+            entity.createdAt = this.createdAt;
+            return entity;
+        }
     }
 }
