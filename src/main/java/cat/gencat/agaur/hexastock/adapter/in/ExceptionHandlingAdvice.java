@@ -7,6 +7,7 @@ import cat.gencat.agaur.hexastock.model.exception.PortfolioNotFoundException;
 import cat.gencat.agaur.hexastock.model.exception.HoldingNotFoundException;
 import cat.gencat.agaur.hexastock.model.exception.ExternalApiException;
 import cat.gencat.agaur.hexastock.model.exception.InsufficientFundsException;
+import cat.gencat.agaur.hexastock.model.exception.InsufficientEligibleSharesException;
 import cat.gencat.agaur.hexastock.model.exception.InvalidTickerException;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.ControllerAdvice;
@@ -94,6 +95,16 @@ public class ExceptionHandlingAdvice {
     public ProblemDetail invalidTickerExceptionHandler(InvalidTickerException ex) {
         ProblemDetail pd = ProblemDetail.forStatus(HttpStatus.BAD_REQUEST);
         pd.setTitle("Invalid Ticker");
+        pd.setDetail(ex.getMessage());
+        return pd;
+    }
+
+    @ExceptionHandler(InsufficientEligibleSharesException.class)
+    @ResponseStatus(HttpStatus.CONFLICT)
+    @ResponseBody
+    public ProblemDetail insufficientEligibleSharesExceptionHandler(InsufficientEligibleSharesException ex) {
+        ProblemDetail pd = ProblemDetail.forStatus(HttpStatus.CONFLICT);
+        pd.setTitle("Insufficient Eligible Shares");
         pd.setDetail(ex.getMessage());
         return pd;
     }

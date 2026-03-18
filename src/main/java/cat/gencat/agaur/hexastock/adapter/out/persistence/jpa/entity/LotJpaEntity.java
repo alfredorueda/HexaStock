@@ -16,16 +16,20 @@ public class LotJpaEntity {
     private int remaining;
     private BigDecimal unitPrice;
     private LocalDateTime purchasedAt;
+    private LocalDateTime settlementDate;
+    private boolean reserved;
 
     protected LotJpaEntity() {}
 
-    public LotJpaEntity(String id, int initialStocks, int quantity, BigDecimal unitPrice, LocalDateTime purchasedAt) {
-
+    public LotJpaEntity(String id, int initialStocks, int quantity, BigDecimal unitPrice,
+                        LocalDateTime purchasedAt, LocalDateTime settlementDate, boolean reserved) {
         this.id = id;
         this.initialStocks = initialStocks;
         this.remaining = quantity;
         this.unitPrice = unitPrice;
         this.purchasedAt = purchasedAt;
+        this.settlementDate = settlementDate;
+        this.reserved = reserved;
     }
 
     // Getters
@@ -47,6 +51,14 @@ public class LotJpaEntity {
     
     public LocalDateTime getPurchasedAt() {
         return purchasedAt;
+    }
+
+    public LocalDateTime getSettlementDate() {
+        return settlementDate;
+    }
+
+    public boolean isReserved() {
+        return reserved;
     }
 
 }

@@ -212,6 +212,18 @@ public class PortfolioRestController {
     }
 
     /**
+     * Sells shares with settlement-aware FIFO accounting and fees.
+     *
+     * <p>POST /api/portfolios/{id}/settlement-sales</p>
+     */
+    @PostMapping("/{id}/settlement-sales")
+    public ResponseEntity<SaleResponseDTO> sellStockWithSettlement(@PathVariable String id, @RequestBody SaleRequestDTO request) {
+        SellResult result = portfolioStockOperationsUseCase.sellStockWithSettlement(
+                PortfolioId.of(id), Ticker.of(request.ticker()), ShareQuantity.positive(request.quantity()));
+        return ResponseEntity.ok(new SaleResponseDTO(id, request.ticker(), request.quantity(), result));
+    }
+
+    /**
      * Retrieves transaction history for a portfolio.
      * 
      * <p>GET /api/portfolios/{id}/transactions?type=TYPE</p>

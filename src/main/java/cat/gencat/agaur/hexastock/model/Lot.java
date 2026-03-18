@@ -14,11 +14,17 @@ import java.util.Objects;
  * It tracks the details of a single stock purchase transaction.</p>
  */
 public class Lot {
+
+    /** SEC T+2 settlement rule: lots settle 2 business days after purchase. */
+    public static final int SETTLEMENT_DAYS = 2;
+
     private LotId id;
     private ShareQuantity initialShares;
     private ShareQuantity remainingShares;
     private Price unitPrice;
     private LocalDateTime purchasedAt;
+    private LocalDateTime settlementDate;
+    private boolean reserved;
 
     protected Lot() {}
 
@@ -32,17 +38,27 @@ public class Lot {
      * @param purchasedAt The date and time of purchase
      */
     public Lot(LotId id, ShareQuantity initialShares, ShareQuantity remainingShares, Price unitPrice, LocalDateTime purchasedAt) {
+        this(id, initialShares, remainingShares, unitPrice, purchasedAt,
+                purchasedAt.plusDays(SETTLEMENT_DAYS), false);
+    }
+
+    public Lot(LotId id, ShareQuantity initialShares, ShareQuantity remainingShares,
+               Price unitPrice, LocalDateTime purchasedAt,
+               LocalDateTime settlementDate, boolean reserved) {
         Objects.requireNonNull(id, "Lot id must not be null");
         Objects.requireNonNull(initialShares, "Initial shares must not be null");
         Objects.requireNonNull(remainingShares, "Remaining shares must not be null");
         Objects.requireNonNull(unitPrice, "Unit price must not be null");
         Objects.requireNonNull(purchasedAt, "Purchase date must not be null");
+        Objects.requireNonNull(settlementDate, "Settlement date must not be null");
 
         this.id = id;
         this.initialShares = initialShares;
         this.remainingShares = remainingShares;
         this.unitPrice = unitPrice;
         this.purchasedAt = purchasedAt;
+        this.settlementDate = settlementDate;
+        this.reserved = reserved;
     }
 
     /**
@@ -56,7 +72,9 @@ public class Lot {
         if (!quantity.isPositive()) {
             throw new InvalidQuantityException("Quantity must be positive");
         }
-        return new Lot(LotId.generate(), quantity, quantity, unitPrice, LocalDateTime.now());
+        LocalDateTime now = LocalDateTime.now();
+        return new Lot(LotId.generate(), quantity, quantity, unitPrice, now,
+                now.plusDays(SETTLEMENT_DAYS), false);
     }
 
     /**
@@ -104,6 +122,58 @@ public class Lot {
 
     public boolean isEmpty() {
         return remainingShares.isZero();
+    }
+
+    /**
+     * Checks if this lot has settled (T+2 rule satisfied).
+     *
+     * @param asOf The reference date/time to check against
+     * @return true if the current date is on or after the settlement date
+     */
+    public boolean isSettled(LocalDateTime asOf) {
+        return !asOf.isBefore(settlementDate);
+    }
+
+    /**
+     * Checks if this lot is available for sale: must be settled AND not reserved.
+     *
+     * @param asOf The reference date/time to check against
+     * @return true if the lot can participate in a sell operation
+     */
+    public boolean isAvailableForSale(LocalDateTime asOf) {
+        return isSettled(asOf) && !reserved;
+    }
+
+    /**
+     * Returns the number of shares available for sale from this lot.
+     *
+     * @param asOf The reference date/time to check settlement
+     * @return remainingShares if available, ZERO otherwise
+     */
+    public ShareQuantity availableShares(LocalDateTime asOf) {
+        return isAvailableForSale(asOf) ? remainingShares : ShareQuantity.ZERO;
+    }
+
+    /**
+     * Marks this lot as reserved (e.g., used as collateral or pending transfer).
+     */
+    public void reserve() {
+        this.reserved = true;
+    }
+
+    /**
+     * Removes the reservation from this lot, making it available for sale again.
+     */
+    public void unreserve() {
+        this.reserved = false;
+    }
+
+    public LocalDateTime getSettlementDate() {
+        return settlementDate;
+    }
+
+    public boolean isReserved() {
+        return reserved;
     }
 
     @Override

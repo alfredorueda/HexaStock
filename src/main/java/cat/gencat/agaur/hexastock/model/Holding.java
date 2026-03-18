@@ -2,7 +2,9 @@ package cat.gencat.agaur.hexastock.model;
 
 import cat.gencat.agaur.hexastock.model.exception.ConflictQuantityException;
 import cat.gencat.agaur.hexastock.model.exception.EntityExistsException;
+import cat.gencat.agaur.hexastock.model.exception.InsufficientEligibleSharesException;
 
+import java.time.LocalDateTime;
 import java.util.*;
 
 /**
@@ -79,6 +81,69 @@ public class Holding {
         return lots.stream()
                 .map(Lot::getRemainingShares)
                 .reduce(ShareQuantity.ZERO, ShareQuantity::add);
+    }
+
+    /**
+     * Returns the number of shares that are eligible for sale: settled and not reserved.
+     *
+     * @param asOf The reference date/time to evaluate settlement
+     * @return The total eligible (sellable) share quantity
+     */
+    public ShareQuantity getEligibleShares(LocalDateTime asOf) {
+        return lots.stream()
+                .map(lot -> lot.availableShares(asOf))
+                .reduce(ShareQuantity.ZERO, ShareQuantity::add);
+    }
+
+    /**
+     * Sells shares using settlement-aware FIFO: only settled, non-reserved lots participate.
+     *
+     * @param quantity The number of shares to sell
+     * @param sellPrice The current market price per share
+     * @param asOf The reference date/time to evaluate settlement
+     * @return A SellResult containing proceeds, cost basis, and profit information
+     * @throws InsufficientEligibleSharesException if there are not enough eligible shares
+     */
+    public SellResult sellSettled(ShareQuantity quantity, Price sellPrice, LocalDateTime asOf) {
+        ShareQuantity eligible = getEligibleShares(asOf);
+        if (eligible.value() < quantity.value()) {
+            throw new InsufficientEligibleSharesException(
+                    "Not enough eligible shares to sell. Eligible: " + eligible + ", Requested: " + quantity);
+        }
+
+        ShareQuantity remainingToSell = quantity;
+        Money costBasis = Money.ZERO;
+
+        for (var lot : lots) {
+            if (remainingToSell.isZero()) break;
+            if (!lot.isAvailableForSale(asOf)) continue;
+
+            ShareQuantity sharesSoldFromLot = lot.getRemainingShares().min(remainingToSell);
+            Money lotCostBasis = lot.calculateCostBasis(sharesSoldFromLot);
+
+            costBasis = costBasis.add(lotCostBasis);
+            lot.reduce(sharesSoldFromLot);
+            remainingToSell = remainingToSell.subtract(sharesSoldFromLot);
+        }
+
+        lots.removeIf(Lot::isEmpty);
+
+        Money proceeds = sellPrice.multiply(quantity);
+        return SellResult.of(proceeds, costBasis);
+    }
+
+    /**
+     * Finds a lot by its id.
+     *
+     * @param lotId The lot id to search for
+     * @return The lot with the given id
+     * @throws java.util.NoSuchElementException if no lot found
+     */
+    public Lot findLotById(LotId lotId) {
+        return lots.stream()
+                .filter(l -> l.getId().equals(lotId))
+                .findFirst()
+                .orElseThrow(() -> new java.util.NoSuchElementException("Lot not found: " + lotId));
     }
 
     public HoldingId getId() {

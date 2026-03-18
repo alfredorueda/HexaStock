@@ -2,6 +2,7 @@ package cat.gencat.agaur.hexastock.model;
 
 import cat.gencat.agaur.hexastock.model.exception.*;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.*;
 
@@ -199,6 +200,101 @@ public class Portfolio {
         balance = balance.add(result.proceeds());
 
         return result;
+    }
+
+    /**
+     * Sells shares using settlement-aware FIFO with fee deduction.
+     *
+     * <p>This method enforces all settlement selling invariants atomically:</p>
+     * <ol>
+     *   <li>Only settled lots (T+2) can participate</li>
+     *   <li>Reserved lots are skipped</li>
+     *   <li>FIFO order is respected among eligible lots</li>
+     *   <li>Fee is deducted from gross proceeds</li>
+     *   <li>Net proceeds (gross - fee) are added to cash balance</li>
+     *   <li>Cash balance must not go negative after the operation</li>
+     *   <li>Accounting identity: proceeds = costBasis + profit + fee</li>
+     * </ol>
+     *
+     * @param ticker The ticker symbol of the stock to sell
+     * @param quantity The number of shares to sell
+     * @param price The market price per share
+     * @param fee The fee charged for this sell operation
+     * @param asOf The reference date/time to evaluate lot settlement
+     * @return A SellResult containing proceeds, cost basis, profit, and fee
+     * @throws InvalidQuantityException if quantity is not positive
+     * @throws HoldingNotFoundException if ticker not found in holdings
+     * @throws InsufficientEligibleSharesException if not enough eligible shares
+     * @throws InsufficientFundsException if net proceeds would cause negative balance
+     */
+    public SellResult sellWithSettlement(Ticker ticker, ShareQuantity quantity, Price price,
+                                         Money fee, LocalDateTime asOf) {
+        if (!quantity.isPositive()) {
+            throw new InvalidQuantityException("Quantity must be positive");
+        }
+
+        if (!holdings.containsKey(ticker)) {
+            throw new HoldingNotFoundException("Holding not found in portfolio: " + ticker);
+        }
+
+        Holding holding = holdings.get(ticker);
+
+        // Validate eligible quantity BEFORE any mutation
+        ShareQuantity eligible = holding.getEligibleShares(asOf);
+        if (eligible.value() < quantity.value()) {
+            throw new InsufficientEligibleSharesException(
+                    "Not enough eligible shares. Eligible: " + eligible.value()
+                            + ", Requested: " + quantity.value());
+        }
+
+        // Calculate net proceeds and validate cash won't go negative
+        Money grossProceeds = price.multiply(quantity);
+        Money netProceeds = grossProceeds.subtract(fee);
+        if (balance.add(netProceeds).isNegative()) {
+            throw new InsufficientFundsException(
+                    "Fee exceeds available cash headroom. Net proceeds: " + netProceeds);
+        }
+
+        // Delegate FIFO selling to holding (only settled, non-reserved lots)
+        SellResult intermediateResult = holding.sellSettled(quantity, price, asOf);
+
+        // Update balance with net proceeds (after fee)
+        balance = balance.add(netProceeds);
+
+        // Return fee-aware result
+        return SellResult.withFee(intermediateResult.proceeds(), intermediateResult.costBasis(), fee);
+    }
+
+    /**
+     * Reserves a specific lot, preventing it from being used in sell operations.
+     *
+     * @param ticker The ticker of the holding containing the lot
+     * @param lotId The id of the lot to reserve
+     * @throws HoldingNotFoundException if the ticker is not in the portfolio
+     */
+    public void reserveLot(Ticker ticker, LotId lotId) {
+        if (!holdings.containsKey(ticker)) {
+            throw new HoldingNotFoundException("Holding not found in portfolio: " + ticker);
+        }
+        Holding holding = holdings.get(ticker);
+        Lot lot = holding.findLotById(lotId);
+        lot.reserve();
+    }
+
+    /**
+     * Unreserves a specific lot, making it available for sell operations again.
+     *
+     * @param ticker The ticker of the holding containing the lot
+     * @param lotId The id of the lot to unreserve
+     * @throws HoldingNotFoundException if the ticker is not in the portfolio
+     */
+    public void unreserveLot(Ticker ticker, LotId lotId) {
+        if (!holdings.containsKey(ticker)) {
+            throw new HoldingNotFoundException("Holding not found in portfolio: " + ticker);
+        }
+        Holding holding = holdings.get(ticker);
+        Lot lot = holding.findLotById(lotId);
+        lot.unreserve();
     }
 
     /**

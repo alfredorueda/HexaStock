@@ -77,4 +77,22 @@ public interface PortfolioStockOperationsUseCase {
      * @throws ConflictQuantityException if trying to sell more shares than owned
      */
     SellResult sellStock(PortfolioId portfolioId, Ticker ticker, ShareQuantity quantity);
+
+    /**
+     * Sells shares using settlement-aware FIFO with fee deduction.
+     *
+     * <p>This operation:</p>
+     * <ol>
+     *   <li>Only sells from settled (T+2) and non-reserved lots</li>
+     *   <li>Applies a percentage-based fee (0.1% of gross proceeds)</li>
+     *   <li>Credits net proceeds (gross minus fee) to the portfolio balance</li>
+     *   <li>Records the transaction with fee information</li>
+     * </ol>
+     *
+     * @param portfolioId The ID of the portfolio
+     * @param ticker The ticker symbol of the stock to sell
+     * @param quantity The number of shares to sell
+     * @return A SellResult containing proceeds, cost basis, profit, and fee
+     */
+    SellResult sellStockWithSettlement(PortfolioId portfolioId, Ticker ticker, ShareQuantity quantity);
 }

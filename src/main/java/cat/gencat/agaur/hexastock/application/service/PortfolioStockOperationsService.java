@@ -11,6 +11,7 @@ import cat.gencat.agaur.hexastock.model.exception.PortfolioNotFoundException;
 import jakarta.transaction.Transactional;
 
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 
 /**
  * PortfolioStockOperationsService implements the core use cases for stock trading operations.
@@ -141,6 +142,35 @@ public class PortfolioStockOperationsService implements PortfolioStockOperations
 
         Transaction transaction = Transaction.createSale(
                 portfolioId, ticker, quantity, price, sellResult.proceeds(), sellResult.profit());
+        transactionPort.save(transaction);
+
+        return sellResult;
+    }
+
+    /** Fee rate: 0.1% of gross proceeds. */
+    private static final BigDecimal FEE_RATE = new BigDecimal("0.001");
+
+    @Override
+    public SellResult sellStockWithSettlement(PortfolioId portfolioId, Ticker ticker, ShareQuantity quantity) {
+        Portfolio portfolio = portfolioPort.getPortfolioById(portfolioId)
+                .orElseThrow(() -> new PortfolioNotFoundException(portfolioId.value()));
+
+        StockPrice stockPrice = stockPriceProviderPort.fetchStockPrice(ticker);
+        Price price = stockPrice.price();
+
+        // Calculate fee as 0.1% of gross proceeds
+        Money grossProceeds = price.multiply(quantity);
+        Money fee = Money.of(grossProceeds.amount().multiply(FEE_RATE));
+
+        LocalDateTime asOf = LocalDateTime.now();
+
+        // All business rules enforced inside the aggregate
+        SellResult sellResult = portfolio.sellWithSettlement(ticker, quantity, price, fee, asOf);
+        portfolioPort.savePortfolio(portfolio);
+
+        Transaction transaction = Transaction.createSaleWithFee(
+                portfolioId, ticker, quantity, price,
+                sellResult.proceeds(), sellResult.profit(), sellResult.fee());
         transactionPort.save(transaction);
 
         return sellResult;

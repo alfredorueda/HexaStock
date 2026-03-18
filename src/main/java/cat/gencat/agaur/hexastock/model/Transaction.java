@@ -86,6 +86,7 @@ public class Transaction {
     private Price unitPrice;
     private Money totalAmount;
     private Money profit;
+    private Money fee;
     private LocalDateTime createdAt;
 
     protected Transaction() {}
@@ -103,6 +104,7 @@ public class Transaction {
                 .quantity(ShareQuantity.ZERO)
                 .totalAmount(amount)
                 .profit(Money.ZERO)
+                .fee(Money.ZERO)
                 .createdAt(LocalDateTime.now())
                 .build();
     }
@@ -115,6 +117,7 @@ public class Transaction {
                 .quantity(ShareQuantity.ZERO)
                 .totalAmount(amount)
                 .profit(Money.ZERO)
+                .fee(Money.ZERO)
                 .createdAt(LocalDateTime.now())
                 .build();
     }
@@ -130,6 +133,7 @@ public class Transaction {
                 .unitPrice(unitPrice)
                 .totalAmount(unitPrice.multiply(quantity))
                 .profit(Money.ZERO)
+                .fee(Money.ZERO)
                 .createdAt(LocalDateTime.now())
                 .build();
     }
@@ -146,6 +150,24 @@ public class Transaction {
                 .unitPrice(unitPrice)
                 .totalAmount(totalAmount)
                 .profit(profit)
+                .fee(Money.ZERO)
+                .createdAt(LocalDateTime.now())
+                .build();
+    }
+
+    public static Transaction createSaleWithFee(PortfolioId portfolioId, Ticker ticker,
+                                                ShareQuantity quantity, Price unitPrice,
+                                                Money totalAmount, Money profit, Money fee) {
+        return builder()
+                .id(TransactionId.generate())
+                .portfolioId(portfolioId)
+                .type(TransactionType.SALE)
+                .ticker(ticker)
+                .quantity(quantity)
+                .unitPrice(unitPrice)
+                .totalAmount(totalAmount)
+                .profit(profit)
+                .fee(fee)
                 .createdAt(LocalDateTime.now())
                 .build();
     }
@@ -182,6 +204,10 @@ public class Transaction {
         return profit;
     }
 
+    public Money getFee() {
+        return fee;
+    }
+
     public LocalDateTime getCreatedAt() {
         return createdAt;
     }
@@ -199,6 +225,7 @@ public class Transaction {
         private Price unitPrice;
         private Money totalAmount;
         private Money profit;
+        private Money fee;
         private LocalDateTime createdAt;
 
         public Builder id(TransactionId id) { this.id = id; return this; }
@@ -209,6 +236,7 @@ public class Transaction {
         public Builder unitPrice(Price unitPrice) { this.unitPrice = unitPrice; return this; }
         public Builder totalAmount(Money totalAmount) { this.totalAmount = totalAmount; return this; }
         public Builder profit(Money profit) { this.profit = profit; return this; }
+        public Builder fee(Money fee) { this.fee = fee; return this; }
         public Builder createdAt(LocalDateTime createdAt) { this.createdAt = createdAt; return this; }
 
         public Transaction build() {
@@ -221,6 +249,7 @@ public class Transaction {
             tx.unitPrice = this.unitPrice;
             tx.totalAmount = this.totalAmount;
             tx.profit = this.profit;
+            tx.fee = this.fee;
             tx.createdAt = this.createdAt;
             return tx;
         }

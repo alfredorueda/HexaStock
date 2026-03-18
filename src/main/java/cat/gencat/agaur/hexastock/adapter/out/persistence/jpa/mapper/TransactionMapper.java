@@ -14,6 +14,7 @@ public class TransactionMapper {
                 .unitPrice(jpaEntity.getUnitPrice() != null ? Price.of(jpaEntity.getUnitPrice()) : null)
                 .totalAmount(Money.of(jpaEntity.getTotalAmount()))
                 .profit(Money.of(jpaEntity.getProfit()))
+                .fee(jpaEntity.getFee() != null ? Money.of(jpaEntity.getFee()) : Money.ZERO)
                 .createdAt(jpaEntity.getCreatedAt())
                 .build();
     }
@@ -28,6 +29,7 @@ public class TransactionMapper {
                 .unitPrice(entity.getUnitPrice() != null ? entity.getUnitPrice().value() : null)
                 .totalAmount(entity.getTotalAmount().amount())
                 .profit(entity.getProfit().amount())
+                .fee(entity.getFee() != null ? entity.getFee().amount() : java.math.BigDecimal.ZERO)
                 .createdAt(entity.getCreatedAt())
                 .build();
     }

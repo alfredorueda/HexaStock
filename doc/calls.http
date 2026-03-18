@@ -20,7 +20,7 @@ POST http://localhost:8081/api/portfolios/{{portfolioId}}/deposits
 Content-Type: application/json
 
 {
-  "amount": "1000000"
+  "amount": "30000"
 }
 
 ###
