@@ -6,11 +6,15 @@ import cat.gencat.agaur.hexastock.application.port.out.StockPriceProviderPort;
 import cat.gencat.agaur.hexastock.application.port.out.TransactionPort;
 import cat.gencat.agaur.hexastock.model.*;
 import cat.gencat.agaur.hexastock.model.exception.ConflictQuantityException;
+import cat.gencat.agaur.hexastock.model.exception.InsufficientEligibleSharesException;
+import cat.gencat.agaur.hexastock.model.exception.InsufficientFundsException;
 import cat.gencat.agaur.hexastock.model.exception.InvalidQuantityException;
+import cat.gencat.agaur.hexastock.model.exception.HoldingNotFoundException;
 import cat.gencat.agaur.hexastock.model.exception.PortfolioNotFoundException;
 import jakarta.transaction.Transactional;
 
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 
 /**
  * PortfolioStockOperationsService implements the core use cases for stock trading operations.
@@ -144,5 +148,100 @@ public class PortfolioStockOperationsService implements PortfolioStockOperations
         transactionPort.save(transaction);
 
         return sellResult;
+    }
+
+    private static final BigDecimal FEE_RATE = new BigDecimal("0.001");
+
+    /**
+     * Settlement-aware FIFO sell with fees — ANEMIC style.
+     *
+     * <p>All business logic resides here in the service, NOT in the domain objects.
+     * The domain objects (Portfolio, Holding, Lot) are passive data holders.</p>
+     */
+    @Override
+    public SellResult sellStockWithSettlement(PortfolioId portfolioId, Ticker ticker, ShareQuantity quantity) {
+        Portfolio portfolio = portfolioPort.getPortfolioById(portfolioId)
+                .orElseThrow(() -> new PortfolioNotFoundException(portfolioId.value()));
+
+        if (!quantity.isPositive()) {
+            throw new InvalidQuantityException("Quantity must be positive");
+        }
+
+        // Find the holding — no domain method, service checks manually
+        Holding holding;
+        try {
+            holding = portfolio.getHolding(ticker);
+        } catch (HoldingNotFoundException e) {
+            throw new HoldingNotFoundException("Holding not found in portfolio: " + ticker);
+        }
+
+        StockPrice stockPrice = stockPriceProviderPort.fetchStockPrice(ticker);
+        Price price = stockPrice.price();
+
+        LocalDateTime asOf = LocalDateTime.now();
+
+        // Calculate eligible shares — logic in service, NOT in domain
+        int eligibleShares = 0;
+        for (Lot lot : holding.getLots()) {
+            if (!lot.isEmpty()
+                    && lot.getSettlementDate() != null
+                    && !asOf.isBefore(lot.getSettlementDate())
+                    && !lot.isReserved()) {
+                eligibleShares += lot.getRemainingShares().value();
+            }
+        }
+
+        if (eligibleShares < quantity.value()) {
+            throw new InsufficientEligibleSharesException(
+                    "Not enough eligible (settled + unreserved) shares. Available: "
+                            + eligibleShares + ", Requested: " + quantity);
+        }
+
+        // Calculate fee
+        Money grossProceeds = price.multiply(quantity);
+        BigDecimal feeAmount = grossProceeds.amount().multiply(FEE_RATE);
+        Money fee = Money.of(feeAmount);
+        Money netProceeds = grossProceeds.subtract(fee);
+
+        // Check no negative balance
+        // Note: balance AFTER adding netProceeds should be >= 0
+        // Edge case: if netProceeds is negative (fee > grossProceeds), check balance
+        if (netProceeds.isNegative() && portfolio.getBalance().add(netProceeds).isNegative()) {
+            throw new InsufficientFundsException("Net proceeds after fee would cause negative balance");
+        }
+
+        // FIFO sell — logic in service, NOT in Holding
+        ShareQuantity remainingToSell = quantity;
+        Money costBasis = Money.ZERO;
+
+        for (Lot lot : holding.getLots()) {
+            if (remainingToSell.isZero()) break;
+
+            // Skip unsettled lots
+            if (lot.getSettlementDate() == null || asOf.isBefore(lot.getSettlementDate())) continue;
+            // Skip reserved lots
+            if (lot.isReserved()) continue;
+            // Skip empty lots
+            if (lot.isEmpty()) continue;
+
+            ShareQuantity sharesSold = lot.getRemainingShares().min(remainingToSell);
+            costBasis = costBasis.add(lot.calculateCostBasis(sharesSold));
+            lot.reduce(sharesSold);
+            remainingToSell = remainingToSell.subtract(sharesSold);
+        }
+
+        // Update balance — service does it directly
+        portfolio.deposit(netProceeds);
+
+        SellResult result = SellResult.withFee(grossProceeds, costBasis, fee);
+
+        portfolioPort.savePortfolio(portfolio);
+
+        Transaction transaction = Transaction.createSaleWithFee(
+                portfolioId, ticker, quantity, price,
+                result.proceeds(), result.profit(), result.fee());
+        transactionPort.save(transaction);
+
+        return result;
     }
 }

@@ -77,4 +77,9 @@ public interface PortfolioStockOperationsUseCase {
      * @throws ConflictQuantityException if trying to sell more shares than owned
      */
     SellResult sellStock(PortfolioId portfolioId, Ticker ticker, ShareQuantity quantity);
+
+    /**
+     * Sells shares with settlement-aware FIFO accounting and fees.
+     */
+    SellResult sellStockWithSettlement(PortfolioId portfolioId, Ticker ticker, ShareQuantity quantity);
 }

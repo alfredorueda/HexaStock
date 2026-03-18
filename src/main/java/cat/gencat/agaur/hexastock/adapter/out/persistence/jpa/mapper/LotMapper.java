@@ -10,7 +10,9 @@ public class LotMapper {
                 ShareQuantity.of(jpaEntity.getInitialStocks()),
                 ShareQuantity.of(jpaEntity.getRemaining()),
                 Price.of(jpaEntity.getUnitPrice()),
-                jpaEntity.getPurchasedAt()
+                jpaEntity.getPurchasedAt(),
+                jpaEntity.getSettlementDate(),
+                jpaEntity.isReserved()
         );
     }
 
@@ -20,7 +22,9 @@ public class LotMapper {
                 entity.getInitialShares().value(),
                 entity.getRemainingShares().value(),
                 entity.getUnitPrice().value(),
-                entity.getPurchasedAt()
+                entity.getPurchasedAt(),
+                entity.getSettlementDate(),
+                entity.isReserved()
         );
     }
 }

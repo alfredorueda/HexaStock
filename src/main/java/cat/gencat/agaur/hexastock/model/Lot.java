@@ -14,24 +14,32 @@ import java.util.Objects;
  * It tracks the details of a single stock purchase transaction.</p>
  */
 public class Lot {
+    public static final int SETTLEMENT_DAYS = 2;
+
     private LotId id;
     private ShareQuantity initialShares;
     private ShareQuantity remainingShares;
     private Price unitPrice;
     private LocalDateTime purchasedAt;
+    private LocalDateTime settlementDate;
+    private boolean reserved;
 
     protected Lot() {}
 
     /**
-     * Constructs a Lot with the specified attributes.
-     *
-     * @param id The unique identifier for the lot
-     * @param initialShares The number of shares initially purchased
-     * @param remainingShares The number of shares currently remaining
-     * @param unitPrice The price paid per share
-     * @param purchasedAt The date and time of purchase
+     * Constructs a Lot with the specified attributes (backward-compatible 5-arg).
      */
     public Lot(LotId id, ShareQuantity initialShares, ShareQuantity remainingShares, Price unitPrice, LocalDateTime purchasedAt) {
+        this(id, initialShares, remainingShares, unitPrice, purchasedAt,
+             purchasedAt.plusDays(SETTLEMENT_DAYS), false);
+    }
+
+    /**
+     * Constructs a Lot with settlement date and reservation flag.
+     */
+    public Lot(LotId id, ShareQuantity initialShares, ShareQuantity remainingShares,
+               Price unitPrice, LocalDateTime purchasedAt,
+               LocalDateTime settlementDate, boolean reserved) {
         Objects.requireNonNull(id, "Lot id must not be null");
         Objects.requireNonNull(initialShares, "Initial shares must not be null");
         Objects.requireNonNull(remainingShares, "Remaining shares must not be null");
@@ -43,6 +51,8 @@ public class Lot {
         this.remainingShares = remainingShares;
         this.unitPrice = unitPrice;
         this.purchasedAt = purchasedAt;
+        this.settlementDate = settlementDate;
+        this.reserved = reserved;
     }
 
     /**
@@ -56,7 +66,9 @@ public class Lot {
         if (!quantity.isPositive()) {
             throw new InvalidQuantityException("Quantity must be positive");
         }
-        return new Lot(LotId.generate(), quantity, quantity, unitPrice, LocalDateTime.now());
+        LocalDateTime now = LocalDateTime.now();
+        return new Lot(LotId.generate(), quantity, quantity, unitPrice, now,
+                       now.plusDays(SETTLEMENT_DAYS), false);
     }
 
     /**
@@ -104,6 +116,18 @@ public class Lot {
 
     public boolean isEmpty() {
         return remainingShares.isZero();
+    }
+
+    public LocalDateTime getSettlementDate() {
+        return settlementDate;
+    }
+
+    public boolean isReserved() {
+        return reserved;
+    }
+
+    public void setReserved(boolean reserved) {
+        this.reserved = reserved;
     }
 
     @Override

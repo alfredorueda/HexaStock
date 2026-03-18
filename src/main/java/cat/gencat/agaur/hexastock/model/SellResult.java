@@ -15,18 +15,33 @@ package cat.gencat.agaur.hexastock.model;
  * <p>Think of SellResult as a receipt that shows not just how much you received from
  * selling shares, but also whether you made or lost money compared to what you paid.</p>
  */
-public record SellResult(Money proceeds, Money costBasis, Money profit) {
+public record SellResult(Money proceeds, Money costBasis, Money profit, Money fee) {
 
     /**
      * Creates a SellResult by calculating profit from proceeds and cost basis.
+     * Fee defaults to zero for backward compatibility.
      *
      * @param proceeds The total money received from the sale
      * @param costBasis The original purchase cost of the sold shares
-     * @return A new SellResult with calculated profit
+     * @return A new SellResult with calculated profit and zero fee
      */
     public static SellResult of(Money proceeds, Money costBasis) {
         Money profit = proceeds.subtract(costBasis);
-        return new SellResult(proceeds, costBasis, profit);
+        return new SellResult(proceeds, costBasis, profit, Money.ZERO);
+    }
+
+    /**
+     * Creates a SellResult with an explicit fee, computing profit as netProceeds - costBasis.
+     */
+    public static SellResult withFee(Money proceeds, Money costBasis, Money fee) {
+        Money netProceeds = proceeds.subtract(fee);
+        Money profit = netProceeds.subtract(costBasis);
+        return new SellResult(proceeds, costBasis, profit, fee);
+    }
+
+    /** Net proceeds after fee deduction. */
+    public Money netProceeds() {
+        return proceeds.subtract(fee);
     }
 
     /**

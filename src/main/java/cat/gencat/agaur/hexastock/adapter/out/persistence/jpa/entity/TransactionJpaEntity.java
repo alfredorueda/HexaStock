@@ -75,6 +75,8 @@ public class TransactionJpaEntity {
      * Only applicable for SALE transactions.
      */
     private BigDecimal profit;
+
+    private BigDecimal fee;
     
     /**
      * The timestamp when the transaction occurred.
@@ -167,6 +169,10 @@ public class TransactionJpaEntity {
     public BigDecimal getProfit() {
         return profit;
     }
+
+    public BigDecimal getFee() {
+        return fee;
+    }
     
     /**
      * Returns the timestamp when the transaction occurred.
@@ -190,6 +196,7 @@ public class TransactionJpaEntity {
         private BigDecimal unitPrice;
         private BigDecimal totalAmount;
         private BigDecimal profit;
+        private BigDecimal fee;
         private LocalDateTime createdAt;
 
         public Builder id(String id) { this.id = id; return this; }
@@ -200,6 +207,7 @@ public class TransactionJpaEntity {
         public Builder unitPrice(BigDecimal unitPrice) { this.unitPrice = unitPrice; return this; }
         public Builder totalAmount(BigDecimal totalAmount) { this.totalAmount = totalAmount; return this; }
         public Builder profit(BigDecimal profit) { this.profit = profit; return this; }
+        public Builder fee(BigDecimal fee) { this.fee = fee; return this; }
         public Builder createdAt(LocalDateTime createdAt) { this.createdAt = createdAt; return this; }
 
         public TransactionJpaEntity build() {
@@ -212,6 +220,7 @@ public class TransactionJpaEntity {
             entity.unitPrice = this.unitPrice;
             entity.totalAmount = this.totalAmount;
             entity.profit = this.profit;
+            entity.fee = this.fee;
             entity.createdAt = this.createdAt;
             return entity;
         }
