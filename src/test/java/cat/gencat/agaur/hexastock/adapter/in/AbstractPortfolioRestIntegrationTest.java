@@ -4,8 +4,10 @@ import io.restassured.RestAssured;
 import io.restassured.http.ContentType;
 import io.restassured.response.ValidatableResponse;
 import org.junit.jupiter.api.BeforeEach;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.server.LocalServerPort;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.test.context.ActiveProfiles;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
@@ -35,6 +37,9 @@ abstract class AbstractPortfolioRestIntegrationTest {
 
     @LocalServerPort
     int port;
+
+    @Autowired
+    JdbcTemplate jdbcTemplate;
 
     @BeforeEach
     void setUp() {
@@ -157,5 +162,55 @@ abstract class AbstractPortfolioRestIntegrationTest {
                 .get("/api/portfolios/" + portfolioId + "/transactions")
             .then()
                 .statusCode(200);
+    }
+
+    // ── Settlement test helpers ───────────────────────────────────────────
+
+    /**
+     * Backdates all lot settlement dates for a portfolio so they appear settled.
+     * Uses direct JDBC to bypass JPA session cache.
+     */
+    void settleLots(String portfolioId) {
+        jdbcTemplate.update(
+                "UPDATE lot l JOIN holding h ON l.holding_id = h.id " +
+                "SET l.settlement_date = DATE_SUB(NOW(), INTERVAL 3 DAY) " +
+                "WHERE h.portfolio_id = ?",
+                portfolioId);
+    }
+
+    /** Returns the ID of the first lot for a holding (oldest by purchase date). */
+    String getFirstLotId(String portfolioId, String ticker) {
+        return jdbcTemplate.queryForObject(
+                "SELECT l.id FROM lot l JOIN holding h ON l.holding_id = h.id " +
+                "WHERE h.portfolio_id = ? AND h.ticker = ? " +
+                "ORDER BY l.purchased_at ASC LIMIT 1",
+                String.class, portfolioId, ticker);
+    }
+
+    /** POST reserve-lot and assert 200. */
+    void reserveLot(String portfolioId, String ticker, String lotId) {
+        RestAssured.given()
+                .contentType(ContentType.JSON)
+                .post("/api/portfolios/" + portfolioId + "/holdings/" + ticker + "/lots/" + lotId + "/reserve")
+            .then()
+                .statusCode(200);
+    }
+
+    /** GET eligible shares count for a holding. */
+    int getEligibleSharesCount(String portfolioId, String ticker) {
+        return RestAssured.given()
+                .get("/api/portfolios/" + portfolioId + "/holdings/" + ticker + "/eligible-shares")
+            .then()
+                .statusCode(200)
+                .extract().path("eligible");
+    }
+
+    /** POST aggregate-settlement-sale and return the response. */
+    ValidatableResponse sellWithSettlementAggregate(String portfolioId, String ticker, int quantity) {
+        return RestAssured.given()
+                .contentType(ContentType.JSON)
+                .body(jsonTrade(ticker, quantity))
+                .post("/api/portfolios/" + portfolioId + "/aggregate-settlement-sales")
+            .then();
     }
 }

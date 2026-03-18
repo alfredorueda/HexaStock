@@ -7,15 +7,17 @@ The anemic branch compiles successfully and all 19 domain tests in
 two subtle architectural flaws — the kind of inconsistency that naturally emerges when
 business logic is scattered across services instead of encapsulated in the domain.
 
-The integration tests (`SettlementSellIntegrationTest.java`) pass because they exercise
-the service layer, where the logic was originally written and remains correct.
+The original 5 integration tests pass because they exercise the service layer, where the
+logic was originally written and remains correct. However, **2 new integration tests fail**
+when alternative REST endpoints delegate to the flawed domain methods — proving that the
+inconsistency is not just a unit-test concern but surfaces through real HTTP flows.
 
 | Metric | Rich Model | Anemic Model |
 |--------|-----------|--------------|
 | Domain test compilation | ✅ Compiles | ✅ Compiles |
 | Domain tests (19) | ✅ 19 pass | ❌ 11 pass, **8 fail** |
-| Integration tests (5) | ✅ 5 pass | ✅ 5 pass |
-| Full suite (168 tests) | ✅ All pass | ❌ 160 pass, 8 fail |
+| Integration tests (7) | ✅ 7 pass | ❌ 5 pass, **2 fail** |
+| Full suite (170 tests) | ✅ All pass | ❌ 160 pass, **10 fail** |
 
 ---
 
@@ -126,6 +128,76 @@ These tests do not involve reserved lots or non-zero fees, so the flaws are invi
 | `lotShouldReportSettlementStatus` | `isSettled()` works correctly |
 | `shouldRejectSellWhenFeeExceedsAvailableCash` | Balance check occurs before sell |
 | `shouldUpdateCashBalanceWithNetProceeds` | Balance uses netProceeds (correct); test only checks balance, not profit |
+
+---
+
+## Integration-Level Architectural Failures
+
+The domain-level flaws also surface through REST endpoints that delegate to the domain
+rather than inlining the logic in the service. These are full HTTP round-trip tests using
+Testcontainers (MySQL 8.0.32) and RestAssured.
+
+### DRIFT-REST-01 — Rule Inconsistency: Eligible Shares Ignores Reservation
+
+**Test:** `SettlementSellIntegrationTest$RuleInconsistency.eligibleSharesShouldExcludeReservedLots`
+
+**Endpoint:** `GET /api/v1/portfolios/{id}/holdings/{ticker}/eligible-shares`
+
+**Scenario:**
+1. Create portfolio, deposit $10,000
+2. Buy 10 AAPL, then buy 5 AAPL (two separate lots)
+3. Age all lots via JDBC (backdate `settlement_date` by 3 days)
+4. Reserve the oldest lot (10 shares) via `POST .../lots/{lotId}/reserve`
+5. Query eligible shares via the GET endpoint
+
+**Expected:** 5 (only the unreserved lot)
+**Actual:** 15 (both lots — reservation is ignored)
+
+**Root cause:** The endpoint delegates to `PortfolioStockOperationsService.getEligibleSharesCount()`,
+which calls `holding.getEligibleShares()` → `lot.isAvailableForSale()`. The domain method
+only checks settlement, not the `reserved` flag (Flaw #1). The existing sell endpoint uses
+inline service logic that correctly checks both conditions.
+
+**Why this matters:** A frontend showing "15 shares available to sell" would mislead the user.
+When they attempt to sell 15 via the correct sell endpoint, only 5 would actually be sold —
+the two code paths disagree on business state.
+
+---
+
+### DRIFT-REST-02 — Fee Accounting Drift: Aggregate Sell Breaks Accounting Identity
+
+**Test:** `SettlementSellIntegrationTest$FeeAccountingDrift.aggregateSellShouldMaintainAccountingIdentity`
+
+**Endpoint:** `POST /api/v1/portfolios/{id}/aggregate-settlement-sales`
+
+**Scenario:**
+1. Create portfolio, deposit $10,000
+2. Buy 10 AAPL at $100 (cost basis = $1,000)
+3. Age lots via JDBC
+4. Sell 10 AAPL via the aggregate endpoint (fixed price = $100)
+5. Extract `proceeds`, `costBasis`, `profit`, `fee` from response
+6. Verify accounting identity: `costBasis + profit + fee == proceeds`
+
+**Expected:**
+- Proceeds: $1,000.00
+- Fee: $1.00 (0.1% of $1,000)
+- Profit: −$1.00 (proceeds − fee − costBasis = 1000 − 1 − 1000)
+- Identity: 1000 + (−1) + 1 = 1000 ✅
+
+**Actual:**
+- Proceeds: $1,000.00
+- Fee: $1.00
+- Profit: $0.00 (fee omitted from profit calculation)
+- Identity: 1000 + 0 + 1 = **1001 ≠ 1000** ❌
+
+**Root cause:** The endpoint delegates to `Portfolio.sellWithSettlement()`, which computes
+`profit = grossProceeds − costBasis` without subtracting the fee (Flaw #2). The original
+`sellStockWithSettlement` service method uses `SellResult.withFee()` which correctly deducts
+the fee. Two different sell paths produce different profit values for the same trade.
+
+**Why this matters:** P&L reports generated from the aggregate path would overstate profit
+by the fee amount on every trade. The portfolio balance would be correct (it uses net proceeds),
+but financial statements built from transaction records would not reconcile.
 
 ---
 

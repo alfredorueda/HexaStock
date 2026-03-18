@@ -244,4 +244,76 @@ public class PortfolioStockOperationsService implements PortfolioStockOperations
 
         return result;
     }
+
+    /**
+     * Returns the number of shares eligible for settlement-aware selling.
+     *
+     * <p>This method was added in Sprint 14 to support the eligible-shares
+     * query endpoint. It delegates to the domain's {@code Holding.getEligibleShares()}
+     * convenience method, which was introduced alongside the settlement feature.</p>
+     */
+    @Override
+    public int getEligibleSharesCount(PortfolioId portfolioId, Ticker ticker) {
+        Portfolio portfolio = portfolioPort.getPortfolioById(portfolioId)
+                .orElseThrow(() -> new PortfolioNotFoundException(portfolioId.value()));
+
+        Holding holding = portfolio.getHolding(ticker);
+
+        // Delegates to domain method — added later by a different developer.
+        // The service's own sellStockWithSettlement() uses inline logic that
+        // checks both settlement AND reservation. The domain method may
+        // not perform the same checks.
+        return holding.getEligibleShares(LocalDateTime.now()).value();
+    }
+
+    /**
+     * Reserves a specific lot, preventing it from being included in sales.
+     */
+    @Override
+    public void reserveLot(PortfolioId portfolioId, Ticker ticker, LotId lotId) {
+        Portfolio portfolio = portfolioPort.getPortfolioById(portfolioId)
+                .orElseThrow(() -> new PortfolioNotFoundException(portfolioId.value()));
+
+        portfolio.reserveLot(ticker, lotId);
+        portfolioPort.savePortfolio(portfolio);
+    }
+
+    /**
+     * Settlement-aware sell that delegates to the Portfolio aggregate.
+     *
+     * <p>Added in Sprint 14 as a "cleaner" alternative that uses domain methods
+     * instead of implementing business logic inline. The service still handles
+     * infrastructure concerns (price fetch, persistence, transaction recording).</p>
+     */
+    @Override
+    public SellResult sellStockWithSettlementAggregate(PortfolioId portfolioId, Ticker ticker, ShareQuantity quantity) {
+        Portfolio portfolio = portfolioPort.getPortfolioById(portfolioId)
+                .orElseThrow(() -> new PortfolioNotFoundException(portfolioId.value()));
+
+        if (!quantity.isPositive()) {
+            throw new InvalidQuantityException("Quantity must be positive");
+        }
+
+        StockPrice stockPrice = stockPriceProviderPort.fetchStockPrice(ticker);
+        Price price = stockPrice.price();
+
+        // Compute fee (same formula as original endpoint)
+        Money grossProceeds = price.multiply(quantity);
+        BigDecimal feeAmount = grossProceeds.amount().multiply(FEE_RATE);
+        Money fee = Money.of(feeAmount);
+
+        // Delegate to domain aggregate — the "proper DDD" approach.
+        // This developer believes the domain methods are authoritative,
+        // but they were added later and may differ from the service's inline logic.
+        SellResult result = portfolio.sellWithSettlement(ticker, quantity, price, fee, LocalDateTime.now());
+
+        portfolioPort.savePortfolio(portfolio);
+
+        Transaction transaction = Transaction.createSaleWithFee(
+                portfolioId, ticker, quantity, price,
+                result.proceeds(), result.profit(), result.fee());
+        transactionPort.save(transaction);
+
+        return result;
+    }
 }

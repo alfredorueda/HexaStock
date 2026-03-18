@@ -16,6 +16,7 @@ import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 import java.net.URI;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 /**
@@ -253,5 +254,50 @@ public class PortfolioRestController {
         List<HoldingDTO> lHoldings = reportingUseCase.getHoldingsPerformance(id);
 
         return ResponseEntity.ok(lHoldings);
+    }
+
+    /**
+     * Queries the number of shares eligible for settlement-aware selling.
+     *
+     * <p>GET /api/portfolios/{id}/holdings/{ticker}/eligible-shares</p>
+     *
+     * <p>Added in Sprint 14 to support the pre-sell validation UI.
+     * Uses the domain's eligibility calculation.</p>
+     */
+    @GetMapping("/{id}/holdings/{ticker}/eligible-shares")
+    public ResponseEntity<Map<String, Integer>> getEligibleShares(
+            @PathVariable String id, @PathVariable String ticker) {
+        int count = portfolioStockOperationsUseCase.getEligibleSharesCount(
+                PortfolioId.of(id), Ticker.of(ticker));
+        return ResponseEntity.ok(Map.of("eligible", count));
+    }
+
+    /**
+     * Reserves a specific lot, preventing it from being included in sales.
+     *
+     * <p>POST /api/portfolios/{id}/holdings/{ticker}/lots/{lotId}/reserve</p>
+     */
+    @PostMapping("/{id}/holdings/{ticker}/lots/{lotId}/reserve")
+    public ResponseEntity<Void> reserveLot(
+            @PathVariable String id, @PathVariable String ticker, @PathVariable String lotId) {
+        portfolioStockOperationsUseCase.reserveLot(
+                PortfolioId.of(id), Ticker.of(ticker), LotId.of(lotId));
+        return ResponseEntity.ok().build();
+    }
+
+    /**
+     * Settlement-aware sell using the Portfolio aggregate's domain methods.
+     *
+     * <p>POST /api/portfolios/{id}/aggregate-settlement-sales</p>
+     *
+     * <p>Added in Sprint 14 as a "cleaner" implementation that delegates to the
+     * Portfolio aggregate instead of implementing business logic inline.</p>
+     */
+    @PostMapping("/{id}/aggregate-settlement-sales")
+    public ResponseEntity<SaleResponseDTO> sellStockWithSettlementAggregate(
+            @PathVariable String id, @RequestBody SaleRequestDTO request) {
+        SellResult result = portfolioStockOperationsUseCase.sellStockWithSettlementAggregate(
+                PortfolioId.of(id), Ticker.of(request.ticker()), ShareQuantity.positive(request.quantity()));
+        return ResponseEntity.ok(new SaleResponseDTO(id, request.ticker(), request.quantity(), result));
     }
 }

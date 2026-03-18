@@ -1,5 +1,6 @@
 package cat.gencat.agaur.hexastock.application.port.in;
 
+import cat.gencat.agaur.hexastock.model.LotId;
 import cat.gencat.agaur.hexastock.model.PortfolioId;
 import cat.gencat.agaur.hexastock.model.SellResult;
 import cat.gencat.agaur.hexastock.model.ShareQuantity;
@@ -82,4 +83,25 @@ public interface PortfolioStockOperationsUseCase {
      * Sells shares with settlement-aware FIFO accounting and fees.
      */
     SellResult sellStockWithSettlement(PortfolioId portfolioId, Ticker ticker, ShareQuantity quantity);
+
+    /**
+     * Returns the number of shares eligible for settlement-aware selling.
+     *
+     * <p>Eligible shares are settled (T+2 elapsed) and not reserved.</p>
+     */
+    int getEligibleSharesCount(PortfolioId portfolioId, Ticker ticker);
+
+    /**
+     * Reserves a specific lot, preventing it from being sold.
+     */
+    void reserveLot(PortfolioId portfolioId, Ticker ticker, LotId lotId);
+
+    /**
+     * Settlement-aware sell using the Portfolio aggregate's domain methods.
+     *
+     * <p>Added in Sprint 14 as a "refactored" version that delegates to the
+     * domain aggregate instead of implementing business logic inline in the
+     * service. Intended to be the "cleaner, domain-driven" approach.</p>
+     */
+    SellResult sellStockWithSettlementAggregate(PortfolioId portfolioId, Ticker ticker, ShareQuantity quantity);
 }
