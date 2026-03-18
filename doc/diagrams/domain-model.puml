@@ -1,0 +1,79 @@
+@startuml domain-model
+!theme plain
+skinparam defaultFontSize 11
+skinparam classAttributeIconSize 0
+title Domain Model — Portfolio Aggregate
+
+class Portfolio <<Aggregate Root>> {
+    -id: PortfolioId
+    -ownerName: String
+    -balance: Money
+    -createdAt: LocalDateTime
+    -holdings: Map<Ticker, Holding>
+    +buy(Ticker, ShareQuantity, Price): void
+    +sell(Ticker, ShareQuantity, Price): SellResult
+    +sellWithSettlement(...): SellResult
+    +reserveLot(Ticker, LotId): void
+    +unreserveLot(Ticker, LotId): void
+    +deposit(Money): void
+    +withdraw(Money): void
+}
+
+class Holding <<Entity>> {
+    -id: HoldingId
+    -ticker: Ticker
+    -lots: List<Lot>
+    +buy(ShareQuantity, Price): void
+    +sell(ShareQuantity, Price): SellResult
+    +sellSettled(ShareQuantity, Price, LocalDateTime): SellResult
+    +getEligibleShares(LocalDateTime): ShareQuantity
+    +getTotalShares(): ShareQuantity
+    +findLotById(LotId): Lot
+}
+
+class Lot <<Entity>> {
+    -id: LotId
+    -initialShares: ShareQuantity
+    -remainingShares: ShareQuantity
+    -unitPrice: Price
+    -purchasedAt: LocalDateTime
+    -settlementDate: LocalDateTime
+    -reserved: boolean
+    +isSettled(LocalDateTime): boolean
+    +isAvailableForSale(LocalDateTime): boolean
+    +availableShares(LocalDateTime): ShareQuantity
+    +reduce(ShareQuantity): void
+    +reserve(): void
+    +unreserve(): void
+    +calculateCostBasis(ShareQuantity): Money
+}
+
+class SellResult <<Value Object>> {
+    +proceeds: Money
+    +costBasis: Money
+    +profit: Money
+    +fee: Money
+    {static} +of(Money, Money): SellResult
+    {static} +withFee(Money, Money, Money): SellResult
+    +netProceeds(): Money
+}
+
+Portfolio "1" *-- "0..*" Holding : contains
+Holding "1" *-- "1..*" Lot : contains (FIFO ordered)
+Holding ..> SellResult : returns
+Portfolio ..> SellResult : returns
+
+note right of Portfolio
+  Aggregate boundary:
+  All access goes through Portfolio.
+  Invariants enforced at this level.
+end note
+
+note bottom of Lot
+  **T+2 Settlement Rule:**
+  settlementDate = purchasedAt + 2 days
+  
+  **Availability = settled AND not reserved**
+end note
+
+@enduml

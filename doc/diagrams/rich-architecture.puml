@@ -1,0 +1,52 @@
+@startuml rich-architecture
+!theme plain
+skinparam componentStyle rectangle
+skinparam defaultFontSize 12
+title Rich Domain Model — Architecture
+
+package "Primary Adapter" <<Rectangle>> #E8F5E9 {
+    [PortfolioRestController] as ctrl
+}
+
+package "Application Layer" <<Rectangle>> #E3F2FD {
+    [PortfolioStockOperationsService] as svc
+    note bottom of svc
+      Thin orchestrator:
+      load → delegate → persist
+    end note
+}
+
+package "Domain Model (Aggregate)" <<Rectangle>> #FFF3E0 {
+    [Portfolio] as portfolio
+    [Holding] as holding
+    [Lot] as lot
+    [SellResult] as result
+
+    note bottom of portfolio
+      **All business logic here:**
+      • sellWithSettlement()
+      • reserveLot() / unreserveLot()
+      • buy() / sell()
+      • Balance validation
+    end note
+
+    note bottom of lot
+      isAvailableForSale():
+        isSettled(asOf) && !reserved
+    end note
+}
+
+package "Secondary Adapters" <<Rectangle>> #FCE4EC {
+    [JpaPortfolioRepository] as repo
+    [FinhubStockPriceAdapter] as price
+}
+
+ctrl --> svc : uses port
+svc --> portfolio : delegates to aggregate
+portfolio --> holding : navigates
+holding --> lot : FIFO iteration
+holding --> result : returns
+svc --> repo : saves/loads
+svc --> price : fetches price
+
+@enduml

@@ -1,0 +1,52 @@
+@startuml invariant-enforcement
+!theme plain
+skinparam defaultFontSize 11
+title Invariant Enforcement — Rich vs Anemic
+
+rectangle "Rich Domain Model" #E8F5E9 {
+    card "Lot.isAvailableForSale()" as rich_lot #C8E6C9 {
+        card "isSettled(asOf) && !reserved" as rich_check
+    }
+    card "Portfolio.sellWithSettlement()" as rich_sell #C8E6C9 {
+        card "profit = netProceeds − costBasis" as rich_profit
+    }
+    card "Holding.getEligibleShares()" as rich_eligible #C8E6C9 {
+        card "Σ lot.availableShares(asOf)" as rich_sum
+    }
+    card "Service.sellStockWithSettlement()" as rich_svc #B2DFDB {
+        card "Delegates to portfolio.sellWithSettlement()" as rich_delegate
+    }
+
+    rich_svc --> rich_sell : delegates
+    rich_sell --> rich_eligible : validates count
+    rich_eligible --> rich_lot : queries availability
+}
+
+rectangle "Anemic Domain Model" #FFEBEE {
+    card "Lot.isAvailableForSale()" as anemic_lot #FFCDD2 {
+        card "isSettled(asOf)" as anemic_check #FF8A80
+        note bottom: **Missing: && !reserved**
+    }
+    card "Portfolio.sellWithSettlement()" as anemic_sell #FFCDD2 {
+        card "profit = proceeds − costBasis" as anemic_profit #FF8A80
+        note bottom: **Missing: − fee**
+    }
+    card "Service.sellStockWithSettlement()" as anemic_svc #B2DFDB {
+        card "Inline: settled && !reserved\nprofit via SellResult.withFee()" as anemic_inline
+    }
+    card "Service.getEligibleSharesCount()" as anemic_query #FFCDD2 {
+        card "Delegates to holding.getEligibleShares()" as anemic_delegate
+    }
+
+    anemic_svc -[hidden]-> anemic_sell
+    anemic_query --> anemic_lot : uses flawed domain
+    anemic_sell --> anemic_lot : uses flawed domain
+}
+
+note bottom of anemic_svc
+  Service has CORRECT logic inline
+  but **two new endpoints** delegate
+  to domain methods that DRIFT.
+end note
+
+@enduml
