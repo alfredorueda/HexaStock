@@ -1,5 +1,6 @@
 [![Build Status](https://github.com/alfredorueda/HexaStock/workflows/CI/badge.svg)](https://github.com/alfredorueda/HexaStock/actions)
-[![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=alfredorueda_HexaStock&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=alfredorueda_HexaStock)
+
+[![Quality Gate](https://sonarcloud.io/api/project_badges/quality_gate?project=alfredorueda_HexaStock)](https://sonarcloud.io/summary/new_code?id=alfredorueda_HexaStock) [![Security Rating](https://sonarcloud.io/api/project_badges/measure?project=alfredorueda_HexaStock&metric=security_rating)](https://sonarcloud.io/summary/new_code?id=alfredorueda_HexaStock) [![Reliability Rating](https://sonarcloud.io/api/project_badges/measure?project=alfredorueda_HexaStock&metric=reliability_rating)](https://sonarcloud.io/summary/new_code?id=alfredorueda_HexaStock) [![Maintainability Rating](https://sonarcloud.io/api/project_badges/measure?project=alfredorueda_HexaStock&metric=sqale_rating)](https://sonarcloud.io/summary/new_code?id=alfredorueda_HexaStock)
 
 # HexaStock
 
