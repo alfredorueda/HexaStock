@@ -1,141 +1,162 @@
-# Anemic Domain Model — Compilation Failures Report
+# Anemic Domain Model — Test Failures Report
 
 ## Summary
 
-When the **same domain-level tests** (`SettlementAwareSellTest.java`) from the rich branch are
-applied to the anemic branch, they produce **33 compilation errors** across **19 test methods**.
-All errors are of type `cannot find symbol` — the tests call behavioral methods that simply
-**do not exist** on the anemic domain objects.
+The anemic branch compiles successfully and all 19 domain tests in
+`SettlementAwareSellTest.java` execute. However, **8 out of 19 tests fail** due to
+two subtle architectural flaws — the kind of inconsistency that naturally emerges when
+business logic is scattered across services instead of encapsulated in the domain.
 
-The integration tests (`SettlementSellIntegrationTest.java`) compile and pass because they invoke
-the REST API, which routes through `PortfolioStockOperationsService` where the logic actually lives.
+The integration tests (`SettlementSellIntegrationTest.java`) pass because they exercise
+the service layer, where the logic was originally written and remains correct.
 
----
-
-## Missing Methods (8 methods across 3 classes)
-
-| Class | Missing Method | Errors | Purpose in Rich Model |
-|-------|---------------|--------|-----------------------|
-| `Portfolio` | `sellWithSettlement(Ticker, ShareQuantity, Price, Money, LocalDateTime)` | 14 | Orchestrates FIFO sell with settlement & fee logic |
-| `Holding` | `getEligibleShares(LocalDateTime)` | 6 | Counts settled, non-reserved shares |
-| `Portfolio` | `reserveLot(Ticker, LotId)` | 5 | Marks a lot as reserved (concurrency guard) |
-| `Lot` | `isSettled(LocalDateTime)` | 3 | Checks if T+2 settlement has elapsed |
-| `Lot` | `isAvailableForSale(LocalDateTime)` | 2 | settled AND not reserved |
-| `Lot` | `reserve()` | 1 | Sets reserved flag with guard |
-| `Lot` | `availableShares(LocalDateTime)` | 1 | Returns shares if available, else 0 |
-| `Portfolio` | `unreserveLot(Ticker, LotId)` | 1 | Clears reserved flag |
+| Metric | Rich Model | Anemic Model |
+|--------|-----------|--------------|
+| Domain test compilation | ✅ Compiles | ✅ Compiles |
+| Domain tests (19) | ✅ 19 pass | ❌ 11 pass, **8 fail** |
+| Integration tests (5) | ✅ 5 pass | ✅ 5 pass |
+| Full suite (168 tests) | ✅ All pass | ❌ 160 pass, 8 fail |
 
 ---
 
-## Affected Test Methods
+## Architectural Flaws
 
-All 19 domain tests fail to compile. Below is the mapping of each test to the missing methods it calls.
+### Flaw 1 — Reservation Rule Drift
 
-### Nested class: `SettlementFiltering`
+**Location:** `Lot.isAvailableForSale(LocalDateTime)`
 
-| # | Test Method | Lines with Errors | Missing Methods Called |
-|---|------------|-------------------|----------------------|
-| 1 | `shouldNotSellUnsettledLots` | 97 | `Portfolio.sellWithSettlement()` |
-| 2 | `shouldSellExactlySettledQuantity` | 108 | `Portfolio.sellWithSettlement()` |
-| 3 | `shouldReportEligibleSharesCorrectly` | 129 | `Holding.getEligibleShares()` |
-| 4 | `shouldSkipReservedLots` | 152, 156 | `Portfolio.reserveLot()`, `Portfolio.sellWithSettlement()` |
-| 5 | `shouldSellFromNonReservedLots` | 169, 172 | `Portfolio.reserveLot()`, `Portfolio.sellWithSettlement()` |
-| 6 | `shouldAllowUnreservingLot` | 195, 196, 198, 199 | `Portfolio.reserveLot()`, `Holding.getEligibleShares()`, `Portfolio.unreserveLot()`, `Holding.getEligibleShares()` |
+In the rich model, `isAvailableForSale()` enforces both invariants:
 
-### Nested class: `FeeCalculation`
+```java
+// Rich model — correct
+public boolean isAvailableForSale(LocalDateTime asOf) {
+    return isSettled(asOf) && !reserved;
+}
+```
 
-| # | Test Method | Lines with Errors | Missing Methods Called |
-|---|------------|-------------------|----------------------|
-| 7 | `shouldDeductFeeFromProceeds` | 218 | `Portfolio.sellWithSettlement()` |
-| 8 | `shouldMaintainAccountingIdentity` | 240 | `Portfolio.sellWithSettlement()` |
-| 9 | `shouldRejectSellWhenFeeExceedsAvailableCash` | 270 | `Portfolio.sellWithSettlement()` |
-| 10 | `shouldUpdateCashBalanceWithNetProceeds` | 282 | `Portfolio.reserveLot()`, `Portfolio.sellWithSettlement()` |
+In the anemic model, the method was added in a later sprint. The developer copied the
+settlement check from the service but forgot the reservation check:
 
-### Nested class: `FifoOrder`
+```java
+// Anemic model — BUG: forgets reservation flag
+public boolean isAvailableForSale(LocalDateTime asOf) {
+    return isSettled(asOf);
+    //  ↑ Missing: && !reserved
+}
+```
 
-| # | Test Method | Lines with Errors | Missing Methods Called |
-|---|------------|-------------------|----------------------|
-| 11 | `shouldConsumeSettledLotsInFifoOrder` | 309 | `Portfolio.sellWithSettlement()` |
-| 12 | `shouldSkipUnsettledLotInFifoOrder` | 331 | `Portfolio.sellWithSettlement()` |
+This is realistic: the service's `sellStockWithSettlement()` correctly checks both
+`!asOf.isBefore(lot.getSettlementDate())` and `!lot.isReserved()`, but when a
+convenience method was later added to `Lot`, the second condition was omitted.
+The service still works because it uses its own inline check — the domain method
+was never actually called by the service. It only surfaces when tests call the
+domain method directly.
 
-### Nested class: `EdgeCases`
+**Cascading effect:** `Holding.getEligibleShares()` and `Holding.sellSettled()` both
+delegate to `lot.availableShares()` → `lot.isAvailableForSale()`, so they also ignore
+reservations.
 
-| # | Test Method | Lines with Errors | Missing Methods Called |
-|---|------------|-------------------|----------------------|
-| 13 | `shouldPartiallyConsumeLot` | 357 | `Portfolio.reserveLot()`, `Holding.getEligibleShares()` |
-| 14 | `shouldDistinguishTotalFromEligible` | 383, 386, 387 | `Holding.getEligibleShares()`, `Portfolio.reserveLot()`, `Holding.getEligibleShares()` |
-| 15 | `shouldRejectZeroQuantitySell` | 396 | `Portfolio.sellWithSettlement()` |
-| 16 | `shouldRejectSellForNonExistentHolding` | 405 | `Portfolio.sellWithSettlement()` |
+**Tests affected (5):**
 
-### Nested class: `LotBehavior`
+| Test | Expected | Actual | Root Cause |
+|------|----------|--------|-----------|
+| `reservedLotShouldNotBeAvailable` | `isAvailableForSale` = false after reserve | true | Reservation not checked |
+| `shouldSkipReservedLots` | Exception: only 5 eligible | No exception: 15 eligible | Reserved lot counted |
+| `shouldSellFromNonReservedLots` | costBasis = 600 (from lot2) | 500 (from lot1) | Sold from reserved lot |
+| `shouldAllowUnreservingLot` | 0 eligible after reserve | 10 eligible | Reservation has no effect |
+| `shouldDistinguishTotalFromEligible` | 0 eligible after reserve | 10 eligible | Reservation has no effect |
 
-| # | Test Method | Lines with Errors | Missing Methods Called |
-|---|------------|-------------------|----------------------|
-| 17 | `lotShouldReportSettlementStatus` | 429, 431, 433 | `Lot.isSettled()` ×3 |
-| 18 | `reservedLotShouldNotBeAvailable` | 446, 447, 448, 449 | `Lot.isAvailableForSale()`, `Lot.reserve()`, `Lot.isAvailableForSale()`, `Lot.availableShares()` |
+---
 
-### Nested class: `AtomicConsistency`
+### Flaw 2 — Fee Calculation Inconsistency
 
-| # | Test Method | Lines with Errors | Missing Methods Called |
-|---|------------|-------------------|----------------------|
-| 19 | `fullScenarioAtomicCorrectness` | 478, 481, 487 | `Portfolio.reserveLot()`, `Holding.getEligibleShares()`, `Portfolio.sellWithSettlement()` |
+**Location:** `Portfolio.sellWithSettlement()`
+
+The profit formula omits the fee deduction. The developer correctly implemented the
+balance update (`balance += netProceeds`) but computed profit from gross proceeds:
+
+```java
+// Anemic model — BUG: profit ignores fee
+Money profit = grossProceeds.subtract(costBasis);
+//  ↑ Should be: grossProceeds.subtract(fee).subtract(costBasis)
+```
+
+This breaks the accounting identity: `costBasis + profit + fee = proceeds`.
+
+| Component | Correct | Buggy |
+|-----------|---------|-------|
+| Gross proceeds | $1200 | $1200 |
+| Fee | $5 | $5 |
+| Net proceeds | $1195 | $1195 |
+| Cost basis | $1000 | $1000 |
+| Profit | **$195** | **$200** (5 too high) |
+| Identity check | 1000 + 195 + 5 = 1200 ✅ | 1000 + 200 + 5 = 1205 ≠ 1200 ❌ |
+
+**Tests affected (2 + 1 combined):**
+
+| Test | Expected | Actual | Root Cause |
+|------|----------|--------|-----------|
+| `shouldDeductFeeFromProceeds` | profit = 195.00 | 200.00 | Fee omitted from profit |
+| `shouldMaintainAccountingIdentity` | identity holds | 1512.00 ≠ 1500.00 | Identity broken |
+
+---
+
+### Combined Failure
+
+| Test | Flaws Triggered |
+|------|----------------|
+| `fullScenarioAtomicCorrectness` | Flaw 1 (eligible = 18, expected 13) + Flaw 2 (profit wrong) |
+
+---
+
+## Passing Tests (11)
+
+These tests do not involve reserved lots or non-zero fees, so the flaws are invisible:
+
+| Test | Why It Passes |
+|------|--------------|
+| `shouldNotSellUnsettledLots` | Settlement check works correctly |
+| `shouldSellExactlySettledQuantity` | No reserved lots, fee = 0 |
+| `shouldReportEligibleSharesCorrectly` | No reserved lots |
+| `shouldConsumeSettledLotsInFifoOrder` | FIFO works, no reserved lots, fee = 0 |
+| `shouldSkipUnsettledLotInFifoOrder` | Settlement gate correct, fee = 0 |
+| `shouldPartiallyConsumeLot` | No reserved lots, fee = 0 |
+| `shouldRejectZeroQuantitySell` | Basic validation |
+| `shouldRejectSellForNonExistentHolding` | Basic validation |
+| `lotShouldReportSettlementStatus` | `isSettled()` works correctly |
+| `shouldRejectSellWhenFeeExceedsAvailableCash` | Balance check occurs before sell |
+| `shouldUpdateCashBalanceWithNetProceeds` | Balance uses netProceeds (correct); test only checks balance, not profit |
 
 ---
 
 ## Root Cause Analysis
 
-In the **anemic model**, domain objects are pure data carriers:
+Both flaws share a common root cause: **duplicated logic with subtle divergence**.
 
-```java
-// Anemic Lot — has data but no behavior
-public class Lot {
-    private LocalDateTime settlementDate;
-    private boolean reserved;
+In the anemic model, business rules exist in two places:
 
-    public LocalDateTime getSettlementDate() { return settlementDate; }
-    public boolean isReserved() { return reserved; }
-    public void setReserved(boolean reserved) { this.reserved = reserved; }
-    // NO isSettled(), isAvailableForSale(), availableShares(), reserve()
-}
-```
+1. **The service** (`PortfolioStockOperationsService.sellStockWithSettlement()`) — the original,
+   correct implementation that manually iterates lots, checks settlement AND reservation,
+   and computes fees correctly.
 
-All business logic lives in `PortfolioStockOperationsService.sellStockWithSettlement()`, which
-manually iterates lots, checks dates, and mutates state — breaking encapsulation and making
-domain-level unit testing impossible.
+2. **The domain objects** (`Lot.isAvailableForSale()`, `Portfolio.sellWithSettlement()`) —
+   convenience methods added later that duplicate the logic but drift from the source of truth.
 
-In the **rich model**, the same operations are encapsulated in the aggregate:
+In the rich model, there is only one place for each rule — the domain object itself.
+The service delegates to the domain, so there is no duplication and no drift.
 
-```java
-// Rich Lot — encapsulates settlement invariants
-public class Lot {
-    public boolean isSettled(LocalDateTime now) {
-        return !now.isBefore(settlementDate);
-    }
-    public boolean isAvailableForSale(LocalDateTime now) {
-        return isSettled(now) && !reserved;
-    }
-    public int availableShares(LocalDateTime now) {
-        return isAvailableForSale(now) ? remainingQuantity : 0;
-    }
-    public void reserve() {
-        if (reserved) throw new IllegalStateException("Lot already reserved");
-        this.reserved = true;
-    }
-}
-```
+This is the **fundamental weakness of the anemic pattern**: when logic is not owned by the
+domain, any attempt to add domain-level queries or operations risks creating an inconsistent
+copy. The service remains correct while the domain silently diverges.
 
 ---
 
-## Conclusion
+## How This Would Manifest in Production
 
-The 33 compilation errors are not bugs — they are **proof that an anemic domain model
-cannot be tested at the domain level**. The only way to test settlement-aware selling
-on the anemic branch is through integration tests that exercise the service layer,
-which defeats the purpose of fast, isolated domain testing.
+1. **Reservation drift**: A UI that calls `getEligibleShares()` to display available quantity
+   would show reserved lots as sellable. When the user tries to sell via the service, fewer
+   shares would be available than displayed — causing confusing runtime errors.
 
-| Metric | Rich Model | Anemic Model |
-|--------|-----------|--------------|
-| Domain test compilation | ✅ Compiles | ❌ 33 errors |
-| Domain tests run | ✅ 19/19 pass | ❌ Cannot run |
-| Integration tests | ✅ 5/5 pass | ✅ 5/5 pass |
-| Full suite (168 tests) | ✅ All pass | ❌ Cannot compile tests |
+2. **Fee drift**: Reports generated from `SellResult.profit()` would overstate gains by the
+   fee amount. The actual cash balance would be correct (net proceeds), but P&L reports
+   would not reconcile with bank statements.

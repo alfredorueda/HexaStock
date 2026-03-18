@@ -4,7 +4,8 @@
 
 Both branches implement identical external behavior: a `POST /{id}/settlement-sales` endpoint
 that sells shares respecting T+2 settlement, lot reservation, FIFO ordering, and 0.1% fee
-deduction. The difference is **where** the business logic lives.
+deduction. The difference is **where** the business logic lives — and what happens when the
+same logic is needed in a second place.
 
 ---
 
@@ -21,6 +22,7 @@ deduction. The difference is **where** the business logic lives.
 │                                       └── Lot.reserve()            │
 │                                                                     │
 │  Domain objects ENFORCE invariants. Service only coordinates.       │
+│  ➤ Single source of truth for every business rule.                 │
 └─────────────────────────────────────────────────────────────────────┘
 
 ┌─────────────────────────────────────────────────────────────────────┐
@@ -35,101 +37,102 @@ deduction. The difference is **where** the business logic lives.
 │                    ├── computes fees                                │
 │                    └── updates balance                              │
 │                                                                     │
-│  Domain objects are DATA BAGS. Service contains ALL logic.          │
+│  Domain objects have CONVENIENCE METHODS added later, but they     │
+│  duplicate the service logic and drift out of sync silently.        │
+│  ➤ Two sources of truth → inconsistency.                           │
 └─────────────────────────────────────────────────────────────────────┘
 ```
 
 ---
 
-## Lines of Code
+## The Drift Problem
 
-| File | Rich Model | Anemic Model | Delta |
-|------|-----------|-------------|-------|
-| `Lot.java` | 190 | 144 | -46 (no behavioral methods) |
-| `Holding.java` | 200 | 135 | -65 (no settlement queries) |
-| `Portfolio.java` | 376 | 280 | -96 (no sell orchestration) |
-| **Domain total** | **766** | **559** | **-207** |
-| `PortfolioStockOperationsService.java` | 178 | 247 | **+69** (all logic moved here) |
-| **Net change** | **944** | **806** | **-138** |
+In the anemic model, the service (`PortfolioStockOperationsService`) was written first with
+correct logic. Later, convenience methods were added to domain objects for testability and
+reuse. But because the service is the source of truth and never calls the domain methods,
+the duplicated logic drifted:
 
-The anemic model has fewer total lines, but the **distribution** is the problem: domain objects
-are hollow data structures while the service is bloated with business logic.
+| Rule | Service (correct) | Domain Object (drifted) |
+|------|-------------------|------------------------|
+| Lot available for sale | `!asOf.isBefore(lot.getSettlementDate()) && !lot.isReserved()` | `Lot.isAvailableForSale()` checks settlement only, forgets reservation |
+| Profit formula | Computed correctly via `SellResult.withFee()` | `Portfolio.sellWithSettlement()` computes `proceeds − costBasis`, omits fee |
+
+This is the fundamental risk: **when logic is not owned by the domain, copies diverge**.
 
 ---
 
-## Code Comparison: Selling with Settlement
+## Test Results
 
-### Rich Model — `Portfolio.sellWithSettlement()`
+| Test Suite | Rich Model | Anemic Model |
+|-----------|-----------|--------------|
+| Domain tests (19) | ✅ 19/19 pass | ❌ 11 pass, **8 fail** |
+| Integration tests (5) | ✅ 5/5 pass | ✅ 5/5 pass |
+| All other tests (144) | ✅ All pass | ✅ All pass |
+| **Total (168)** | **✅ 168 pass** | **❌ 160 pass, 8 fail** |
+
+The 8 failures break down as:
+- **5 from Flaw 1** (Reservation Rule Drift): reserved lots treated as available
+- **2 from Flaw 2** (Fee Calculation Inconsistency): profit overstated by fee amount
+- **1 from both**: combined scenario catches both flaws
+
+See [FAILURES.md](FAILURES.md) for detailed failure analysis.
+
+---
+
+## Code Comparison: Lot Availability
+
+### Rich Model — Single Source of Truth
 
 ```java
-// Portfolio.java (rich)
-public SellResult sellWithSettlement(Ticker ticker, ShareQuantity qty,
-                                      Price currentPrice, Money currentCash,
-                                      LocalDateTime asOf) {
-    Holding h = findHolding(ticker);
-    ShareQuantity eligible = h.getEligibleShares(asOf);  // domain query
-    if (eligible.compareTo(qty) < 0)
-        throw new InsufficientEligibleSharesException(ticker, qty, eligible);
-
-    SellResult result = h.sellSettled(qty, currentPrice, asOf);  // domain op
-    Money fee = result.proceeds().multiply(FEE_RATE);
-    SellResult withFee = SellResult.withFee(result.proceeds(), result.costBasis(),
-                                             result.profit(), fee);
-    Money netProceeds = withFee.netProceeds();
-    if (currentCash.compareTo(fee) < 0)
-        throw new InsufficientCashForFeeException(fee, currentCash);
-
-    deposit(netProceeds);
-    transactions.add(Transaction.createSaleWithFee(...));
-    return withFee;
+// Lot.java (rich) — THE authoritative check
+public boolean isAvailableForSale(LocalDateTime asOf) {
+    return isSettled(asOf) && !reserved;
 }
 ```
 
-### Anemic Model — `PortfolioStockOperationsService.sellStockWithSettlement()`
+Holding and Portfolio delegate to this method. There is no duplication.
+
+### Anemic Model — Duplicated Logic That Drifted
 
 ```java
-// PortfolioStockOperationsService.java (anemic)
-public SaleResponseDTO sellStockWithSettlement(PortfolioId id, Ticker ticker,
-                                                ShareQuantity qty, LocalDateTime asOf) {
-    Portfolio portfolio = loadPortfolio(id);
-    Price price = stockPricePort.getStockPrice(ticker).price();
-    Holding holding = findHolding(portfolio, ticker);
-
-    // Eligibility check — logic that should be in domain
-    int eligible = 0;
-    for (Lot lot : holding.getLots()) {
-        if (!asOf.isBefore(lot.getSettlementDate()) && !lot.isReserved()) {
-            eligible += lot.getRemainingShares().value();
-        }
-    }
-    if (eligible < qty.value())
-        throw new InsufficientEligibleSharesException(ticker, qty,
-                                                       new ShareQuantity(eligible));
-
-    // FIFO sell — logic that should be in domain
-    int remaining = qty.value();
-    Money costBasis = Money.ZERO;
-    for (Lot lot : holding.getLots()) {
-        if (remaining <= 0) break;
-        if (asOf.isBefore(lot.getSettlementDate()) || lot.isReserved()) continue;
-        int sellable = Math.min(lot.getRemainingShares().value(), remaining);
-        costBasis = costBasis.add(lot.getUnitPrice().toMoney().multiply(
-                        new BigDecimal(sellable)));
-        lot.reduce(new ShareQuantity(sellable));
-        remaining -= sellable;
-    }
-
-    // Fee calculation — logic that should be in domain
-    Money proceeds = price.toMoney().multiply(new BigDecimal(qty.value()));
-    Money fee = proceeds.multiply(FEE_RATE);
-    Money netProceeds = proceeds.subtract(fee);
-
-    if (portfolio.getBalance().compareTo(fee) < 0)
-        throw new InsufficientCashForFeeException(fee, portfolio.getBalance());
-
-    portfolio.deposit(netProceeds);
-    // ... create transaction, persist, return DTO
+// Lot.java (anemic) — convenience method added later
+public boolean isAvailableForSale(LocalDateTime asOf) {
+    return isSettled(asOf);
+    // ↑ reservation check omitted — developer forgot
 }
+
+// PortfolioStockOperationsService.java — original, correct logic
+for (Lot lot : holding.getLots()) {
+    if (!asOf.isBefore(lot.getSettlementDate()) && !lot.isReserved()) {
+        eligibleShares += lot.getRemainingShares().value();
+    }
+}
+```
+
+The service is correct, but anyone using `lot.isAvailableForSale()` gets wrong answers.
+
+---
+
+## Code Comparison: Fee Handling
+
+### Rich Model — Fee Integrated in Domain
+
+```java
+// Portfolio.java (rich)
+SellResult result = holding.sellSettled(qty, price, asOf);
+return SellResult.withFee(result.proceeds(), result.costBasis(), fee);
+// withFee() correctly computes: profit = (proceeds - fee) - costBasis
+```
+
+### Anemic Model — Fee Added Inconsistently
+
+```java
+// Portfolio.java (anemic) — convenience method added later
+Money profit = grossProceeds.subtract(costBasis);
+// ↑ BUG: should be grossProceeds.subtract(fee).subtract(costBasis)
+balance = balance.add(netProceeds);  // ← balance is correct
+return new SellResult(grossProceeds, costBasis, profit, fee);
+// Profit is wrong, but balance is right — inconsistency is hard to spot
 ```
 
 ---
@@ -139,58 +142,64 @@ public SaleResponseDTO sellStockWithSettlement(PortfolioId id, Ticker ticker,
 ### `Lot` — Settlement & Reservation
 
 | Capability | Rich Model | Anemic Model |
-|-----------|-----------|-------------|
-| Is lot settled? | `lot.isSettled(asOf)` | `!asOf.isBefore(lot.getSettlementDate())` — inline in service |
-| Is lot available? | `lot.isAvailableForSale(asOf)` | `!asOf.isBefore(lot.getSettlementDate()) && !lot.isReserved()` — inline in service |
-| Available shares | `lot.availableShares(asOf)` | `lot.isAvailableForSale(asOf) ? lot.getRemainingShares() : 0` — inline in service |
-| Reserve lot | `lot.reserve()` — with guard | `lot.setReserved(true)` — no guard |
-| Unreserve lot | `lot.unreserve()` | `lot.setReserved(false)` |
+|-----------|-----------|--------------|
+| Is lot settled? | `lot.isSettled(asOf)` | `lot.isSettled(asOf)` — same |
+| Is lot available? | `lot.isAvailableForSale(asOf)` — checks settled + !reserved | `lot.isAvailableForSale(asOf)` — ⚠️ checks settled only |
+| Available shares | `lot.availableShares(asOf)` | `lot.availableShares(asOf)` — ⚠️ uses flawed availability check |
+| Reserve lot | `lot.reserve()` — with guard | `lot.reserve()` — simple flag set |
 
 ### `Holding` — Eligibility Queries
 
 | Capability | Rich Model | Anemic Model |
-|-----------|-----------|-------------|
-| Eligible shares | `holding.getEligibleShares(asOf)` | Manual loop in service iterating lots |
-| Settled FIFO sell | `holding.sellSettled(qty, price, asOf)` | Manual loop + reduce in service |
-| Find lot by ID | `holding.findLotById(lotId)` | Manual stream filter in service |
+|-----------|-----------|--------------|
+| Eligible shares | `holding.getEligibleShares(asOf)` — correct | `holding.getEligibleShares(asOf)` — ⚠️ includes reserved lots |
+| Settled FIFO sell | `holding.sellSettled(qty, price, asOf)` — correct | `holding.sellSettled(qty, price, asOf)` — ⚠️ sells reserved lots |
+| Find lot by ID | `holding.findLotById(lotId)` | `holding.findLotById(lotId)` — same |
 
 ### `Portfolio` — Aggregate Operations
 
 | Capability | Rich Model | Anemic Model |
-|-----------|-----------|-------------|
-| Sell with settlement | `portfolio.sellWithSettlement(...)` | `service.sellStockWithSettlement(...)` |
-| Reserve lot | `portfolio.reserveLot(ticker, lotId)` | `service` does `lot.setReserved(true)` |
-| Unreserve lot | `portfolio.unreserveLot(ticker, lotId)` | `service` does `lot.setReserved(false)` |
+|-----------|-----------|--------------|
+| Sell with settlement | `portfolio.sellWithSettlement(...)` — correct | `portfolio.sellWithSettlement(...)` — ⚠️ profit ignores fee |
+| Reserve lot | `portfolio.reserveLot(ticker, lotId)` | `portfolio.reserveLot(ticker, lotId)` — same |
+| Unreserve lot | `portfolio.unreserveLot(ticker, lotId)` | `portfolio.unreserveLot(ticker, lotId)` — same |
 
 ---
 
 ## Invariant Protection
 
 | Invariant | Rich Model | Anemic Model |
-|-----------|-----------|-------------|
-| Cannot sell unsettled lots | Enforced in `Holding.sellSettled()` | Checked in service — can be bypassed |
-| Cannot sell reserved lots | Enforced in `Lot.isAvailableForSale()` | Checked in service — can be bypassed |
-| Cannot double-reserve a lot | `lot.reserve()` throws if already reserved | `lot.setReserved(true)` — silently overwrites |
-| Fee must not exceed cash | Checked in `Portfolio.sellWithSettlement()` | Checked in service |
-| FIFO ordering | Enforced in `Holding.sellSettled()` | Manually coded in service loop |
-
-**Key insight**: In the anemic model, any code with access to the domain objects can bypass
-invariants by calling setters directly. The rich model makes invalid states unrepresentable
-by not exposing setters.
+|-----------|-----------|--------------|
+| Cannot sell unsettled lots | Enforced in `Holding.sellSettled()` | ✅ Works (settlement check is correct) |
+| Cannot sell reserved lots | Enforced in `Lot.isAvailableForSale()` | ❌ **Broken** — reservation not checked |
+| Fee accounting identity | Correct in `SellResult.withFee()` | ❌ **Broken** — profit omits fee |
+| FIFO ordering | Enforced in `Holding.sellSettled()` | ✅ Works (list order = insertion order) |
+| Fee must not exceed cash | Checked in `Portfolio.sellWithSettlement()` | ✅ Works (balance check before sell) |
 
 ---
 
 ## Testability Impact
 
 | Aspect | Rich Model | Anemic Model |
-|--------|-----------|-------------|
-| Domain unit tests | ✅ 19 tests, pure, fast, no mocks | ❌ 33 compilation errors |
-| Test settlement logic | `lot.isSettled(asOf)` — direct | Must test through service (needs mocks) |
-| Test FIFO ordering | `holding.sellSettled(...)` — direct | Must test through service (needs DB/mocks) |
-| Test fee calculation | `portfolio.sellWithSettlement(...)` — direct | Must test through service |
-| Test invariant violations | Direct exception assertions | Need full service + repo setup |
-| Integration tests | ✅ 5 tests pass | ✅ 5 tests pass (same behavior) |
-| Test execution time | Milliseconds (no I/O) | Seconds (needs Spring context or mocks) |
+|--------|-----------|--------------|
+| Domain unit tests | ✅ 19 tests, all pass | ❌ 19 tests, 8 fail |
+| Tests compile? | ✅ Yes | ✅ Yes |
+| Tests run? | ✅ Yes | ✅ Yes |
+| Tests correct? | ✅ All assertions hold | ❌ Domain methods give wrong answers |
+| Integration tests | ✅ 5 pass (tests real behavior) | ✅ 5 pass (service logic is correct) |
+| Root cause of failures | N/A | Duplicated logic between service and domain |
+
+---
+
+## Key Takeaway
+
+> **The anemic model's domain tests fail not because the methods are missing,
+> but because they contain subtly wrong copies of the service's logic.**
+
+This is worse than compilation errors — the code looks correct, compiles successfully,
+and some tests pass. The failures are semantic: the domain objects return plausible
+but incorrect values. In production, this manifests as data inconsistencies that are
+extremely hard to diagnose.
 
 ---
 

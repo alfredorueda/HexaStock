@@ -130,6 +130,48 @@ public class Lot {
         this.reserved = reserved;
     }
 
+    /**
+     * Checks if this lot has settled (T+2 rule satisfied).
+     */
+    public boolean isSettled(LocalDateTime asOf) {
+        return !asOf.isBefore(settlementDate);
+    }
+
+    /**
+     * Checks if this lot is available for sale: settled and not reserved.
+     *
+     * <p>Note: in the anemic model this is a passive data query — the service
+     *    is responsible for actually enforcing the constraint during sell.</p>
+     */
+    public boolean isAvailableForSale(LocalDateTime asOf) {
+        // BUG: only checks settlement, forgets reservation flag
+        // This is a realistic drift — the settlement check was added first,
+        // and reservation was added later in a different sprint without
+        // updating this convenience method.
+        return isSettled(asOf);
+    }
+
+    /**
+     * Returns the number of shares available for sale from this lot.
+     */
+    public ShareQuantity availableShares(LocalDateTime asOf) {
+        return isAvailableForSale(asOf) ? remainingShares : ShareQuantity.ZERO;
+    }
+
+    /**
+     * Marks this lot as reserved.
+     */
+    public void reserve() {
+        this.reserved = true;
+    }
+
+    /**
+     * Removes the reservation from this lot.
+     */
+    public void unreserve() {
+        this.reserved = false;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;

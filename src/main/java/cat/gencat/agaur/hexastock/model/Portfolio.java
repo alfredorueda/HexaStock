@@ -278,4 +278,79 @@ public class Portfolio {
             throw new HoldingNotFoundException("Holding " + key + " not exists");
         return holdings.get(key);
     }
+
+    /**
+     * Settlement-aware sell with fee support.
+     *
+     * <p>Delegates the FIFO lot consumption to the Holding, then layers
+     * fee handling and balance update at the Portfolio level.</p>
+     *
+     * @param ticker   The stock to sell
+     * @param quantity The number of shares to sell
+     * @param sellPrice The current market price per share
+     * @param fee      The fee to deduct from proceeds
+     * @param asOf     The reference time for settlement checks
+     * @return A SellResult with proceeds, cost basis, profit, and fee
+     * @throws InvalidQuantityException if quantity is not positive
+     * @throws HoldingNotFoundException if ticker not found
+     * @throws InsufficientFundsException if net proceeds after fee would cause negative balance
+     */
+    public SellResult sellWithSettlement(Ticker ticker, ShareQuantity quantity,
+                                         Price sellPrice, Money fee, LocalDateTime asOf) {
+        if (!quantity.isPositive()) {
+            throw new InvalidQuantityException("Quantity must be positive");
+        }
+        if (!holdings.containsKey(ticker)) {
+            throw new HoldingNotFoundException("Holding not found in portfolio: " + ticker);
+        }
+
+        Holding holding = holdings.get(ticker);
+
+        // Pre-check: will net proceeds cause negative balance?
+        Money grossProceeds = sellPrice.multiply(quantity);
+        Money netProceeds = grossProceeds.subtract(fee);
+        if (netProceeds.isNegative() && balance.add(netProceeds).isNegative()) {
+            throw new InsufficientFundsException(
+                    "Net proceeds after fee would cause negative balance");
+        }
+
+        // Delegate FIFO lot consumption to Holding
+        SellResult baseResult = holding.sellSettled(quantity, sellPrice, asOf);
+        Money costBasis = baseResult.costBasis();
+
+        // BUG (Flaw #2 — Fee Calculation Inconsistency):
+        // Profit should be (grossProceeds − fee) − costBasis = netProceeds − costBasis.
+        // The anemic model computes it as grossProceeds − costBasis, omitting the fee.
+        // This is a realistic drift: the fee was added in a later sprint, and the
+        // developer updated the balance logic but forgot to adjust the profit formula.
+        Money profit = grossProceeds.subtract(costBasis);
+
+        balance = balance.add(netProceeds);
+
+        return new SellResult(grossProceeds, costBasis, profit, fee);
+    }
+
+    /**
+     * Reserves a specific lot within a holding, preventing it from being sold.
+     *
+     * @param ticker The ticker of the holding that contains the lot
+     * @param lotId  The ID of the lot to reserve
+     */
+    public void reserveLot(Ticker ticker, LotId lotId) {
+        Holding holding = getHolding(ticker);
+        Lot lot = holding.findLotById(lotId);
+        lot.reserve();
+    }
+
+    /**
+     * Removes the reservation from a specific lot, making it available for selling again.
+     *
+     * @param ticker The ticker of the holding that contains the lot
+     * @param lotId  The ID of the lot to unreserve
+     */
+    public void unreserveLot(Ticker ticker, LotId lotId) {
+        Holding holding = getHolding(ticker);
+        Lot lot = holding.findLotById(lotId);
+        lot.unreserve();
+    }
 }
