@@ -70,6 +70,18 @@ A side-by-side architectural comparison of the two fundamental approaches to dom
 - Docker (for running MySQL in a container)
 - Git
 
+## Troubleshooting: "Could not find a valid Docker environment"
+
+HexaStock uses **Testcontainers 1.21.4**, which handles Docker Engine 27.x and 29.x out of the box. If you still see this error:
+
+1. Run `docker version` — confirm the API version is ≥ 1.44
+2. Check for a stale `~/.docker-java.properties` that might force a wrong API version — delete or fix it
+3. If you use **Podman** or **Colima**, create `~/.docker-java.properties` with:
+   ```properties
+   api.version=1.44
+   ```
+4. Make sure Docker Desktop is running and the Docker socket is accessible
+
 ## Running the Application
 
 ### Mandatory Spring Profiles

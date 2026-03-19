@@ -32,15 +32,15 @@
     </properties>
 
     <!-- Align all Testcontainers modules to a single version via BOM.
-         1.21.3 is the latest available; combined with the docker-java.properties
-         workaround in CI, this fixes Docker Engine 29 (min API 1.44).
+         1.21.4 fixes Docker Engine 29 compatibility natively (API 1.44 with
+         1.32 fallback). No docker-java.properties workaround needed.
          See: https://github.com/testcontainers/testcontainers-java/issues/11212 -->
     <dependencyManagement>
         <dependencies>
             <dependency>
                 <groupId>org.testcontainers</groupId>
                 <artifactId>testcontainers-bom</artifactId>
-                <version>1.21.3</version>
+                <version>1.21.4</version>
                 <type>pom</type>
                 <scope>import</scope>
             </dependency>

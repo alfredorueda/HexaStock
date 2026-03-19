@@ -38,14 +38,6 @@ jobs:
           docker version
           docker info
 
-      # Workaround: Docker Engine 29+ requires API ≥ 1.44, but docker-java
-      # (used by Testcontainers) negotiates with 1.32 which gets rejected.
-      # docker-java reads ~/.docker-java.properties at startup.
-      # Remove this step once Testcontainers ships a docker-java version
-      # that negotiates properly (track: https://github.com/testcontainers/testcontainers-java/issues/11212)
-      - name: Fix docker-java API version for Testcontainers
-        run: echo "api.version=1.44" >> ~/.docker-java.properties
-
       - name: Run clean build and tests
         run: ./mvnw -B -U -ntp clean verify
 
