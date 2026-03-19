@@ -1,0 +1,65 @@
+@startuml rich-sell-sequence
+!theme plain
+skinparam defaultFontSize 11
+title Rich Model — Settlement-Aware Sell Sequence
+
+actor Client
+participant "REST Controller" as ctrl
+participant "StockOperationsService" as svc
+participant "Portfolio" as portfolio
+participant "Holding" as holding
+participant "Lot" as lot
+
+Client -> ctrl : POST /settlement-sales\n{ticker: AAPL, quantity: 10}
+activate ctrl
+
+ctrl -> svc : sellStockWithSettlement(id, AAPL, 10)
+activate svc
+
+svc -> svc : Load portfolio from repo
+svc -> svc : Fetch price from provider
+svc -> svc : Compute fee = 0.1% × grossProceeds
+
+svc -> portfolio : sellWithSettlement(AAPL, 10, price, fee, now)
+activate portfolio
+
+portfolio -> portfolio : Validate quantity > 0
+portfolio -> portfolio : Find holding for AAPL
+portfolio -> holding : getEligibleShares(now)
+activate holding
+holding -> lot : availableShares(now)
+activate lot
+lot -> lot : isSettled(now) && !reserved
+lot --> holding : ShareQuantity
+deactivate lot
+holding --> portfolio : eligible = 10
+deactivate holding
+
+portfolio -> portfolio : Check eligible >= requested
+portfolio -> portfolio : Compute netProceeds = gross − fee
+portfolio -> portfolio : Validate balance + net >= 0
+
+portfolio -> holding : sellSettled(10, price, now)
+activate holding
+loop for each lot in FIFO order
+    holding -> lot : isAvailableForSale(now)
+    activate lot
+    lot --> holding : true/false
+    deactivate lot
+    holding -> lot : reduce(shares)
+end
+holding --> portfolio : SellResult(proceeds, costBasis)
+deactivate holding
+
+portfolio -> portfolio : balance += netProceeds
+portfolio --> svc : SellResult.withFee(proceeds, costBasis, fee)
+deactivate portfolio
+
+svc -> svc : Save portfolio
+svc -> svc : Record transaction
+svc --> ctrl : SellResult
+deactivate svc
+
+ctrl --> Client : 200 OK\n{proceeds, costBasis, profit, fee}
+deactivate ctrl
+@enduml

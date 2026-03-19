@@ -1,0 +1,62 @@
+@startuml anemic-architecture
+!theme plain
+skinparam componentStyle rectangle
+skinparam defaultFontSize 12
+title Anemic Domain Model — Architecture
+
+package "Primary Adapter" <<Rectangle>> #E8F5E9 {
+    [PortfolioRestController] as ctrl
+}
+
+package "Application Layer" <<Rectangle>> #E3F2FD {
+    [PortfolioStockOperationsService] as svc
+    note bottom of svc
+      **Fat service — all business logic here:**
+      • Inline FIFO loop with settlement check
+      • Inline reservation check
+      • Fee calculation and balance update
+      • 70+ lines of business logic
+    end note
+}
+
+package "Domain Model (Data Holders)" <<Rectangle>> #FFF3E0 {
+    [Portfolio] as portfolio
+    [Holding] as holding
+    [Lot] as lot
+    [SellResult] as result
+
+    note bottom of portfolio
+      sellWithSettlement():
+        profit = proceeds − costBasis
+        **(forgets fee)**
+    end note
+
+    note bottom of lot
+      isAvailableForSale():
+        isSettled(asOf)
+        **(forgets !reserved)**
+    end note
+}
+
+package "Secondary Adapters" <<Rectangle>> #FCE4EC {
+    [JpaPortfolioRepository] as repo
+    [FinhubStockPriceAdapter] as price
+}
+
+ctrl --> svc : uses port
+svc --> portfolio : reads data
+svc --> holding : reads lots
+svc --> lot : inspects fields
+svc --> result : creates
+svc --> repo : saves/loads
+svc --> price : fetches price
+
+note right of svc
+  **Two sell paths exist:**
+  1. sellStockWithSettlement()
+     → inline logic (CORRECT)
+  2. sellStockWithSettlementAggregate()
+     → delegates to domain (FLAWED)
+end note
+
+@enduml

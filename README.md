@@ -33,12 +33,25 @@ The sell stock use case is the architectural reference of the project. It concen
 - Orchestration by application services vs. rule enforcement by the aggregate
 - Hands-on exercises for training sessions and self-guided study
 
+### Rich vs Anemic Domain Model (Architectural Deep Dive)
+
+> **[doc/tutorial/richVsAnemicDomainModel/RICH_VS_ANEMIC_DOMAIN_MODEL_TUTORIAL.md](doc/tutorial/richVsAnemicDomainModel/RICH_VS_ANEMIC_DOMAIN_MODEL_TUTORIAL.md)**
+
+A side-by-side architectural comparison of the two fundamental approaches to domain modelling. Using HexaStock's own sell-stock use case, it shows how business rules migrate between layers depending on the chosen model. The tutorial covers:
+
+- Rich domain model: invariants enforced inside the aggregate, FIFO logic in `Holding.sell()`
+- Anemic domain model: entities reduced to data carriers, business rules pushed to application services
+- Seven PlantUML diagrams (class, sequence, and architecture) contrasting both approaches
+- Concrete consequences for testability, encapsulation, and aggregate boundary protection
+- When an anemic model can be a pragmatic choice and when it becomes a liability
+
 ### Documentation Map
 
 | Document | Description |
 |----------|-------------|
 | [API Specification](doc/stock-portfolio-api-specification.md) | User stories, domain model, error handling, HTTP examples |
 | [Sell Stock Tutorial](doc/tutorial/sellStocks/SELL-STOCK-TUTORIAL.md) | End-to-end use case walkthrough with exercises |
+| [Rich vs Anemic Domain Model](doc/tutorial/richVsAnemicDomainModel/RICH_VS_ANEMIC_DOMAIN_MODEL_TUTORIAL.md) | Architectural comparison of domain modelling approaches |
 | [HTTP Requests](doc/calls.http) | Pre-built requests for manual API testing in IntelliJ |
 | [OpenAPI Definition](doc/openapi.yaml) | Machine-readable API contract |
 | [DDD Portfolio and Transactions](doc/DDD%20Portfolio%20and%20Transactions.md) | Domain design notes for portfolios and transactions |

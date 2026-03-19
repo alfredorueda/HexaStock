@@ -355,6 +355,8 @@ When you sell stocks in HexaStock:
 > **💡 Why Value Objects?**
 > The domain uses `Money`, `Price`, `ShareQuantity`, `Ticker`, `PortfolioId`, `HoldingId`, and `LotId` instead of primitives (`BigDecimal`, `int`, `String`). This eliminates an entire class of bugs (e.g., passing a quantity where a price is expected), enforces validation at construction time, and makes the code self-documenting through the ubiquitous language.
 
+> **📖 Architectural perspective:** The fact that `Portfolio`, `Holding`, and `Lot` contain behaviour — not just data — is a deliberate design choice known as a **rich domain model**. To understand how this design compares to an anemic alternative where entities are plain data holders, see **[Rich vs Anemic Domain Model](../richVsAnemicDomainModel/RICH_VS_ANEMIC_DOMAIN_MODEL_TUTORIAL.md)**.
+
 ---
 
 ## 7. The REST Entry Point of the SELL Use Case
@@ -792,6 +794,10 @@ This diagram explicitly shows:
 >
 > **Value Objects** reinforce this boundary by making the types expressive. You cannot accidentally pass a `ShareQuantity` where a `Price` is expected—the compiler catches it.
 
+> **📖 Deep Dive: Rich vs Anemic Domain Model**
+>
+> The separation above — aggregates enforcing invariants while services only orchestrate — is the defining characteristic of a **rich domain model**. In an anemic model, the aggregate becomes a passive data carrier and the business rules migrate into the service layer. For a detailed architectural comparison using HexaStock's own sell flow, see **[Rich vs Anemic Domain Model](../richVsAnemicDomainModel/RICH_VS_ANEMIC_DOMAIN_MODEL_TUTORIAL.md)**.
+
 ---
 
 ## 11. Transactionality and Consistency
@@ -1010,7 +1016,7 @@ HTTP 409 Conflict
 - **Aggregates protect invariants** — all state changes to `Holding` and `Lot` pass through the `Portfolio` root.
 - **Application services orchestrate** — they coordinate use cases without containing business logic.
 - **Value Objects eliminate primitive obsession** — types like `Money`, `Price`, `ShareQuantity`, `Ticker`, and `PortfolioId` enforce constraints at construction time and make the ubiquitous language explicit.
-- **Business rules live in the domain** — FIFO logic belongs in `Holding.sell()`, not in a service or adapter.
+- **Business rules live in the domain** — FIFO logic belongs in `Holding.sell()`, not in a service or adapter. The **[Rich vs Anemic Domain Model tutorial](../richVsAnemicDomainModel/RICH_VS_ANEMIC_DOMAIN_MODEL_TUTORIAL.md)** shows what happens when this logic is moved to the service layer.
 - **Domain exceptions speak business language** — `ConflictQuantityException` represents a business rule violation, not a technical error.
 
 ---

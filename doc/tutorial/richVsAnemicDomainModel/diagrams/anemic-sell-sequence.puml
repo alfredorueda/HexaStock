@@ -1,0 +1,62 @@
+@startuml anemic-sell-sequence
+!theme plain
+skinparam defaultFontSize 11
+title Anemic Model — Settlement-Aware Sell (Service Inline Logic)
+
+actor Client
+participant "REST Controller" as ctrl
+participant "StockOperationsService" as svc
+participant "Portfolio" as portfolio
+participant "Holding" as holding
+participant "Lot" as lot
+
+Client -> ctrl : POST /settlement-sales\n{ticker: AAPL, quantity: 10}
+activate ctrl
+
+ctrl -> svc : sellStockWithSettlement(id, AAPL, 10)
+activate svc
+
+svc -> svc : Load portfolio from repo
+svc -> portfolio : getHolding(AAPL)
+svc -> svc : Fetch price from provider
+
+note over svc #FFE0B2
+  **All business logic is inline in the service:**
+  The service reads data from domain objects
+  but does not delegate business decisions to them.
+end note
+
+svc -> holding : getLots()
+activate holding
+holding --> svc : List<Lot>
+deactivate holding
+
+loop for each lot — eligibility check
+    svc -> lot : getSettlementDate()
+    svc -> lot : isReserved()
+    svc -> svc : if settled && !reserved → count
+end
+
+svc -> svc : Check eligibleShares >= 10
+svc -> svc : Compute fee = 0.1% × gross
+svc -> svc : Compute netProceeds
+
+loop for each lot — FIFO sell
+    svc -> lot : getSettlementDate()
+    svc -> lot : isReserved()
+    svc -> lot : isEmpty()
+    svc -> lot : reduce(shares)
+    svc -> lot : calculateCostBasis(shares)
+end
+
+svc -> portfolio : deposit(netProceeds)
+svc -> svc : SellResult.withFee(proceeds, costBasis, fee)
+
+svc -> svc : Save portfolio
+svc -> svc : Record transaction
+svc --> ctrl : SellResult
+deactivate svc
+
+ctrl --> Client : 200 OK\n{proceeds, costBasis, profit, fee}
+deactivate ctrl
+@enduml

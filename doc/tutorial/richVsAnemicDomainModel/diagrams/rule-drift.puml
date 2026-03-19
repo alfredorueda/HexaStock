@@ -1,0 +1,54 @@
+@startuml rule-drift
+!theme plain
+skinparam defaultFontSize 11
+title Rule Drift — How Inconsistency Emerges Over Time
+
+rectangle "Sprint 10: Initial Settlement" #E8F5E9 {
+    card "Service.sellStockWithSettlement()" as s10_svc {
+        card "checks: isSettled()" as s10_check
+    }
+    note right: Service is the **only** place\nwith settlement logic. No drift possible.
+}
+
+rectangle "Sprint 12: Reservation Feature" #E3F2FD {
+    card "Service.sellStockWithSettlement()" as s12_svc {
+        card "checks: isSettled() && !isReserved()" as s12_check
+    }
+    card "Lot.isAvailableForSale()" as s12_lot {
+        card "isSettled(asOf)" as s12_lot_body #FFCDD2
+    }
+    note right of s12_lot
+      Added by **Developer B** who
+      copied the settlement check
+      but missed the reservation flag.
+    end note
+}
+
+rectangle "Sprint 14: New Endpoints" #FFF3E0 {
+    card "Service.getEligibleSharesCount()" as s14_query {
+        card "delegates to holding.getEligibleShares()" as s14_delegate
+    }
+    card "Holding.getEligibleShares()" as s14_holding {
+        card "Σ lot.availableShares(asOf)" as s14_sum
+    }
+    s14_delegate --> s14_sum
+    s14_sum --> s12_lot_body : uses flawed method
+
+    note right of s14_query
+      **Developer C** assumes
+      domain methods are authoritative.
+      They are not — they drift.
+    end note
+}
+
+s10_svc -[hidden]down-> s12_svc
+s12_svc -[hidden]down-> s14_query
+
+note bottom
+  **Timeline of drift:**
+  Sprint 10: One copy of the rule → no inconsistency
+  Sprint 12: Two copies (service + domain) → drift introduced
+  Sprint 14: New code trusts domain → drift surfaces as bug
+end note
+
+@enduml
