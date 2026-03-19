@@ -41,7 +41,7 @@ The following class diagram shows the structure of the Portfolio aggregate:
 
 [![Portfolio Aggregate — Domain Model](diagrams/Rendered/domain-model.png)](diagrams/Rendered/domain-model.svg)
 
-**Diagram Reference:** See [`diagrams/domain-model.puml`](diagrams/domain-model.puml)
+Source: [`diagrams/domain-model.puml`](diagrams/domain-model.puml)
 
 This tutorial compares two implementation strategies for the same feature — **settlement-aware
 FIFO selling with fees** — across two branches:
@@ -151,13 +151,13 @@ git checkout anemic-domain-model
 
 | Artifact | Path |
 |----------|------|
-| Rich Architecture Diagram | `doc/diagrams/rich-architecture.puml` |
-| Anemic Architecture Diagram | `doc/diagrams/anemic-architecture.puml` |
-| Rich Sell Sequence | `doc/diagrams/rich-sell-sequence.puml` |
-| Anemic Sell Sequence | `doc/diagrams/anemic-sell-sequence.puml` |
-| Invariant Enforcement | `doc/diagrams/invariant-enforcement.puml` |
-| Domain Model Class Diagram | `doc/diagrams/domain-model.puml` |
-| Rule Drift Timeline | `doc/diagrams/rule-drift.puml` |
+| Rich Architecture Diagram | `diagrams/rich-architecture.puml` |
+| Anemic Architecture Diagram | `diagrams/anemic-architecture.puml` |
+| Rich Sell Sequence | `diagrams/rich-sell-sequence.puml` |
+| Anemic Sell Sequence | `diagrams/anemic-sell-sequence.puml` |
+| Invariant Enforcement | `diagrams/invariant-enforcement.puml` |
+| Domain Model Class Diagram | `diagrams/domain-model.puml` |
+| Rule Drift Timeline | `diagrams/rule-drift.puml` |
 | Settlement Selling Spec | `doc/features/settlement-aware-selling.feature` |
 | Reserved Lots Spec | `doc/features/reserved-lot-handling.feature` |
 | Fee Accounting Spec | `doc/features/settlement-fees.feature` |
@@ -261,7 +261,7 @@ enforced inside the aggregate. There is exactly **one code path** for each rule.
 
 [![Rich Domain Model Architecture](diagrams/Rendered/rich-architecture.png)](diagrams/Rendered/rich-architecture.svg)
 
-**Diagram Reference:** See [`diagrams/rich-architecture.puml`](diagrams/rich-architecture.puml)
+Source: [`diagrams/rich-architecture.puml`](diagrams/rich-architecture.puml)
 
 ### 5.2 Anemic Domain Model Architecture
 
@@ -323,7 +323,7 @@ methods that contain **stale, incomplete** implementations of the same rules.
 
 [![Anemic Domain Model Architecture](diagrams/Rendered/anemic-architecture.png)](diagrams/Rendered/anemic-architecture.svg)
 
-**Diagram Reference:** See [`diagrams/anemic-architecture.puml`](diagrams/anemic-architecture.puml)
+Source: [`diagrams/anemic-architecture.puml`](diagrams/anemic-architecture.puml)
 
 ---
 
@@ -512,11 +512,11 @@ The following sequence diagrams trace the call flow for a settlement-aware sell 
 
 [![Rich Sell Sequence](diagrams/Rendered/rich-sell-sequence.png)](diagrams/Rendered/rich-sell-sequence.svg)
 
-**Diagram Reference:** See [`diagrams/rich-sell-sequence.puml`](diagrams/rich-sell-sequence.puml)
+Source: [`diagrams/rich-sell-sequence.puml`](diagrams/rich-sell-sequence.puml)
 
 [![Anemic Sell Sequence](diagrams/Rendered/anemic-sell-sequence.png)](diagrams/Rendered/anemic-sell-sequence.svg)
 
-**Diagram Reference:** See [`diagrams/anemic-sell-sequence.puml`](diagrams/anemic-sell-sequence.puml)
+Source: [`diagrams/anemic-sell-sequence.puml`](diagrams/anemic-sell-sequence.puml)
 
 ### 6.4 Use Case Port — 3 vs. 6 Methods
 
@@ -619,7 +619,7 @@ embedding a stale formula.
 
 [![Invariant Enforcement — Rich vs. Anemic](diagrams/Rendered/invariant-enforcement.png)](diagrams/Rendered/invariant-enforcement.svg)
 
-**Diagram Reference:** See [`diagrams/invariant-enforcement.puml`](diagrams/invariant-enforcement.puml)
+Source: [`diagrams/invariant-enforcement.puml`](diagrams/invariant-enforcement.puml)
 
 ---
 
@@ -802,7 +802,7 @@ Sprint 14: Eligible-shares query endpoint added
 
 [![Rule Drift Across Sprints](diagrams/Rendered/rule-drift.png)](diagrams/Rendered/rule-drift.svg)
 
-**Diagram Reference:** See [`diagrams/rule-drift.puml`](diagrams/rule-drift.puml)
+Source: [`diagrams/rule-drift.puml`](diagrams/rule-drift.puml)
 
 ### 9.3 Hidden Coupling and Coordination Burden
 
@@ -985,7 +985,7 @@ Open the anemic branch's `PortfolioStockOperationsService.java` and scroll throu
 
 #### Step 6 — Show the Drift Timeline (3 min)
 
-Open `doc/diagrams/rule-drift.puml` and render it. Walk through Sprint 10 → 12 → 14
+Open `diagrams/rule-drift.puml` and render it. Walk through Sprint 10 → 12 → 14
 and explain how each sprint introduced a new inconsistency.
 
 #### Step 7 — Key Takeaway (2 min)
@@ -1049,7 +1049,7 @@ and explain how each sprint introduced a new inconsistency.
 ## Appendix B — PlantUML Diagram Index
 
 All diagrams are embedded in their relevant sections above. Pre-rendered versions (PNG + SVG)
-are available in `doc/diagrams/Rendered/`. To re-render from source:
+are available in `diagrams/Rendered/`. To re-render from source:
 
 ```bash
 # Render all diagrams
