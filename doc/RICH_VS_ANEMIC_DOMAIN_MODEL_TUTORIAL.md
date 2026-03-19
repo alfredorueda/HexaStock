@@ -37,6 +37,12 @@ stocks, track holdings, and view transaction history. The application is built u
 The core domain aggregate is **Portfolio → Holding → Lot**, representing a portfolio
 that owns holdings of different stocks, each holding composed of individual purchase lots.
 
+The following class diagram shows the structure of the Portfolio aggregate:
+
+[![Portfolio Aggregate — Domain Model](diagrams/Rendered/domain-model.png)](diagrams/Rendered/domain-model.svg)
+
+**Diagram Reference:** See [`diagrams/domain-model.puml`](diagrams/domain-model.puml)
+
 This tutorial compares two implementation strategies for the same feature — **settlement-aware
 FIFO selling with fees** — across two branches:
 
@@ -253,6 +259,10 @@ traced to its implementation in both branches and to the test(s) that verify it.
 (settlement check, reservation check, FIFO, fee handling, accounting identity) are
 enforced inside the aggregate. There is exactly **one code path** for each rule.
 
+[![Rich Domain Model Architecture](diagrams/Rendered/rich-architecture.png)](diagrams/Rendered/rich-architecture.svg)
+
+**Diagram Reference:** See [`diagrams/rich-architecture.puml`](diagrams/rich-architecture.puml)
+
 ### 5.2 Anemic Domain Model Architecture
 
 ```
@@ -311,8 +321,9 @@ enforced inside the aggregate. There is exactly **one code path** for each rule.
 code paths (aggregate-sell endpoint and eligible-shares query) delegate to domain
 methods that contain **stale, incomplete** implementations of the same rules.
 
-> 📐 See `doc/diagrams/rich-architecture.puml` and `doc/diagrams/anemic-architecture.puml`
-> for PlantUML diagrams of these architectures.
+[![Anemic Domain Model Architecture](diagrams/Rendered/anemic-architecture.png)](diagrams/Rendered/anemic-architecture.svg)
+
+**Diagram Reference:** See [`diagrams/anemic-architecture.puml`](diagrams/anemic-architecture.puml)
 
 ---
 
@@ -497,6 +508,16 @@ code paths delegate to the domain, where the rules are broken:
 | `sellStockWithSettlementAggregate()` | `Portfolio.sellWithSettlement()` | ❌ Flawed profit |
 | `getEligibleSharesCount()` | `Holding.getEligibleShares()` | ❌ Includes reserved lots |
 
+The following sequence diagrams trace the call flow for a settlement-aware sell in each architecture:
+
+[![Rich Sell Sequence](diagrams/Rendered/rich-sell-sequence.png)](diagrams/Rendered/rich-sell-sequence.svg)
+
+**Diagram Reference:** See [`diagrams/rich-sell-sequence.puml`](diagrams/rich-sell-sequence.puml)
+
+[![Anemic Sell Sequence](diagrams/Rendered/anemic-sell-sequence.png)](diagrams/Rendered/anemic-sell-sequence.svg)
+
+**Diagram Reference:** See [`diagrams/anemic-sell-sequence.puml`](diagrams/anemic-sell-sequence.puml)
+
 ### 6.4 Use Case Port — 3 vs. 6 Methods
 
 #### Rich Branch — `PortfolioStockOperationsUseCase` (3 methods)
@@ -596,7 +617,9 @@ PATH B: Portfolio.sellWithSettlement()
 The domain method constructs `SellResult` directly instead of using the factory,
 embedding a stale formula.
 
-> 📐 See `doc/diagrams/invariant-enforcement.puml` for a visual comparison.
+[![Invariant Enforcement — Rich vs. Anemic](diagrams/Rendered/invariant-enforcement.png)](diagrams/Rendered/invariant-enforcement.svg)
+
+**Diagram Reference:** See [`diagrams/invariant-enforcement.puml`](diagrams/invariant-enforcement.puml)
 
 ---
 
@@ -777,7 +800,9 @@ Sprint 14: Eligible-shares query endpoint added
   → Bug shipped to production ❌
 ```
 
-> 📐 See `doc/diagrams/rule-drift.puml` for a timeline visualization.
+[![Rule Drift Across Sprints](diagrams/Rendered/rule-drift.png)](diagrams/Rendered/rule-drift.svg)
+
+**Diagram Reference:** See [`diagrams/rule-drift.puml`](diagrams/rule-drift.puml)
 
 ### 9.3 Hidden Coupling and Coordination Burden
 
@@ -1023,22 +1048,23 @@ and explain how each sprint introduced a new inconsistency.
 
 ## Appendix B — PlantUML Diagram Index
 
-Render these diagrams using PlantUML (IntelliJ plugin, VS Code extension, or CLI):
+All diagrams are embedded in their relevant sections above. Pre-rendered versions (PNG + SVG)
+are available in `doc/diagrams/Rendered/`. To re-render from source:
 
 ```bash
-# Render all diagrams to PNG
+# Render all diagrams
 ./scripts/render-diagrams.sh
 ```
 
-| Diagram | File | Description |
-|---------|------|-------------|
-| Rich Architecture | `doc/diagrams/rich-architecture.puml` | Thin service → single aggregate call |
-| Anemic Architecture | `doc/diagrams/anemic-architecture.puml` | Fat service → inline logic + dual paths |
-| Rich Sell Sequence | `doc/diagrams/rich-sell-sequence.puml` | Controller → Service → Portfolio → Holding → Lot |
-| Anemic Sell Sequence | `doc/diagrams/anemic-sell-sequence.puml` | Service reads Lot data directly, dual paths |
-| Invariant Enforcement | `doc/diagrams/invariant-enforcement.puml` | Side-by-side: correct vs. flawed invariants |
-| Domain Model | `doc/diagrams/domain-model.puml` | Class diagram of Portfolio aggregate |
-| Rule Drift Timeline | `doc/diagrams/rule-drift.puml` | Sprint 10 → 12 → 14 drift evolution |
+| Diagram | Source | Rendered | Section |
+|---------|--------|----------|---------|
+| Domain Model | [`domain-model.puml`](diagrams/domain-model.puml) | [PNG](diagrams/Rendered/domain-model.png) · [SVG](diagrams/Rendered/domain-model.svg) | [§1 Introduction](#1-introduction) |
+| Rich Architecture | [`rich-architecture.puml`](diagrams/rich-architecture.puml) | [PNG](diagrams/Rendered/rich-architecture.png) · [SVG](diagrams/Rendered/rich-architecture.svg) | [§5.1 Rich Architecture](#51-rich-domain-model-architecture) |
+| Anemic Architecture | [`anemic-architecture.puml`](diagrams/anemic-architecture.puml) | [PNG](diagrams/Rendered/anemic-architecture.png) · [SVG](diagrams/Rendered/anemic-architecture.svg) | [§5.2 Anemic Architecture](#52-anemic-domain-model-architecture) |
+| Rich Sell Sequence | [`rich-sell-sequence.puml`](diagrams/rich-sell-sequence.puml) | [PNG](diagrams/Rendered/rich-sell-sequence.png) · [SVG](diagrams/Rendered/rich-sell-sequence.svg) | [§6.3 Service Layer](#63-service-layer--thin-vs-fat) |
+| Anemic Sell Sequence | [`anemic-sell-sequence.puml`](diagrams/anemic-sell-sequence.puml) | [PNG](diagrams/Rendered/anemic-sell-sequence.png) · [SVG](diagrams/Rendered/anemic-sell-sequence.svg) | [§6.3 Service Layer](#63-service-layer--thin-vs-fat) |
+| Invariant Enforcement | [`invariant-enforcement.puml`](diagrams/invariant-enforcement.puml) | [PNG](diagrams/Rendered/invariant-enforcement.png) · [SVG](diagrams/Rendered/invariant-enforcement.svg) | [§7 Invariants](#7-invariant-enforcement) |
+| Rule Drift Timeline | [`rule-drift.puml`](diagrams/rule-drift.puml) | [PNG](diagrams/Rendered/rule-drift.png) · [SVG](diagrams/Rendered/rule-drift.svg) | [§9.2 Rule Drift](#92-rule-drift-across-sprints) |
 
 ---
 
