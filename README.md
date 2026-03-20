@@ -151,3 +151,15 @@ A special acknowledgment goes to [Agència de Gestió d'Ajuts Universitaris i de
 Particular thanks to [Francisco José Nebrera](https://www.linkedin.com/in/francisco-jose-nebrera/), whose initiative led to that first organizational implementation.
 
 The original Java package prefix `cat.gencat.agaur.hexastock` reflects this early institutional context. The project was later open-sourced and continues to evolve.
+
+## License
+
+HexaStock is licensed under the [Apache License, Version 2.0](LICENSE).
+
+You are free to use, modify, and distribute this project for learning, teaching, research, consulting, and commercial purposes. When redistributing or building derivative works, you must preserve existing copyright and license notices and include a copy of the license, as required by the Apache 2.0 terms. See the [LICENSE](LICENSE) and [NOTICE](NOTICE) files for details.
+
+If you use HexaStock in a university course, a corporate training programme, a consulting engagement, or as the foundation for your own project, the author would genuinely appreciate hearing about it. A quick note — an issue, a discussion, or a message — goes a long way and helps the project grow in the right directions. **This is a courtesy invitation, not a legal requirement.** The Apache 2.0 license governs your rights, and nothing in this paragraph adds to or modifies its terms.
+
+## Using HexaStock? Let us know
+
+If you would like to share how you are using HexaStock — or simply say hello — feel free to [open a discussion](https://github.com/alfredorueda/HexaStock/discussions) or [create an issue](https://github.com/alfredorueda/HexaStock/issues). Hearing from practitioners, students, and organisations helps shape the project and is always welcome.
