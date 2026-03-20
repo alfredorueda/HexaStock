@@ -50,28 +50,28 @@ public class Holding {
      * @throws ConflictQuantityException if there are not enough shares to sell
      */
     public SellResult sell(ShareQuantity quantity, Price sellPrice) {
-        if (getTotalShares().value() < quantity.value()) {
+        if (!getTotalShares().isGreaterThanOrEqual(quantity)) {
             throw new ConflictQuantityException(
-                    "Not enough shares to sell. Available: " + getTotalShares() + ", Requested: " + quantity);
+                    "Not enough shares to sell. Available: " + getTotalShares().value()
+                            + ", Requested: " + quantity.value());
         }
-
-        ShareQuantity remainingToSell = quantity;
-        Money costBasis = Money.ZERO;
-
-        for (var lot : lots) {
-            if (remainingToSell.isZero()) break;
-
-            ShareQuantity sharesSoldFromLot = lot.getRemainingShares().min(remainingToSell);
-            Money lotCostBasis = lot.calculateCostBasis(sharesSoldFromLot);
-
-            costBasis = costBasis.add(lotCostBasis);
-            lot.reduce(sharesSoldFromLot);
-            remainingToSell = remainingToSell.subtract(sharesSoldFromLot);
-        }
-
-        lots.removeIf(Lot::isEmpty);
 
         Money proceeds = sellPrice.multiply(quantity);
+        Money costBasis = Money.ZERO;
+        ShareQuantity remaining = quantity;
+
+        Iterator<Lot> iterator = lots.iterator();
+        while (remaining.isPositive() && iterator.hasNext()) {
+            Lot lot = iterator.next();
+            ShareQuantity take = lot.getRemainingShares().min(remaining);
+            costBasis = costBasis.add(lot.calculateCostBasis(take));
+            lot.reduce(take);
+            remaining = remaining.subtract(take);
+            if (lot.isEmpty()) {
+                iterator.remove();
+            }
+        }
+
         return SellResult.of(proceeds, costBasis);
     }
 
