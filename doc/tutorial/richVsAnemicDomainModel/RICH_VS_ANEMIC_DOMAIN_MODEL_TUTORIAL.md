@@ -10,17 +10,20 @@
 ## Table of Contents
 
 1. [Introduction](#1-introduction)
-2. [Feature Overview: Settlement-Aware FIFO Selling](#2-feature-overview-settlement-aware-fifo-selling)
-3. [Repository Navigation](#3-repository-navigation)
-4. [Business Rules](#4-business-rules)
-5. [Architectural Overview](#5-architectural-overview)
-6. [Side-by-Side Code Comparison](#6-side-by-side-code-comparison)
-7. [Invariant Enforcement](#7-invariant-enforcement)
-8. [Test Analysis — Why Tests Pass or Fail](#8-test-analysis--why-tests-pass-or-fail)
-9. [Failure Modes of the Anemic Domain Model](#9-failure-modes-of-the-anemic-domain-model)
-10. [Why the Rich Domain Model Works](#10-why-the-rich-domain-model-works)
-11. [Practical Takeaways](#11-practical-takeaways)
-12. [Webinar Demo Guide](#12-webinar-demo-guide)
+2. [Financial Background for Non-Specialists](#2-financial-background-for-non-specialists)
+3. [Why This Use Case Is Intentionally Complex](#3-why-this-use-case-is-intentionally-complex)
+4. [Feature Overview: Settlement-Aware FIFO Selling](#4-feature-overview-settlement-aware-fifo-selling)
+5. [Executable Specifications — Gherkin as a Communication Tool](#5-executable-specifications--gherkin-as-a-communication-tool)
+6. [Repository Navigation](#6-repository-navigation)
+7. [Business Rules](#7-business-rules)
+8. [Architectural Overview](#8-architectural-overview)
+9. [Side-by-Side Code Comparison](#9-side-by-side-code-comparison)
+10. [Invariant Enforcement](#10-invariant-enforcement)
+11. [Test Analysis — Why Tests Pass or Fail](#11-test-analysis--why-tests-pass-or-fail)
+12. [Failure Modes of the Anemic Domain Model](#12-failure-modes-of-the-anemic-domain-model)
+13. [Why the Rich Domain Model Works](#13-why-the-rich-domain-model-works)
+14. [Practical Takeaways](#14-practical-takeaways)
+15. [Webinar Demo Guide](#15-webinar-demo-guide)
 
 ---
 
@@ -57,11 +60,139 @@ duplicated implementations.
 
 ---
 
-## 2. Feature Overview: Settlement-Aware FIFO Selling
+## 2. Financial Background for Non-Specialists
 
-The newly implemented feature adds three capabilities to the existing sell operation:
+If you have built CRUD applications but never worked with trading systems, the business
+rules in this tutorial may initially look arbitrary or over-engineered. They are not.
+Every rule in this use case reflects a genuine operational constraint from real financial
+markets. This section gives you enough context to understand *why* those rules exist
+before you see *how* they are implemented.
 
-### 2.1 Settlement Gating (T+2 Rule)
+### 2.1 Settlement: Why You Cannot Immediately Sell What You Just Bought
+
+When you buy shares on a stock exchange, the trade is confirmed instantly — but the
+actual transfer of securities and money between buyer and seller does not happen at that
+moment. The process of finalising ownership and payment is called **settlement**, and
+it typically takes two business days after the trade date. This convention is known as
+**T+2** (trade date plus two days) and is mandated by regulators such as the
+U.S. Securities and Exchange Commission.
+
+During those two days, the shares exist in the portfolio as an obligation rather than
+as freely available assets. A settlement-aware sell operation must therefore distinguish
+between shares that have completed settlement and shares that have not. Selling unsettled
+shares would mean selling something that has not yet been fully received — a real risk
+that regulated systems are required to prevent.
+
+### 2.2 Reserved Lots: Why Some Shares Are Temporarily Off-Limits
+
+In practice, shares in a portfolio may be **reserved** — blocked for a specific purpose.
+Common reasons include:
+
+- **Collateral**: shares pledged against a margin loan or a credit facility.
+- **Regulatory hold**: shares subject to a lock-up period after an IPO or insider transaction.
+- **Pending operations**: shares committed to a corporate action, a transfer, or a conversion
+  that has been initiated but not yet completed.
+
+A reserved lot is not lost — it still belongs to the portfolio — but it must be excluded
+from any sell operation until the reservation is lifted. This is not a cosmetic distinction:
+selling reserved shares would break contractual obligations or regulatory requirements.
+
+### 2.3 Fees: Why Small Numbers Matter
+
+Every financial transaction involving a regulated market incurs costs: brokerage
+commissions, exchange fees, clearing charges, regulatory levies. In HexaStock, these are
+modelled as a single settlement fee proportional to gross proceeds (`FEE_RATE = 0.001`,
+i.e., 0.1%).
+
+Fees are not a formatting concern — they directly affect the correctness of every number
+reported to the user:
+
+- **Net proceeds** (what actually arrives in the account) = gross proceeds minus fee.
+- **Profit** must be calculated against net proceeds, not gross. Reporting profit without
+  deducting fees would overstate performance, which in a regulated context could constitute
+  misrepresentation.
+- The **accounting identity** — `costBasis + profit + fee = proceeds` — is the fundamental
+  check that the numbers are internally consistent.
+
+Getting this wrong by a few cents on one trade is a nuisance. Getting it wrong
+systematically across thousands of trades is an audit finding.
+
+### 2.4 FIFO: Why the Order of Consumption Matters
+
+A portfolio is not a single bucket of identical shares. Each purchase creates a
+**lot** — a distinct parcel with its own purchase price, date, and settlement status.
+When a holding contains lots purchased at different prices, the order in which they
+are consumed during a sale determines the **cost basis**, which in turn determines the
+reported profit.
+
+**FIFO** (First In, First Out) is the most common accounting method: the oldest lots
+are sold first. This is not an arbitrary sorting preference — it is the standard
+assumption in many tax jurisdictions and brokerage systems. Using a different order
+would produce different cost basis and profit figures for the same sale.
+
+FIFO also interacts with settlement and reservation: *only settled, non-reserved lots
+participate in the ordering*. A lot that was purchased first but is still within its
+settlement window, or that has been reserved as collateral, must be skipped.
+
+---
+
+## 3. Why This Use Case Is Intentionally Complex
+
+Choosing between a Rich Domain Model and an Anemic Domain Model is one of the most
+consequential architectural decisions in a business application. But the difference
+between the two is not always visible.
+
+**When business logic is trivial — field validation, simple CRUD, format checks — both
+approaches produce code that looks roughly the same.** The service might be slightly
+longer, the entity slightly emptier, but the practical consequences are minor. You
+could implement a "create user with email validation" use case either way and struggle
+to find a meaningful architectural argument for one over the other.
+
+The real trade-offs emerge when the domain is genuinely complex:
+
+- **Multiple interacting rules** — settlement, reservation, fees, and FIFO do not operate
+  in isolation; they constrain each other.
+- **Invariants that must hold across state changes** — the accounting identity
+  (`costBasis + profit + fee = proceeds`) must be true after every sell, regardless of
+  how the sell was triggered.
+- **Temporal constraints** — a lot's eligibility depends on when it was purchased relative
+  to the current date.
+- **Monetary calculations with precision requirements** — rounding, fee deduction, and
+  profit computation must all agree.
+- **Partial consumption of state** — selling 12 shares from a lot of 10 means consuming
+  the lot entirely and carrying over to the next one.
+- **Rule evolution across sprints and developers** — the reservation rule was added two
+  sprints after settlement; a different developer updated the service but forgot the
+  entity.
+
+This tutorial intentionally uses a realistic, multi-rule financial use case precisely
+because that is where the architectural choice becomes consequential. A simpler example
+would compile, pass its tests, and leave you unconvinced. The complexity here is not
+gratuitous — it is the minimum needed to reveal how rule duplication causes real bugs
+in an anemic model while a rich model remains safe.
+
+By the end of this tutorial, you will have seen concrete, running code where:
+
+- The rich model's 170 tests all pass.
+- The same 170 tests, run against the anemic implementation, produce 10 failures.
+- Every failure traces back to a business rule that was correctly placed in the entity
+  on one branch and incorrectly duplicated in the service on the other.
+
+That is the argument this tutorial makes — not in theory, but in test output.
+
+---
+
+## 4. Feature Overview: Settlement-Aware FIFO Selling
+
+The settlement-aware sell feature adds four interacting capabilities to the
+existing sell operation. Each one corresponds to a real financial constraint
+explained in [§2](#2-financial-background-for-non-specialists).
+
+### 4.1 Settlement Gating (T+2 Rule)
+
+**Business motivation**: In regulated markets, shares are not available for resale until
+settlement completes. Allowing a sale of unsettled shares would create a delivery
+obligation against assets the portfolio does not yet fully own.
 
 When shares are purchased, they do not settle immediately. Following the SEC T+2 rule,
 a lot becomes available for settlement-aware selling only after 2 business days:
@@ -74,16 +205,24 @@ Settlement Date: March 17, 2026 (T+2)
 The `Lot.SETTLEMENT_DAYS = 2` constant defines this. A lot is settled when
 `!asOf.isBefore(settlementDate)`.
 
-### 2.2 Lot Reservation
+### 4.2 Lot Reservation
 
-Certain lots can be reserved (e.g., used as collateral). Reserved lots must be excluded
-from settlement-aware sales:
+**Business motivation**: Shares used as collateral, under regulatory hold, or committed
+to a pending operation must not be sold. Selling them would break contractual or legal
+obligations, even though the shares technically belong to the portfolio.
+
+Certain lots can be reserved. Reserved lots must be excluded from settlement-aware sales:
 
 - `Lot.reserve()` — marks the lot as reserved
 - `Lot.unreserve()` — releases the reservation
 - A reserved lot should NOT be available for sale, even if settled
 
-### 2.3 Fees
+### 4.3 Fees
+
+**Business motivation**: Transaction fees affect net proceeds and therefore profit. Reporting
+profit without deducting fees would overstate performance. The accounting identity
+`costBasis + profit + fee = proceeds` is the fundamental integrity check that all the
+numbers are mutually consistent.
 
 Settlement-aware sales incur a fee (0.1% of gross proceeds):
 
@@ -100,7 +239,13 @@ The accounting identity that must always hold:
 costBasis + profit + fee = proceeds
 ```
 
-### 2.4 FIFO Lot Consumption
+### 4.4 FIFO Lot Consumption
+
+**Business motivation**: When a holding consists of lots purchased at different prices
+and dates, the order of consumption determines cost basis and reported profit. FIFO
+(First In, First Out) is the standard accounting method in most jurisdictions. It also
+interacts with settlement and reservation: only lots that are *both settled and
+unreserved* participate in the FIFO ordering.
 
 When selling, lots are consumed in purchase-date order (First In, First Out), but only
 lots that are both **settled** and **not reserved** participate. Unsettled or reserved
@@ -109,9 +254,243 @@ the holding.
 
 ---
 
-## 3. Repository Navigation
+## 5. Executable Specifications — Gherkin as a Communication Tool
 
-### 3.1 Clone and Switch Branches
+Before diving into code and architecture, it is worth understanding *how* the business
+rules described above are captured in a format that both developers and domain experts
+can read. HexaStock uses **Gherkin** — the Given/When/Then specification language — to
+express each rule as a concrete scenario with expected outcomes.
+
+These are not just documentation. Each scenario corresponds to a Java test method via
+`@SpecificationRef` annotations. When the tests run, they verify that the code satisfies
+the scenario. The Gherkin file is the contract; the test is the enforcement.
+
+### 5.1 Why Executable Specifications Matter for Architecture Comparison
+
+In this tutorial, the Gherkin specifications play a specific structural role:
+
+1. **They define what "correct" means** — independently of any implementation strategy.
+   The same scenarios apply to both the rich and anemic branches.
+2. **They make failures interpretable** — when a test fails on the anemic branch, the
+   corresponding Gherkin scenario explains what the system *should* do and why.
+3. **They reveal drift** — scenarios tagged `@anemic-branch-only @expected-failure`
+   document places where the anemic model's duplicated logic produces wrong answers.
+
+### 5.2 Settlement Gate Scenarios
+
+Source: [`doc/features/settlement-aware-selling.feature`](../../features/settlement-aware-selling.feature)
+
+These scenarios verify that only lots past the T+2 settlement window can participate
+in a regulated sell. They pass on both branches because settlement logic is
+identically implemented.
+
+```gherkin
+Scenario: Reject sell when only unsettled lots exist (SETTLE-01)
+  Given Alice bought 10 shares of AAPL at $100.00 five days ago
+  And Alice bought 10 shares of AAPL at $110.00 just now
+  When Alice tries to settlement-sell 15 shares of AAPL at $120.00
+  Then the sell is rejected with "Insufficient Eligible Shares"
+  Because only the first lot (10 shares) has passed the T+2 settlement period
+```
+
+> **Architecture note**: The settlement check (`Lot.isSettled(asOf)`) is the same in both
+> models. This is the one rule where duplication has not yet caused drift — because no one
+> has added a second condition to it. The reservation scenarios below show what happens
+> when a second condition *is* added.
+
+```gherkin
+Scenario: Allow selling exactly the settled quantity (SETTLE-02)
+  Given Alice bought 10 shares of AAPL at $100.00 five days ago
+  And Alice bought 10 shares of AAPL at $110.00 just now
+  When Alice settlement-sells 10 shares of AAPL at $120.00 with no fee
+  Then the sale proceeds are $1,200.00
+  And the cost basis is $1,000.00
+  And the profit is $200.00
+  And 10 unsettled shares of AAPL remain in the portfolio
+```
+
+### 5.3 Reservation Scenarios — Where Drift Begins
+
+Source: [`doc/features/reserved-lot-handling.feature`](../../features/reserved-lot-handling.feature)
+
+Reservation is where the anemic model starts to break. The service correctly checks
+`!lot.isReserved()` in its inline FIFO loop, but `Lot.isAvailableForSale()` was never
+updated. Every scenario below passes on the rich branch and **fails on the anemic branch**
+(except RESERVE-03 which tests unreserve symmetry).
+
+```gherkin
+Scenario: Reserved lot should not be available for sale even if settled (LOT-SETTLE-02)
+  Given Alice bought 10 shares of AAPL at $100.00 ten days ago
+  And the AAPL lot is settled
+  When the lot is reserved
+  Then Lot.isAvailableForSale() returns false
+  And Lot.availableShares() returns 0
+```
+
+> **This is the single most important scenario in the tutorial.** It tests the method
+> that is broken on the anemic branch: `Lot.isAvailableForSale()` returns `true` for
+> a reserved lot because it only checks `isSettled(asOf)`, missing the `&& !reserved`
+> condition. Every downstream failure — in FIFO ordering, eligibility counts, and the
+> REST endpoint — traces back to this method.
+
+```gherkin
+Scenario: Sell from non-reserved lots in FIFO order (RESERVE-02)
+  Given Alice bought 10 shares of AAPL at $100.00 ten days ago
+  And Alice bought 5 shares of AAPL at $120.00 five days ago
+  And both lots are settled
+  When the oldest lot (10 shares) is reserved
+  And Alice settlement-sells 5 shares of AAPL at $130.00 with no fee
+  Then the cost basis is $600.00 (from lot2 at $120.00)
+  And the profit is $50.00
+  And the reserved lot still has 10 shares untouched
+```
+
+> On the anemic branch, this scenario fails with `costBasis=500` instead of `600`. The
+> FIFO scan in `Holding.sellSettled()` calls `Lot.isAvailableForSale()` which does not
+> skip the reserved lot — so it consumes lot1 (at $100) instead of lot2 (at $120).
+
+The integration-level scenario demonstrates how this flaw surfaces through the REST API:
+
+```gherkin
+@anemic-branch-only @expected-failure
+Scenario: Eligible shares query should exclude reserved lots (DRIFT-REST-01)
+  Given Alice bought 10 shares of AAPL and 5 shares of AAPL via REST
+  And all lots are settled (settlement dates backdated via JDBC)
+  And the oldest lot is reserved via POST /holdings/AAPL/lots/{id}/reserve
+  When Alice queries GET /holdings/AAPL/eligible-shares
+  Then the expected eligible count is 5
+  But the anemic model returns 15
+  Because Lot.isAvailableForSale() only checks settlement, not reservation
+```
+
+### 5.4 Fee Accounting Scenarios — The Second Flaw
+
+Source: [`doc/features/settlement-fees.feature`](../../features/settlement-fees.feature)
+
+The fee scenarios verify that profit is computed as `netProceeds − costBasis`
+(where `netProceeds = grossProceeds − fee`), not as `grossProceeds − costBasis`.
+This matters because the accounting identity `costBasis + profit + fee = proceeds`
+can only hold if the fee is deducted before reporting profit.
+
+```gherkin
+Scenario: Fee should be deducted when computing profit (FEE-02)
+  Given Alice bought 10 shares of AAPL at $100.00 ten days ago
+  And all lots are settled
+  When Alice settlement-sells 10 shares of AAPL at $110.00 with fee $1.10
+  Then the profit is $98.90 (= $1,100.00 − $1.10 − $1,000.00)
+  And the profit is NOT $100.00 (which omits the fee)
+```
+
+> On the anemic branch, `Portfolio.sellWithSettlement()` computes
+> `profit = grossProceeds.subtract(costBasis)` → $100. The correct result is $98.90.
+> The service's own `sellStockWithSettlement()` method uses `SellResult.withFee()`
+> which gets the right answer — but the domain method disagrees.
+
+```gherkin
+Scenario: Accounting identity must hold: profit = netProceeds − costBasis (FEE-03)
+  Given Alice bought 10 shares of AAPL at $100.00 ten days ago
+  And all lots are settled
+  When Alice settlement-sells 10 shares of AAPL at $110.00 with fee $1.10
+  Then netProceeds = $1,098.90
+  And costBasis = $1,000.00
+  And profit = $98.90
+  And the identity holds: profit == netProceeds − costBasis
+```
+
+> **This scenario formalises the accounting identity** as a testable contract. On the
+> anemic branch, `costBasis + profit + fee = 1000 + 100 + 1.10 = 1101.10 ≠ 1100.00`.
+> The identity is violated because the profit formula is stale.
+
+### 5.5 FIFO and Atomic Consistency Scenarios
+
+Source: [`doc/features/fifo-settlement-selling.feature`](../../features/fifo-settlement-selling.feature)
+
+The FIFO scenarios verify lot consumption order and partial consumption. Most pass on
+both branches (FIFO ordering itself is correct even in the anemic model), but the
+atomic end-to-end scenario combines all rules and triggers both flaws.
+
+```gherkin
+Scenario: Full atomic scenario: buy, settle, reserve, sell, verify (ATOMIC-01)
+  Given Alice bought 10 shares of AAPL at $100.00 ten days ago
+  And Alice bought 5 shares of AAPL at $120.00 five days ago
+  And Alice bought 3 shares of AAPL at $130.00 just now
+  And the first two lots are settled
+
+  When the oldest lot (10 shares) is reserved
+  Then eligible shares are 5
+
+  When Alice settlement-sells 5 shares of AAPL at $140.00 with fee $0.70
+  Then cost basis is $600.00 (5×120 from lot2)
+  And net proceeds are $699.30 (700 − 0.70)
+  And profit is $99.30 (699.30 − 600)
+  And the accounting identity holds: profit == netProceeds − costBasis
+  And the reserved lot (10 shares at $100.00) is untouched
+  And the unsettled lot (3 shares at $130.00) is untouched
+```
+
+> **This is the capstone scenario.** It exercises settlement gating (lot3 is unsettled),
+> reservation exclusion (lot1 is reserved), FIFO ordering (lot2 is consumed first among
+> eligible lots), fee-adjusted profit, and the accounting identity — all in a single test.
+> On the anemic branch it fails on multiple assertions because both flaws compound.
+
+### 5.6 Rule Consistency Scenarios — Documenting Intentional Drift
+
+Source: [`doc/features/rule-consistency.feature`](../../features/rule-consistency.feature)
+
+All five scenarios in this file are tagged `@anemic-branch-only @expected-failure`.
+They do not test business rules — they test the **absence of correct business rules**
+in the anemic model. They exist to make the architectural argument concrete and auditable.
+
+```gherkin
+@anemic-branch-only @expected-failure
+Scenario: Inline service logic vs. domain method produce different results
+  Given Alice bought 10 shares of AAPL at $100.00 via REST
+  And all lots are settled
+  And the oldest lot is reserved
+
+  When Alice sells via POST /{id}/sell with settlement
+  Then the service correctly checks settlement AND reservation
+  And the sale is rejected because eligible shares = 0
+
+  When Alice queries GET /{id}/holdings/AAPL/eligible-shares
+  Then the endpoint returns 10 (incorrectly includes reserved lot)
+  Because it delegates to Holding.getEligibleShares()
+  Which calls Lot.isAvailableForSale()
+  Which only checks isSettled(), not !reserved
+```
+
+> **Two code paths, same question, different answers.** The sell endpoint says "0 eligible
+> shares" (correct). The eligible-shares query says "10" (wrong). Both operate on the
+> same data. The difference is that the sell endpoint uses inline service logic while
+> the query delegates to the domain method where the reservation check is missing.
+
+### 5.7 From Specification to Architecture: The Chain
+
+Each Gherkin scenario traces a path from a business requirement to an architectural outcome:
+
+```
+Business Rule  →  Gherkin Scenario  →  Domain Behaviour  →  Java Test  →  Architecture Outcome
+─────────────     ────────────────     ─────────────────     ─────────     ────────────────────
+Rule 2:           RESERVE-02:         Lot.isAvailable       shouldSell    Rich: ✅ single method
+"Reserved lots    "Sell from non-     ForSale() checks      FromNon       Anemic: ❌ service ok,
+cannot be sold"   reserved lots       settlement AND        ReservedLots  domain misses !reserved
+                  in FIFO order"      reservation
+```
+
+This chain is the organising principle of the entire tutorial. Every section from
+[§7 Business Rules](#7-business-rules) through [§12 Failure Modes](#12-failure-modes-of-the-anemic-domain-model)
+can be read as a deeper exploration of one link in this chain. The Gherkin scenarios
+are the layer where business intent meets testable behaviour, and where the gap between
+the rich model and the anemic model becomes visible.
+
+For the full traceability matrix mapping every scenario to its business rule, test, and
+branch outcome, see [Appendix C](#appendix-c--gherkin-specification-index-and-traceability-matrix).
+
+---
+
+## 6. Repository Navigation
+
+### 6.1 Clone and Switch Branches
 
 ```bash
 git clone https://github.com/alfredorueda/HexaStock.git
@@ -132,7 +511,7 @@ git checkout anemic-domain-model
                      #   2 integration-level (SettlementSellIntegrationTest)
 ```
 
-### 3.2 Key Source Files
+### 6.2 Key Source Files
 
 | File | Path |
 |------|------|
@@ -147,7 +526,7 @@ git checkout anemic-domain-model
 | **Integration Tests** | `src/test/java/cat/gencat/agaur/hexastock/adapter/in/SettlementSellIntegrationTest.java` |
 | **Test Base Class** | `src/test/java/cat/gencat/agaur/hexastock/adapter/in/AbstractPortfolioRestIntegrationTest.java` |
 
-### 3.3 Diagrams and Specifications
+### 6.3 Diagrams and Specifications
 
 | Artifact | Path |
 |----------|------|
@@ -166,10 +545,12 @@ git checkout anemic-domain-model
 
 ---
 
-## 4. Business Rules
+## 7. Business Rules
 
 The settlement-aware selling feature enforces five categories of rules. Each rule is
 traced to its implementation in both branches and to the test(s) that verify it.
+For the full Gherkin specifications that formalise these rules as executable scenarios,
+see [§5](#5-executable-specifications--gherkin-as-a-communication-tool).
 
 ### Rule 1 — Settlement Gate
 
@@ -213,9 +594,9 @@ traced to its implementation in both branches and to the test(s) that verify it.
 
 ---
 
-## 5. Architectural Overview
+## 8. Architectural Overview
 
-### 5.1 Rich Domain Model Architecture
+### 8.1 Rich Domain Model Architecture
 
 ```
 ┌─────────────────────────────────────────────────────────────────────┐
@@ -263,7 +644,7 @@ enforced inside the aggregate. There is exactly **one code path** for each rule.
 
 Source: [`diagrams/rich-architecture.puml`](diagrams/rich-architecture.puml)
 
-### 5.2 Anemic Domain Model Architecture
+### 8.2 Anemic Domain Model Architecture
 
 ```
 ┌──────────────────────────────────────────────────────────────────────┐
@@ -327,9 +708,9 @@ Source: [`diagrams/anemic-architecture.puml`](diagrams/anemic-architecture.puml)
 
 ---
 
-## 6. Side-by-Side Code Comparison
+## 9. Side-by-Side Code Comparison
 
-### 6.1 Lot Availability Check — The Reservation Flaw
+### 9.1 Lot Availability Check — The Reservation Flaw
 
 This is the root cause of **Flaw #1** — the reservation check is missing from the
 anemic branch's domain method.
@@ -365,7 +746,7 @@ Sprint 12 by a different developer who updated the service's inline FIFO logic b
 forgot to update this convenience method. When Sprint 14 added the eligible-shares
 query endpoint, it called this method — inheriting the bug.
 
-### 6.2 Portfolio Settlement Sell — The Fee Flaw
+### 9.2 Portfolio Settlement Sell — The Fee Flaw
 
 This is the root cause of **Flaw #2** — the fee is omitted from the profit calculation.
 
@@ -413,7 +794,7 @@ updated the balance logic (`balance.add(netProceeds)`) but computed profit using
 pre-fee formula. The service's own `sellStockWithSettlement()` uses `SellResult.withFee()`
 and gets the right answer — but the domain method disagrees.
 
-### 6.3 Service Layer — Thin vs. Fat
+### 9.3 Service Layer — Thin vs. Fat
 
 #### Rich Branch — Service (`~20 lines`)
 
@@ -518,7 +899,7 @@ Source: [`diagrams/rich-sell-sequence.puml`](diagrams/rich-sell-sequence.puml)
 
 Source: [`diagrams/anemic-sell-sequence.puml`](diagrams/anemic-sell-sequence.puml)
 
-### 6.4 Use Case Port — 3 vs. 6 Methods
+### 9.4 Use Case Port — 3 vs. 6 Methods
 
 #### Rich Branch — `PortfolioStockOperationsUseCase` (3 methods)
 
@@ -543,7 +924,7 @@ SellResult sellStockWithSettlementAggregate(PortfolioId portfolioId,        // �
 The anemic branch leaks internal aggregate structure (lot IDs, eligibility queries)
 through the use case port, coupling the application layer to implementation details.
 
-### 6.5 REST Controller — Standard vs. Expanded API Surface
+### 9.5 REST Controller — Standard vs. Expanded API Surface
 
 The anemic branch adds **three extra endpoints** that expose aggregate internals:
 
@@ -555,12 +936,12 @@ The anemic branch adds **three extra endpoints** that expose aggregate internals
 
 ---
 
-## 7. Invariant Enforcement
+## 10. Invariant Enforcement
 
 An **invariant** is a condition that must always be true. In DDD, the aggregate root
 is responsible for enforcing invariants. Let's trace how each architecture handles them.
 
-### 7.1 Invariant: "Reserved lots cannot be sold"
+### 10.1 Invariant: "Reserved lots cannot be sold"
 
 **Rich branch** — enforced at the entity level:
 
@@ -589,7 +970,7 @@ The invariant is enforced in the service's inline FIFO loop but NOT in the domai
 convenience method. Any new code that calls `Lot.isAvailableForSale()` will get the
 wrong answer for reserved lots.
 
-### 7.2 Invariant: "Profit must account for fees"
+### 10.2 Invariant: "Profit must account for fees"
 
 **Rich branch** — enforced by a single factory method:
 
@@ -623,13 +1004,13 @@ Source: [`diagrams/invariant-enforcement.puml`](diagrams/invariant-enforcement.p
 
 ---
 
-## 8. Test Analysis — Why Tests Pass or Fail
+## 11. Test Analysis — Why Tests Pass or Fail
 
 This is the most critical section. Both branches run the **exact same** 19-test
 domain test class (`SettlementAwareSellTest`) and the **exact same** 7-test
 integration test class (`SettlementSellIntegrationTest`).
 
-### 8.1 Domain Tests — `SettlementAwareSellTest` (19 tests)
+### 11.1 Domain Tests — `SettlementAwareSellTest` (19 tests)
 
 All tests call `portfolio.sellWithSettlement()` or inspect domain objects directly.
 On the rich branch, the aggregate enforces all invariants. On the anemic branch,
@@ -695,7 +1076,7 @@ This test is a comprehensive end-to-end domain scenario that:
 It fails on the anemic branch because of BOTH flaws: the reserved lot is included
 in eligibility/FIFO (Flaw #1), and the profit omits the fee (Flaw #2).
 
-### 8.2 Integration Tests — `SettlementSellIntegrationTest` (7 tests)
+### 11.2 Integration Tests — `SettlementSellIntegrationTest` (7 tests)
 
 #### Tests that PASS on both branches (5 of 7)
 
@@ -748,7 +1129,7 @@ that belongs inside the aggregate.
 computes `profit = grossProceeds - costBasis` (omitting fee). The accounting identity
 is violated.
 
-### 8.3 How the Integration Tests Backdated Settlement
+### 11.3 How the Integration Tests Backdated Settlement
 
 The anemic branch's `AbstractPortfolioRestIntegrationTest` includes a JDBC-based helper
 that backdates settlement dates to make lots appear settled:
@@ -769,9 +1150,9 @@ settlement gate (rejecting unsettled lots) and don't need pre-settled lots.
 
 ---
 
-## 9. Failure Modes of the Anemic Domain Model
+## 12. Failure Modes of the Anemic Domain Model
 
-### 9.1 Rule Duplication
+### 12.1 Rule Duplication
 
 The same business rule ("is this lot available for sale?") exists in two places:
 
@@ -781,7 +1162,7 @@ The same business rule ("is this lot available for sale?") exists in two places:
 When rules are duplicated, they can diverge. The developer who added reservation
 updated the service logic but forgot the domain method.
 
-### 9.2 Rule Drift Across Sprints
+### 12.2 Rule Drift Across Sprints
 
 ```
 Sprint 10: Settlement feature added
@@ -804,7 +1185,7 @@ Sprint 14: Eligible-shares query endpoint added
 
 Source: [`diagrams/rule-drift.puml`](diagrams/rule-drift.puml)
 
-### 9.3 Hidden Coupling and Coordination Burden
+### 12.3 Hidden Coupling and Coordination Burden
 
 The anemic branch's service is correct — but its correctness is **fragile**. Any new
 feature that needs the "is available for sale?" check faces a choice:
@@ -816,7 +1197,7 @@ feature that needs the "is available for sale?" check faces a choice:
 In the rich model, there is no choice to make. You call `Lot.isAvailableForSale()`
 and get the right answer. The entity owns its own rules.
 
-### 9.4 API Surface Bloat
+### 12.4 API Surface Bloat
 
 The anemic branch requires three additional REST endpoints to expose operations that
 the domain should handle internally:
@@ -832,9 +1213,9 @@ of integration tests required.
 
 ---
 
-## 10. Why the Rich Domain Model Works
+## 13. Why the Rich Domain Model Works
 
-### 10.1 Single Point of Truth
+### 13.1 Single Point of Truth
 
 Every business rule is implemented exactly once, inside the entity that owns the data:
 
@@ -848,7 +1229,7 @@ Every business rule is implemented exactly once, inside the entity that owns the
 
 No rule is duplicated. No rule can drift.
 
-### 10.2 Aggregate Boundary
+### 13.2 Aggregate Boundary
 
 The `Portfolio` aggregate root coordinates the entire sell operation:
 
@@ -861,7 +1242,7 @@ External code (service, controller, other aggregates) cannot bypass these checks
 because the only public method for settlement-aware selling is
 `Portfolio.sellWithSettlement()`.
 
-### 10.3 Testability Without Infrastructure
+### 13.3 Testability Without Infrastructure
 
 All 19 domain tests run without Spring, without a database, without HTTP. They
 instantiate domain objects directly and verify behavior. This makes them:
@@ -870,7 +1251,7 @@ instantiate domain objects directly and verify behavior. This makes them:
 - **Isolated** — no flaky infrastructure dependencies
 - **Comprehensive** — every rule is testable at the unit level
 
-### 10.4 Safe Evolution
+### 13.4 Safe Evolution
 
 When a new rule is added (e.g., "lots under regulatory hold cannot be sold"), there
 is exactly one place to add it: `Lot.isAvailableForSale()`. All callers automatically
@@ -879,7 +1260,7 @@ checks lot availability.
 
 ---
 
-## 11. Practical Takeaways
+## 14. Practical Takeaways
 
 ### When to Use a Rich Domain Model
 
@@ -909,9 +1290,36 @@ checks lot availability.
 5. **Resist the urge to add convenience endpoints** — If you need a query endpoint
    to check something the aggregate should enforce, the aggregate is too passive
 
+### The Architectural Thesis — Restated
+
+This tutorial opened with a deliberate choice: a domain complex enough that the
+difference between a rich model and an anemic model becomes measurable. The evidence
+is now concrete:
+
+- **28 Gherkin scenarios** formalise the business rules as testable contracts.
+- **170 Java tests** run against both branches. The rich model passes all of them.
+  The anemic model fails 10 — not because the tests are unfair, but because rule
+  duplication causes real bugs.
+- **Two specific flaws** (reservation check missing from `Lot.isAvailableForSale()`,
+  fee omitted from `Portfolio.sellWithSettlement()`) were introduced organically
+  across sprints by different developers working on correctly scoped tasks.
+
+The conclusion is not "anemic models are always wrong." It is:
+
+> **When business rules interact, evolve across sprints, and must satisfy invariants
+> that span multiple entities, placing those rules inside the entities that own
+> the data eliminates an entire category of bugs that no amount of service-layer
+> testing can prevent — because the bugs appear in *new* code paths that call
+> the domain methods the service tests never exercise.**
+
+If your domain is a single validation check or a format conversion, the choice
+hardly matters. If your domain is settlement-aware FIFO selling with reserved
+lots and fee-adjusted accounting identities, the choice is the difference between
+170/170 and 160/170.
+
 ---
 
-## 12. Webinar Demo Guide
+## 15. Webinar Demo Guide
 
 ### Pre-requisites
 
@@ -1059,24 +1467,60 @@ are available in `diagrams/Rendered/`. To re-render from source:
 | Diagram | Source | Rendered | Section |
 |---------|--------|----------|---------|
 | Domain Model | [`domain-model.puml`](diagrams/domain-model.puml) | [PNG](diagrams/Rendered/domain-model.png) · [SVG](diagrams/Rendered/domain-model.svg) | [§1 Introduction](#1-introduction) |
-| Rich Architecture | [`rich-architecture.puml`](diagrams/rich-architecture.puml) | [PNG](diagrams/Rendered/rich-architecture.png) · [SVG](diagrams/Rendered/rich-architecture.svg) | [§5.1 Rich Architecture](#51-rich-domain-model-architecture) |
-| Anemic Architecture | [`anemic-architecture.puml`](diagrams/anemic-architecture.puml) | [PNG](diagrams/Rendered/anemic-architecture.png) · [SVG](diagrams/Rendered/anemic-architecture.svg) | [§5.2 Anemic Architecture](#52-anemic-domain-model-architecture) |
-| Rich Sell Sequence | [`rich-sell-sequence.puml`](diagrams/rich-sell-sequence.puml) | [PNG](diagrams/Rendered/rich-sell-sequence.png) · [SVG](diagrams/Rendered/rich-sell-sequence.svg) | [§6.3 Service Layer](#63-service-layer--thin-vs-fat) |
-| Anemic Sell Sequence | [`anemic-sell-sequence.puml`](diagrams/anemic-sell-sequence.puml) | [PNG](diagrams/Rendered/anemic-sell-sequence.png) · [SVG](diagrams/Rendered/anemic-sell-sequence.svg) | [§6.3 Service Layer](#63-service-layer--thin-vs-fat) |
-| Invariant Enforcement | [`invariant-enforcement.puml`](diagrams/invariant-enforcement.puml) | [PNG](diagrams/Rendered/invariant-enforcement.png) · [SVG](diagrams/Rendered/invariant-enforcement.svg) | [§7 Invariants](#7-invariant-enforcement) |
-| Rule Drift Timeline | [`rule-drift.puml`](diagrams/rule-drift.puml) | [PNG](diagrams/Rendered/rule-drift.png) · [SVG](diagrams/Rendered/rule-drift.svg) | [§9.2 Rule Drift](#92-rule-drift-across-sprints) |
+| Rich Architecture | [`rich-architecture.puml`](diagrams/rich-architecture.puml) | [PNG](diagrams/Rendered/rich-architecture.png) · [SVG](diagrams/Rendered/rich-architecture.svg) | [§8.1 Rich Architecture](#81-rich-domain-model-architecture) |
+| Anemic Architecture | [`anemic-architecture.puml`](diagrams/anemic-architecture.puml) | [PNG](diagrams/Rendered/anemic-architecture.png) · [SVG](diagrams/Rendered/anemic-architecture.svg) | [§8.2 Anemic Architecture](#82-anemic-domain-model-architecture) |
+| Rich Sell Sequence | [`rich-sell-sequence.puml`](diagrams/rich-sell-sequence.puml) | [PNG](diagrams/Rendered/rich-sell-sequence.png) · [SVG](diagrams/Rendered/rich-sell-sequence.svg) | [§9.3 Service Layer](#93-service-layer--thin-vs-fat) |
+| Anemic Sell Sequence | [`anemic-sell-sequence.puml`](diagrams/anemic-sell-sequence.puml) | [PNG](diagrams/Rendered/anemic-sell-sequence.png) · [SVG](diagrams/Rendered/anemic-sell-sequence.svg) | [§9.3 Service Layer](#93-service-layer--thin-vs-fat) |
+| Invariant Enforcement | [`invariant-enforcement.puml`](diagrams/invariant-enforcement.puml) | [PNG](diagrams/Rendered/invariant-enforcement.png) · [SVG](diagrams/Rendered/invariant-enforcement.svg) | [§10 Invariants](#10-invariant-enforcement) |
+| Rule Drift Timeline | [`rule-drift.puml`](diagrams/rule-drift.puml) | [PNG](diagrams/Rendered/rule-drift.png) · [SVG](diagrams/Rendered/rule-drift.svg) | [§12.2 Rule Drift](#122-rule-drift-across-sprints) |
 
 ---
 
-## Appendix C — Gherkin Specification Index
+## Appendix C — Gherkin Specification Index and Traceability Matrix
 
-| Feature File | Focus |
-|-------------|-------|
-| `doc/features/settlement-aware-selling.feature` | Settlement gate behaviour (domain + REST) |
-| `doc/features/reserved-lot-handling.feature` | Lot reservation and its effect on eligibility |
-| `doc/features/settlement-fees.feature` | Fee calculations and accounting identity |
-| `doc/features/fifo-settlement-selling.feature` | FIFO order with settlement gating |
-| `doc/features/rule-consistency.feature` | Drift detection and cross-path inconsistency |
+The five feature files document every business rule as an executable scenario. Each
+scenario is linked to the business rule it formalises, the Java test that implements it,
+and the architectural consequence visible on each branch.
+
+### Feature File Index
+
+| Feature File | Focus | Scenarios |
+|-------------|-------|-----------|
+| [`settlement-aware-selling.feature`](../../features/settlement-aware-selling.feature) | Settlement gate behaviour (domain + REST) | 5 |
+| [`reserved-lot-handling.feature`](../../features/reserved-lot-handling.feature) | Lot reservation and its effect on eligibility | 6 (1 @expected-failure) |
+| [`settlement-fees.feature`](../../features/settlement-fees.feature) | Fee calculations and accounting identity | 5 (1 @expected-failure) |
+| [`fifo-settlement-selling.feature`](../../features/fifo-settlement-selling.feature) | FIFO order with settlement gating | 7 |
+| [`rule-consistency.feature`](../../features/rule-consistency.feature) | Drift detection and cross-path inconsistency | 5 (all @expected-failure) |
+
+### Full Traceability Matrix
+
+| Scenario ID | Business Rule | Gherkin Scenario | Java Test | Rich | Anemic | Flaw |
+|------------|--------------|-----------------|-----------|------|--------|------|
+| SETTLE-01 | Rule 1 (Settlement Gate) | Reject sell when only unsettled lots exist | `shouldNotSellUnsettledLots` | ✅ | ✅ | — |
+| SETTLE-02 | Rule 1 | Allow selling exactly the settled quantity | `shouldSellExactlySettledQuantity` | ✅ | ✅ | — |
+| SETTLE-03 | Rule 1 | Report eligible shares excluding unsettled | `shouldReportEligibleSharesCorrectly` | ✅ | ✅ | — |
+| SETTLE-REST-01 | Rule 1 | Settlement-sale endpoint returns 409 | `sellUnsettledLots_returns409` | ✅ | ✅ | — |
+| SETTLE-REST-02 | Rule 1 | Regular sale works regardless of settlement | `regularSellStillWorks` | ✅ | ✅ | — |
+| LOT-SETTLE-02 | Rule 2 (Reservation) | Reserved lot not available even if settled | `reservedLotShouldNotBeAvailable` | ✅ | ❌ | #1 |
+| RESERVE-01 | Rule 2 | Skip reserved lots during FIFO selling | `shouldSkipReservedLots` | ✅ | ❌ | #1 |
+| RESERVE-02 | Rule 2 | Sell from non-reserved lots in FIFO order | `shouldSellFromNonReservedLots` | ✅ | ❌ | #1 |
+| RESERVE-03 | Rule 2 | Unreserving a lot makes it available again | `shouldAllowUnreservingLot` | ✅ | ❌ | #1 |
+| ELIGIBLE-01 | Rule 2 | Distinguish total from eligible shares | `shouldDistinguishTotalFromEligible` | ✅ | ❌ | #1 |
+| DRIFT-REST-01 | Rule 2 | Eligible shares query excludes reserved (REST) | `eligibleSharesShouldExcludeReservedLots` | N/A | ❌ | #1 |
+| FEE-01 | Rule 3 (Fees) | Net proceeds deduct fee from gross | `shouldCalculateNetProceedsAfterFee` | ✅ | ✅ | — |
+| FEE-02 | Rule 3 | Fee deducted when computing profit | `shouldDeductFeeFromProceeds` | ✅ | ❌ | #2 |
+| FEE-03 | Rule 3 + Rule 5 | Accounting identity holds | `shouldMaintainAccountingIdentity` | ✅ | ❌ | #2 |
+| FEE-04 | Rule 3 | Zero-profit when fee absorbs gain | `shouldReturnZeroProfitWhenFeeAbsorbsGain` | ✅ | ✅ | — |
+| DRIFT-REST-02 | Rule 3 + Rule 5 | Aggregate sell maintains identity (REST) | `aggregateSellShouldMaintainAccountingIdentity` | N/A | ❌ | #2 |
+| FIFO-01 | Rule 4 (FIFO) | Sell settled lots in FIFO order | `shouldConsumeSettledLotsInFifoOrder` | ✅ | ✅ | — |
+| FIFO-02 | Rule 4 | Unsettled lots left intact during FIFO | `shouldSkipUnsettledLotInFifoOrder` | ✅ | ✅ | — |
+| PARTIAL-01 | Rule 4 | Partially consume a lot | `shouldPartiallyConsumeLot` | ✅ | ✅ | — |
+| ELIGIBLE-02 | Rule 4 | Zero eligible when all unsettled | `shouldRejectZeroQuantitySell` | ✅ | ✅ | — |
+| ELIGIBLE-03 | Rule 2 + Rule 4 | Only settled and unreserved count as eligible | `shouldDistinguishTotalFromEligible` | ✅ | ❌ | #1 |
+| LOT-SETTLE-01 | Rule 1 | Lot not settled before T+2 | `lotShouldReportSettlementStatus` | ✅ | ✅ | — |
+| ATOMIC-01 | All rules | Full atomic end-to-end consistency | `fullScenarioAtomicCorrectness` | ✅ | ❌ | #1+#2 |
+| DOMAIN-DRIFT-01 | Rule 2 (drift) | Reserved lot check missing from entity | — | N/A | ❌ | #1 |
+| DOMAIN-DRIFT-02 | Rule 3 (drift) | Fee omitted from profit in Portfolio | — | N/A | ❌ | #2 |
 
 Scenarios tagged `@anemic-branch-only @expected-failure` document behaviors that are
 intentionally broken on the anemic branch to demonstrate architectural risk.
