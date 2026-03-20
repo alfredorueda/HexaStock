@@ -25,6 +25,11 @@
 14. [Practical Takeaways](#14-practical-takeaways)
 15. [Webinar Demo Guide](#15-webinar-demo-guide)
 
+- [Appendix A — Test Matrix](#appendix-a--test-matrix)
+- [Appendix B — PlantUML Diagram Index](#appendix-b--plantuml-diagram-index)
+- [Appendix C — Gherkin Specification Index and Traceability Matrix](#appendix-c--gherkin-specification-index-and-traceability-matrix)
+- [Appendix D — Scope of the Financial Model Used in This Tutorial](#appendix-d--scope-of-the-financial-model-used-in-this-tutorial)
+
 ---
 
 ## 1. Introduction
@@ -1524,6 +1529,46 @@ and the architectural consequence visible on each branch.
 
 Scenarios tagged `@anemic-branch-only @expected-failure` document behaviors that are
 intentionally broken on the anemic branch to demonstrate architectural risk.
+
+---
+
+## Appendix D — Scope of the Financial Model Used in This Tutorial
+
+This tutorial models a settlement-constrained sell policy as an explicit business
+rule: a lot must complete T+2 settlement before it can participate in a regulated
+sale. That rule is deliberately chosen because it introduces temporal constraints,
+eligibility filtering, and interaction with reservation and fee logic — exactly the
+kind of multi-rule complexity where the architectural difference between a Rich
+Domain Model and an Anemic Domain Model becomes visible and testable.
+
+It is worth noting that the model presented here is a pedagogical simplification,
+not a universal description of how all trading operations work.
+
+In real financial markets, trade execution and final settlement are distinct events.
+A buy order may be executed in milliseconds, but the transfer of ownership and funds
+between counterparties — settlement — typically completes on a later date (T+2 in
+most equity markets, though the cycle varies by asset class and jurisdiction). Between
+execution and settlement, the position exists as a contractual obligation backed by
+clearing and risk management infrastructure.
+
+Some market participants can and do sell again before settlement completes. Whether
+this is possible depends on factors such as account type (cash vs. margin), broker or
+bank infrastructure, clearing arrangements, netting agreements, and the institution's
+intraday risk management policies. A retail investor on a cash account may face strict
+settlement constraints; a broker-dealer with real-time clearing access may operate
+under very different rules.
+
+None of this invalidates the model used in this tutorial. On the contrary, real
+trading workflows are often *more* operationally complex than what is shown here —
+with additional rules for short selling, partial fills, multi-leg orders, cross-border
+settlement, and regulatory holds. The tutorial selects a deliberately constrained
+subset of that complexity: one that is rich enough to surface meaningful architectural
+consequences, but simple enough to fit in a single codebase with 170 tests.
+
+If a reader observes that "in practice, some traders can buy and sell again almost
+immediately," the correct response is: yes — and the infrastructure that makes that
+possible adds further rules, state transitions, and invariants that would make the
+case for a Rich Domain Model even stronger.
 
 ---
 
