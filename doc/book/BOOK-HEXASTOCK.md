@@ -311,7 +311,7 @@ void sellMoreThanOwned_returns409() { ... }
 This creates a verifiable traceability chain:
 
 ```
-Gherkin Scenario (doc/features/sell-stocks.feature)
+Gherkin Scenario (../features/sell-stocks.feature)
     ↓ referenced by
 API Specification (doc/stock-portfolio-api-specification.md, US-07)
     ↓ referenced by
@@ -360,9 +360,9 @@ Portfolio (Aggregate Root)
 
 The following class diagram shows the complete domain model — aggregate roots, entities, value objects, and their relationships:
 
-[![HexaStock Domain Model — class diagram showing the Portfolio aggregate root, Holding and Lot entities, and all value objects](doc/tutorial/sellStocks/diagrams/Rendered/domain-class-diagram.png)](doc/tutorial/sellStocks/diagrams/Rendered/domain-class-diagram.svg)
+[![HexaStock Domain Model — class diagram showing the Portfolio aggregate root, Holding and Lot entities, and all value objects](../tutorial/sellStocks/diagrams/Rendered/domain-class-diagram.png)](../tutorial/sellStocks/diagrams/Rendered/domain-class-diagram.svg)
 
-*Figure 3.1 — Domain class diagram. The Portfolio aggregate root contains Holdings, which contain Lots. Value objects (Money, Price, ShareQuantity, Ticker, SellResult) enforce structural validity at construction time. ([PlantUML source](doc/tutorial/sellStocks/diagrams/domain-class-diagram.puml))*
+*Figure 3.1 — Domain class diagram. The Portfolio aggregate root contains Holdings, which contain Lots. Value objects (Money, Price, ShareQuantity, Ticker, SellResult) enforce structural validity at construction time. ([PlantUML source](../tutorial/sellStocks/diagrams/domain-class-diagram.puml))*
 
 ### 3.2 The Portfolio Aggregate Root
 
@@ -645,9 +645,9 @@ public SellResult sell(ShareQuantity quantity, Price sellPrice) {
 
 The following sequence diagram visualizes the FIFO lot-consumption process as it unfolds within the domain layer:
 
-[![FIFO lot-consumption sequence — Portfolio delegates to Holding, which iterates through Lots in chronological order](doc/tutorial/sellStocks/diagrams/Rendered/sell-domain-fifo.png)](doc/tutorial/sellStocks/diagrams/Rendered/sell-domain-fifo.png)
+[![FIFO lot-consumption sequence — Portfolio delegates to Holding, which iterates through Lots in chronological order](../tutorial/sellStocks/diagrams/Rendered/sell-domain-fifo.png)](../tutorial/sellStocks/diagrams/Rendered/sell-domain-fifo.png)
 
-*Figure 5.1 — FIFO lot-consumption sequence. The Holding iterates through Lots in purchase order, consuming shares from each until the requested quantity is fulfilled. Depleted lots are removed. ([PlantUML source](doc/tutorial/sellStocks/diagrams/sell-domain-fifo.puml))*
+*Figure 5.1 — FIFO lot-consumption sequence. The Holding iterates through Lots in purchase order, consuming shares from each until the requested quantity is fulfilled. Depleted lots are removed. ([PlantUML source](../tutorial/sellStocks/diagrams/sell-domain-fifo.puml))*
 
 ### 5.2 Step-by-Step Trace
 
@@ -797,9 +797,9 @@ The hexagonal architecture organizes code into three concentric layers:
 
 The following diagram shows how a sell request flows through the hexagonal architecture from HTTP adapter to domain and back:
 
-[![Sell use case flow — the complete path through hexagonal layers](doc/tutorial/sellStocks/diagrams/Rendered/sell-use-case-flow.png)](doc/tutorial/sellStocks/diagrams/Rendered/sell-use-case-flow.svg)
+[![Sell use case flow — the complete path through hexagonal layers](../tutorial/sellStocks/diagrams/Rendered/sell-use-case-flow.png)](../tutorial/sellStocks/diagrams/Rendered/sell-use-case-flow.svg)
 
-*Figure 6.1 — Sell use case flow. The request enters through the driving adapter (REST controller), passes through the inbound port into the application service, delegates to the domain aggregate, and returns through the same layers. ([PlantUML source](doc/tutorial/sellStocks/diagrams/sell-use-case-flow.puml))*
+*Figure 6.1 — Sell use case flow. The request enters through the driving adapter (REST controller), passes through the inbound port into the application service, delegates to the domain aggregate, and returns through the same layers. ([PlantUML source](../tutorial/sellStocks/diagrams/sell-use-case-flow.puml))*
 
 ### 6.2 Inbound Port: The Use Case Interface
 
@@ -868,9 +868,9 @@ The service contains no business logic. It does not check whether the portfolio 
 
 The following diagram contrasts the application service's orchestration role with the aggregate's rule-enforcement role — a distinction central to the hexagonal architecture:
 
-[![Orchestrator vs. Aggregate — service coordinates, aggregate enforces](doc/tutorial/sellStocks/diagrams/Rendered/sell-orchestrator-vs-aggregate.png)](doc/tutorial/sellStocks/diagrams/Rendered/sell-orchestrator-vs-aggregate.svg)
+[![Orchestrator vs. Aggregate — service coordinates, aggregate enforces](../tutorial/sellStocks/diagrams/Rendered/sell-orchestrator-vs-aggregate.png)](../tutorial/sellStocks/diagrams/Rendered/sell-orchestrator-vs-aggregate.svg)
 
-*Figure 6.2 — Orchestrator vs. aggregate. The application service orchestrates I/O and sequencing; the aggregate root owns business rules and invariant enforcement. ([PlantUML source](doc/tutorial/sellStocks/diagrams/sell-orchestrator-vs-aggregate.puml))*
+*Figure 6.2 — Orchestrator vs. aggregate. The application service orchestrates I/O and sequencing; the aggregate root owns business rules and invariant enforcement. ([PlantUML source](../tutorial/sellStocks/diagrams/sell-orchestrator-vs-aggregate.puml))*
 
 ### 6.4 Outbound Ports: Contracts for Infrastructure
 
@@ -946,9 +946,9 @@ The controller contains no business logic. It does not validate whether the quan
 
 The interaction between the REST controller and the inbound port is shown in the following diagram:
 
-[![HTTP to Port — controller translates HTTP primitives to domain types and invokes the use case port](doc/tutorial/sellStocks/diagrams/Rendered/sell-http-to-port.png)](doc/tutorial/sellStocks/diagrams/Rendered/sell-http-to-port.svg)
+[![HTTP to Port — controller translates HTTP primitives to domain types and invokes the use case port](../tutorial/sellStocks/diagrams/Rendered/sell-http-to-port.png)](../tutorial/sellStocks/diagrams/Rendered/sell-http-to-port.svg)
 
-*Figure 6.3 — HTTP to port. The controller converts path variables and JSON into domain value objects, then invokes the inbound port interface. No business logic executes in the adapter layer. ([PlantUML source](doc/tutorial/sellStocks/diagrams/sell-http-to-port.puml))*
+*Figure 6.3 — HTTP to port. The controller converts path variables and JSON into domain value objects, then invokes the inbound port interface. No business logic executes in the adapter layer. ([PlantUML source](../tutorial/sellStocks/diagrams/sell-http-to-port.puml))*
 
 ---
 
@@ -1123,9 +1123,9 @@ The domain enforces the invariant. The exception carries the domain's explanatio
 
 The following diagram traces this exact error flow through the hexagonal layers:
 
-[![Error flow — sell more than owned](doc/tutorial/sellStocks/diagrams/Rendered/sell-error-sell-more-than-owned.png)](doc/tutorial/sellStocks/diagrams/Rendered/sell-error-sell-more-than-owned.png)
+[![Error flow — sell more than owned](../tutorial/sellStocks/diagrams/Rendered/sell-error-sell-more-than-owned.png)](../tutorial/sellStocks/diagrams/Rendered/sell-error-sell-more-than-owned.png)
 
-*Figure 8.1 — Error flow: sell more shares than owned. The ConflictQuantityException originates in the domain (Holding.sell), propagates through Portfolio.sell and the application service, and is caught by ExceptionHandlingAdvice, which translates it to an HTTP 409 response with RFC 7807 Problem Details. ([PlantUML source](doc/tutorial/sellStocks/diagrams/sell-error-sell-more-than-owned.puml))*
+*Figure 8.1 — Error flow: sell more shares than owned. The ConflictQuantityException originates in the domain (Holding.sell), propagates through Portfolio.sell and the application service, and is caught by ExceptionHandlingAdvice, which translates it to an HTTP 409 response with RFC 7807 Problem Details. ([PlantUML source](../tutorial/sellStocks/diagrams/sell-error-sell-more-than-owned.puml))*
 
 ---
 
@@ -1273,9 +1273,9 @@ The mapper pattern means the domain model can be tested without any JPA infrastr
 
 The following diagram illustrates the persistence adapter's internal structure — how domain objects are mapped to JPA entities and how the adapter implements the outbound port:
 
-[![Persistence adapter — domain-to-JPA mapping through the adapter layer](doc/tutorial/sellStocks/diagrams/Rendered/sell-persistence-adapter.png)](doc/tutorial/sellStocks/diagrams/Rendered/sell-persistence-adapter.svg)
+[![Persistence adapter — domain-to-JPA mapping through the adapter layer](../tutorial/sellStocks/diagrams/Rendered/sell-persistence-adapter.png)](../tutorial/sellStocks/diagrams/Rendered/sell-persistence-adapter.svg)
 
-*Figure 10.1 — Persistence adapter. The JPA adapter implements the PortfolioPort interface, using mappers to translate between domain aggregates and JPA entity graphs. The domain layer has no knowledge of JPA. ([PlantUML source](doc/tutorial/sellStocks/diagrams/sell-persistence-adapter.puml))*
+*Figure 10.1 — Persistence adapter. The JPA adapter implements the PortfolioPort interface, using mappers to translate between domain aggregates and JPA entity graphs. The domain layer has no knowledge of JPA. ([PlantUML source](../tutorial/sellStocks/diagrams/sell-persistence-adapter.puml))*
 
 ### 10.3 Infrastructure Replaceability
 
@@ -1303,13 +1303,13 @@ HexaStock exists on two Git branches that demonstrate the practical consequences
 
 The architectural difference is immediately visible in the following diagrams. In the rich model, the domain layer contains business logic and enforces invariants; in the anemic model, business logic migrates to the application service layer:
 
-[![Rich domain model architecture — business logic inside the domain](doc/tutorial/richVsAnemicDomainModel/diagrams/Rendered/rich-architecture.png)](doc/tutorial/richVsAnemicDomainModel/diagrams/Rendered/rich-architecture.svg)
+[![Rich domain model architecture — business logic inside the domain](../tutorial/richVsAnemicDomainModel/diagrams/Rendered/rich-architecture.png)](../tutorial/richVsAnemicDomainModel/diagrams/Rendered/rich-architecture.svg)
 
-*Figure 11.1 — Rich domain model architecture. Business rules live inside the aggregate; the application service orchestrates without enforcing invariants. ([PlantUML source](doc/tutorial/richVsAnemicDomainModel/diagrams/rich-architecture.puml))*
+*Figure 11.1 — Rich domain model architecture. Business rules live inside the aggregate; the application service orchestrates without enforcing invariants. ([PlantUML source](../tutorial/richVsAnemicDomainModel/diagrams/rich-architecture.puml))*
 
-[![Anemic domain model architecture — business logic migrated to services](doc/tutorial/richVsAnemicDomainModel/diagrams/Rendered/anemic-architecture.png)](doc/tutorial/richVsAnemicDomainModel/diagrams/Rendered/anemic-architecture.svg)
+[![Anemic domain model architecture — business logic migrated to services](../tutorial/richVsAnemicDomainModel/diagrams/Rendered/anemic-architecture.png)](../tutorial/richVsAnemicDomainModel/diagrams/Rendered/anemic-architecture.svg)
 
-*Figure 11.2 — Anemic domain model architecture. Domain objects become data carriers; business logic scatters into the application service. ([PlantUML source](doc/tutorial/richVsAnemicDomainModel/diagrams/anemic-architecture.puml))*
+*Figure 11.2 — Anemic domain model architecture. Domain objects become data carriers; business logic scatters into the application service. ([PlantUML source](../tutorial/richVsAnemicDomainModel/diagrams/anemic-architecture.puml))*
 
 ### 11.2 Invariant Enforcement: Inside vs. Outside
 
@@ -1381,13 +1381,13 @@ The failures are not bugs in the traditional sense. They are architectural conse
 
 The following diagrams contrast where invariant checks execute in each model and how rules drift over time in the anemic approach:
 
-[![Invariant enforcement — where business rules are checked in each model](doc/tutorial/richVsAnemicDomainModel/diagrams/Rendered/invariant-enforcement.png)](doc/tutorial/richVsAnemicDomainModel/diagrams/Rendered/invariant-enforcement.svg)
+[![Invariant enforcement — where business rules are checked in each model](../tutorial/richVsAnemicDomainModel/diagrams/Rendered/invariant-enforcement.png)](../tutorial/richVsAnemicDomainModel/diagrams/Rendered/invariant-enforcement.svg)
 
-*Figure 11.3 — Invariant enforcement comparison. In the rich model, invariants are enforced inside the aggregate, making them mandatory for every code path. In the anemic model, enforcement depends on the calling service. ([PlantUML source](doc/tutorial/richVsAnemicDomainModel/diagrams/invariant-enforcement.puml))*
+*Figure 11.3 — Invariant enforcement comparison. In the rich model, invariants are enforced inside the aggregate, making them mandatory for every code path. In the anemic model, enforcement depends on the calling service. ([PlantUML source](../tutorial/richVsAnemicDomainModel/diagrams/invariant-enforcement.puml))*
 
-[![Rule drift — how business rules scatter in the anemic model over time](doc/tutorial/richVsAnemicDomainModel/diagrams/Rendered/rule-drift.png)](doc/tutorial/richVsAnemicDomainModel/diagrams/Rendered/rule-drift.svg)
+[![Rule drift — how business rules scatter in the anemic model over time](../tutorial/richVsAnemicDomainModel/diagrams/Rendered/rule-drift.png)](../tutorial/richVsAnemicDomainModel/diagrams/Rendered/rule-drift.svg)
 
-*Figure 11.4 — Rule drift. As the system grows and new services are added, validation logic that was centralized in the aggregate scatters across multiple service methods. Some paths inevitably miss enforcement points, creating silent invariant violations. ([PlantUML source](doc/tutorial/richVsAnemicDomainModel/diagrams/rule-drift.puml))*
+*Figure 11.4 — Rule drift. As the system grows and new services are added, validation logic that was centralized in the aggregate scatters across multiple service methods. Some paths inevitably miss enforcement points, creating silent invariant violations. ([PlantUML source](../tutorial/richVsAnemicDomainModel/diagrams/rule-drift.puml))*
 
 ### 11.4 Settlement-Aware Selling as Evidence
 
@@ -1708,9 +1708,9 @@ This approach is appropriate for portfolios with up to ~50,000 transactions. The
 
 The following sequence diagram shows how Approach A orchestrates the single-pass aggregation entirely in the application layer, with the domain service performing pure computation:
 
-[![Approach A — single-pass in-memory aggregation](doc/tutorial/portfolioReporting/diagrams/Rendered/approachA-sequence.png)](doc/tutorial/portfolioReporting/diagrams/Rendered/approachA-sequence.svg)
+[![Approach A — single-pass in-memory aggregation](../tutorial/portfolioReporting/diagrams/Rendered/approachA-sequence.png)](../tutorial/portfolioReporting/diagrams/Rendered/approachA-sequence.svg)
 
-*Figure 16.1 — Approach A: single-pass in-memory aggregation. The ReportingService loads transactions via the port, delegates to HoldingPerformanceCalculator for O(T) aggregation, fetches current prices, and returns HoldingPerformanceDTOs. ([PlantUML source](doc/tutorial/portfolioReporting/diagrams/approachA-sequence.puml))*
+*Figure 16.1 — Approach A: single-pass in-memory aggregation. The ReportingService loads transactions via the port, delegates to HoldingPerformanceCalculator for O(T) aggregation, fetches current prices, and returns HoldingPerformanceDTOs. ([PlantUML source](../tutorial/portfolioReporting/diagrams/approachA-sequence.puml))*
 
 ### 16.3 Scalability Analysis
 
@@ -1787,9 +1787,9 @@ Reading becomes O(H) with no aggregation. The snapshot can be updated synchronou
 
 The snapshot approach introduces a distinct read model alongside the write model — the structural foundation of full CQRS:
 
-[![Snapshot architecture — pre-computed read model alongside the transactional write model](doc/tutorial/portfolioReporting/diagrams/Rendered/snapshot-architecture.png)](doc/tutorial/portfolioReporting/diagrams/Rendered/snapshot-architecture.svg)
+[![Snapshot architecture — pre-computed read model alongside the transactional write model](../tutorial/portfolioReporting/diagrams/Rendered/snapshot-architecture.png)](../tutorial/portfolioReporting/diagrams/Rendered/snapshot-architecture.svg)
 
-*Figure 16.2 — Snapshot architecture (Approach D). A dedicated read model stores pre-aggregated holdings data, decoupling read performance from transaction volume. The write model remains authoritative; the snapshot is a projection optimized for queries. ([PlantUML source](doc/tutorial/portfolioReporting/diagrams/snapshot-architecture.puml))*
+*Figure 16.2 — Snapshot architecture (Approach D). A dedicated read model stores pre-aggregated holdings data, decoupling read performance from transaction volume. The write model remains authoritative; the snapshot is a projection optimized for queries. ([PlantUML source](../tutorial/portfolioReporting/diagrams/snapshot-architecture.puml))*
 
 ### 16.7 Decision Matrix
 
@@ -1834,9 +1834,9 @@ CQRS separates these concerns:
 
 The following diagram provides a side-by-side view of the command and query paths, making the structural separation visible:
 
-[![CQRS overview — command path through aggregates vs. query path through projections](doc/tutorial/watchlists/diagrams/Rendered/cqrs-read-vs-write-overview.png)](doc/tutorial/watchlists/diagrams/Rendered/cqrs-read-vs-write-overview.svg)
+[![CQRS overview — command path through aggregates vs. query path through projections](../tutorial/watchlists/diagrams/Rendered/cqrs-read-vs-write-overview.png)](../tutorial/watchlists/diagrams/Rendered/cqrs-read-vs-write-overview.svg)
 
-*Figure 17.1 — CQRS read vs. write overview. The write side loads aggregates and enforces invariants through the domain model. The read side bypasses aggregates entirely, using projection queries optimized for the monitoring use case. ([PlantUML source](doc/tutorial/watchlists/diagrams/cqrs-read-vs-write-overview.puml))*
+*Figure 17.1 — CQRS read vs. write overview. The write side loads aggregates and enforces invariants through the domain model. The read side bypasses aggregates entirely, using projection queries optimized for the monitoring use case. ([PlantUML source](../tutorial/watchlists/diagrams/cqrs-read-vs-write-overview.puml))*
 
 ### 17.3 The Watchlist Aggregate (Write Side)
 
@@ -1914,9 +1914,9 @@ The database does the filtering. Only triggered alerts are returned. No aggregat
 
 The complete Market Sentinel detection flow is captured in the following diagram:
 
-[![Market Sentinel detection flow — four-step read-side algorithm](doc/tutorial/watchlists/diagrams/Rendered/market-sentinel-detection-flow.png)](doc/tutorial/watchlists/diagrams/Rendered/market-sentinel-detection-flow.svg)
+[![Market Sentinel detection flow — four-step read-side algorithm](../tutorial/watchlists/diagrams/Rendered/market-sentinel-detection-flow.png)](../tutorial/watchlists/diagrams/Rendered/market-sentinel-detection-flow.svg)
 
-*Figure 17.2 — Market Sentinel detection flow. The algorithm queries distinct tickers, fetches prices once per ticker, filters triggered alerts via database projection, and dispatches notifications. No domain aggregate is loaded during detection. ([PlantUML source](doc/tutorial/watchlists/diagrams/market-sentinel-detection-flow.puml))*
+*Figure 17.2 — Market Sentinel detection flow. The algorithm queries distinct tickers, fetches prices once per ticker, filters triggered alerts via database projection, and dispatches notifications. No domain aggregate is loaded during detection. ([PlantUML source](../tutorial/watchlists/diagrams/market-sentinel-detection-flow.puml))*
 
 ### 17.5 Progressive Model Evolution
 
