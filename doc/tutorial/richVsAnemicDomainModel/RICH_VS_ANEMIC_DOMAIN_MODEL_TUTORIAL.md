@@ -1570,8 +1570,3 @@ immediately," the correct response is: yes — and the infrastructure that makes
 possible adds further rules, state transitions, and invariants that would make the
 case for a Rich Domain Model even stronger.
 
----
-
-*This tutorial was generated from the HexaStock codebase on branches `rich-domain-model`
-and `anemic-domain-model`. All code excerpts, test names, and failure counts are derived
-from the actual source files.*

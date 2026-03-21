@@ -605,6 +605,3 @@ There is no universally correct choice. The decision depends on measurable chara
 - Greg Young, *CQRS and Event Sourcing* — foundational material on read model separation
 - Oracle, *BigDecimal JavaDoc (Java 21)* — https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/math/BigDecimal.html
 
----
-
-*Document version: 1.0 — Generated for HexaStock (Java 21, Spring Boot 3.5, Hexagonal Architecture)*
