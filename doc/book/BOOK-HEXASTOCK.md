@@ -83,7 +83,7 @@ The project was later open-sourced under the Apache License, Version 2.0, and co
 
 ### 1.1 What HexaStock Is
 
-HexaStock is a stock portfolio management platform designed for the Spanish market, where tax regulations require the use of FIFO (First-In, First-Out) accounting when selling stocks. The system enables investors to:
+HexaStock is a stock portfolio management platform. The system enables investors to:
 
 - Create and manage investment portfolios
 - Deposit and withdraw funds
