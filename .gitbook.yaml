@@ -1,0 +1,5 @@
+root: ./
+
+structure:
+  readme: doc/BOOK-HOME.md
+  summary: SUMMARY.md
