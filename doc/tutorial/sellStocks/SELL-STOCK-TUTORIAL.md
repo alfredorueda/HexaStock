@@ -1711,9 +1711,9 @@ A special acknowledgement is owed to the [Agència de Gestió d'Ajuts Universita
 
 Particular thanks go to [Francisco José Nebrera](https://www.linkedin.com/in/francisco-jose-nebrera/), whose initiative led to the first organizational implementation of HexaStock within AGAUR.
 
-Special thanks also to [Josep Roure](https://www.tecnocampus.cat/), my colleague professor at Tecnocampus, with whom I share software engineering and software architecture subjects. Josep is a great friend, a great colleague, and a major source of inspiration. Our ongoing conversations about architecture, design, and engineering education have shaped many of the ideas that found their way into this project.
-
 The project was later open-sourced under the Apache License, Version 2.0, and continues to evolve as a teaching, consulting, and architectural reference.
+
+Special thanks also to [Josep Roure](https://www.tecnocampus.cat/), my colleague professor at Tecnocampus, with whom I share software engineering and software architecture subjects. Josep is a great friend, a great colleague, and a major source of inspiration. Our ongoing conversations about architecture, design, and engineering education have shaped many of the ideas that found their way into this project.
 
 ---
 
