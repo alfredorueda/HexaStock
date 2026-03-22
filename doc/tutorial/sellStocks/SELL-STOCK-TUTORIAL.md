@@ -80,44 +80,44 @@ This book is not an isolated document. The HexaStock repository contains a const
 
 **Foundations and Architecture**
 
-- `doc/architecture/ARCHITECTURE-TRANSFORMATION-PROGRAM.md` — The enterprise architecture transformation program: strategic engineering background, specification-driven engineering, core architectural anchors, and engineering exercises grounded in production constraints.
-- `doc/architecture/ARCHITECTURE-TRANSFORMATION-PROGRAM-EXECUTIVE-SUMMARY.md` — Executive summary of the transformation program for organizational stakeholders.
+- [Architecture Transformation Program](../../architecture/ARCHITECTURE-TRANSFORMATION-PROGRAM.md) — The enterprise architecture transformation program: strategic engineering background, specification-driven engineering, core architectural anchors, and engineering exercises grounded in production constraints.
+- [Architecture Transformation Program — Executive Summary](../../architecture/ARCHITECTURE-TRANSFORMATION-PROGRAM-EXECUTIVE-SUMMARY.md) — Executive summary of the transformation program for organizational stakeholders.
 
 **Domain-Driven Design**
 
-- `doc/DDD Portfolio and Transactions.md` — Why Portfolio and Transaction are separate aggregates: aggregate invariants, consistency boundaries, unbounded collection pitfalls, JPA/Hibernate considerations, and a decision matrix grounded in Evans and Vernon.
-- `doc/Remove Lots with Zero Remaining Quantity from Portfolio Aggregate.md` — Design decision on whether to retain or prune fully consumed lots from the Portfolio aggregate, with formal analysis based on DDD principles.
-- `doc/tutorial/richVsAnemicDomainModel/RICH_VS_ANEMIC_DOMAIN_MODEL_TUTORIAL.md` — Rich vs. anemic domain model: a side-by-side architectural comparison using HexaStock's settlement-aware FIFO selling, with failure mode demonstration.
+- [DDD Portfolio and Transactions](../../DDD%20Portfolio%20and%20Transactions.md) — Why Portfolio and Transaction are separate aggregates: aggregate invariants, consistency boundaries, unbounded collection pitfalls, JPA/Hibernate considerations, and a decision matrix grounded in Evans and Vernon.
+- [Remove Lots with Zero Remaining Quantity from Portfolio Aggregate](../../Remove%20Lots%20with%20Zero%20Remaining%20Quantity%20from%20Portfolio%20Aggregate.md) — Design decision on whether to retain or prune fully consumed lots from the Portfolio aggregate, with formal analysis based on DDD principles.
+- [Rich vs Anemic Domain Model](../richVsAnemicDomainModel/RICH_VS_ANEMIC_DOMAIN_MODEL_TUTORIAL.md) — Rich vs. anemic domain model: a side-by-side architectural comparison using HexaStock's settlement-aware FIFO selling, with failure mode demonstration.
 
 **Hexagonal Architecture and Dependency Inversion**
 
-- `doc/tutorial/DEPENDENCY-INVERSION-STOCK-SELLING.md` — The Dependency Inversion Principle as implemented in the stock-selling service: full execution flow through ports and adapters, with testability and extensibility analysis.
+- [Dependency Inversion in Stock Selling](../DEPENDENCY-INVERSION-STOCK-SELLING.md) — The Dependency Inversion Principle as implemented in the stock-selling service: full execution flow through ports and adapters, with testability and extensibility analysis.
 
 **Concurrency and Persistence**
 
-- `doc/tutorial/CONCURRENCY-PESSIMISTIC-LOCKING.md` — Pessimistic and optimistic locking, transaction isolation levels, race condition demonstrations with real tests, and Java 21 virtual thread considerations.
+- [Concurrency Control with Pessimistic Database Locking](../CONCURRENCY-PESSIMISTIC-LOCKING.md) — Pessimistic and optimistic locking, transaction isolation levels, race condition demonstrations with real tests, and Java 21 virtual thread considerations.
 
 **Scalability and Evolution**
 
-- `doc/tutorial/portfolioReporting/HOLDINGS-PERFORMANCE-AT-SCALE.md` — Four strategies for holdings performance reporting — from in-memory aggregation to CQRS read models — with engineering decision matrix.
-- `doc/tutorial/watchlists/WATCHLISTS-MARKET-SENTINEL.md` — Automated market monitoring and watchlists with CQRS, progressive domain model evolution, and alert fatigue prevention.
+- [Holdings Performance at Scale](../portfolioReporting/HOLDINGS-PERFORMANCE-AT-SCALE.md) — Four strategies for holdings performance reporting — from in-memory aggregation to CQRS read models — with engineering decision matrix.
+- [Watchlists & Market Sentinel](../watchlists/WATCHLISTS-MARKET-SENTINEL.md) — Automated market monitoring and watchlists with CQRS, progressive domain model evolution, and alert fatigue prevention.
 
 **Domain Extensions**
 
-- `doc/tutorial/DDD-Hexagonal-exercise.md` — Extending lot selection strategies beyond FIFO (LIFO, highest-cost, lowest-cost, specific lot) with Strategy pattern and hexagonal structure.
+- [DDD Hexagonal Exercise — Lot Selection Strategies](../DDD-Hexagonal-exercise.md) — Extending lot selection strategies beyond FIFO (LIFO, highest-cost, lowest-cost, specific lot) with Strategy pattern and hexagonal structure.
 
 **API and Specification**
 
-- `doc/stock-portfolio-api-specification.md` — Complete REST API specification for all 10 use cases, RFC 7807 error contract, domain model, and exception mapping.
-- `doc/features/*.feature` — Fifteen Gherkin feature files defining executable behavioural specifications for the full system.
+- [Stock Portfolio API Specification](../../stock-portfolio-api-specification.md) — Complete REST API specification for all 10 use cases, RFC 7807 error contract, domain model, and exception mapping.
+- [Gherkin Feature Files](../../features/) — Fifteen Gherkin feature files defining executable behavioural specifications for the full system.
 
 **Companion Domain Study**
 
-- `doc/tutorial/sellStocks/SELL-STOCK-DOMAIN-TUTORIAL.md` — A focused companion covering only the domain model layer of the sell operation, with no HTTP, persistence, or adapter concerns.
+- [Sell Stock — Domain Layer Only](SELL-STOCK-DOMAIN-TUTORIAL.md) — A focused companion covering only the domain model layer of the sell operation, with no HTTP, persistence, or adapter concerns.
 
 **Requirements Traceability**
 
-- `doc/tutorial/README.md` — Architecture of the requirement traceability chain: Specification → Gherkin → Tests → Code, with the sell-stocks use case as the reference pilot.
+- [Tutorial README — Traceability Chain](../README.md) — Architecture of the requirement traceability chain: Specification → Gherkin → Tests → Code, with the sell-stocks use case as the reference pilot.
 
 ---
 
