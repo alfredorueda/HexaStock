@@ -1,0 +1,60 @@
+# HexaStock: Engineering Architecture That Grows Stronger Through Change
+
+*A technical book on Domain-Driven Design and Hexagonal Architecture in a financial domain.*
+
+---
+
+This documentation is organised as a book-style technical journey through a working financial portfolio system. HexaStock serves as a concrete architectural case study — built with Java 21, Spring Boot 3, and Maven — where every design decision is grounded in real code, executable specifications, and automated tests. The central narrative follows a single use case, **selling stocks**, through every architectural layer: from Gherkin specification to REST controller, through application service orchestration, into the aggregate root's FIFO lot-consumption algorithm, and back as a structured financial result. The goal is to show how Domain-Driven Design and Hexagonal Architecture function not as abstract principles but as engineering disciplines applied under realistic constraints.
+
+---
+
+## Start Here
+
+The primary entry point to this book is the sell-stock architectural study. It traces the full engineering workflow — specification, domain modelling, hexagonal structure, persistence, error handling, integration testing — applied to one use case from end to end.
+
+- [Sell Stock Deep Dive — Reference Use Case](tutorial/sellStocks/SELL-STOCK-TUTORIAL.md)
+
+---
+
+## Foundations
+
+These documents introduce the architectural and design ideas that support the main use case.
+
+- [Architecture Transformation Program](architecture/ARCHITECTURE-TRANSFORMATION-PROGRAM.md) — Strategic engineering background, specification-driven engineering, and core architectural anchors.
+- [Architecture Transformation Program — Executive Summary](architecture/ARCHITECTURE-TRANSFORMATION-PROGRAM-EXECUTIVE-SUMMARY.md) — Concise overview for organisational stakeholders.
+- [Requirements Traceability](tutorial/README.md) — How specifications, Gherkin scenarios, tests, and code form a verifiable traceability chain.
+
+---
+
+## Reference Use Case
+
+- [Sell Stock Deep Dive](tutorial/sellStocks/SELL-STOCK-TUTORIAL.md) — The main reading path: a complete architectural study of the sell-stocks operation across all layers.
+- [Sell Stock — Domain Layer Only](tutorial/sellStocks/SELL-STOCK-DOMAIN-TUTORIAL.md) — A focused companion covering only the domain model, with no HTTP, persistence, or adapter concerns.
+
+---
+
+## Supporting Chapters
+
+These chapters deepen specific themes introduced in the main study.
+
+- [Rich vs Anemic Domain Model](tutorial/richVsAnemicDomainModel/RICH_VS_ANEMIC_DOMAIN_MODEL_TUTORIAL.md) — Side-by-side architectural comparison using the sell flow, with failure mode demonstration.
+- [Dependency Inversion in Stock Selling](tutorial/DEPENDENCY-INVERSION-STOCK-SELLING.md) — Full execution flow through ports and adapters, with testability and extensibility analysis.
+- [Concurrency Control with Pessimistic Database Locking](tutorial/CONCURRENCY-PESSIMISTIC-LOCKING.md) — Locking strategies, isolation levels, race condition tests, and Java 21 virtual thread considerations.
+- [DDD Portfolio and Transactions](DDD%20Portfolio%20and%20Transactions.md) — Why Portfolio and Transaction are separate aggregates: consistency boundaries, invariants, and a decision matrix.
+- [Remove Lots with Zero Remaining Quantity](Remove%20Lots%20with%20Zero%20Remaining%20Quantity%20from%20Portfolio%20Aggregate.md) — Design decision on retaining or pruning fully consumed lots, with DDD-grounded analysis.
+- [Holdings Performance at Scale](tutorial/portfolioReporting/HOLDINGS-PERFORMANCE-AT-SCALE.md) — Four reporting strategies from in-memory aggregation to CQRS read models.
+- [Watchlists & Market Sentinel](tutorial/watchlists/WATCHLISTS-MARKET-SENTINEL.md) — Automated market monitoring with CQRS and progressive domain model evolution.
+- [Lot Selection Strategies — DDD Hexagonal Exercise](tutorial/DDD-Hexagonal-exercise.md) — Extending beyond FIFO with Strategy pattern and hexagonal structure.
+
+---
+
+## API and Specifications
+
+- [Stock Portfolio API Specification](stock-portfolio-api-specification.md) — Complete REST API for all 10 use cases, RFC 7807 error contract, domain model, and exception mapping.
+- [Gherkin Feature Files](features/) — Fifteen executable behavioural specifications covering the full system.
+
+---
+
+## License
+
+HexaStock is open-sourced under the [Apache License, Version 2.0](../LICENSE).
