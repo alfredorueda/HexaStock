@@ -1713,7 +1713,13 @@ Particular thanks go to [Francisco José Nebrera](https://www.linkedin.com/in/fr
 
 The project was later open-sourced under the Apache License, Version 2.0, and continues to evolve as a teaching, consulting, and architectural reference.
 
-Special thanks also to [Josep Roure](https://www.tecnocampus.cat/), my colleague professor at Tecnocampus, with whom I share software engineering and software architecture subjects. Josep is a great friend, a great colleague, and a major source of inspiration. Our ongoing conversations about architecture, design, and engineering education have shaped many of the ideas that found their way into this project.
+Special thanks also to [Josep Roure](https://www.tecnocampus.cat/), my colleague professor at Tecnocampus, with whom I share software engineering and software architecture subjects. Josep is a great friend, a valued colleague, and a constant source of inspiration. Our ongoing conversations about architecture, design, and engineering education have shaped many of the ideas that found their way into this project.
+
+Maaike van Putten, my colleague at Neueda, deserves particular recognition for the influence she has had on the narrative quality of this book. Her guidance helped reshape the opening sections into something more fluid and welcoming, making the purpose and structure of the work clearer to readers encountering it for the first time. Maaike brings a rare combination of deep technical knowledge and genuine pedagogical instinct, and her contributions moved the text from something that risked being abrupt and dense toward something that invites the reader in. Her reputation as an educator and author speaks for itself, and this book is better for her involvement.
+
+I am equally grateful to Nick Todd, my manager and coordinator at Neueda's Graduate Programmes, who has been a steady source of ambition and direction throughout my work there. Nick's experience leading large-scale educational programmes for top-tier global financial institutions set a standard I have tried to live up to. The learning experiences he coordinated exposed me to levels of rigour and scale that shaped my own expectations for what a teaching project could become. Without that exposure, HexaStock might have remained a classroom exercise rather than growing into the architectural reference it is today.
+
+Finally, and most personally, I want to thank my wife, my children, and my wider family. The hours required to build, document, and refine this project have been many, often borrowed from evenings, weekends, and holidays. The work has been deeply meaningful and genuinely exciting, but it has also been demanding. Their patience, their encouragement, and their quiet presence in the background made it possible to sustain the effort. This book exists because they allowed it to.
 
 ---
 
