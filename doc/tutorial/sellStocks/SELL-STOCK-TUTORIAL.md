@@ -1,7 +1,86 @@
-# From Specification to Integration Test: Engineering a Stock Portfolio with DDD and Hexagonal Architecture
+# Selling Stocks in HexaStock
+
+**From Specification to Integration Test: Engineering a Financial Use Case with DDD and Hexagonal Architecture**
+
+> *"Architecture is not documentation. It is an operational capability."*
+
+---
+
+## About This Tutorial
+
+This tutorial is a deep, code-grounded study of one operation inside HexaStock — a stock portfolio management system built with Java 21, Spring Boot 3, Domain-Driven Design (DDD), and Hexagonal Architecture. It is not a theoretical survey. It traces a single use case — **selling stocks** — through every architectural layer, from Gherkin specification to REST controller, through application service orchestration, into the aggregate root's FIFO lot-consumption algorithm, out through persistence adapters, and back as a structured financial result.
+
+The stock-selling use case serves as the narrative spine of the entire tutorial. Every concept explored here — value objects, aggregate boundaries, port interfaces, dependency inversion, concurrency control, error handling, testing strategy — connects back to this central operation. By following one request through the full system, you will see how DDD and Hexagonal Architecture function not as abstract principles but as concrete engineering disciplines applied under realistic constraints.
+
+The HexaStock codebase maintains over 150 automated tests, achieves greater than 90% code coverage as measured by JaCoCo, and holds a Sonar AAA maintainability rating. Every test is linked to Gherkin specifications through `@SpecificationRef` annotations, creating a verifiable traceability chain from business requirements to running code.
+
+---
+
+## Intended Audience
+
+This tutorial addresses software engineers, architects, and technical leads who have working knowledge of Java and Spring Boot and want to understand how DDD and Hexagonal Architecture function in practice — not as conference abstractions, but as engineering disciplines applied to a realistic financial domain.
+
+---
+
+## Conventions
+
+- Code listings are drawn from the actual repository source.
+- PlantUML diagrams are referenced by their source path under `doc/tutorial/*/diagrams/` and rendered as inline PNG images with SVG click-through links.
+- Gherkin scenarios are maintained as canonical `.feature` files under `doc/features/`.
+- All financial calculations use `BigDecimal` with scale 2 and `RoundingMode.HALF_UP`.
+
+---
+
+## HexaStock in Brief
+
+### What the System Does
+
+HexaStock is a stock portfolio management platform. The system enables investors to create and manage investment portfolios, deposit and withdraw funds, buy and sell stocks with automatic FIFO lot accounting, track holdings performance with real-time market prices, and view complete transaction history. The platform integrates with external stock price providers (Finnhub, AlphaVantage), persists data through JPA with MySQL, and exposes a RESTful API documented via OpenAPI 3.0.
+
+### Architectural Identity
+
+HexaStock is structured according to two complementary architectural disciplines.
+
+**Domain-Driven Design** provides the modeling methodology. The system's core concepts — `Portfolio`, `Holding`, `Lot`, and `Transaction` — are modeled as aggregates, entities, and value objects that encapsulate business rules and protect invariants. Business logic lives inside the domain, not in services or controllers.
+
+**Hexagonal Architecture** (Ports and Adapters) provides the structural organization. The domain model has no dependencies on frameworks, databases, or HTTP. It communicates with the outside world exclusively through port interfaces, which are implemented by adapters in the infrastructure layer. All dependencies point inward toward the domain.
+
+### Package Structure: A Deliberate Choice
+
+The codebase organizes packages by **architectural role**:
+
+```
+cat.gencat.agaur.hexastock
+├── model/           → Domain entities, value objects, domain exceptions
+├── application/     → Use case ports (in/out) and application services
+└── adapter/
+    ├── in/          → Driving adapters (REST controllers)
+    └── out/         → Driven adapters (JPA persistence, external API clients)
+```
+
+This is a deliberate pedagogical choice that prioritizes architectural legibility — a developer arriving at the codebase can identify the domain, the ports, and the adapters by reading directory names alone. Hexagonal Architecture does not prescribe a single mandatory filesystem layout; organizing by feature or bounded context (e.g., `portfolio/`, `trading/`, `reporting/`, each containing its own `model/`, `application/`, and `adapter/` sub-packages) would be equally valid and often preferable in larger systems. HexaStock uses role-based packaging because its primary audiences — engineering students, workshop participants, and consulting clients — benefit most from seeing the hexagonal structure explicitly in the filesystem.
+
+---
+
+## Specification-First Engineering
+
+HexaStock follows a disciplined engineering sequence:
+
+> **Specification → Contract → Tests → Implementation → Refactor Safely**
+
+Behaviour is defined as Gherkin scenarios before any design decisions are made. The REST API is specified contract-first using OpenAPI 3.0. Tests are linked to specifications through `@SpecificationRef` annotations, creating a traceable chain from business requirements to running code. This sequence is not merely aspirational — it is enforced by the repository structure and verified by the test suite.
+
+The sections that follow apply this loop to the sell-stocks use case: starting from the Gherkin specification, moving through domain modeling and architectural reasoning, and arriving at a fully tested, fully traced implementation.
+
+---
 
 ## Table of Contents
 
+- [About This Tutorial](#about-this-tutorial)
+- [Intended Audience](#intended-audience)
+- [Conventions](#conventions)
+- [HexaStock in Brief](#hexastock-in-brief)
+- [Specification-First Engineering](#specification-first-engineering)
 - [1. Architecture Overview (Hexagonal / Ports & Adapters)](#1-architecture-overview-hexagonal--ports--adapters)
   - [Core Architectural Layers](#core-architectural-layers)
   - [Why This Architecture Matters for This Tutorial](#why-this-architecture-matters-for-this-tutorial)
@@ -52,10 +131,8 @@
   - [Exercise 5: Add a Maximum Sell Percentage Invariant](#exercise-5-add-a-maximum-sell-percentage-invariant)
   - [Exercise 6: Distinguish Value Objects from Entities](#exercise-6-distinguish-value-objects-from-entities)
   - [Exercise 7: Add a Third Stock Price Provider Adapter (Prove the Hexagon Works)](#exercise-7-add-a-third-stock-price-provider-adapter-prove-the-hexagon-works)
-- [18. References](#18-references)
-
-> **💡 How to use this Table of Contents:**
-> Click any link to jump directly to that section. Main sections (##) are at the top level, subsections (###) are indented once. Use your browser's back button or scroll to navigate between sections.
+- [Acknowledgements](#acknowledgements)
+- [References](#references)
 
 ---
 
@@ -78,9 +155,6 @@ Before diving into the execution flow of selling stocks, it's essential to under
 - **Outbound Adapters (Driven):** Implement outbound ports to interact with databases, external APIs, or other infrastructure. Examples: JPA repositories for persistence, Finnhub/AlphaVantage clients for stock prices.
 
 **Dependency Direction:** All dependencies point **inward** toward the domain. Adapters depend on ports, ports are defined by the core, and the domain has zero dependencies on infrastructure. This is **Dependency Inversion** in action.
-
-> **📝 A pragmatic note on architectural trade-offs:**
-> Not every system requires this level of architectural separation. In simpler CRUD applications the overhead may not always be justified. However, in domains with complex business rules, financial logic, external integrations, and a long expected lifespan, separating domain logic from infrastructure becomes extremely valuable. HexaStock falls squarely into this category — FIFO accounting, multi-lot management, and multiple stock price providers make the investment in proper architecture worthwhile.
 
 ### Why This Architecture Matters for This Tutorial
 
@@ -1581,7 +1655,36 @@ Work through these exercises in order. Each builds on concepts from earlier exer
 
 ---
 
-## 18. References
+## Acknowledgements
+
+The pedagogical idea behind HexaStock — building a financial portfolio system as a vehicle for teaching software architecture — was first developed during software engineering training engagements delivered in collaboration with [Neueda](https://neueda.com/), where the author works as an instructor for major international financial institutions. That experience, working at the intersection of financial domain complexity and engineering education, inspired the later creation and expansion of HexaStock as a dedicated open-source project focused on Hexagonal Architecture and Domain-Driven Design.
+
+A special acknowledgement is owed to the [Agència de Gestió d'Ajuts Universitaris i de Recerca (AGAUR)](https://agaur.gencat.cat/ca/inici), part of the Public Administration of Catalonia (Generalitat de Catalunya), where HexaStock was first formally adopted for institutional training. The original Java package prefix `cat.gencat.agaur.hexastock` reflects this early institutional context, and AGAUR's adoption confirmed the value of teaching architecture through realistic, domain-rich systems.
+
+Particular thanks go to [Francisco José Nebrera](https://www.linkedin.com/in/francisco-jose-nebrera/), whose initiative led to the first organizational implementation of HexaStock within AGAUR.
+
+Special thanks also to [Josep Roure](https://www.tecnocampus.cat/), my colleague professor at Tecnocampus, with whom I share software engineering and software architecture subjects. Josep is a great friend, a great colleague, and a major source of inspiration. Our ongoing conversations about architecture, design, and engineering education have shaped many of the ideas that found their way into this project.
+
+The project was later open-sourced under the Apache License, Version 2.0, and continues to evolve as a teaching, consulting, and architecture-learning asset.
+
+---
+
+## References
+
+### Foundational Works
+
+- Evans, Eric. *Domain-Driven Design: Tackling Complexity in the Heart of Software.* Addison-Wesley, 2003.
+- Vernon, Vaughn. *Implementing Domain-Driven Design.* Addison-Wesley, 2013.
+- Cockburn, Alistair. "Hexagonal Architecture (Ports and Adapters)." *alistair.cockburn.us*, 2005. https://alistair.cockburn.us/hexagonal-architecture/
+- Hombergs, Tom. *Get Your Hands Dirty on Clean Architecture.* Packt Publishing, 2019. Reference implementation: [BuckPal](https://github.com/thombergs/buckpal).
+- Graça, Herberto. "DDD, Hexagonal, Onion, Clean, CQRS, … How I Put It All Together." *herbertograca.com*, 2017. https://herbertograca.com/2017/11/16/explicit-architecture-01-ddd-hexagonal-onion-clean-cqrs-how-i-put-it-all-together/
+
+### Standards and Specifications
+
+- Nottingham, M. and Wilde, E. "Problem Details for HTTP APIs." RFC 7807, IETF, March 2016. https://www.rfc-editor.org/rfc/rfc7807
+- OpenAPI Initiative. *OpenAPI Specification, Version 3.0.* https://spec.openapis.org/oas/v3.0.3
+
+### Project References
 
 - **API Specification:** `doc/stock-portfolio-api-specification.md`
 - **Gherkin Specification (canonical):** `doc/features/sell-stocks.feature`
