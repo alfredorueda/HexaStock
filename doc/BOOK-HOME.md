@@ -16,23 +16,6 @@ The primary entry point to this book is the sell-stock architectural study. It t
 
 ---
 
-## Foundations
-
-These documents introduce the architectural and design ideas that support the main use case.
-
-- [Architecture Transformation Program](architecture/ARCHITECTURE-TRANSFORMATION-PROGRAM.md) — Strategic engineering background, specification-driven engineering, and core architectural anchors.
-- [Architecture Transformation Program — Executive Summary](architecture/ARCHITECTURE-TRANSFORMATION-PROGRAM-EXECUTIVE-SUMMARY.md) — Concise overview for organisational stakeholders.
-- [Requirements Traceability](tutorial/README.md) — How specifications, Gherkin scenarios, tests, and code form a verifiable traceability chain.
-
----
-
-## Reference Use Case
-
-- [Sell Stock Deep Dive](tutorial/sellStocks/SELL-STOCK-TUTORIAL.md) — The main reading path: a complete architectural study of the sell-stocks operation across all layers.
-- [Sell Stock — Domain Layer Only](tutorial/sellStocks/SELL-STOCK-DOMAIN-TUTORIAL.md) — A focused companion covering only the domain model, with no HTTP, persistence, or adapter concerns.
-
----
-
 ## Supporting Chapters
 
 These chapters deepen specific themes introduced in the main study.
