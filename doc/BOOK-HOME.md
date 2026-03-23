@@ -20,7 +20,7 @@ The primary entry point to this book is the sell-stock architectural study. It t
 
 ## Supporting Chapters
 
-These chapters deepen specific themes introduced in the main study. 
+These chapters deepen specific themes introduced in the main study.
 
 - [Rich vs Anemic Domain Model](tutorial/richVsAnemicDomainModel/RICH_VS_ANEMIC_DOMAIN_MODEL_TUTORIAL.md) — Side-by-side architectural comparison using the sell flow, with failure mode demonstration.
 - [Dependency Inversion in Stock Selling](tutorial/DEPENDENCY-INVERSION-STOCK-SELLING.md) — Full execution flow through ports and adapters, with testability and extensibility analysis.

@@ -48,7 +48,7 @@ HexaStock is structured around a small set of non-negotiable architectural princ
 - Java 21 (or later)
 - Maven 3.9+ (or use the included `mvnw` wrapper)
 - Docker and Docker Compose (for the MySQL database)
-- A Java IDE with Lombok support (IntelliJ IDEA recommended)
+- A Java IDE (IntelliJ IDEA recommended)
 
 **Getting started:**
 
