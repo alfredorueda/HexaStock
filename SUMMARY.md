@@ -4,7 +4,7 @@
 
 * [Sell Stock Deep Dive](doc/tutorial/sellStocks/SELL-STOCK-TUTORIAL.md)
 * [Sell Stock — Domain Layer Only](doc/tutorial/sellStocks/SELL-STOCK-DOMAIN-TUTORIAL.md)
-
+ 
 ## Architecture and Design
 
 * [Rich vs Anemic Domain Model](doc/tutorial/richVsAnemicDomainModel/RICH_VS_ANEMIC_DOMAIN_MODEL_TUTORIAL.md)
