@@ -26,4 +26,7 @@
 ## Project
 
 * [Contributing](CONTRIBUTING.md)
-* [License](LICENSE)
+
+## Legal
+
+* [License](doc/legal/LICENSE.md)
