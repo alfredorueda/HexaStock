@@ -40,6 +40,14 @@ These chapters deepen specific themes introduced in the main study.
 
 ---
 
+## Acknowledgements
+
+This book grew out of professional collaborations, institutional partnerships, and many late evenings of focused work. Its origins lie in software engineering training delivered for major financial institutions, and it was shaped by colleagues, mentors, and family whose contributions deserve proper recognition.
+
+The full acknowledgements are maintained as a dedicated chapter: [Acknowledgements](ACKNOWLEDGEMENTS.md).
+
+---
+
 ## License
 
 HexaStock is open-sourced under the [Apache License, Version 2.0](../LICENSE).

@@ -26,6 +26,7 @@
 ## Project
 
 * [Contributing](CONTRIBUTING.md)
+* [Acknowledgements](doc/ACKNOWLEDGEMENTS.md)
 
 ## Legal
 
