@@ -78,11 +78,6 @@ The sections that follow apply this engineering loop to the sell-stocks use case
 
 This book is not an isolated document. The HexaStock repository contains a constellation of interconnected Markdown texts, each treating a specific architectural theme in depth. Together, they form a coherent body of technical writing that can be read selectively or progressively. The reading map below groups these companion documents by theme so the reader can navigate to deeper treatments of topics introduced in this book.
 
-**Foundations and Architecture**
-
-- [Architecture Transformation Program](../../architecture/ARCHITECTURE-TRANSFORMATION-PROGRAM.md) — The enterprise architecture transformation program: strategic engineering background, specification-driven engineering, core architectural anchors, and engineering exercises grounded in production constraints.
-- [Architecture Transformation Program — Executive Summary](../../architecture/ARCHITECTURE-TRANSFORMATION-PROGRAM-EXECUTIVE-SUMMARY.md) — Executive summary of the transformation program for organizational stakeholders.
-
 **Domain-Driven Design**
 
 - [DDD Portfolio and Transactions](../../DDD%20Portfolio%20and%20Transactions.md) — Why Portfolio and Transaction are separate aggregates: aggregate invariants, consistency boundaries, unbounded collection pitfalls, JPA/Hibernate considerations, and a decision matrix grounded in Evans and Vernon.
