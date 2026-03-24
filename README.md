@@ -2,6 +2,22 @@
 
 [![Quality Gate](https://sonarcloud.io/api/project_badges/quality_gate?project=alfredorueda_HexaStock)](https://sonarcloud.io/summary/new_code?id=alfredorueda_HexaStock) [![Security Rating](https://sonarcloud.io/api/project_badges/measure?project=alfredorueda_HexaStock&metric=security_rating)](https://sonarcloud.io/summary/new_code?id=alfredorueda_HexaStock) [![Reliability Rating](https://sonarcloud.io/api/project_badges/measure?project=alfredorueda_HexaStock&metric=reliability_rating)](https://sonarcloud.io/summary/new_code?id=alfredorueda_HexaStock) [![Maintainability Rating](https://sonarcloud.io/api/project_badges/measure?project=alfredorueda_HexaStock&metric=sqale_rating)](https://sonarcloud.io/summary/new_code?id=alfredorueda_HexaStock)
 
+---
+
+## 📖 Companion Book
+
+### Domain-Driven Design and Hexagonal Architecture in a Financial Domain
+
+This repository is accompanied by a comprehensive technical book that serves as the primary long-form reference for the project. It traces the full architectural and domain journey behind HexaStock — from strategic design decisions and aggregate boundaries to persistence trade-offs and testing strategies.
+
+The financial domain was chosen deliberately: it is complex enough to surface real modelling tensions — FIFO lot accounting, settlement mechanics, concurrent portfolio mutations — without being artificially contrived. The result is a case study where every design choice has a concrete, defensible reason grounded in actual business semantics.
+
+The book and the repository are designed to complement each other. The codebase provides the working implementation; the book provides the _why_ — the reasoning, the alternatives considered, and the architectural principles that shaped each decision. Together, they offer a complete learning path for engineers and architects working with DDD and Hexagonal Architecture in non-trivial domains.
+
+**[➜ Explore the full book](https://alfredo-rueda-unsain.gitbook.io/alfredo-rueda-unsain-docs)**
+
+---
+
 # HexaStock
 
 HexaStock is a project that teaches Domain-Driven Design and Hexagonal Architecture through a realistic financial portfolio domain. Built for engineering students and workshop participants, it provides a complete, testable system with real business rules, multiple interchangeable adapters, and clear architectural boundaries.
