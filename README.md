@@ -4,8 +4,6 @@
 
 ---
 
-## 📖 Companion Book
-
 ### Domain-Driven Design and Hexagonal Architecture in a Financial Domain
 
 This repository is accompanied by a comprehensive technical book that serves as the primary long-form reference for the project. It traces the full architectural and domain journey behind HexaStock — from strategic design decisions and aggregate boundaries to persistence trade-offs and testing strategies.
