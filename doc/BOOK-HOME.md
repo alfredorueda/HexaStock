@@ -36,7 +36,7 @@ These chapters deepen specific themes introduced in the main study.
 ## API and Specifications
 
 - [Stock Portfolio API Specification](stock-portfolio-api-specification.md) — Complete REST API for all 10 use cases, RFC 7807 error contract, domain model, and exception mapping.
-- [Gherkin Feature Files](features/) — Fifteen executable behavioural specifications covering the full system.
+- [Gherkin Feature Files](features/sell-stocks.feature) — Fifteen executable behavioural specifications covering the full system.
 
 ---
 
