@@ -22,7 +22,7 @@ HexaStock is a project that teaches Domain-Driven Design and Hexagonal Architect
 
 ## Core Documentation
 
-Two documents form the backbone of HexaStock's documentation.
+Three documents form the backbone of HexaStock's documentation.
 
 ### Stock Portfolio API Specification
 
