@@ -1,6 +1,21 @@
-# Apache License 2.0
+# Licensing
 
-Canonical repository license file: `/LICENSE`.
+This project uses a dual-license model.
+
+| Scope | License |
+|-------|---------|
+| Source code | [Apache License 2.0](../../LICENSE) |
+| Book and editorial content | [CC BY-NC 4.0](BOOK-LICENSE.md) |
+
+The source code is open source under Apache License 2.0. The book and editorial written content are shared for non-commercial use under Creative Commons Attribution-NonCommercial 4.0 International.
+
+For the complete terms of the book license, see the [Book License — CC BY-NC 4.0](BOOK-LICENSE.md) page.
+
+---
+
+## Source Code License — Apache License 2.0
+
+Canonical repository license file: [`/LICENSE`](../../LICENSE).
 
                                  Apache License
                            Version 2.0, January 2004

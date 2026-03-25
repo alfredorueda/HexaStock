@@ -2,6 +2,8 @@
 
 [![Quality Gate](https://sonarcloud.io/api/project_badges/quality_gate?project=alfredorueda_HexaStock)](https://sonarcloud.io/summary/new_code?id=alfredorueda_HexaStock) [![Security Rating](https://sonarcloud.io/api/project_badges/measure?project=alfredorueda_HexaStock&metric=security_rating)](https://sonarcloud.io/summary/new_code?id=alfredorueda_HexaStock) [![Reliability Rating](https://sonarcloud.io/api/project_badges/measure?project=alfredorueda_HexaStock&metric=reliability_rating)](https://sonarcloud.io/summary/new_code?id=alfredorueda_HexaStock) [![Maintainability Rating](https://sonarcloud.io/api/project_badges/measure?project=alfredorueda_HexaStock&metric=sqale_rating)](https://sonarcloud.io/summary/new_code?id=alfredorueda_HexaStock)
 
+[![License](https://img.shields.io/badge/Code-Apache_2.0-blue.svg)](LICENSE) [![License: CC BY-NC 4.0](https://img.shields.io/badge/Book-CC_BY--NC_4.0-lightgrey.svg)](https://creativecommons.org/licenses/by-nc/4.0/)
+
 ---
 
 ### Domain-Driven Design and Hexagonal Architecture in a Financial Domain
@@ -168,11 +170,32 @@ The original Java package prefix `cat.gencat.agaur.hexastock` reflects this earl
 
 ## License
 
-HexaStock is licensed under the [Apache License, Version 2.0](LICENSE).
+This project uses a **dual-license model** to reflect the distinct nature of its components.
 
-You are free to use, modify, and distribute this project for learning, teaching, research, consulting, and commercial purposes. When redistributing or building derivative works, you must preserve existing copyright and license notices and include a copy of the license, as required by the Apache 2.0 terms. See the [LICENSE](LICENSE) and [NOTICE](NOTICE) files for details.
+### Source Code — Apache License 2.0
 
-If you use HexaStock in a university course, a corporate training programme, a consulting engagement, or as the foundation for your own project, the author would genuinely appreciate hearing about it. A quick note — an issue, a discussion, or a message — goes a long way and helps the project grow in the right directions. **This is a courtesy invitation, not a legal requirement.** The Apache 2.0 license governs your rights, and nothing in this paragraph adds to or modifies its terms.
+[![License](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
+
+All source code in this repository is licensed under the [Apache License, Version 2.0](LICENSE). You are free to use, modify, and distribute the software for any purpose — including learning, teaching, research, consulting, and commercial use — subject to the terms of the license. See the [LICENSE](LICENSE) and [NOTICE](NOTICE) files for details.
+
+### Book and Editorial Content — CC BY-NC 4.0
+
+[![License: CC BY-NC 4.0](https://licensebuttons.net/l/by-nc/4.0/88x31.png)](https://creativecommons.org/licenses/by-nc/4.0/)
+
+This book and its editorial written content are licensed under the [Creative Commons Attribution-NonCommercial 4.0 International License (CC BY-NC 4.0)](https://creativecommons.org/licenses/by-nc/4.0/).
+
+You are welcome to read, share, and adapt this material for non-commercial purposes, provided that appropriate credit is given.
+
+For commercial use, including commercial training, paid courses, corporate programs, commercial publishing, or reuse within paid products or services, prior permission is required.
+
+### Why Dual Licensing?
+
+- **Source code** is licensed under Apache License 2.0.
+- **Book and editorial written content** are licensed under CC BY-NC 4.0.
+
+This dual-license approach is intentional: the software remains open source under Apache 2.0, while the book is shared openly for learning and non-commercial educational use under Creative Commons.
+
+> If you use HexaStock in a university course, a corporate training programme, a consulting engagement, or as the foundation for your own project, the author would genuinely appreciate hearing about it. A quick note — an issue, a discussion, or a message — goes a long way and helps the project grow in the right directions. **This is a courtesy invitation, not a legal requirement.**
 
 ## Using HexaStock? Let us know
 

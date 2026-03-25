@@ -30,4 +30,5 @@
 
 ## Legal
 
-* [License](doc/legal/LICENSE.md)
+* [Licensing](doc/legal/LICENSE.md)
+* [Book License — CC BY-NC 4.0](doc/legal/BOOK-LICENSE.md)

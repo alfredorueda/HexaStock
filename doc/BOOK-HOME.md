@@ -42,4 +42,15 @@ These chapters deepen specific themes introduced in the main study.
 
 ## License
 
-HexaStock is open-sourced under the [Apache License, Version 2.0](../LICENSE).
+This project uses a dual-license model.
+
+- **Source code** is licensed under [Apache License 2.0](../LICENSE).
+- **Book and editorial written content** are licensed under [CC BY-NC 4.0](https://creativecommons.org/licenses/by-nc/4.0/).
+
+[![License: CC BY-NC 4.0](https://licensebuttons.net/l/by-nc/4.0/88x31.png)](https://creativecommons.org/licenses/by-nc/4.0/)
+
+This book and its editorial written content are licensed under the Creative Commons Attribution-NonCommercial 4.0 International License (CC BY-NC 4.0). You are welcome to read, share, and adapt this material for non-commercial purposes, provided that appropriate credit is given. For commercial use, including commercial training, paid courses, corporate programs, commercial publishing, or reuse within paid products or services, prior permission is required.
+
+This dual-license approach is intentional: the software remains open source under Apache 2.0, while the book is shared openly for learning and non-commercial educational use under Creative Commons.
+
+The full licensing details are available on the [Licensing](legal/LICENSE.md) page.
