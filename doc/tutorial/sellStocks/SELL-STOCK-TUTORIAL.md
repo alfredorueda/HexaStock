@@ -18,7 +18,7 @@ The HexaStock codebase maintains over 150 automated tests, achieves greater than
 
 ## Intended Audience
 
-This book addresses software engineers, architects, and technical leads who have working knowledge of Java and Spring Boot and want to understand how DDD and Hexagonal Architecture function in practice — not as conference abstractions, but as engineering disciplines applied to a realistic financial domain.
+This book addresses software engineers, architects, and technical leads who have working knowledge of Java and Spring Boot and want to understand how DDD and Hexagonal Architecture function in practice.
 
 ---
 
