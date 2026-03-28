@@ -114,8 +114,10 @@ Valid combinations:
 **From the command line:**
 
 ```bash
-./mvnw spring-boot:run -Dspring-boot.run.profiles=jpa,finhub
+./mvnw spring-boot:run -pl bootstrap -am -Dspring-boot.run.profiles=jpa,finhub
 ```
+
+> **Why `-pl bootstrap -am`?** HexaStock is a multi-module Maven project. The `-pl bootstrap` flag targets the runnable module, and `-am` ("also make") tells Maven to build all required sibling modules (domain, application, adapters) first.
 
 **From IntelliJ IDEA:** open *Run > Edit Configurations*, set the *Active profiles* field to `jpa,finhub` or `jpa,alphaVantage`, then run.
 
@@ -142,7 +144,7 @@ API keys are read from **environment variables** so that real secrets are never 
 3. Export the variables before running the application:
    ```bash
    source .env
-   ./mvnw spring-boot:run -pl bootstrap -Dspring-boot.run.profiles=jpa,finhub
+   ./mvnw spring-boot:run -pl bootstrap -am -Dspring-boot.run.profiles=jpa,finhub
    ```
 
 Alternatively, set the variables in your IntelliJ run configuration (*Run > Edit Configurations > Environment variables*).
