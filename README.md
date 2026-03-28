@@ -82,9 +82,92 @@ A side-by-side architectural comparison of the two fundamental approaches to dom
 
 - JDK 21 or higher
 - Apache Maven 3.6 or higher
+- Docker (for MySQL via Docker Compose and for TestContainers during tests)
 - IntelliJ IDEA Ultimate (recommended)
-- Docker (for running MySQL in a container)
 - Git
+
+## Getting Started
+
+### 1. Clone and run the tests
+
+No API keys or database setup needed — TestContainers handles everything automatically (Docker must be running):
+
+```bash
+git clone https://github.com/alfredorueda/HexaStock.git
+cd HexaStock
+./mvnw clean test
+```
+
+### 2. Run the application locally
+
+To run the full application with real stock prices you need three things: the database, your API keys, and the Spring Boot profiles.
+
+**Start MySQL:**
+
+```bash
+docker-compose up -d
+```
+
+**Set up your API keys** (one-time step):
+
+```bash
+cp .env.example .env        # copy the example file
+# edit .env and add your real keys (free-tier keys work fine)
+```
+
+Free-tier keys: [finnhub.io](https://finnhub.io/) · [alphavantage.co](https://www.alphavantage.co/support/#api-key)
+
+**Start the application:**
+
+```bash
+source .env
+./mvnw spring-boot:run -pl bootstrap -am -Dspring-boot.run.profiles=jpa,finhub
+```
+
+The app starts on **http://localhost:8081**. Swagger UI is at [http://localhost:8081/swagger-ui.html](http://localhost:8081/swagger-ui.html).
+
+> **Why `-pl bootstrap -am`?** HexaStock is a multi-module Maven project. `-pl bootstrap` targets the runnable module, and `-am` ("also make") tells Maven to build all required sibling modules (domain, application, adapters) first.
+
+### 3. Try the API
+
+Pre-configured HTTP requests are in [doc/calls.http](doc/calls.http).
+
+In IntelliJ IDEA, open the file and click the green **Run** arrow next to any request. Example workflow:
+
+1. Create a portfolio
+2. Deposit cash
+3. Buy stocks (e.g. AAPL, MSFT)
+4. Check portfolio status
+5. Sell stocks
+6. View transaction history
+
+## Spring Profiles
+
+The application requires two Spring profiles to start:
+
+| Category | Profile | Description |
+|----------|---------|-------------|
+| Persistence (mandatory) | `jpa` | JPA/Hibernate with MySQL |
+| Stock price provider (choose one) | `finhub` | Finnhub real-time API |
+| | `alphaVantage` | Alpha Vantage API |
+| | `mockfinhub` | Random prices — no API key needed (used by tests) |
+
+Valid combinations: `jpa,finhub` · `jpa,alphaVantage` · `jpa,mockfinhub`
+
+**From IntelliJ IDEA:** open *Run > Edit Configurations*, set the *Active profiles* field (e.g. `jpa,finhub`) and add environment variables from your `.env` file.
+
+## API Keys Configuration
+
+API keys are read from **environment variables** so that real secrets are never committed to version control.
+
+| Variable | Purpose | Required for |
+|----------|---------|-------------|
+| `FINNHUB_API_KEY` | [Finnhub](https://finnhub.io/) stock price API | Running with profile `finhub` |
+| `ALPHA_VANTAGE_API_KEY` | [Alpha Vantage](https://www.alphavantage.co/) stock price API | Running with profile `alphaVantage` |
+
+> **Tests do not require real API keys.** The test suite uses the `mockfinhub` profile with TestContainers, so `./mvnw clean test` works out of the box without any `.env` file.
+
+The `.env` file is listed in `.gitignore` and will never be committed.
 
 ## Troubleshooting: "Could not find a valid Docker environment"
 
@@ -97,78 +180,6 @@ HexaStock uses **Testcontainers 1.21.4**, which handles Docker Engine 27.x and 2
    api.version=1.44
    ```
 4. Make sure Docker Desktop is running and the Docker socket is accessible
-
-## Running the Application
-
-### Mandatory Spring Profiles
-
-The application will **not start** without activating the required profiles. You must specify:
-
-- **Persistence (mandatory):** `jpa`
-- **Stock price provider (choose one):** `finhub` or `alphaVantage`
-
-Valid combinations:
-- `jpa,finhub`
-- `jpa,alphaVantage`
-
-**From the command line:**
-
-```bash
-./mvnw spring-boot:run -pl bootstrap -am -Dspring-boot.run.profiles=jpa,finhub
-```
-
-> **Why `-pl bootstrap -am`?** HexaStock is a multi-module Maven project. The `-pl bootstrap` flag targets the runnable module, and `-am` ("also make") tells Maven to build all required sibling modules (domain, application, adapters) first.
-
-**From IntelliJ IDEA:** open *Run > Edit Configurations*, set the *Active profiles* field to `jpa,finhub` or `jpa,alphaVantage`, then run.
-
-The application starts on port **8081**.
-
-## API Keys Configuration
-
-API keys are read from **environment variables** so that real secrets are never committed to version control.
-
-| Variable | Purpose | Required for |
-|----------|---------|-------------|
-| `FINNHUB_API_KEY` | [Finnhub](https://finnhub.io/) stock price API | Running with profile `finhub` |
-| `ALPHA_VANTAGE_API_KEY` | [Alpha Vantage](https://www.alphavantage.co/) stock price API | Running with profile `alphaVantage` |
-
-> **Tests do not require real API keys.** The test suite uses the `mockfinhub` profile with TestContainers, so `./mvnw clean test` works out of the box.
-
-### Quick setup
-
-1. Copy the example environment file:
-   ```bash
-   cp .env.example .env
-   ```
-2. Edit `.env` and replace the placeholders with your real keys (free-tier keys work fine).
-3. Export the variables before running the application:
-   ```bash
-   source .env
-   ./mvnw spring-boot:run -pl bootstrap -am -Dspring-boot.run.profiles=jpa,finhub
-   ```
-
-Alternatively, set the variables in your IntelliJ run configuration (*Run > Edit Configurations > Environment variables*).
-
-The `.env` file is listed in `.gitignore` and will never be committed.
-
-## Interacting with the Application
-
-Pre-configured HTTP requests are in [doc/calls.http](doc/calls.http).
-
-**To use in IntelliJ IDEA:**
-1. Open `doc/calls.http`
-2. Ensure the application is running
-3. Click the green **Run** arrow next to any request
-
-**Example workflow:**
-1. Create a portfolio
-2. Deposit cash
-3. Buy stocks (e.g. AAPL, MSFT)
-4. Check portfolio status
-5. Sell stocks
-6. View transaction history
-
-Swagger UI is available at `http://localhost:8081/swagger-ui.html`.
 
 ## Acknowledgments
 
