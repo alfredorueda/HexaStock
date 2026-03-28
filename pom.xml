@@ -11,9 +11,9 @@
     <groupId>cat.gencat.agaur</groupId>
     <artifactId>HexaStock</artifactId>
     <version>0.0.1-SNAPSHOT</version>
-    <packaging>war</packaging>
+    <packaging>pom</packaging>
     <name>HexaStock</name>
-    <description>HexaStock</description>
+    <description>HexaStock - Hexagonal Architecture Multi-Module</description>
     <url/>
     <licenses>
         <license>
@@ -33,14 +33,24 @@
     </scm>
     <properties>
         <java.version>21</java.version>
+        <springdoc-openapi.version>2.8.5</springdoc-openapi.version>
+        <mysql-connector.version>8.2.0</mysql-connector.version>
+        <rest-assured.version>5.4.0</rest-assured.version>
+        <jacoco.version>0.8.10</jacoco.version>
     </properties>
 
-    <!-- Align all Testcontainers modules to a single version via BOM.
-         1.21.4 fixes Docker Engine 29 compatibility natively (API 1.44 with
-         1.32 fallback). No docker-java.properties workaround needed.
-         See: https://github.com/testcontainers/testcontainers-java/issues/11212 -->
+    <modules>
+        <module>domain</module>
+        <module>application</module>
+        <module>adapters-inbound-rest</module>
+        <module>adapters-outbound-persistence-jpa</module>
+        <module>adapters-outbound-market</module>
+        <module>bootstrap</module>
+    </modules>
+
     <dependencyManagement>
         <dependencies>
+            <!-- Testcontainers BOM -->
             <dependency>
                 <groupId>org.testcontainers</groupId>
                 <artifactId>testcontainers-bom</artifactId>
@@ -48,221 +58,93 @@
                 <type>pom</type>
                 <scope>import</scope>
             </dependency>
+            <!-- Internal modules -->
+            <dependency>
+                <groupId>cat.gencat.agaur</groupId>
+                <artifactId>hexastock-domain</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>cat.gencat.agaur</groupId>
+                <artifactId>hexastock-domain</artifactId>
+                <version>${project.version}</version>
+                <type>test-jar</type>
+            </dependency>
+            <dependency>
+                <groupId>cat.gencat.agaur</groupId>
+                <artifactId>hexastock-application</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>cat.gencat.agaur</groupId>
+                <artifactId>hexastock-adapters-inbound-rest</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>cat.gencat.agaur</groupId>
+                <artifactId>hexastock-adapters-outbound-persistence-jpa</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>cat.gencat.agaur</groupId>
+                <artifactId>hexastock-adapters-outbound-market</artifactId>
+                <version>${project.version}</version>
+            </dependency>
         </dependencies>
     </dependencyManagement>
 
+    <!-- Shared test dependencies for all modules -->
     <dependencies>
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-validation</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-web</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-data-jpa</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-cache</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>com.github.ben-manes.caffeine</groupId>
-            <artifactId>caffeine</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>com.mysql</groupId>
-            <artifactId>mysql-connector-j</artifactId>
-            <version>8.2.0</version> <!-- Usa la última versión estable -->
-        </dependency>
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-tomcat</artifactId>
-            <scope>provided</scope>
-        </dependency>
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-test</artifactId>
             <scope>test</scope>
         </dependency>
-        <dependency>
-            <groupId>org.springdoc</groupId>
-            <artifactId>springdoc-openapi-starter-webmvc-ui</artifactId>
-            <version>2.8.5</version>
-        </dependency>
-        <dependency>
-            <groupId>io.rest-assured</groupId>
-            <artifactId>rest-assured</artifactId>
-            <version>5.4.0</version>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.testcontainers</groupId>
-            <artifactId>testcontainers</artifactId>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.testcontainers</groupId>
-            <artifactId>mysql</artifactId>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.testcontainers</groupId>
-            <artifactId>junit-jupiter</artifactId>
-            <scope>test</scope>
-        </dependency>
-
     </dependencies>
 
     <build>
+        <pluginManagement>
+            <plugins>
+                <plugin>
+                    <groupId>org.jacoco</groupId>
+                    <artifactId>jacoco-maven-plugin</artifactId>
+                    <version>${jacoco.version}</version>
+                </plugin>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-surefire-plugin</artifactId>
+                    <version>3.1.2</version>
+                    <configuration>
+                        <includes>
+                            <include>**/*Test.java</include>
+                            <include>**/*Tests.java</include>
+                        </includes>
+                    </configuration>
+                </plugin>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-failsafe-plugin</artifactId>
+                    <version>3.1.2</version>
+                    <configuration>
+                        <includes>
+                            <include>**/*IT.java</include>
+                        </includes>
+                    </configuration>
+                </plugin>
+            </plugins>
+        </pluginManagement>
         <plugins>
-            <plugin>
-                <groupId>org.springframework.boot</groupId>
-                <artifactId>spring-boot-maven-plugin</artifactId>
-            </plugin>
             <plugin>
                 <groupId>org.jacoco</groupId>
                 <artifactId>jacoco-maven-plugin</artifactId>
-                <version>0.8.10</version>
                 <executions>
-                    <!-- Prepare agent for unit tests (Surefire) -->
                     <execution>
                         <id>prepare-agent</id>
                         <goals>
                             <goal>prepare-agent</goal>
                         </goals>
-                        <configuration>
-                            <!-- Sets jacocoArgLine property for Surefire -->
-                            <propertyName>jacocoArgLine</propertyName>
-                        </configuration>
-                    </execution>
-                    <!-- Prepare agent for integration tests (Failsafe) -->
-                    <execution>
-                        <id>prepare-agent-integration</id>
-                        <goals>
-                            <goal>prepare-agent</goal>
-                        </goals>
-                        <phase>pre-integration-test</phase>
-                        <configuration>
-                            <!-- Sets jacocoITArgLine property for Failsafe, writes to separate file -->
-                            <propertyName>jacocoITArgLine</propertyName>
-                            <destFile>${project.build.directory}/jacoco-it.exec</destFile>
-                        </configuration>
-                    </execution>
-                    <!-- Merge unit and integration .exec files after tests -->
-                    <execution>
-                        <id>merge-results</id>
-                        <phase>verify</phase>
-                        <goals>
-                            <goal>merge</goal>
-                        </goals>
-                        <configuration>
-                            <fileSets>
-                                <fileSet>
-                                    <directory>${project.build.directory}</directory>
-                                    <includes>
-                                        <include>jacoco.exec</include>
-                                        <include>jacoco-it.exec</include>
-                                    </includes>
-                                </fileSet>
-                            </fileSets>
-                            <destFile>${project.build.directory}/jacoco-merged.exec</destFile>
-                        </configuration>
-                    </execution>
-                    <!-- Generate HTML and XML report from merged data -->
-                    <execution>
-                        <id>report-merged</id>
-                        <phase>verify</phase>
-                        <goals>
-                            <goal>report</goal>
-                        </goals>
-                        <configuration>
-                            <dataFile>${project.build.directory}/jacoco-merged.exec</dataFile>
-                            <outputDirectory>${project.build.directory}/site/jacoco-merged</outputDirectory>
-                            <reports>
-                                <xml>true</xml>
-                                <html>true</html>
-                            </reports>
-                            <!-- Optional: Exclude generated code, DTOs, configs, records from coverage -->
-
-                            <excludes>
-                                <exclude>**/generated/**</exclude>
-                                <exclude>**/dto/**</exclude>
-                                <exclude>**/config/**</exclude>
-                                <exclude>**/*Record.class</exclude>
-                                <exclude>cat/gencat/agaur/hexastock/adapter/out/rest/FinhubStockPriceAdapter.class</exclude>
-                                <exclude>cat/gencat/agaur/hexastock/adapter/out/rest/AlphaVantageStockPriceAdapter.class</exclude>
-                            </excludes>
-                        </configuration>
-                    </execution>
-                    <!-- Enforce coverage thresholds on verify -->
-                    <execution>
-                        <id>check-coverage</id>
-                        <phase>verify</phase>
-                        <goals>
-                            <goal>check</goal>
-                        </goals>
-                        <configuration>
-                            <dataFile>${project.build.directory}/jacoco-merged.exec</dataFile>
-                            <rules>
-                                <rule>
-                                    <element>BUNDLE</element>
-                                    <limits>
-                                        <limit>
-                                            <counter>INSTRUCTION</counter>
-                                            <value>COVEREDRATIO</value>
-                                            <minimum>0.80</minimum>
-                                        </limit>
-                                        <limit>
-                                            <counter>BRANCH</counter>
-                                            <value>COVEREDRATIO</value>
-                                            <minimum>0.75</minimum>
-                                        </limit>
-                                    </limits>
-                                </rule>
-                            </rules>
-                        </configuration>
                     </execution>
                 </executions>
-            </plugin>
-
-            <!-- Surefire Plugin: runs unit tests, picks *Test.java and *Tests.java, uses jacocoArgLine for coverage -->
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-surefire-plugin</artifactId>
-                <version>3.1.2</version>
-                <configuration>
-                    <includes>
-                        <include>**/*Test.java</include>
-                        <include>**/*Tests.java</include>
-                    </includes>
-                    <argLine>${jacocoArgLine}</argLine>
-                    <!-- JUnit 5 config is already present -->
-                </configuration>
-            </plugin>
-
-            <!-- Failsafe Plugin: runs integration tests, picks *IT.java, uses jacocoITArgLine for coverage -->
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-failsafe-plugin</artifactId>
-                <version>3.1.2</version>
-                <executions>
-                    <execution>
-                        <goals>
-                            <goal>integration-test</goal>
-                            <goal>verify</goal>
-                        </goals>
-                    </execution>
-                </executions>
-                <configuration>
-                    <includes>
-                        <include>**/*IT.java</include>
-                    </includes>
-                    <argLine>${jacocoITArgLine}</argLine>
-                    <!-- JUnit 5 config is already present -->
-                </configuration>
             </plugin>
         </plugins>
     </build>
