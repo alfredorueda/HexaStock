@@ -1,7 +1,10 @@
 package cat.gencat.agaur.hexastock.adapter.out.persistence.jpa.mapper;
 
 import cat.gencat.agaur.hexastock.adapter.out.persistence.jpa.entity.TransactionJpaEntity;
-import cat.gencat.agaur.hexastock.model.*;
+import cat.gencat.agaur.hexastock.model.portfolio.*;
+import cat.gencat.agaur.hexastock.model.transaction.*;
+import cat.gencat.agaur.hexastock.model.market.*;
+import cat.gencat.agaur.hexastock.model.money.*;
 
 public class TransactionMapper {
     public static Transaction toModelEntity(TransactionJpaEntity jpaEntity) {

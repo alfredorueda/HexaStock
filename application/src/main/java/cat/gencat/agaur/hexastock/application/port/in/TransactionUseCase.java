@@ -1,7 +1,7 @@
 package cat.gencat.agaur.hexastock.application.port.in;
 
-import cat.gencat.agaur.hexastock.model.Transaction;
-import cat.gencat.agaur.hexastock.model.exception.PortfolioNotFoundException;
+import cat.gencat.agaur.hexastock.model.transaction.Transaction;
+import cat.gencat.agaur.hexastock.model.portfolio.PortfolioNotFoundException;
 
 import java.util.List;
 import java.util.Optional;

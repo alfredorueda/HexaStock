@@ -1,12 +1,12 @@
 package cat.gencat.agaur.hexastock.application.port.in;
 
-import cat.gencat.agaur.hexastock.model.PortfolioId;
-import cat.gencat.agaur.hexastock.model.SellResult;
-import cat.gencat.agaur.hexastock.model.ShareQuantity;
-import cat.gencat.agaur.hexastock.model.Ticker;
-import cat.gencat.agaur.hexastock.model.exception.ConflictQuantityException;
-import cat.gencat.agaur.hexastock.model.exception.InvalidQuantityException;
-import cat.gencat.agaur.hexastock.model.exception.PortfolioNotFoundException;
+import cat.gencat.agaur.hexastock.model.portfolio.PortfolioId;
+import cat.gencat.agaur.hexastock.model.portfolio.SellResult;
+import cat.gencat.agaur.hexastock.model.money.ShareQuantity;
+import cat.gencat.agaur.hexastock.model.market.Ticker;
+import cat.gencat.agaur.hexastock.model.portfolio.ConflictQuantityException;
+import cat.gencat.agaur.hexastock.model.money.InvalidQuantityException;
+import cat.gencat.agaur.hexastock.model.portfolio.PortfolioNotFoundException;
 
 /**
  * PortfolioStockOperationsUseCase defines the primary port for stock trading operations.
@@ -50,7 +50,7 @@ public interface PortfolioStockOperationsUseCase {
      * @param quantity The number of shares to buy
      * @throws PortfolioNotFoundException if the portfolio is not found
      * @throws InvalidQuantityException if the quantity is not positive
-     * @throws cat.gencat.agaur.hexastock.model.exception.InsufficientFundsException if there are insufficient funds for the purchase
+     * @throws cat.gencat.agaur.hexastock.model.portfolio.InsufficientFundsException if there are insufficient funds for the purchase
      */
     void buyStock(PortfolioId portfolioId, Ticker ticker, ShareQuantity quantity);
     
@@ -73,7 +73,7 @@ public interface PortfolioStockOperationsUseCase {
      * @return A SellResult containing proceeds, cost basis, and profit information
      * @throws PortfolioNotFoundException if the portfolio is not found
      * @throws InvalidQuantityException if the quantity is not positive
-     * @throws cat.gencat.agaur.hexastock.model.exception.DomainException if the ticker is not found in holdings
+     * @throws cat.gencat.agaur.hexastock.model.DomainException if the ticker is not found in holdings
      * @throws ConflictQuantityException if trying to sell more shares than owned
      */
     SellResult sellStock(PortfolioId portfolioId, Ticker ticker, ShareQuantity quantity);

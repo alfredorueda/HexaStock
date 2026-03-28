@@ -1,6 +1,6 @@
 package cat.gencat.agaur.hexastock.adapter.in;
 
-import cat.gencat.agaur.hexastock.model.StockPrice;
+import cat.gencat.agaur.hexastock.model.market.StockPrice;
 
 import java.time.Instant;
 

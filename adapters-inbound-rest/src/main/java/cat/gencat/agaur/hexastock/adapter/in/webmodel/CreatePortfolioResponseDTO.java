@@ -1,6 +1,6 @@
 package cat.gencat.agaur.hexastock.adapter.in.webmodel;
 
-import cat.gencat.agaur.hexastock.model.Portfolio;
+import cat.gencat.agaur.hexastock.model.portfolio.Portfolio;
 
 import java.math.BigDecimal;
 

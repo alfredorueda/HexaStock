@@ -2,7 +2,7 @@ package cat.gencat.agaur.hexastock.adapter.in.webmodel;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
-import cat.gencat.agaur.hexastock.model.Portfolio;
+import cat.gencat.agaur.hexastock.model.portfolio.Portfolio;
 
 public record PortfolioResponseDTO(
     String id,

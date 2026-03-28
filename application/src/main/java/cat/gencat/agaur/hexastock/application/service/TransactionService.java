@@ -2,8 +2,8 @@ package cat.gencat.agaur.hexastock.application.service;
 
 import cat.gencat.agaur.hexastock.application.port.in.TransactionUseCase;
 import cat.gencat.agaur.hexastock.application.port.out.TransactionPort;
-import cat.gencat.agaur.hexastock.model.PortfolioId;
-import cat.gencat.agaur.hexastock.model.Transaction;
+import cat.gencat.agaur.hexastock.model.portfolio.PortfolioId;
+import cat.gencat.agaur.hexastock.model.transaction.Transaction;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;

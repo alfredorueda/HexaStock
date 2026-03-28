@@ -1,10 +1,10 @@
 package cat.gencat.agaur.hexastock.adapter.out.rest;
 
 import cat.gencat.agaur.hexastock.application.port.out.StockPriceProviderPort;
-import cat.gencat.agaur.hexastock.model.Price;
-import cat.gencat.agaur.hexastock.model.StockPrice;
-import cat.gencat.agaur.hexastock.model.Ticker;
-import cat.gencat.agaur.hexastock.model.exception.ExternalApiException;
+import cat.gencat.agaur.hexastock.model.money.Price;
+import cat.gencat.agaur.hexastock.model.market.StockPrice;
+import cat.gencat.agaur.hexastock.model.market.Ticker;
+import cat.gencat.agaur.hexastock.model.ExternalApiException;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.context.annotation.Profile;

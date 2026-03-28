@@ -1,6 +1,6 @@
 package cat.gencat.agaur.hexastock.adapter.in.webmodel;
 
-import cat.gencat.agaur.hexastock.model.Transaction;
+import cat.gencat.agaur.hexastock.model.transaction.Transaction;
 
 /**
  * TransactionDTO is a Data Transfer Object for transaction information in the REST API.

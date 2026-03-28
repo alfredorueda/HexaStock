@@ -1,8 +1,8 @@
 package cat.gencat.agaur.hexastock.adapter.in;
 
 import cat.gencat.agaur.hexastock.application.port.in.GetStockPriceUseCase;
-import cat.gencat.agaur.hexastock.model.StockPrice;
-import cat.gencat.agaur.hexastock.model.Ticker;
+import cat.gencat.agaur.hexastock.model.market.StockPrice;
+import cat.gencat.agaur.hexastock.model.market.Ticker;
 import org.springframework.web.bind.annotation.*;
 
 /**

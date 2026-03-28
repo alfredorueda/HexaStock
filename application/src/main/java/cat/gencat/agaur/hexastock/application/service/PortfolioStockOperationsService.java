@@ -4,10 +4,13 @@ import cat.gencat.agaur.hexastock.application.port.in.PortfolioStockOperationsUs
 import cat.gencat.agaur.hexastock.application.port.out.PortfolioPort;
 import cat.gencat.agaur.hexastock.application.port.out.StockPriceProviderPort;
 import cat.gencat.agaur.hexastock.application.port.out.TransactionPort;
-import cat.gencat.agaur.hexastock.model.*;
-import cat.gencat.agaur.hexastock.model.exception.ConflictQuantityException;
-import cat.gencat.agaur.hexastock.model.exception.InvalidQuantityException;
-import cat.gencat.agaur.hexastock.model.exception.PortfolioNotFoundException;
+import cat.gencat.agaur.hexastock.model.portfolio.*;
+import cat.gencat.agaur.hexastock.model.transaction.*;
+import cat.gencat.agaur.hexastock.model.market.*;
+import cat.gencat.agaur.hexastock.model.money.*;
+import cat.gencat.agaur.hexastock.model.portfolio.ConflictQuantityException;
+import cat.gencat.agaur.hexastock.model.money.InvalidQuantityException;
+import cat.gencat.agaur.hexastock.model.portfolio.PortfolioNotFoundException;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
@@ -85,7 +88,7 @@ public class PortfolioStockOperationsService implements PortfolioStockOperations
      * @param quantity The number of shares to buy
      * @throws PortfolioNotFoundException if the portfolio is not found
      * @throws InvalidQuantityException if the quantity is not positive
-     * @throws cat.gencat.agaur.hexastock.model.exception.InsufficientFundsException if there are insufficient funds for the purchase
+     * @throws cat.gencat.agaur.hexastock.model.portfolio.InsufficientFundsException if there are insufficient funds for the purchase
      */
     @Override
     public void buyStock(PortfolioId portfolioId, Ticker ticker, ShareQuantity quantity) {
@@ -125,7 +128,7 @@ public class PortfolioStockOperationsService implements PortfolioStockOperations
      * @return A SellResult containing proceeds, cost basis, and profit information
      * @throws PortfolioNotFoundException if the portfolio is not found
      * @throws InvalidQuantityException if the quantity is not positive
-     * @throws cat.gencat.agaur.hexastock.model.exception.DomainException if the ticker is not found in holdings
+     * @throws cat.gencat.agaur.hexastock.model.DomainException if the ticker is not found in holdings
      * @throws ConflictQuantityException if trying to sell more shares than owned
      */
     @Override
