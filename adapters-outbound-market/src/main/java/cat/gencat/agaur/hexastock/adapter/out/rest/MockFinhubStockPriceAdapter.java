@@ -7,8 +7,8 @@ import cat.gencat.agaur.hexastock.model.market.Ticker;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
 
+import java.security.SecureRandom;
 import java.time.Instant;
-import java.util.Random;
 
 /**
  * MockFinhubStockPriceAdapter provides random but reasonable stock prices for testing purposes.
@@ -17,7 +17,7 @@ import java.util.Random;
 @Component
 @Profile("mockfinhub")
 public class MockFinhubStockPriceAdapter implements StockPriceProviderPort {
-    private final Random random = new Random();
+    private final SecureRandom random = new SecureRandom();
 
     @Override
     public StockPrice fetchStockPrice(Ticker ticker) {
