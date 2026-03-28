@@ -123,21 +123,31 @@ The application starts on port **8081**.
 
 ## API Keys Configuration
 
-All configuration is centralized in `src/main/resources/application.properties`. Profile-specific files (`application-finhub.properties`, `application-alphavantage.properties`) do **not** exist yet.
+API keys are read from **environment variables** so that real secrets are never committed to version control.
 
-```properties
-# Finnhub (active when profile = finhub)
-finhub.api.url=https://finnhub.io/api/v1
-finhub.api.key=your_finhub_key_here
+| Variable | Purpose | Required for |
+|----------|---------|-------------|
+| `FINNHUB_API_KEY` | [Finnhub](https://finnhub.io/) stock price API | Running with profile `finhub` |
+| `ALPHA_VANTAGE_API_KEY` | [Alpha Vantage](https://www.alphavantage.co/) stock price API | Running with profile `alphaVantage` |
 
-# Alpha Vantage (active when profile = alphaVantage)
-alphaVantage.api.base-url=https://www.alphavantage.co/query
-alphaVantage.api.key=your_alphavantage_key_here
-```
+> **Tests do not require real API keys.** The test suite uses the `mockfinhub` profile with TestContainers, so `./mvnw clean test` works out of the box.
 
-Free-tier keys: [finnhub.io](https://finnhub.io/) · [alphavantage.co](https://www.alphavantage.co/)
+### Quick setup
 
-You can also supply keys as environment variables to keep credentials out of version control.
+1. Copy the example environment file:
+   ```bash
+   cp .env.example .env
+   ```
+2. Edit `.env` and replace the placeholders with your real keys (free-tier keys work fine).
+3. Export the variables before running the application:
+   ```bash
+   source .env
+   ./mvnw spring-boot:run -pl bootstrap -Dspring-boot.run.profiles=jpa,finhub
+   ```
+
+Alternatively, set the variables in your IntelliJ run configuration (*Run > Edit Configurations > Environment variables*).
+
+The `.env` file is listed in `.gitignore` and will never be committed.
 
 ## Interacting with the Application
 

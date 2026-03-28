@@ -36,3 +36,9 @@ build/
 .DS_Store
 **/.DS_Store
 /.obsidian/
+
+# Local secrets (never commit real API keys)
+.env
+.env.local
+.env.*.local
+application-local.properties
