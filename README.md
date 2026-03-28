@@ -121,12 +121,15 @@ Free-tier keys: [finnhub.io](https://finnhub.io/) · [alphavantage.co](https://w
 
 ```bash
 source .env
-./mvnw spring-boot:run -pl bootstrap -am -Dspring-boot.run.profiles=jpa,finhub
+./mvnw install -DskipTests -q
+./mvnw spring-boot:run -pl bootstrap -Dspring-boot.run.profiles=jpa,finhub
 ```
+
+The first command compiles and installs all modules into your local Maven repository (only needed once, or after code changes). The second starts the app.
 
 The app starts on **http://localhost:8081**. Swagger UI is at [http://localhost:8081/swagger-ui.html](http://localhost:8081/swagger-ui.html).
 
-> **Why `-pl bootstrap -am`?** HexaStock is a multi-module Maven project. `-pl bootstrap` targets the runnable module, and `-am` ("also make") tells Maven to build all required sibling modules (domain, application, adapters) first.
+> **Why two Maven commands?** HexaStock is a multi-module project. `spring-boot:run` can only target a single module (`-pl bootstrap`), so the sibling modules (domain, application, adapters) must be installed first.
 
 ### 3. Try the API
 
