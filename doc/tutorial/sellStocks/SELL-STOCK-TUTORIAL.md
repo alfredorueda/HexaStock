@@ -41,7 +41,7 @@ HexaStock is a stock portfolio management platform. The system enables investors
 
 HexaStock is structured according to two complementary architectural disciplines.
 
-**Domain-Driven Design** provides the modeling methodology. The system's core concepts — `Portfolio`, `Holding`, `Lot`, and `Transaction` — are modeled as aggregates, entities, and value objects that encapsulate business rules and protect invariants. Business logic lives inside the domain, not in services or controllers.
+**Domain-Driven Design** provides the modeling methodology. The system's core concepts — `Portfolio`, `Holding`, `Lot`, and `Transaction` — are modeled as aggregates, entities, and value objects that encapsulate business rules and protect invariants. Core business rules and invariants live in the domain model. Application services orchestrate use cases and transactions; controllers and adapters translate at the boundaries.
 
 **Hexagonal Architecture** (Ports and Adapters) provides the structural organization. The domain model has no dependencies on frameworks, databases, or HTTP. It communicates with the outside world exclusively through port interfaces, which are implemented by adapters in the infrastructure layer. All dependencies point inward toward the domain.
 
@@ -90,6 +90,8 @@ cat.gencat.agaur.hexastock.model
 Hexagonal Architecture does not mandate a single filesystem layout. Organizing by feature, by bounded context, or by a combination of both would be equally valid — and often preferable in larger systems with multiple bounded contexts. HexaStock uses module-level separation because its primary audiences — engineers, architects, and teams adopting hexagonal design — benefit most from seeing architectural boundaries enforced physically.
 
 When each layer is a separate Maven module, the compiler itself prevents illegal dependencies: the `domain` module *cannot* import a Spring annotation, and an adapter *cannot* bypass an application port to reach another adapter. This transforms the hexagonal dependency rule from a convention that requires discipline into a constraint that the build enforces automatically. The result is a codebase where the architecture is not just documented — it is structurally guaranteed.
+
+These Maven modules do not represent separate bounded contexts. They are architectural partitions inside the same bounded context, used to make dependency rules explicit and enforceable at build time.
 
 ---
 
@@ -376,7 +378,7 @@ Feature: Sell Stocks with FIFO Lot Consumption
 
 ## 4. Executable Specification (JUnit)
 
-The Gherkin scenarios above describe observable behaviour at the **Portfolio level** — the aggregate root in our DDD model. Therefore, the primary executable specification must validate the scenario through `Portfolio.sell(...)`, not through the internal entity `Holding` directly. This is a deliberate DDD design choice: business behaviour is exposed by the aggregate root, and tests should reflect that boundary.
+The Gherkin scenarios above describe observable behaviour at the **Portfolio level** — the aggregate root in our DDD model. Because this scenario describes observable behaviour at the `Portfolio` level, the most appropriate primary executable specification validates it through `Portfolio.sell(...)`, while a complementary `Holding` test verifies the internal FIFO algorithm in isolation. This is a deliberate DDD design choice: business behaviour is exposed by the aggregate root, and tests should reflect that boundary.
 
 HexaStock validates this behaviour at **two complementary levels**:
 
@@ -1161,7 +1163,7 @@ HTTP 409 Conflict
 
 ### Domain-Driven Design
 
-- **Aggregates protect invariants** — all state changes to `Holding` and `Lot` pass through the `Portfolio` root.
+- **Aggregates protect invariants** — in HexaStock, `Portfolio` is the chosen aggregate root for this consistency boundary, so all state changes to `Holding` and `Lot` are coordinated through `Portfolio`.
 - **Application services orchestrate** — they coordinate use cases without containing business logic.
 - **Value Objects eliminate primitive obsession** — types like `Money`, `Price`, `ShareQuantity`, `Ticker`, and `PortfolioId` enforce constraints at construction time and make the ubiquitous language explicit.
 - **Business rules live in the domain** — FIFO logic belongs in `Holding.sell()`, not in a service or adapter. The companion **[Rich vs Anemic Domain Model study](../richVsAnemicDomainModel/RICH_VS_ANEMIC_DOMAIN_MODEL_TUTORIAL.md)** shows what happens when this logic is moved to the service layer.
