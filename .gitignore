@@ -42,4 +42,4 @@ build/
 .env.local
 .env.*.local
 application-local.properties
-/.vite/
+
