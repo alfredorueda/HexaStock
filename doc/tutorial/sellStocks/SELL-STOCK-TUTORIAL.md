@@ -502,7 +502,7 @@ This ordering reflects the natural direction of design: define behaviour first, 
 
 ## 6. Domain Context: What "Selling Stocks" Means in HexaStock
 
-[![HexaStock Domain Model](diagrams/Rendered/HexaStock%20Domain%20Model.png)](diagrams/Rendered/HexaStock%20Domain%20Model.svg)
+<a href="diagrams/Rendered/HexaStock%20Domain%20Model.svg"><img src="diagrams/Rendered/HexaStock%20Domain%20Model.png" alt="HexaStock Domain Model" width="100%" /></a>
 
 > **📐 Design note:** In the diagram above, `Portfolio` and `Transaction` are modeled as **separate aggregates**. This is a deliberate DDD design decision — transaction history is kept outside the Portfolio aggregate boundary. The rationale is explained in the companion document [Portfolio and Transaction Aggregates in DDD](https://github.com/alfredorueda/HexaStock/blob/main/doc/DDD%20Portfolio%20and%20Transactions.md).
 
@@ -567,7 +567,7 @@ public ResponseEntity<SaleResponseDTO> sellStock(@PathVariable String id,
 
 This controller **drives** the application by calling its use cases. It does not contain business logic.
 
-[![Sell HTTP to Port](diagrams/Rendered/sell-http-to-port.png)](diagrams/Rendered/sell-http-to-port.svg)
+<a href="diagrams/Rendered/sell-http-to-port.svg"><img src="diagrams/Rendered/sell-http-to-port.png" alt="Sell HTTP to Port" width="100%" /></a>
 
 This controller represents the REST entry point of the SELL use case into the application core. Before tracing how a request flows through the system step by step, the next section presents the architectural map of the components involved in this use case.
 
@@ -669,7 +669,7 @@ public SellResult sellStock(PortfolioId portfolioId, Ticker ticker, ShareQuantit
 
 **Diagram Reference:** See [`diagrams/sell-application-service.puml`](diagrams/sell-application-service.puml)
 
-[![Sell Application Service](diagrams/Rendered/sell-application-service.png)](diagrams/Rendered/sell-application-service.svg)
+<a href="diagrams/Rendered/sell-application-service.svg"><img src="diagrams/Rendered/sell-application-service.png" alt="Sell Application Service" width="100%" /></a>
 
 ### Step 4: Domain Model Enforces Invariants
 
@@ -761,7 +761,7 @@ The Lot:
 
 **Diagram Reference:** See [`diagrams/sell-domain-fifo.puml`](diagrams/sell-domain-fifo.puml)
 
-[![Sell Domain FIFO](diagrams/Rendered/sell-domain-fifo.png)](diagrams/Rendered/sell-domain-fifo.svg)
+<a href="diagrams/Rendered/sell-domain-fifo.svg"><img src="diagrams/Rendered/sell-domain-fifo.png" alt="Sell Domain FIFO" width="100%" /></a>
 
 ### Step 5: Persistence Adapter Saves Changes
 
@@ -769,7 +769,7 @@ The `PortfolioPort` implementation (a JPA adapter) converts the domain `Portfoli
 
 **Diagram Reference:** See [`diagrams/sell-persistence-adapter.puml`](diagrams/sell-persistence-adapter.puml)
 
-[![Sell Persistence Adapter](diagrams/Rendered/sell-persistence-adapter.png)](diagrams/Rendered/sell-persistence-adapter.svg)
+<a href="diagrams/Rendered/sell-persistence-adapter.svg"><img src="diagrams/Rendered/sell-persistence-adapter.png" alt="Sell Persistence Adapter" width="100%" /></a>
 
 ### Step 6: Response Returns to Client
 
@@ -1027,7 +1027,7 @@ The persistence layer deals with primitives (`String`, `BigDecimal`, `int`), whi
 
 **Diagram Reference:** See [`diagrams/sell-persistence-adapter.puml`](diagrams/sell-persistence-adapter.puml)
 
-[![Sell Persistence Adapter](diagrams/Rendered/sell-persistence-adapter.png)](diagrams/Rendered/sell-persistence-adapter.svg)
+<a href="diagrams/Rendered/sell-persistence-adapter.svg"><img src="diagrams/Rendered/sell-persistence-adapter.png" alt="Sell Persistence Adapter" width="100%" /></a>
 
 ---
 
@@ -1063,7 +1063,7 @@ HTTP 404 Not Found
 
 **Diagram Reference:** See [`diagrams/sell-error-portfolio-not-found.puml`](diagrams/sell-error-portfolio-not-found.puml)
 
-[![Sell Error Portfolio Not Found](diagrams/Rendered/sell-error-portfolio-not-found.png)](diagrams/Rendered/sell-error-portfolio-not-found.svg)
+<a href="diagrams/Rendered/sell-error-portfolio-not-found.svg"><img src="diagrams/Rendered/sell-error-portfolio-not-found.png" alt="Sell Error — Portfolio Not Found" width="100%" /></a>
 
 ---
 
@@ -1100,7 +1100,7 @@ HTTP 400 Bad Request
 
 **Diagram Reference:** See [`diagrams/sell-error-invalid-quantity.puml`](diagrams/sell-error-invalid-quantity.puml)
 
-[![Sell Error Invalid Quantity](diagrams/Rendered/sell-error-invalid-quantity.png)](diagrams/Rendered/sell-error-invalid-quantity.svg)
+<a href="diagrams/Rendered/sell-error-invalid-quantity.svg"><img src="diagrams/Rendered/sell-error-invalid-quantity.png" alt="Sell Error — Invalid Quantity" width="100%" /></a>
 
 ---
 
@@ -1134,7 +1134,7 @@ HTTP 409 Conflict
 
 **Diagram Reference:** See [`diagrams/sell-error-sell-more-than-owned.puml`](diagrams/sell-error-sell-more-than-owned.puml)
 
-[![Sell Error Sell More Than Owned](diagrams/Rendered/sell-error-sell-more-than-owned.png)](diagrams/Rendered/sell-error-sell-more-than-owned.svg)
+<a href="diagrams/Rendered/sell-error-sell-more-than-owned.svg"><img src="diagrams/Rendered/sell-error-sell-more-than-owned.png" alt="Sell Error — Selling More Than Owned" width="100%" /></a>
 
 ---
 
