@@ -5,8 +5,7 @@
 
 ## 1. Business Context
 
-The **HexaStock** platform was originally designed for the Spanish market.  
-In this context, tax regulations require the use of the **FIFO (First-In, First-Out)** criterion when selling stocks. For this reason, the system was initially implemented with FIFO as its default and only lot selection policy.
+The **HexaStock** platform was originally designed to use the **FIFO (First-In, First-Out)** criterion when selling stocks, so the system was initially implemented with FIFO as its default — and only — lot selection policy.
 
 At this point, **FIFO is already implemented and working correctly in the system**.
 
