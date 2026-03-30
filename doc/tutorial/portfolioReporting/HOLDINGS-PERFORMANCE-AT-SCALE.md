@@ -4,44 +4,6 @@
 
 ---
 
-## Table of Contents
-
-- [1. Introduction and Context](#1-introduction-and-context)
-- [2. Approach A — Single-Pass In-Memory Aggregation (Current)](#2-approach-a--single-pass-in-memory-aggregation-current)
-  - [2.1 Algorithm Design](#21-algorithm-design)
-  - [2.2 Why Sequential Instead of Parallel](#22-why-sequential-instead-of-parallel)
-  - [2.3 BigDecimal Cost and Allocation Pressure](#23-bigdecimal-cost-and-allocation-pressure)
-  - [2.4 Layer Separation](#24-layer-separation)
-- [3. Scalability Analysis of Approach A](#3-scalability-analysis-of-approach-a)
-  - [3.1 Working Set Per Request](#31-working-set-per-request)
-  - [3.2 Concurrency Amplification](#32-concurrency-amplification)
-  - [3.3 Heap Pressure and GC Pause Implications](#33-heap-pressure-and-gc-pause-implications)
-  - [3.4 Latency Distribution Reasoning](#34-latency-distribution-reasoning)
-  - [3.5 When O(T) Becomes Problematic](#35-when-ot-becomes-problematic)
-- [4. Approach B — DB-Powered Query Side](#4-approach-b--db-powered-query-side)
-  - [4.1 Design Overview](#41-design-overview)
-  - [4.2 GROUP BY Aggregation](#42-group-by-aggregation)
-  - [4.3 Port and Adapter Design](#43-port-and-adapter-design)
-  - [4.4 Tradeoffs](#44-tradeoffs)
-  - [4.5 Integration Testing Implications](#45-integration-testing-implications)
-- [5. Approach C — Hybrid (DB Pre-Aggregation + Domain Finalization)](#5-approach-c--hybrid-db-pre-aggregation--domain-finalization)
-  - [5.1 Design Overview](#51-design-overview)
-  - [5.2 Boundary Definition](#52-boundary-definition)
-  - [5.3 Where Rounding Must Remain in the Domain](#53-where-rounding-must-remain-in-the-domain)
-  - [5.4 Tradeoff vs Approach B](#54-tradeoff-vs-approach-b)
-- [6. Snapshot / CQRS Read Model](#6-snapshot--cqrs-read-model)
-  - [6.1 Snapshot Table Structure](#61-snapshot-table-structure)
-  - [6.2 Synchronous Update Model](#62-synchronous-update-model)
-  - [6.3 Asynchronous Event-Driven Alternative](#63-asynchronous-event-driven-alternative)
-  - [6.4 Eventual Consistency Discussion](#64-eventual-consistency-discussion)
-  - [6.5 Reconciliation Strategy](#65-reconciliation-strategy)
-  - [6.6 Operational Complexity Considerations](#66-operational-complexity-considerations)
-- [7. Engineering Decision Matrix](#7-engineering-decision-matrix)
-- [8. Choosing the Right Approach](#8-choosing-the-right-approach)
-- [9. References](#9-references)
-
----
-
 ## 1. Introduction and Context
 
 HexaStock is a portfolio management system built with **Hexagonal Architecture** and **Domain-Driven Design** on Java 21 and Spring Boot 3.x. One of its key reporting features is **holdings performance**: for each stock in a portfolio, compute the total purchased quantity, average purchase price, remaining shares, current market value, unrealized gain, and realized gain.

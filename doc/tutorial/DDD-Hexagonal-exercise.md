@@ -3,23 +3,6 @@
 
 ---
 
-## Table of Contents
-
-- [1. Business Context](#1-business-context)
-- [2. Objective of the Assignment](#2-objective-of-the-assignment)
-- [3. Fundamental Design Principle (Key Learning Objective)](#3-fundamental-design-principle-key-learning-objective)
-- [4. Lot Selection Policy (Key Domain Decision)](#4-lot-selection-policy-key-domain-decision)
-- [5. Lot Selection Policies to Implement](#5-lot-selection-policies-to-implement)
-    - [5.1 Mandatory New Policies](#51-mandatory-new-policies)
-    - [5.2 Advanced Extra — Specific Lot Identification (Optional)](#52-advanced-extra--specific-lot-identification-optional)
-- [6. Design Requirements](#6-design-requirements)
-- [7. Hexagonal Architecture](#7-hexagonal-architecture)
-- [8. Evaluation Criteria](#8-evaluation-criteria)
-- [Pedagogical Closing](#pedagogical-closing)
-- [9. Optional Infrastructure Extension — Multiple Persistence Adapters (MySQL & MongoDB)](#9-optional-infrastructure-extension--multiple-persistence-adapters-mysql--mongodb)
-
----
-
 ## 1. Business Context
 
 The **HexaStock** platform was originally designed for the Spanish market.  

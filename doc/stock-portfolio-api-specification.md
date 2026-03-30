@@ -1,30 +1,6 @@
 # Stock Portfolio API Specification
 ---
 
-## Table of Contents
-
-1. [Global Error Contract](#1-global-error-contract)
-2. [User Stories](#2-user-stories)
-   - 2.1 [Create Portfolio](#21-us-01--create-portfolio)
-   - 2.2 [Get Portfolio](#22-us-02--get-portfolio)
-   - 2.3 [List All Portfolios](#23-us-03--list-all-portfolios)
-   - 2.4 [Deposit Funds](#24-us-04--deposit-funds)
-   - 2.5 [Withdraw Funds](#25-us-05--withdraw-funds)
-   - 2.6 [Buy Stocks](#26-us-06--buy-stocks)
-   - 2.7 [Sell Stocks](#27-us-07--sell-stocks)
-   - 2.8 [Get Transaction History](#28-us-08--get-transaction-history)
-   - 2.9 [Get Holdings Performance](#29-us-09--get-holdings-performance)
-   - 2.10 [Get Stock Price](#210-us-10--get-stock-price)
-3. [Domain Model](#3-domain-model)
-4. [PlantUML Diagram](#4-plantuml-diagram)
-5. [HTTP Request File](#5-http-request-file)
-6. [Suggested Future Evolutions](#6-suggested-future-evolutions)
-7. [Implementation Notes and Deviations](#7-implementation-notes-and-deviations)
-8. [Follow-up Issue Suggestions](#8-follow-up-issue-suggestions)
-
-
----
-
 ## 1. Global Error Contract
 
 All error responses use the **RFC 7807 Problem Detail** format (`application/problem+json`), produced by Spring's `ProblemDetail` class via `ExceptionHandlingAdvice`.

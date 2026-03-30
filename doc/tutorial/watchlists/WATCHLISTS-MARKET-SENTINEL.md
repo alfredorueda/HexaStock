@@ -11,50 +11,6 @@ This document presents a comprehensive guide to implementing an automated market
 
 ---
 
-## Table of Contents
-
-- [Overview](#overview)
-  - [The Investor's Challenge](#the-investors-challenge)
-  - [The Engineering Challenge: Scale](#the-engineering-challenge-scale)
-  - [Why CQRS Emerges Naturally](#why-cqrs-emerges-naturally)
-- [Progressive Learning Path](#progressive-learning-path)
-  - [Why a Progressive Approach](#why-a-progressive-approach)
-  - [Level Summary](#level-summary)
-- [Student Assignment — Level 1: Price Threshold Alerts](#student-assignment--level-1-price-threshold-alerts)
-  - [Domain Model Requirements](#domain-model-requirements)
-  - [Use Cases — Write Side (Commands)](#use-cases--write-side-commands)
-  - [Use Case — Read Side (Market Sentinel Query)](#use-case--read-side-market-sentinel-query)
-  - [Notification Adapter](#notification-adapter)
-  - [Important Clarifications](#important-clarifications)
-- [Architecture & Design Guide](#architecture--design-guide)
-  - [Why CQRS Is Necessary Here](#why-cqrs-is-necessary-here)
-  - [Domain Model Design (Write Side)](#domain-model-design-write-side)
-  - [Aggregate Invariants](#aggregate-invariants)
-  - [Scalable Read-Side Algorithm (Critical Section)](#scalable-read-side-algorithm-critical-section)
-    - [Step 1 — Find DISTINCT Tickers in Active Watchlists](#step-1--find-distinct-tickers-in-active-watchlists)
-    - [Step 2 — Fetch Prices ONCE per Ticker](#step-2--fetch-prices-once-per-ticker)
-    - [Step 3 — Query ONLY Triggered Alerts](#step-3--query-only-triggered-alerts)
-    - [Step 4 — Notify](#step-4--notify)
-  - [Duplicate Prevention](#duplicate-prevention)
-  - [Testing Strategy](#testing-strategy)
-  - [Sequence Diagrams](#sequence-diagrams)
-- [Progressive Extensions](#progressive-extensions)
-  - [Level 2 — Multiple Alerts per Ticker (Ladder Approach)](#level-2--multiple-alerts-per-ticker-ladder-approach)
-  - [Level 3 — Percentage Change Alerts](#level-3--percentage-change-alerts)
-  - [Level 4 — Contextual Filters (Alert Memo)](#level-4--contextual-filters-alert-memo)
-  - [Level 5 — Alert Fatigue Prevention](#level-5--alert-fatigue-prevention)
-  - [Summary of Progressive Model Evolution](#summary-of-progressive-model-evolution)
-- [Clarification: CQRS in This Tutorial vs. Full CQRS](#clarification-cqrs-in-this-tutorial-vs-full-cqrs)
-- [How This Would Evolve in Production](#how-this-would-evolve-in-production)
-  - [Event Publishing](#event-publishing)
-  - [Alert State Tracking](#alert-state-tracking)
-  - [Horizontal Scaling](#horizontal-scaling)
-  - [Architectural Stability](#architectural-stability)
-- [Further Reading](#further-reading)
-- [Special Acknowledgment](#special-acknowledgment)
-
----
-
 ## Overview
 
 ### The Investor's Challenge

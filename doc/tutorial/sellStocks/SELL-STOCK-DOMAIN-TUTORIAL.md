@@ -4,32 +4,6 @@
 
 ---
 
-## Table of Contents
-
-- [1. Introduction](#1-introduction)
-- [2. Learning Objectives](#2-learning-objectives)
-- [3. Functional Specification (Behaviour)](#3-functional-specification-behaviour)
-- [4. Executable Specification (JUnit Domain Tests)](#4-executable-specification-junit-domain-tests)
-  - [Aggregate Root Test (Portfolio)](#aggregate-root-test-portfolio)
-  - [FIFO Algorithm Test (Holding)](#fifo-algorithm-test-holding)
-- [5. Domain Context: What "Selling Stocks" Means](#5-domain-context-what-selling-stocks-means)
-- [6. Domain Class Diagram](#6-domain-class-diagram)
-- [7. Simplified Use Case Flow](#7-simplified-use-case-flow)
-- [8. Domain Sequence Diagram: The SELL Operation](#8-domain-sequence-diagram-the-sell-operation)
-- [9. Why Application Services Orchestrate and Aggregates Protect Invariants](#9-why-application-services-orchestrate-and-aggregates-protect-invariants)
-  - [A) Roles Explained with Real Code](#a-roles-explained-with-real-code)
-  - [B) Why Direct Manipulation Breaks Invariants](#b-why-direct-manipulation-breaks-invariants)
-  - [C) Teaching Note](#c-teaching-note)
-- [10. What This Simplified Tutorial Leaves Out](#10-what-this-simplified-tutorial-leaves-out)
-- [11. Key Takeaways](#11-key-takeaways)
-- [12. Exercises](#12-exercises)
-  - [Exercise 1: Trace the Domain Logic for a Buy Operation](#exercise-1-trace-the-domain-logic-for-a-buy-operation)
-  - [Exercise 2: Identify Aggregate Boundaries](#exercise-2-identify-aggregate-boundaries)
-  - [Exercise 3: Distinguish Value Objects from Entities](#exercise-3-distinguish-value-objects-from-entities)
-  - [Exercise 4: Add a Maximum Sell Percentage Invariant](#exercise-4-add-a-maximum-sell-percentage-invariant)
-
----
-
 ## 1. Introduction
 
 HexaStock is a stock portfolio management system built with **Domain-Driven Design (DDD)**. This tutorial focuses on one specific use case — **selling stocks from a portfolio** — to teach you how domain models enforce business rules.

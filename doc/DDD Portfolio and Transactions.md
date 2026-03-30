@@ -3,33 +3,6 @@
 
 ---
 
-## Table of Contents
-
-1. [Introduction](#1-introduction)
-2. [Domain Context](#2-domain-context)
-3. [Current Model](#3-current-model)
-4. [The Core DDD Question: Should Transaction Be Inside the Portfolio Aggregate?](#4-the-core-ddd-question-should-transaction-be-inside-the-portfolio-aggregate)
-5. [Aggregate Invariants and Consistency Boundaries](#5-aggregate-invariants-and-consistency-boundaries)
-6. [Why "Append-Only History" Does Not Require an Aggregate Relationship](#6-why-append-only-history-does-not-require-an-aggregate-relationship)
-7. [The Hidden Problem: Unbounded Collections in Aggregates](#7-the-hidden-problem-unbounded-collections-in-aggregates)
-8. [Relational Database Reality](#8-relational-database-reality)
-9. [JPA / Hibernate Pitfalls with Large One-To-Many Collections](#9-jpa--hibernate-pitfalls-with-large-one-to-many-collections)
-10. [Transaction History API Requirements](#10-transaction-history-api-requirements)
-11. [Architecture Alternatives](#11-architecture-alternatives)
-    - [Option A — Transaction Inside Portfolio Aggregate](#option-a--transaction-inside-portfolio-aggregate)
-    - [Option B — Separate Transaction Aggregate (Transaction Ledger)](#option-b--separate-transaction-aggregate-transaction-ledger)
-    - [Option C — Domain Events + Outbox Pattern](#option-c--domain-events--outbox-pattern)
-    - [Option D — Hybrid Approach (Recent Transactions Inside Portfolio)](#option-d--hybrid-approach-recent-transactions-inside-portfolio)
-12. [Decision Matrix](#12-decision-matrix)
-13. [Recommended Architecture for Enterprise Systems](#13-recommended-architecture-for-enterprise-systems)
-14. [Implementation Notes (Java + Relational DB)](#14-implementation-notes-java--relational-db)
-15. [Data Model Example](#15-data-model-example)
-16. [Query and Pagination Strategies](#16-query-and-pagination-strategies)
-17. [Summary](#17-summary)
-18. [When to Choose a Different Architecture](#18-when-to-choose-a-different-architecture)
-
----
-
 ## 1. Introduction
 
 This document formalizes the design decision for structuring the **Portfolio** domain and its related concepts (**Holdings**, **Lots**, and **Transactions**) in alignment with **Domain-Driven Design (DDD)** principles, as introduced by **Eric Evans** in *Domain-Driven Design: Tackling Complexity in the Heart of Software* (2003) and further developed by **Vaughn Vernon** (*Implementing Domain-Driven Design*, 2013) and **Jimmy Nilsson** (*Applying Domain-Driven Design and Patterns*, 2006).

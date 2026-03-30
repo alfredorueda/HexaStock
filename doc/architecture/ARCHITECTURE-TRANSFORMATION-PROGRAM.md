@@ -4,31 +4,6 @@
 
 ---
 
-## Table of Contents
-
-1. [Strategic Engineering Background](#strategic-engineering-background)
-2. [Industry Validation: Netflix and Architectural Resilience](#industry-validation-netflix-and-architectural-resilience)
-3. [HexaStock: A Production-Grade Architectural Laboratory](#hexastock-a-production-grade-architectural-laboratory)
-4. [Specification-Driven, Contract-First Engineering](#specification-driven-contract-first-engineering)
-    - 4.1 [Gherkin-Style Behavioural Specification](#41-gherkin-style-behavioural-specification)
-    - 4.2 [OpenAPI – Contract-First API Definition](#42-openapi--contract-first-api-definition)
-    - 4.3 [Comprehensive Automated Test Suite (100+ Tests)](#43-comprehensive-automated-test-suite-100-tests)
-    - 4.4 [Complete Use Case Walkthrough – Rich Domain Model in Action](#44-complete-use-case-walkthrough--rich-domain-model-in-action)
-5. [Core Architectural Anchors](#core-architectural-anchors)
-6. [Engineering Exercises](#engineering-exercises)
-    - 6.1 [Exercise 1 – Architectural Boundary Tracing](#exercise-1--architectural-boundary-tracing)
-    - 6.2 [Exercise 2 – New Financial Data Provider – Outbound Adapter](#exercise-2--new-financial-data-provider--outbound-adapter)
-    - 6.3 [Exercise 3 – MongoDB Adapter – Outbound Persistence](#exercise-3--mongodb-adapter--outbound-persistence)
-    - 6.4 [Exercise 4 – Domain Evolution – Extending Lot Strategies](#exercise-4--domain-evolution--extending-lot-strategies)
-    - 6.5 [Exercise 5 – gRPC / Protocol Buffers – Inbound Adapter](#exercise-5--grpc--protocol-buffers--inbound-adapter)
-    - 6.6 [Exercise 6 – Watchlists & Market Sentinel – CQRS in Practice](#exercise-6--watchlists--market-sentinel--cqrs-in-practice)
-7. [Engineering Quality Standards](#engineering-quality-standards)
-8. [Why Architecture Matters in the Age of AI](#why-architecture-matters-in-the-age-of-ai)
-9. [Organizational Impact](#organizational-impact)
-10. [Repository References](#repository-references)
-
----
-
 # Strategic Engineering Background
 
 This program is grounded in real enterprise software engineering practice applied in large-scale financial environments where correctness, reliability, and long-term evolvability are essential.

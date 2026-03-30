@@ -1,42 +1,5 @@
 # Concurrency Control with Pessimistic and Optimistic Approaches
 
-## Table of Contents
-
-- [Overview](#overview)
-  - [Purpose](#purpose)
-  - [Key Concepts](#key-concepts)
-  - [Prerequisites](#prerequisites)
-- [Quick Start](#quick-start)
-  - [Checkout the Teaching Branch](#checkout-the-teaching-branch)
-  - [Run the Tests](#run-the-tests)
-- [Test Implementation](#test-implementation)
-  - [Where the Tests Live](#where-the-tests-live)
-  - [What the Tests Demonstrate](#what-the-tests-demonstrate)
-- [The Experiment Switch](#the-experiment-switch)
-  - [Making Tests Pass (With Locking)](#making-tests-pass-with-locking)
-  - [Making Tests Fail (Without Locking)](#making-tests-fail-without-locking)
-- [How It Works](#how-it-works)
-  - [Database Row-Level Locking](#database-row-level-locking)
-  - [What Happens to Concurrent Transactions](#what-happens-to-concurrent-transactions)
-  - [JDBC and Blocking I/O](#jdbc-and-blocking-io)
-  - [JPA and Hibernate Perspective](#jpa-and-hibernate-perspective)
-  - [Spring @Transactional](#spring-transactional)
-  - [Java 21 Virtual Threads](#java-21-virtual-threads)
-- [Teaching Branch Instrumentation](#teaching-branch-instrumentation)
-  - [The Conditional Sleep](#the-conditional-sleep)
-  - [Why This Exists](#why-this-exists)
-  - [Production Warning](#production-warning)
-- [Optimistic Locking: The Production Alternative](#optimistic-locking-the-production-alternative)
-  - [What Is Optimistic Locking](#what-is-optimistic-locking)
-  - [How It Works](#how-it-works-1)
-  - [JPA Implementation with @Version](#jpa-implementation-with-version)
-  - [Conflict Detection and Resolution](#conflict-detection-and-resolution)
-  - [Application-Level Retry Logic](#application-level-retry-logic)
-  - [Why Optimistic Locking Scales Better](#why-optimistic-locking-scales-better)
-  - [When to Use Pessimistic vs Optimistic](#when-to-use-pessimistic-vs-optimistic)
-- [Troubleshooting](#troubleshooting)
-- [Summary](#summary)
-
 ---
 
 ## Overview

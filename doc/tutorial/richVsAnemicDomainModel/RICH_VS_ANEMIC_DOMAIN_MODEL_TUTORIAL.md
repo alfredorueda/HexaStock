@@ -7,31 +7,6 @@
 
 ---
 
-## Table of Contents
-
-1. [Introduction](#1-introduction)
-2. [Financial Background for Non-Specialists](#2-financial-background-for-non-specialists)
-3. [Why This Use Case Is Intentionally Complex](#3-why-this-use-case-is-intentionally-complex)
-4. [Feature Overview: Settlement-Aware FIFO Selling](#4-feature-overview-settlement-aware-fifo-selling)
-5. [Executable Specifications — Gherkin as a Communication Tool](#5-executable-specifications--gherkin-as-a-communication-tool)
-6. [Repository Navigation](#6-repository-navigation)
-7. [Business Rules](#7-business-rules)
-8. [Architectural Overview](#8-architectural-overview)
-9. [Side-by-Side Code Comparison](#9-side-by-side-code-comparison)
-10. [Invariant Enforcement](#10-invariant-enforcement)
-11. [Test Analysis — Why Tests Pass or Fail](#11-test-analysis--why-tests-pass-or-fail)
-12. [Failure Modes of the Anemic Domain Model](#12-failure-modes-of-the-anemic-domain-model)
-13. [Why the Rich Domain Model Works](#13-why-the-rich-domain-model-works)
-14. [Practical Takeaways](#14-practical-takeaways)
-15. [Webinar Demo Guide](#15-webinar-demo-guide)
-
-- [Appendix A — Test Matrix](#appendix-a--test-matrix)
-- [Appendix B — PlantUML Diagram Index](#appendix-b--plantuml-diagram-index)
-- [Appendix C — Gherkin Specification Index and Traceability Matrix](#appendix-c--gherkin-specification-index-and-traceability-matrix)
-- [Appendix D — Scope of the Financial Model Used in This Tutorial](#appendix-d--scope-of-the-financial-model-used-in-this-tutorial)
-
----
-
 ## 1. Introduction
 
 HexaStock models a personal stock portfolio where users can deposit cash, buy and sell
