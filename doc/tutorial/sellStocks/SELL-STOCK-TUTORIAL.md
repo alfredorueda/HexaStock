@@ -1,24 +1,22 @@
 # HexaStock: Engineering Architecture That Grows Stronger Through Change
 
-**A Technical Book on Domain-Driven Design and Hexagonal Architecture in a Financial Domain**
+**A Technical Tutorial on Domain-Driven Design and Hexagonal Architecture in a Financial Domain**
 
 > *"Architecture is not documentation. It is an operational capability."*
 
 ---
 
-## About This Book
+## About This Tutorial
 
-This book is a comprehensive, code-grounded study of one operation inside HexaStock — a stock portfolio management system built with Java 21, Spring Boot 3, Domain-Driven Design (DDD), and Hexagonal Architecture. It is not a theoretical survey of design patterns. It traces a single use case — **selling stocks** — through every architectural layer, from Gherkin specification to REST controller, through application service orchestration, into the aggregate root's FIFO lot-consumption algorithm, out through persistence adapters, and back as a structured financial result.
+This tutorial is a code-grounded study of one operation inside HexaStock — a stock portfolio management system built with Java 21, Spring Boot 3, Domain-Driven Design (DDD), and Hexagonal Architecture. It traces a single use case — **selling stocks** — through every architectural layer, from Gherkin specification to REST controller, through application service orchestration, into the aggregate root's FIFO lot-consumption algorithm, out through persistence adapters, and back as a structured financial result.
 
-The stock-selling use case serves as the narrative spine of the entire book. Every concept explored here — value objects, aggregate boundaries, port interfaces, dependency inversion, concurrency control, error handling, testing strategy — connects back to this central operation. By following one request through the full system, the reader will see how DDD and Hexagonal Architecture function not as abstract principles but as concrete engineering disciplines applied under realistic constraints.
-
-The HexaStock codebase maintains over 150 automated tests, achieves greater than 90% code coverage as measured by JaCoCo, and holds a Sonar AAA maintainability rating. Every test is linked to Gherkin specifications through `@SpecificationRef` annotations, creating a verifiable traceability chain from business requirements to running code.
+The stock-selling use case serves as the narrative spine of the entire tutorial. Every concept explored here — value objects, aggregate boundaries, port interfaces, dependency inversion, concurrency control, error handling, testing strategy — connects back to this central operation. By following one request through the full system, the reader will see how DDD and Hexagonal Architecture function not as abstract principles but as concrete engineering disciplines applied under realistic constraints.
 
 ---
 
 ## Intended Audience
 
-This book addresses software engineers, architects, and technical leads who have working knowledge of Java and Spring Boot and want to understand how DDD and Hexagonal Architecture function in practice.
+This tutorial addresses software engineers, architects, and technical leads who have working knowledge of Java and Spring Boot and want to understand how DDD and Hexagonal Architecture function in practice.
 
 ---
 
@@ -165,7 +163,7 @@ Terminology drift is not a cosmetic defect. It is a structural problem with conc
 - **Diagrams diverging from code.** If a class diagram labels a concept differently from the Java source, the diagram becomes unreliable, and developers stop trusting documentation.
 - **Tests describing mechanics instead of behaviour.** A test named `testMethod7` or `verifySellServiceCallsRepositorySaveOnce` tells the reader nothing about the business rule being verified, and breaks the traceability chain to the specification.
 
-These are not hypothetical risks. They are the normal degradation path of any codebase that does not treat its vocabulary as a first-class design artifact.
+These are not hypothetical risks. They are common degradation patterns in codebases that do not treat vocabulary as a first-class design artifact.
 
 ### Language Evolves with the Model
 
@@ -177,7 +175,7 @@ Inside a bounded context, each important term should have one precise meaning. B
 
 ## Reading Map: The HexaStock Documentation Ecosystem
 
-This book is not an isolated document. The HexaStock repository contains a constellation of interconnected Markdown texts, each treating a specific architectural theme in depth. Together, they form a coherent body of technical writing that can be read selectively or progressively. The reading map below groups these companion documents by theme so the reader can navigate to deeper treatments of topics introduced in this book.
+This tutorial is part of a larger documentation ecosystem. The HexaStock repository contains interconnected Markdown texts, each treating a specific architectural theme in depth. They can be read selectively or progressively. The reading map below groups companion documents by theme so the reader can navigate to deeper treatments of topics introduced here.
 
 **Domain-Driven Design**
 
@@ -240,7 +238,7 @@ Before diving into the execution flow of selling stocks, it's essential to under
 ### Why This Architecture Matters
 
 Understanding this structure is critical because:
-- **Class diagrams** in this book explicitly show domain model entities and their relationships
+- **Class diagrams** in this tutorial explicitly show domain model entities and their relationships
 - **Sequence diagrams** trace execution across architectural boundaries (adapter → port → service → domain)
 - **Persistence mapping** explains how the domain model (technology-agnostic) is separated from JPA entities (infrastructure)
 - **Transaction management** is placed at the application service level (infrastructure concern), not in the domain (business logic)
@@ -249,7 +247,7 @@ Understanding this structure is critical because:
 <img width="1600" height="797" alt="Hexagonal Architecture" src="https://github.com/user-attachments/assets/09c46496-b801-4375-801a-aebe1361d57d" />
 
 > *Image credit:*  
-> *The architectural diagram referenced in this book is based on work by **Tom Hombergs**.*  
+> *The architectural diagram referenced in this tutorial is based on work by **Tom Hombergs**.*  
 > *Sources:*  
 > *– Article: [Hexagonal Architecture with Java and Spring](https://reflectoring.io/spring-hexagonal/)*  
 > *– Reference implementation: [BuckPal – A Hexagonal Architecture Example](https://github.com/thombergs/buckpal)*  
@@ -261,11 +259,11 @@ The diagram above illustrates the core idea of Hexagonal Architecture in a simpl
 
 
 > *Image credit:*  
-> *The architectural diagram referenced in this book is based on work by **Herberto Graça**.*  
+> *The architectural diagram referenced in this tutorial is based on work by **Herberto Graça**.*  
 > *Source: [Explicit Architecture #01: DDD, Hexagonal, Onion, Clean, CQRS, … How I put it all together](https://herbertograca.com/2017/11/16/explicit-architecture-01-ddd-hexagonal-onion-clean-cqrs-how-i-put-it-all-together/)*  
 > *Used for educational purposes with proper attribution.*
 
-### How This Book Maps to the Architecture
+### How This Tutorial Maps to the Architecture
 
 The sell stock use case flows through these architectural layers: 
 
@@ -282,7 +280,7 @@ Sections 7–13 trace a real HTTP request flowing through these layers, showing 
 
 ## 2. Purpose and Scope
 
-This book traces a complete software engineering workflow applied to a real use case in the HexaStock system: **selling stocks from a portfolio**. Starting with observable behaviour, it moves through domain modelling and architectural reasoning, and arrives at a fully traced design with UML diagrams at every stage.
+This tutorial traces a complete software engineering workflow applied to a real use case in the HexaStock system: **selling stocks from a portfolio**. Starting with observable behaviour, it moves through domain modelling and architectural reasoning, and arrives at a fully traced design with UML diagrams at every stage.
 
 The treatment progresses from specification to design to implementation, showing how each engineering phase feeds into the next. The reader will see:
 
@@ -304,7 +302,7 @@ The treatment progresses from specification to design to implementation, showing
 
 Before designing the domain model or writing implementation code, we start by defining the **observable behaviour** of the sell use case.
 
-User stories typically capture the intent of a feature at a high level, but they are often too ambiguous to serve as executable specifications. Behavior-driven scenarios written in formats such as Gherkin describe concrete system behaviour through explicit inputs, actions, and expected outcomes. Because of this precision, automated tests can often be derived directly from Gherkin scenarios. For this reason, this book uses Gherkin scenarios as the primary functional specification of the sell operation.
+User stories typically capture the intent of a feature at a high level, but they are often too ambiguous to serve as executable specifications. Behavior-driven scenarios written in formats such as Gherkin describe concrete system behaviour through explicit inputs, actions, and expected outcomes. Because of this precision, automated tests can often be derived directly from Gherkin scenarios. For this reason, this tutorial uses Gherkin scenarios as the primary functional specification of the sell operation.
 
 The Gherkin scenarios below describe what the system must do in business terms, independent of any technical design decisions.
 
@@ -706,41 +704,40 @@ The Portfolio (aggregate root):
 
 ```java
 public SellResult sell(ShareQuantity quantity, Price sellPrice) {
-    if (getTotalShares().value() < quantity.value()) {
+    if (!getTotalShares().isGreaterThanOrEqual(quantity)) {
         throw new ConflictQuantityException(
-                "Not enough shares to sell. Available: " + getTotalShares()
-                + ", Requested: " + quantity);
+                "Not enough shares to sell. Available: " + getTotalShares().value()
+                        + ", Requested: " + quantity.value());
     }
-
-    ShareQuantity remainingToSell = quantity;
-    Money costBasis = Money.ZERO;
-
-    // FIFO: Sell from oldest lots first
-    for (var lot : lots) {
-        if (remainingToSell.isZero()) break;
-
-        ShareQuantity sharesSoldFromLot = lot.getRemainingShares().min(remainingToSell);
-        Money lotCostBasis = lot.calculateCostBasis(sharesSoldFromLot);
-        costBasis = costBasis.add(lotCostBasis);
-
-        lot.reduce(sharesSoldFromLot);
-        remainingToSell = remainingToSell.subtract(sharesSoldFromLot);
-    }
-
-    lots.removeIf(Lot::isEmpty);
 
     Money proceeds = sellPrice.multiply(quantity);
+    Money costBasis = Money.ZERO;
+    ShareQuantity remaining = quantity;
+
+    // FIFO: Sell from oldest lots first
+    Iterator<Lot> iterator = lots.iterator();
+    while (remaining.isPositive() && iterator.hasNext()) {
+        Lot lot = iterator.next();
+        ShareQuantity take = lot.getRemainingShares().min(remaining);
+        costBasis = costBasis.add(lot.calculateCostBasis(take));
+        lot.reduce(take);
+        remaining = remaining.subtract(take);
+        if (lot.isEmpty()) {
+            iterator.remove();
+        }
+    }
+
     return SellResult.of(proceeds, costBasis);
 }
 ```
 
 The Holding:
-- Protects the invariant: "You cannot sell more shares than you own" (comparing `ShareQuantity` values)
-- Implements FIFO across multiple lots using `ShareQuantity.min()` for clean lot-by-lot iteration
-- Delegates cost basis calculation to each `Lot` via `lot.calculateCostBasis(sharesSoldFromLot)`
-- Calculates proceeds using `Price.multiply(ShareQuantity)` → returns `Money`
+- Protects the invariant: "You cannot sell more shares than you own" (using `ShareQuantity.isGreaterThanOrEqual()`)
+- Calculates proceeds upfront using `Price.multiply(ShareQuantity)` → returns `Money`
+- Implements FIFO across multiple lots using an `Iterator` for safe in-place removal
+- Delegates cost basis calculation to each `Lot` via `lot.calculateCostBasis(take)`
+- Removes depleted lots inline via `iterator.remove()` to keep the aggregate lean
 - Creates the result via `SellResult.of(proceeds, costBasis)` which auto-calculates profit
-- Removes depleted lots (`lots.removeIf(Lot::isEmpty)`) to keep the aggregate lean
 
 **File:** `model.Lot`
 
@@ -811,43 +808,9 @@ public interface PortfolioStockOperationsUseCase {
 
 This interface defines **what** the application can do, not **how**. The port speaks the domain's ubiquitous language through Value Objects (`PortfolioId`, `Ticker`, `ShareQuantity`) instead of primitives.
 
-**Application Service (Orchestrator):** The full service code was shown in Section 9, Step 3. Here it is again for reference, with role annotations:
+**Application Service (Orchestrator):** The full service code was shown in Section 9, Step 3. The key observation is that the service retrieves, delegates, and persists, but never decides. It does **not** validate quantities, check holdings, implement FIFO, calculate profits, or update lots directly. It is a **coordinator**, not a decision maker.
 
-```java
-// application.service.PortfolioStockOperationsService
-@Transactional
-public class PortfolioStockOperationsService
-    implements PortfolioStockOperationsUseCase {
-
-    private final PortfolioPort portfolioPort;
-    private final StockPriceProviderPort stockPriceProviderPort;
-    private final TransactionPort transactionPort;
-
-    @Override
-    public SellResult sellStock(PortfolioId portfolioId, Ticker ticker, ShareQuantity quantity) {
-        Portfolio portfolio = portfolioPort.getPortfolioById(portfolioId)
-            .orElseThrow(() -> new PortfolioNotFoundException(portfolioId.value()));
-
-        StockPrice stockPrice = stockPriceProviderPort.fetchStockPrice(ticker);
-        Price price = stockPrice.price();
-
-        SellResult sellResult = portfolio.sell(ticker, quantity, price);
-
-        portfolioPort.savePortfolio(portfolio);
-
-        Transaction transaction = Transaction.createSale(
-            portfolioId, ticker, quantity, price,
-            sellResult.proceeds(), sellResult.profit());
-        transactionPort.save(transaction);
-
-        return sellResult;
-    }
-}
-```
-
-**Role:** The service is a **director of orchestra** — it retrieves, delegates, and persists, but never decides. It does **not** validate quantities, check holdings, implement FIFO, calculate profits, or update lots directly.
-
-**Aggregate Root (Decision Maker):** As seen in Section 9, Step 4:
+**Aggregate Root (Decision Maker):** As shown in Section 9, Step 4:
 
 ```java
 // model.Portfolio
@@ -855,7 +818,7 @@ public SellResult sell(Ticker ticker, ShareQuantity quantity, Price price) {
     if (!quantity.isPositive())
         throw new InvalidQuantityException("Quantity must be positive");
     if (!holdings.containsKey(ticker))
-        throw new HoldingNotFoundException("Holding not found");
+        throw new HoldingNotFoundException("Holding not found in portfolio: " + ticker);
 
     Holding holding = holdings.get(ticker);
     SellResult result = holding.sell(quantity, price);
@@ -1028,7 +991,7 @@ The transaction boundary is placed at the **application service** — not the do
 
 > **📖 Deep Dive: Concurrency and Locking**
 >
-> This book focuses on the architectural and domain design aspects of stock selling. For a **detailed explanation of concurrency control mechanisms**, including:
+> This tutorial focuses on the architectural and domain design aspects of stock selling. For a **detailed explanation of concurrency control mechanisms**, including:
 > - Pessimistic locking with `SELECT ... FOR UPDATE`
 > - Optimistic locking with version fields
 > - Transaction isolation levels and their trade-offs
@@ -1149,10 +1112,10 @@ HTTP 400 Bad Request
 
 ```java
 // In Holding.sell()
-if (getTotalShares().value() < quantity.value()) {
+if (!getTotalShares().isGreaterThanOrEqual(quantity)) {
     throw new ConflictQuantityException(
-            "Not enough shares to sell. Available: " + getTotalShares()
-            + ", Requested: " + quantity);
+            "Not enough shares to sell. Available: " + getTotalShares().value()
+                    + ", Requested: " + quantity.value());
 }
 ```
 
@@ -1170,6 +1133,12 @@ HTTP 409 Conflict
 **Diagram Reference:** See [`diagrams/sell-error-sell-more-than-owned.puml`](diagrams/sell-error-sell-more-than-owned.puml)
 
 [![Sell Error Sell More Than Owned](diagrams/Rendered/sell-error-sell-more-than-owned.png)](diagrams/Rendered/sell-error-sell-more-than-owned.svg)
+
+---
+
+### A Note on Infrastructure Failures
+
+The error flows above cover **domain exceptions** — business rule violations that the domain model detects and names. In production, the sell operation can also fail for **infrastructure reasons**: the stock price provider may be unreachable, may return an error (e.g., HTTP 429 rate limit), or may time out. These failures occur at the adapter boundary (e.g., inside `FinnhubStockPriceAdapter.fetchStockPrice()`), before the domain model is even invoked. The application service does not catch these explicitly — they propagate as unchecked exceptions and are translated by the global `@RestControllerAdvice` into appropriate HTTP responses (typically 502 Bad Gateway or 503 Service Unavailable). A detailed treatment of infrastructure error handling and resilience strategies is outside the scope of this tutorial.
 
 ---
 
@@ -1370,7 +1339,7 @@ The following exercises form a progressive path designed to deepen understanding
 **Goal:** Understand how the `buyStock` use case mirrors the `sellStock` flow.
 
 **What to deliver:**
-- A written document (similar to Section 9 of this book) that traces the complete execution path for buying stocks
+- A written document (similar to Section 9 of this tutorial) that traces the complete execution path for buying stocks
 - Include: REST endpoint → Controller → Inbound Port → Application Service → Domain Model → Persistence
 - Identify which classes validate business rules and where ACID guarantees are enforced
 - Note one key difference between buy and sell operations
@@ -1754,7 +1723,7 @@ Work through these exercises in order. Each builds on concepts from earlier exer
 
 ## Acknowledgements
 
-The acknowledgements for this book are maintained as a dedicated chapter. See [Acknowledgements](../../ACKNOWLEDGEMENTS.md).
+The acknowledgements for this tutorial are maintained separately. See [Acknowledgements](../../ACKNOWLEDGEMENTS.md).
 
 ---
 
