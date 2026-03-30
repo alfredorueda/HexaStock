@@ -89,7 +89,7 @@ cat.gencat.agaur.hexastock.model
 
 Hexagonal Architecture does not mandate a single filesystem layout. Organizing by feature, by bounded context, or by a combination of both would be equally valid — and often preferable in larger systems with multiple bounded contexts. HexaStock uses module-level separation because its primary audiences — engineers, architects, and teams adopting hexagonal design — benefit most from seeing architectural boundaries enforced physically.
 
-When each layer is a separate Maven module, the compiler itself prevents illegal dependencies: the `domain` module *cannot* import a Spring annotation, and an adapter *cannot* bypass an application port to reach another adapter. This transforms the hexagonal dependency rule from a convention that requires discipline into a constraint that the build enforces automatically. The result is a codebase where the architecture is not just documented — it is structurally guaranteed.
+When each layer is a separate Maven module, the compiler itself prevents illegal dependencies: the `domain` module *cannot* import a Spring annotation, and an adapter *cannot* bypass an application port to reach another adapter. This transforms the hexagonal dependency rule from a convention that requires discipline into a constraint that the build enforces automatically. ArchUnit fitness tests (see Section 5) provide a second enforcement layer: they scan compiled classes across all modules and catch dependency violations — such as a domain class importing a Spring type via a transitive path — that module boundaries alone cannot detect. The result is a codebase where the architecture is not just documented — it is structurally guaranteed at both build time and test time.
 
 These Maven modules do not represent separate bounded contexts. They are architectural partitions inside the same bounded context, used to make dependency rules explicit and enforceable at build time.
 
@@ -476,13 +476,29 @@ void shouldSellSharesAcrossMultipleLots_GherkinScenario() {
 
 ## 5. Testing Strategy Overview
 
-HexaStock verifies the sell use case at three complementary testing levels:
+HexaStock verifies the sell use case at four complementary testing levels:
 
 1. **Domain algorithm tests** — validate the FIFO lot-consumption logic in isolation (`HoldingTest`)
 2. **Aggregate behaviour tests** — validate portfolio invariants and financial consistency through the aggregate root (`PortfolioTest`)
 3. **Integration tests** — validate the complete flow through HTTP, application services, persistence, and adapters (`PortfolioTradingRestIntegrationTest`)
+4. **Architecture fitness tests** — validate that dependency directions conform to hexagonal architecture rules (`HexagonalArchitectureTest`)
 
-The first two levels are introduced in sections 3–4, alongside the functional specification, because they verify domain logic independently of infrastructure. Integration tests appear later in section 16, once the full architecture — controllers, services, ports, adapters, and persistence — has been explained. This ordering reflects the natural direction of design: define behaviour first, model the domain, then verify the entire stack.
+The first two levels are introduced in sections 3–4, alongside the functional specification, because they verify domain logic independently of infrastructure. Integration tests appear later in section 16, once the full architecture — controllers, services, ports, adapters, and persistence — has been explained.
+
+Architecture fitness tests operate at a different axis: rather than verifying business behaviour, they verify structural constraints. Using [ArchUnit](https://www.archunit.org/), `HexagonalArchitectureTest` scans compiled classes from all modules and enforces six rules:
+
+| Layer | Rule |
+|---|---|
+| **Domain** | Must not depend on the application layer |
+| **Domain** | Must not depend on any adapter |
+| **Domain** | Must not depend on the Spring Framework |
+| **Application** | Must not depend on any adapter |
+| **Adapter (inbound)** | Must not depend on outbound adapters |
+| **Adapter (outbound)** | Must not depend on inbound adapters |
+
+These rules complement the Maven module boundaries described earlier. Maven prevents illegal compile-time dependencies *between modules*; ArchUnit catches illegal dependencies *within the same compiled classpath*, including transitive ones that module boundaries alone cannot detect. Together, they form a two-layer structural safety net.
+
+This ordering reflects the natural direction of design: define behaviour first, model the domain, then verify the entire stack — and finally, guard the architecture itself.
 
 ---
 
@@ -1759,6 +1775,10 @@ The acknowledgements for this book are maintained as a dedicated chapter. See [A
 - Nottingham, M. and Wilde, E. "Problem Details for HTTP APIs." RFC 7807, IETF, March 2016. https://www.rfc-editor.org/rfc/rfc7807
 - OpenAPI Initiative. *OpenAPI Specification, Version 3.0.* https://spec.openapis.org/oas/v3.0.3
 
+### Tools
+
+- ArchUnit. "Unit Test Your Java Architecture." https://www.archunit.org/
+
 ### Project References
 
 - **API Specification:** `doc/stock-portfolio-api-specification.md`
@@ -1771,5 +1791,6 @@ The acknowledgements for this book are maintained as a dedicated chapter. See [A
 - **Domain Tests:** `src/test/java/cat/gencat/agaur/hexastock/model/PortfolioTest.java`
 - **Source Code:** `src/main/java/cat/gencat/agaur/hexastock/`
 - **Value Object Tests:** `src/test/java/cat/gencat/agaur/hexastock/model/MoneyTest.java`, `ShareQuantityTest.java`, etc.
+- **Architecture Fitness Tests:** `bootstrap/src/test/java/cat/gencat/agaur/hexastock/architecture/HexagonalArchitectureTest.java`
 
 ---

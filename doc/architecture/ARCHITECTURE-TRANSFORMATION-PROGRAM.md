@@ -181,6 +181,16 @@ They validate:
 - Use Testcontainers for realistic persistence validation
 - Validate end-to-end flows
 
+### Architecture Fitness Tests
+
+- Enforce hexagonal dependency rules using ArchUnit
+- Domain must not depend on application, adapters, or Spring
+- Application must not depend on adapters
+- Inbound and outbound adapters must not depend on each other
+- Complement Maven module boundaries with class-level verification
+
+**Source:** `bootstrap/src/test/java/cat/gencat/agaur/hexastock/architecture/HexagonalArchitectureTest.java`
+
 CI Pipeline:
 
 👉 https://github.com/alfredorueda/HexaStock/actions
