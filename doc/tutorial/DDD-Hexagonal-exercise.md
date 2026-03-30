@@ -10,7 +10,7 @@ The **HexaStock** platform was originally designed to use the **FIFO (First-In, 
 At this point, **FIFO is already implemented and working correctly in the system**.
 
 Over recent months, several clients and potential international partners have highlighted an important limitation of the product:  
-working exclusively with FIFO is insufficient for operating in other markets and for advanced users who require greater flexibility and analytical capabilities.
+working exclusively with FIFO is insufficient for advanced users who require greater flexibility and analytical capabilities.
 
 As part of the company's growth strategy, the product is now expected to **expand to international markets**, where:
 
