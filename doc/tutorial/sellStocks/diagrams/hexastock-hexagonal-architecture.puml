@@ -1,100 +1,104 @@
 @startuml hexastock-hexagonal-architecture
 !theme plain
-skinparam backgroundColor #FEFEFE
-skinparam defaultFontSize 11
-skinparam packageStyle rectangle
-skinparam componentStyle rectangle
-skinparam ArrowColor #444444
-skinparam noteBackgroundColor #FFFFDD
+left to right direction
 
-title HexaStock  Hexagonal Architecture (Sell Stock Use Case)
+skinparam {
+  backgroundColor #FEFEFE
+  defaultFontSize 12
+  packageStyle rectangle
+  componentStyle rectangle
+  ArrowColor #555555
+}
 
 skinparam package {
   BackgroundColor<<core>> #E8F4FD
   BackgroundColor<<domain>> #D4EDDA
   BackgroundColor<<driving>> #FFF3CD
-  BackgroundColor<<driven>> #F8D7DA
+  BackgroundColor<<persist>> #F8D7DA
+  BackgroundColor<<market>> #F8D7DA
   BorderColor #888888
 }
 
+title HexaStock  -  Hexagonal Architecture (Sell Stock Use Case)
+
 ' ====================================================
-' DRIVING (PRIMARY) ADAPTERS
+' LEFT: DRIVING (PRIMARY) ADAPTER
 ' ====================================================
-package "Driving Adapters\n(adapters-inbound-rest)" <<driving>> {
-  component "PortfolioRestController" as ctrl
-  note bottom of ctrl
-    POST /api/portfolios/{id}/sales
-    Maps JSON primitives to
-    Value Objects (PortfolioId,
-    Ticker, ShareQuantity)
-  end note
+package "Driving Adapter\n(adapters-inbound-rest)" <<driving>> {
+  [PortfolioRestController] as ctrl
 }
 
 ' ====================================================
-' APPLICATION CORE
+' CENTER: APPLICATION CORE
 ' ====================================================
 package "Application Core" <<core>> {
 
-  interface "PortfolioStockOperationsUseCase\n<<inbound port>>" as inPort
+  () "PortfolioStockOperationsUseCase\n<<inbound port>>" as inPort
 
-  component "PortfolioStockOperationsService\n<<application service>>" as svc
-  note bottom of svc
-    Orchestrates: retrieve, delegate, persist
-    Contains NO business logic
-    @Transactional boundary
-  end note
-
-  interface "PortfolioPort\n<<outbound port>>" as portPort
-  interface "StockPriceProviderPort\n<<outbound port>>" as pricePort
-  interface "TransactionPort\n<<outbound port>>" as txPort
+  [PortfolioStockOperationsService\n<<application service>>] as svc
 
   package "Domain Model (domain/)" <<domain>> {
-    component "Portfolio\n<<aggregate root>>" as portfolio
-    component "Holding\n<<entity>>" as holding
-    component "Lot\n<<entity>>" as lot
-    component "SellResult\n<<value object>>" as sellResult
-    component "Money  Price  ShareQuantity\nTicker  PortfolioId\n<<value objects>>" as vos
+    [Portfolio <<aggregate root>>] as portfolio
+    [Holding <<entity>>] as holding
+    [Lot <<entity>>] as lot
+    [SellResult <<value object>>] as sellResult
 
-    portfolio -down-> holding : delegates sell()
-    holding -down-> lot : FIFO reduce()
-    holding -down-> sellResult : returns
+    portfolio --> holding : sell()
+    holding --> lot : FIFO reduce()
+    holding --> sellResult : returns
   }
+
+  () "PortfolioPort\n<<outbound port>>" as portPort
+  () "StockPriceProviderPort\n<<outbound port>>" as pricePort
+  () "TransactionPort\n<<outbound port>>" as txPort
+
+  portPort -[hidden]down- pricePort
+  pricePort -[hidden]down- txPort
 }
 
 ' ====================================================
-' DRIVEN (SECONDARY) ADAPTERS
+' RIGHT: DRIVEN (SECONDARY) ADAPTERS
 ' ====================================================
-package "Driven Adapters" <<driven>> {
-  component "PortfolioJpaAdapter\n(persistence-jpa)" as jpaAdapter
-  component "TransactionJpaAdapter\n(persistence-jpa)" as txJpaAdapter
-  component "FinnhubStockPriceAdapter\n(outbound-market)" as finnhub
-  component "AlphaVantageStockPriceAdapter\n(outbound-market)" as alpha
+package "Persistence Adapters\n(persistence-jpa)" <<persist>> {
+  [PortfolioJpaAdapter] as jpaAdapter
+  [TransactionJpaAdapter] as txJpaAdapter
+}
+
+package "Market Adapters\n(outbound-market)" <<market>> {
+  [FinnhubStockPriceAdapter] as finnhub
+  [AlphaVantageStockPriceAdapter] as alpha
 }
 
 database "MySQL" as db
 cloud "Stock Price\nAPIs" as apis
 
 ' ====================================================
-' WIRING  Dependencies point inward
+' WIRING
 ' ====================================================
-ctrl -right-> inPort : calls
 
+' Driving side
+ctrl --> inPort : calls
 inPort <|.. svc : implements
 
-svc -down-> portPort : uses
-svc -down-> pricePort : uses
-svc -down-> txPort : uses
-svc -down-> portfolio : delegates to
+' Service to domain
+svc --> portfolio : delegates to
 
+' Service to outbound ports
+svc --> portPort : uses
+svc --> pricePort : uses
+svc --> txPort : uses
+
+' Port implementations
 portPort <|.. jpaAdapter : implements
 txPort <|.. txJpaAdapter : implements
 pricePort <|.. finnhub : implements
 pricePort <|.. alpha : implements
 
-jpaAdapter -right-> db
-txJpaAdapter -right-> db
-finnhub -right-> apis
-alpha -right-> apis
+' External systems
+jpaAdapter --> db
+txJpaAdapter --> db
+finnhub --> apis
+alpha --> apis
 
 ' ====================================================
 ' LEGEND
@@ -107,6 +111,9 @@ legend bottom left
   | <#F8D7DA> | Driven Adapters | adapters-outbound-* |
   All dependencies point **inward** toward the domain.
   The domain module has zero external dependencies.
+  PortfolioRestController: POST /api/portfolios/{id}/sales
+  Service: orchestrates (retrieve, delegate, persist), @Transactional
+  Value Objects: Money, Price, ShareQuantity, Ticker, PortfolioId
 endlegend
 
 @enduml
