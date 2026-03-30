@@ -7,7 +7,7 @@ participant "PortfolioRestController" as Controller
 participant "PortfolioStockOperationsService" as Service
 participant "Portfolio" as Portfolio
 participant "Holding" as Holding
-participant "GlobalExceptionHandler" as Handler
+participant "ExceptionHandlingAdvice\n(@ControllerAdvice)" as Handler
 
 Client -> Controller: POST /api/portfolios/abc-123/sales\n{"ticker":"AAPL", "quantity":100}
 activate Controller

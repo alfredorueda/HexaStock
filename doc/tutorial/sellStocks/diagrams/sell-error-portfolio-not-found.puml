@@ -6,7 +6,7 @@ actor Client
 participant "PortfolioRestController" as Controller
 participant "PortfolioStockOperationsService" as Service
 participant "PortfolioPort" as Port
-participant "GlobalExceptionHandler\n(@RestControllerAdvice)" as Handler
+participant "ExceptionHandlingAdvice\n(@ControllerAdvice)" as Handler
 
 Client -> Controller: POST /api/portfolios/xyz-999/sales\n{"ticker":"AAPL", "quantity":5}
 activate Controller

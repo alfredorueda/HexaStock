@@ -952,7 +952,7 @@ Selling stocks involves multiple database writes — updating the portfolio bala
 
 1. **Atomicity:** All database operations succeed or fail together
 2. **Consistency:** If the transaction record fails to save, the portfolio changes are rolled back
-3. **Isolation:** Concurrent sells on the same portfolio are serialized (preventing race conditions)
+3. **Isolation:** Concurrent transactions see a consistent view of the data at their isolation level (typically READ_COMMITTED). Note that `@Transactional` alone does not serialize concurrent access — preventing race conditions on the same portfolio requires additional mechanisms such as pessimistic locking (see below)
 4. **Durability:** Once committed, the sale is permanent
 
 **Key separation of concerns:** The domain enforces **business consistency** (invariants, validations via Value Objects), while infrastructure enforces **technical consistency** (ACID properties, transaction boundaries).
@@ -1039,6 +1039,8 @@ The persistence layer deals with primitives (`String`, `BigDecimal`, `int`), whi
 
 **Exception:** `PortfolioNotFoundException` (domain exception)
 
+> **📐 Architectural note:** `PortfolioNotFoundException` is defined in the domain module (`model.portfolio`) and extends `DomainException`, so it is classified as a domain exception. However, it is thrown by the *application service* — not by the aggregate root — since the portfolio lookup occurs before the domain model is invoked. This placement is a pragmatic choice: the exception names a domain concept (a missing portfolio) but guards an application-level precondition (the entity must exist before the use case can proceed).
+
 **Code:**
 
 ```java
@@ -1057,7 +1059,7 @@ HTTP 404 Not Found
 }
 ```
 
-**Exception Handler:** The `@RestControllerAdvice` class catches `PortfolioNotFoundException` and converts it to HTTP 404.
+**Exception Handler:** The `@ControllerAdvice` class (`ExceptionHandlingAdvice`) catches `PortfolioNotFoundException` and converts it to HTTP 404.
 
 **Diagram Reference:** See [`diagrams/sell-error-portfolio-not-found.puml`](diagrams/sell-error-portfolio-not-found.puml)
 
@@ -1138,7 +1140,7 @@ HTTP 409 Conflict
 
 ### A Note on Infrastructure Failures
 
-The error flows above cover **domain exceptions** — business rule violations that the domain model detects and names. In production, the sell operation can also fail for **infrastructure reasons**: the stock price provider may be unreachable, may return an error (e.g., HTTP 429 rate limit), or may time out. These failures occur at the adapter boundary (e.g., inside `FinnhubStockPriceAdapter.fetchStockPrice()`), before the domain model is even invoked. The application service does not catch these explicitly — they propagate as unchecked exceptions and are translated by the global `@RestControllerAdvice` into appropriate HTTP responses (typically 502 Bad Gateway or 503 Service Unavailable). A detailed treatment of infrastructure error handling and resilience strategies is outside the scope of this tutorial.
+The error flows above cover **domain exceptions** — business rule violations that the domain model detects and names. In production, the sell operation can also fail for **infrastructure reasons**: the stock price provider may be unreachable, may return an error (e.g., HTTP 429 rate limit), or may time out. These failures occur at the adapter boundary (e.g., inside `FinnhubStockPriceAdapter.fetchStockPrice()`), before the domain model is even invoked. The application service does not catch these explicitly — they propagate as unchecked exceptions and are translated by the global `@ControllerAdvice` (`ExceptionHandlingAdvice`) into appropriate HTTP responses (typically 502 Bad Gateway or 503 Service Unavailable). A detailed treatment of infrastructure error handling and resilience strategies is outside the scope of this tutorial.
 
 ---
 
