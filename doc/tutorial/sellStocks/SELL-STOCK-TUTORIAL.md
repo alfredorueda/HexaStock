@@ -14,7 +14,7 @@ Every concept explored here — value objects, aggregate boundaries, port interf
 
 **Intended audience:** Software engineers, architects, and technical leads with working knowledge of Java and Spring Boot who want to understand how DDD and Hexagonal Architecture function in practice.
 
-**Conventions:** Code listings are drawn from the actual repository source. PlantUML diagrams are referenced by their source path under `doc/tutorial/*/diagrams/` and rendered as inline PNG images with SVG click-through links. Gherkin scenarios are maintained as canonical `.feature` files under `doc/features/`. All financial calculations use `BigDecimal` with scale 2 and `RoundingMode.HALF_UP`.
+**Conventions:** Code listings are drawn from the actual repository source. Architecture and sequence diagrams are maintained as Mermaid (`.mmd`) or PlantUML (`.puml`) source files under `doc/tutorial/*/diagrams/` and rendered as SVG images. Gherkin scenarios are maintained as canonical `.feature` files under `doc/features/`. All financial calculations use `BigDecimal` with scale 2 and `RoundingMode.HALF_UP`.
 
 ---
 
@@ -133,7 +133,9 @@ Understanding this structure is critical because:
 
 The following diagram shows HexaStock's actual hexagonal architecture for the sell-stock use case, matching the Maven modules and classes discussed throughout this tutorial:
 
-<a href="diagrams/Rendered/hexastock-hexagonal-architecture.svg"><img src="diagrams/Rendered/hexastock-hexagonal-architecture.png" alt="HexaStock Hexagonal Architecture" width="100%" /></a>
+<a href="diagrams/Rendered/Hexagonal Architecture - Mermaid.svg"><img src="diagrams/Rendered/Hexagonal%20Architecture%20-%20Mermaid.svg" alt="HexaStock Hexagonal Architecture" width="100%" /></a>
+
+> **📐 Mermaid source:** [`hexastock-hexagonal-architecture.mmd`](diagrams/hexastock-hexagonal-architecture.mmd) — open in any Mermaid-compatible editor or render with `mmdc`.
 
 > **📖 Reference diagrams:** For widely cited community diagrams that illustrate the conceptual foundation of Hexagonal Architecture (Tom Hombergs' simplified view and Herberto Graça's explicit architecture), see the companion document **[Hexagonal Architecture — Reference Diagrams](HEXAGONAL-ARCHITECTURE-REFERENCE-DIAGRAMS.md)**.
 
