@@ -1,0 +1,112 @@
+@startuml hexastock-hexagonal-architecture
+!theme plain
+skinparam backgroundColor #FEFEFE
+skinparam defaultFontSize 11
+skinparam packageStyle rectangle
+skinparam componentStyle rectangle
+skinparam ArrowColor #444444
+skinparam noteBackgroundColor #FFFFDD
+
+title HexaStock  Hexagonal Architecture (Sell Stock Use Case)
+
+skinparam package {
+  BackgroundColor<<core>> #E8F4FD
+  BackgroundColor<<domain>> #D4EDDA
+  BackgroundColor<<driving>> #FFF3CD
+  BackgroundColor<<driven>> #F8D7DA
+  BorderColor #888888
+}
+
+' ====================================================
+' DRIVING (PRIMARY) ADAPTERS
+' ====================================================
+package "Driving Adapters\n(adapters-inbound-rest)" <<driving>> {
+  component "PortfolioRestController" as ctrl
+  note bottom of ctrl
+    POST /api/portfolios/{id}/sales
+    Maps JSON primitives to
+    Value Objects (PortfolioId,
+    Ticker, ShareQuantity)
+  end note
+}
+
+' ====================================================
+' APPLICATION CORE
+' ====================================================
+package "Application Core" <<core>> {
+
+  interface "PortfolioStockOperationsUseCase\n<<inbound port>>" as inPort
+
+  component "PortfolioStockOperationsService\n<<application service>>" as svc
+  note bottom of svc
+    Orchestrates: retrieve, delegate, persist
+    Contains NO business logic
+    @Transactional boundary
+  end note
+
+  interface "PortfolioPort\n<<outbound port>>" as portPort
+  interface "StockPriceProviderPort\n<<outbound port>>" as pricePort
+  interface "TransactionPort\n<<outbound port>>" as txPort
+
+  package "Domain Model (domain/)" <<domain>> {
+    component "Portfolio\n<<aggregate root>>" as portfolio
+    component "Holding\n<<entity>>" as holding
+    component "Lot\n<<entity>>" as lot
+    component "SellResult\n<<value object>>" as sellResult
+    component "Money  Price  ShareQuantity\nTicker  PortfolioId\n<<value objects>>" as vos
+
+    portfolio -down-> holding : delegates sell()
+    holding -down-> lot : FIFO reduce()
+    holding -down-> sellResult : returns
+  }
+}
+
+' ====================================================
+' DRIVEN (SECONDARY) ADAPTERS
+' ====================================================
+package "Driven Adapters" <<driven>> {
+  component "PortfolioJpaAdapter\n(persistence-jpa)" as jpaAdapter
+  component "TransactionJpaAdapter\n(persistence-jpa)" as txJpaAdapter
+  component "FinnhubStockPriceAdapter\n(outbound-market)" as finnhub
+  component "AlphaVantageStockPriceAdapter\n(outbound-market)" as alpha
+}
+
+database "MySQL" as db
+cloud "Stock Price\nAPIs" as apis
+
+' ====================================================
+' WIRING  Dependencies point inward
+' ====================================================
+ctrl -right-> inPort : calls
+
+inPort <|.. svc : implements
+
+svc -down-> portPort : uses
+svc -down-> pricePort : uses
+svc -down-> txPort : uses
+svc -down-> portfolio : delegates to
+
+portPort <|.. jpaAdapter : implements
+txPort <|.. txJpaAdapter : implements
+pricePort <|.. finnhub : implements
+pricePort <|.. alpha : implements
+
+jpaAdapter -right-> db
+txJpaAdapter -right-> db
+finnhub -right-> apis
+alpha -right-> apis
+
+' ====================================================
+' LEGEND
+' ====================================================
+legend bottom left
+  |= Color |= Layer |= Maven Module |
+  | <#FFF3CD> | Driving Adapters | adapters-inbound-rest |
+  | <#E8F4FD> | Application Core | application |
+  | <#D4EDDA> | Domain Model | domain |
+  | <#F8D7DA> | Driven Adapters | adapters-outbound-* |
+  All dependencies point **inward** toward the domain.
+  The domain module has zero external dependencies.
+endlegend
+
+@enduml
