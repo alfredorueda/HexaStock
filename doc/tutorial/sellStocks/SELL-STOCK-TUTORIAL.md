@@ -8,11 +8,11 @@
 
 ## About This Tutorial
 
-This tutorial is a code-grounded study of one operation inside HexaStock — a stock portfolio management system built with Java 21, Spring Boot 3, Domain-Driven Design (DDD), and Hexagonal Architecture. It traces a single use case — **selling stocks** — through every architectural layer, from Gherkin specification to REST controller, through application service orchestration, into the aggregate root's FIFO lot-consumption algorithm, out through persistence adapters, and back as a structured financial result.
+This tutorial is a code-grounded study of one operation inside HexaStock — a stock portfolio management system built with Java 21, Spring Boot 3, Domain-Driven Design (DDD), and Hexagonal Architecture. It traces a single use case — **selling stocks** — through every architectural layer: from Gherkin specification to REST controller, through application service orchestration, into the aggregate root's FIFO lot-consumption algorithm, out through persistence adapters, and back as a structured financial result.
 
-Every concept explored here — value objects, aggregate boundaries, port interfaces, dependency inversion, concurrency control, error handling, testing strategy — connects back to this central operation. By following one request through the full system, the reader will see how DDD and Hexagonal Architecture function not as abstract principles but as concrete engineering disciplines applied under realistic constraints.
+By following one request end to end, the reader sees how value objects, aggregate boundaries, port interfaces, dependency inversion, concurrency control, error handling, and testing strategy work together — not as abstract principles, but as concrete engineering applied under realistic constraints.
 
-**Intended audience:** Software engineers, architects, and technical leads with working knowledge of Java and Spring Boot who want to understand how DDD and Hexagonal Architecture function in practice.
+**Intended audience:** Software engineers, architects, and technical leads with working knowledge of Java and Spring Boot who want to see DDD and Hexagonal Architecture applied in a realistic codebase.
 
 **Conventions:** Code listings are drawn from the actual repository source. Architecture and sequence diagrams are maintained as Mermaid (`.mmd`) or PlantUML (`.puml`) source files under `doc/tutorial/*/diagrams/` and rendered as SVG images. Gherkin scenarios are maintained as canonical `.feature` files under `doc/features/`. All financial calculations use `BigDecimal` with scale 2 and `RoundingMode.HALF_UP`.
 
@@ -28,7 +28,7 @@ HexaStock is a stock portfolio management platform. The system enables investors
 
 HexaStock is structured according to two complementary architectural disciplines.
 
-**Domain-Driven Design** provides the modeling methodology. The system's core concepts — `Portfolio`, `Holding`, `Lot`, and `Transaction` — are modeled as aggregates, entities, and value objects that encapsulate business rules and protect invariants. Core business rules and invariants live in the domain model. Application services orchestrate use cases and transactions; controllers and adapters translate at the boundaries.
+**Domain-Driven Design** provides the modeling methodology. The system's core concepts — `Portfolio`, `Holding`, `Lot`, and `Transaction` — are modeled as aggregates, entities, and value objects that encapsulate business rules and protect invariants. Application services orchestrate use cases; controllers and adapters translate at the boundaries.
 
 **Hexagonal Architecture** (Ports and Adapters) provides the structural organization. The domain model has no dependencies on frameworks, databases, or HTTP. It communicates with the outside world exclusively through port interfaces, which are implemented by adapters in the infrastructure layer. All dependencies point inward toward the domain.
 
@@ -88,9 +88,9 @@ HexaStock follows a disciplined engineering sequence:
 
 > **Specification → Contract → Tests → Implementation → Refactor Safely**
 
-Behaviour is defined as Gherkin scenarios before any design decisions are made. The REST API is specified contract-first using OpenAPI 3.0. Tests are linked to specifications through `@SpecificationRef` annotations, creating a traceable chain from business requirements to running code. This sequence is not merely aspirational — it is enforced by the repository structure and verified by the test suite.
+Behaviour is defined as Gherkin scenarios before any design decisions are made. The REST API is specified contract-first using OpenAPI 3.0. Tests are linked to specifications through `@SpecificationRef` annotations, creating a traceable chain from business requirements to running code — a chain enforced by the repository structure and verified by the test suite.
 
-The sections that follow apply this engineering loop to the sell-stocks use case: starting from the Gherkin specification, moving through domain modeling and architectural reasoning, and arriving at a fully tested, fully traced implementation.
+The sections that follow apply this loop to the sell-stocks use case.
 
 ---
 
@@ -104,7 +104,7 @@ For the full treatment — including a cross-artifact traceability table, concre
 
 ## 1. Architecture Overview (Hexagonal / Ports & Adapters)
 
-Before diving into the execution flow of selling stocks, it's essential to understand the **architectural foundation** that shapes the entire codebase. HexaStock implements **Hexagonal Architecture** (also known as **Ports and Adapters**), a pattern designed to isolate business logic from external dependencies and infrastructure concerns.
+Before tracing the sell-stock flow through code, this section details the layers, ports, and adapters that form HexaStock's hexagonal architecture — the structural vocabulary the rest of the tutorial relies on.
 
 ### Core Architectural Layers
 
@@ -156,9 +156,7 @@ Sections 9–15 trace a real HTTP request flowing through these layers, showing 
 
 ## 2. Purpose and Scope
 
-This tutorial traces a complete software engineering workflow applied to a real use case in the HexaStock system: **selling stocks from a portfolio**. Starting with observable behaviour, it moves through domain modelling and architectural reasoning, and arrives at a fully traced design with UML diagrams at every stage.
-
-The treatment progresses from specification to design to implementation, showing how each engineering phase feeds into the next. The reader will see:
+The sell-stock use case provides the thread that ties every engineering phase together — from specification through design to implementation. The reader will see:
 
 - How **functional specifications written in Gherkin** capture expected behaviour in business language before any design decisions are made
 - How **executable specifications expressed as JUnit tests** validate that behaviour directly against the domain model, with no infrastructure required
