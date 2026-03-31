@@ -24,14 +24,6 @@ Content-Type: application/json
 }
 
 ###
-POST http://localhost:8081/api/portfolios/{{portfolioId}}/withdrawals
-Content-Type: application/json
-
-{
-  "amount": "900000"
-}
-
-###
 POST http://localhost:8081/api/portfolios/{{portfolioId}}/purchases
 Content-Type: application/json
 
@@ -50,13 +42,31 @@ Content-Type: application/json
 }
 
 ###
+POST http://localhost:8081/api/portfolios/{{portfolioId}}/purchases
+Content-Type: application/json
+
+{
+  "ticker": "AAPL",
+  "quantity": 20
+}
+
+###
 POST http://localhost:8081/api/portfolios/{{portfolioId}}/sales
 Content-Type: application/json
 
 {
   "ticker": "AAPL",
-  "quantity": 10
+  "quantity": 15
 }
+
+###
+POST http://localhost:8081/api/portfolios/{{portfolioId}}/withdrawals
+Content-Type: application/json
+
+{
+  "amount": "10000"
+}
+
 
 ###
 GET http://localhost:8081/api/portfolios/{{portfolioId}}/transactions
