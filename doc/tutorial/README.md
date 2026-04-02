@@ -16,7 +16,7 @@ Every acceptance criterion in the [functional specification](../stock-portfolio-
 
 ---
 
-## The Sell Stocks Pilot (US-07)
+## The Sell Stocks Pilot (US-07) as the Reference Use Case
 
 The **Sell Stocks use case (US-07)** served as the **reference pilot** for this traceability architecture. It was chosen because it involves the most complex domain logic in the system — FIFO lot consumption with precise financial calculations — making it an ideal candidate for demonstrating the full traceability chain.
 
