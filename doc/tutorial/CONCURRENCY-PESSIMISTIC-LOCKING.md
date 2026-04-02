@@ -1,4 +1,4 @@
-# Concurrency Control with Pessimistic and Optimistic Approaches
+# Concurrency Control with Pessimistic and Optimistic Locking
 
 ---
 
@@ -6,19 +6,27 @@
 
 ### Purpose
 
-This tutorial demonstrates why **pessimistic database locking** is essential for concurrent financial operations in the HexaStock application. You will see:
+Concurrent financial operations — such as two simultaneous withdrawals on the same portfolio — require correct concurrency control to prevent data corruption. Without it, race conditions can produce lost updates, negative balances, and inconsistent state.
 
-- How concurrent withdrawals on the same portfolio can cause data corruption without proper locking.
+This tutorial uses **pessimistic locking** (`SELECT ... FOR UPDATE`) as the teaching vehicle because it makes serialization explicit and observable: you can see exactly when a transaction blocks and when it proceeds. This makes concurrency bugs — and their solutions — deterministic and easy to demonstrate in tests.
+
+**Pessimistic locking is not the only valid strategy.** Optimistic locking (version-based conflict detection with application-level retries) is a first-class alternative that is often preferable in production when contention is low and retries are acceptable. This tutorial covers both strategies and their trade-offs.
+
+You will see:
+
+- How concurrent withdrawals on the same portfolio can cause data corruption without any concurrency control.
 - How `@Lock(LockModeType.PESSIMISTIC_WRITE)` prevents race conditions by serializing database access.
-- How Java 21 virtual threads make blocking I/O scalable without exhausting system resources.
-- The difference between correct serialized behavior (with locking) and incorrect concurrent behavior (without locking).
+- How `@Version`-based optimistic locking detects conflicts at write time without holding database locks.
+- How Java 21 virtual threads reduce the scalability cost of blocking I/O.
+- The trade-offs — contention profile, retry cost, throughput, deadlock risk — that determine which strategy fits a given workload.
 
 ### Key Concepts
 
-- **Pessimistic locking**: Database-level row locks that prevent concurrent modifications.
-- **SELECT ... FOR UPDATE**: SQL construct that acquires an exclusive lock on selected rows.
-- **Transaction isolation**: Lock lifetime is tied to transaction boundaries (commit/rollback).
-- **Virtual threads**: Lightweight JVM-managed threads that park during blocking I/O operations.
+- **Concurrency control**: The general engineering problem of ensuring correctness when multiple transactions access shared mutable state simultaneously.
+- **Pessimistic locking**: Prevents conflicts upfront by acquiring database-level row locks (`SELECT ... FOR UPDATE`) that block concurrent access until the owning transaction completes.
+- **Optimistic locking**: Allows concurrent access without blocking, then detects conflicts at write time using a version field (`@Version`). Conflicting transactions fail and can be retried.
+- **Transaction isolation**: Lock lifetime (pessimistic) or version check (optimistic) is tied to transaction boundaries (commit/rollback).
+- **Virtual threads**: Lightweight JVM-managed threads (Java 21+) that park during blocking I/O, reducing the thread-pool cost of pessimistic locking.
 
 ### Prerequisites
 
@@ -55,7 +63,7 @@ The concurrency tests are **opt-in** via a Maven profile to avoid slowing down r
 ./mvnw test -Pconcurrency
 ```
 
-Expected output: All tests should **pass**, demonstrating that pessimistic locking correctly serializes concurrent operations.
+Expected output: All tests should **pass**, demonstrating that pessimistic locking correctly serializes concurrent access to the same portfolio.
 
 ---
 
@@ -89,7 +97,7 @@ Each test uses **Java 21 virtual threads** via `Executors.newVirtualThreadPerTas
 
 ## The Experiment Switch
 
-### Making Tests Pass (With Locking)
+### Making Tests Pass (With Concurrency Control)
 
 **Default behavior** (tests pass):
 
@@ -115,11 +123,11 @@ SELECT * FROM portfolio WHERE id = ? FOR UPDATE
 
 The `FOR UPDATE` clause acquires a database row lock that lasts until the transaction commits or rolls back.
 
-### Making Tests Fail (Without Locking)
+### Making Tests Fail (Without Any Concurrency Control)
 
 **⚠️ For demonstration purposes only. Revert immediately after testing.**
 
-To see the concurrency bug exposed, edit the repository adapter:
+To expose the race condition, remove all concurrency control by editing the repository adapter:
 
 **File to edit:**
 
@@ -130,10 +138,10 @@ src/main/java/cat/gencat/agaur/hexastock/adapter/out/persistence/jpa/repository/
 **Find the `getPortfolioById()` method and change:**
 
 ```java
-// WITH LOCKING (correct):
+// WITH PESSIMISTIC LOCKING (serializes concurrent access):
 return jpaPortfolioSpringDataRepository.findByIdForUpdate(portfolioId)
 
-// WITHOUT LOCKING (demonstrates bug):
+// WITHOUT ANY CONCURRENCY CONTROL (exposes race condition):
 return jpaPortfolioSpringDataRepository.findById(portfolioId)
 ```
 
@@ -143,7 +151,7 @@ Now run the tests again:
 ./mvnw test -Pconcurrency
 ```
 
-**Expected result**: Tests **fail** because both concurrent transactions read `balance=1000` during the race window, both proceed with withdrawal, and the final balance becomes incorrect (e.g., -400 or corrupted).
+**Expected result**: Tests **fail** because without any concurrency control, both concurrent transactions read `balance=1000` during the race window, both proceed with withdrawal, and the final balance becomes incorrect (e.g., -400 or corrupted). This is the lost-update problem that both pessimistic and optimistic locking exist to solve.
 
 **⚠️ Important**: After demonstrating the failure, revert the change immediately:
 
@@ -239,13 +247,15 @@ try (ExecutorService executor = Executors.newVirtualThreadPerTaskExecutor()) {
 }
 ```
 
-**Why virtual threads matter:**
+**Why virtual threads matter for pessimistic locking:**
+
+Pessimistic locking's main scalability cost is that blocked threads consume resources while waiting for a lock. Virtual threads reduce this cost significantly:
 
 - When a virtual thread blocks on I/O (e.g., waiting for the database lock), the JVM **parks** (unmounts) it from its carrier thread.
 - The carrier thread becomes available to run other virtual threads.
 - This allows thousands of virtual threads to wait for database locks without exhausting OS-level thread resources.
 
-**Important**: Virtual threads do not change the database locking behavior. The lock is still enforced by MySQL. Virtual threads only improve server-side scalability by making blocking I/O cheap.
+**Important**: Virtual threads do not change the database locking behavior. The lock is still enforced by MySQL. Virtual threads reduce the *thread-pool cost* of blocking, but they do not eliminate other costs of pessimistic locking — such as connection hold time, deadlock risk, or reduced throughput under high contention.
 
 ---
 
@@ -307,20 +317,22 @@ Proper concurrency control (pessimistic or optimistic locking) handles race cond
 
 ---
 
-## Optimistic Locking: The Production Alternative
+## Optimistic Locking: A Complementary Strategy
+
+The previous sections demonstrated pessimistic locking because it makes serialization visible. This section presents **optimistic locking** — a concurrency-control strategy that detects conflicts at write time rather than preventing them upfront. In many production workloads, optimistic locking is the preferred approach.
 
 ### What Is Optimistic Locking
 
-**Optimistic locking** assumes that conflicts are **rare** and allows multiple transactions to read and process the same data concurrently without blocking. Instead of preventing conflicts upfront (like pessimistic locking), it **detects** conflicts at commit time and fails the transaction if the data was modified by someone else.
+**Optimistic locking** assumes that conflicts are **rare** and allows multiple transactions to read and process the same data concurrently without blocking. Instead of acquiring database locks upfront, it **detects** conflicts at commit time and fails the transaction if the data was modified by another transaction.
 
 **Core principle:**
 
 - Each entity has a **version field** (e.g., an incrementing counter or timestamp).
 - When reading data, the transaction remembers the version.
 - When writing, the transaction includes the version in the `WHERE` clause.
-- If the version changed (meaning someone else modified the row), the update affects 0 rows and the transaction fails.
+- If the version changed (meaning another transaction modified the row), the update affects 0 rows and the transaction fails with an `OptimisticLockException`.
 
-This approach eliminates database row locks entirely, allowing concurrent reads and processing without blocking.
+This approach eliminates database row locks entirely, allowing concurrent reads and processing without blocking. Conflicts are resolved by retrying the failed transaction.
 
 ### How It Works
 
@@ -436,7 +448,7 @@ public class PortfolioService {
     }
     
     @Transactional
-    private void withdrawOnce(PortfolioId portfolioId, Money amount) {
+    public void withdrawOnce(PortfolioId portfolioId, Money amount) {
         Portfolio portfolio = portfolioRepository.findById(portfolioId)
             .orElseThrow(() -> new PortfolioNotFoundException(portfolioId.value()));
         portfolio.withdraw(amount);
@@ -452,21 +464,23 @@ public class PortfolioService {
 - **Backoff strategy**: Add delays between retries to reduce contention spikes.
 - **User feedback**: After multiple failures, return 409 Conflict or 503 Service Unavailable.
 
-### Why Optimistic Locking Scales Better
+### Scalability Trade-offs
+
+Optimistic locking has different scalability characteristics than pessimistic locking. Neither is universally superior — the right choice depends on the contention profile.
 
 **1. No database row blocking:**
 
 - Pessimistic: Transaction 2 blocks waiting for Transaction 1's lock (potentially 100-500ms).
 - Optimistic: Transaction 2 proceeds immediately with its own read and processing.
 
-**2. Shorter lock duration:**
+**2. No lock hold time:**
 
-- Pessimistic: Lock held for entire transaction duration (read + business logic + write).
-- Optimistic: No lock held. Version check happens atomically during the `UPDATE` (microseconds).
+- Pessimistic: Lock held for entire transaction duration (read + business logic + write). Long transactions amplify contention.
+- Optimistic: No lock held during processing. Version check happens atomically during the `UPDATE`.
 
 **3. Higher throughput under low contention:**
 
-- If conflicts are rare (typical for portfolio operations), most transactions succeed on first attempt.
+- If conflicts are rare (typical for user-specific aggregates like portfolios), most transactions succeed on first attempt.
 - No threads blocked waiting for locks → better CPU utilization.
 
 **4. Better fit for distributed systems:**
@@ -474,45 +488,39 @@ public class PortfolioService {
 - Optimistic locking works across multiple application instances without coordination.
 - Database only serializes at the moment of write, not during processing.
 
-**5. Graceful degradation:**
+**5. Degradation under high contention:**
 
-- Under high contention, retries increase latency but system remains responsive.
-- Pessimistic locking under high contention causes thread pool exhaustion.
+- Optimistic: retry rate increases, adding latency, but the system remains responsive and no threads are blocked.
+- Pessimistic: blocked threads hold database connections longer, which can lead to connection pool exhaustion under sustained high contention. (Virtual threads reduce the OS-thread cost of blocking, but do not eliminate the connection-hold problem.)
 
-**Realistic example for portfolio operations:**
+**Portfolio operations as a realistic example:**
 
 - A user portfolio is typically modified by that user alone.
 - Concurrent writes to the same portfolio are rare (seconds or minutes apart, not milliseconds).
 - When conflicts do occur, a single retry usually succeeds.
-- This workload profile makes optimistic locking ideal.
+- This low-contention profile makes optimistic locking a strong default choice.
 
-### When to Use Pessimistic vs Optimistic
+### Choosing Between Pessimistic and Optimistic Locking
 
-**Use pessimistic locking when:**
+The right strategy depends on the workload, not on an ideological preference. The table below summarizes the key selection criteria:
 
-- **Conflicts are frequent**: High contention on the same rows (e.g., inventory with few items).
-- **Retry cost is high**: Business logic is expensive to re-execute (complex calculations, external API calls).
-- **Strong guarantees needed**: Must prevent conflicts entirely (e.g., regulatory compliance).
-- **Simplicity matters**: Teaching scenarios, prototypes, or systems with low concurrency.
+| Criterion | Favours pessimistic | Favours optimistic |
+|---|---|---|
+| **Contention frequency** | High (same rows accessed concurrently by many transactions) | Low (same row rarely accessed concurrently) |
+| **Cost of retry** | High (expensive computation, external API calls, side effects) | Low (short transactions, idempotent operations) |
+| **Transaction duration** | Short (lock hold time is brief) | Any (no lock held during processing) |
+| **Deadlock risk tolerance** | Acceptable (deadlocks can be detected and retried) | Preferred to avoid (no locks, no deadlocks) |
+| **Throughput / scalability** | Acceptable under moderate load | Critical (high-throughput, distributed systems) |
+| **Deployment topology** | Single application instance or shared database | Multiple instances, no shared lock manager |
+| **User experience** | Blocking latency is acceptable | Immediate response preferred; retries invisible to user |
+| **Observability / teaching** | Serialization is explicit and easy to demonstrate | Conflict detection requires version-field inspection |
 
-**Use optimistic locking when:**
+**Financial systems in practice** use different strategies for different operations. There is no single rule:
 
-- **Conflicts are rare**: Most transactions succeed on first attempt (typical for user-specific aggregates).
-- **Scalability is critical**: Need to maximize throughput without blocking threads.
-- **Read-heavy workload**: Many reads, few writes (optimistic locking doesn't block reads).
-- **Distributed architecture**: Multiple application instances, no shared lock manager.
-
-**Real-world financial systems typically use optimistic locking for:**
-
-- User portfolios (low contention per portfolio).
-- Account balances (with retry logic and idempotency).
-- Trading operations (combined with event sourcing and eventual consistency).
-
-**Pessimistic locking is reserved for:**
-
-- Global resources with high contention (e.g., shared inventory pools).
-- Critical sections where retry is unacceptable.
-- Legacy systems or specific compliance requirements.
+- User portfolios and account balances (low contention per account): optimistic locking with retry logic is a common default.
+- Shared inventory or pool resources with high contention: pessimistic locking may be more appropriate to avoid excessive retries.
+- Trading platforms: often combine optimistic locking with event sourcing, eventual consistency, or saga patterns depending on the specific workflow.
+- Regulatory or audit-critical operations: correctness is required, but both strategies provide it — the choice depends on contention and retry cost, not on the regulatory requirement itself.
 
 ---
 
@@ -566,43 +574,24 @@ If Docker is not running, start it and retry.
 
 ## Summary
 
-**This tutorial focuses on pessimistic locking for pedagogical clarity:**
+**The engineering problem:** Concurrent access to shared mutable state — such as a portfolio balance — requires explicit concurrency control. Without it, race conditions produce lost updates and corrupted data.
 
-- Database row locks (`SELECT ... FOR UPDATE`) make concurrency control **explicit and observable**.
-- The conditional sleep widens race windows, making conflicts **deterministic and easy to demonstrate**.
-- Tests show exactly **what goes wrong** when locking is removed (lost updates, corrupted balances).
-- Virtual threads make blocking I/O scalable, proving that pessimistic locking is **viable at scale** in modern Java.
+**What this tutorial demonstrated:**
 
-**Key takeaways about pessimistic locking:**
+This tutorial used **pessimistic locking** as the teaching vehicle because `SELECT ... FOR UPDATE` makes serialization explicit: you can observe exactly when a transaction blocks and when it proceeds. The conditional sleep widens the race window, making the concurrency bug deterministic and reproducible in tests.
 
-- **@Lock(PESSIMISTIC_WRITE)** translates to `SELECT ... FOR UPDATE` at the SQL level.
-- **Database row locks** (not Java locks) serialize access to the same portfolio.
-- **@Transactional** defines lock lifetime: acquired at query, released at commit/rollback.
-- **Concurrency tests are opt-in** via the `-Pconcurrency` Maven profile.
+- `@Lock(PESSIMISTIC_WRITE)` translates to `SELECT ... FOR UPDATE` at the SQL level.
+- Database row locks (not Java locks) serialize access to the same portfolio.
+- `@Transactional` defines lock lifetime: acquired at query, released at commit/rollback.
+- Java 21 virtual threads reduce the thread-pool cost of blocking I/O, but do not eliminate other costs of pessimistic locking (connection hold time, deadlock risk).
+- Concurrency tests are opt-in via the `-Pconcurrency` Maven profile.
 
-**Why optimistic locking is more common in production:**
+**Both strategies are correct; the right choice depends on context:**
 
-- **No blocking**: Transactions proceed concurrently without waiting for locks.
-- **Better scalability**: Higher throughput under typical workloads (low contention).
-- **Shorter critical sections**: Version check happens atomically at write time (microseconds vs milliseconds).
-- **Graceful degradation**: Conflicts are detected and retried at the application layer.
+- **Pessimistic locking** prevents conflicts upfront. It is a strong fit when contention is frequent, retries are expensive, or serialization must be guaranteed before processing.
+- **Optimistic locking** detects conflicts at write time. It is a strong fit when contention is rare, retries are cheap, and throughput or scalability is a priority.
 
-**Real-world financial systems typically prefer optimistic locking for:**
-
-- User portfolios (conflicts are rare).
-- Stock selling and buying operations (short transactions, retry-friendly).
-- Distributed architectures (multiple app instances, no shared lock manager).
-
-**When to use each approach:**
-
-- **Pessimistic**: High contention, expensive retries, strong guarantees, teaching scenarios.
-- **Optimistic**: Low contention, scalability-critical, read-heavy workloads, distributed systems.
-
-**Professional engineering requires understanding both:**
-
-- Know **how** each mechanism works (database locks vs version checks).
-- Know **when** to apply each (contention profile, scalability needs, system architecture).
-- Recognize **trade-offs** (simplicity vs throughput, blocking vs retries).
+Professional engineering requires understanding both mechanisms - how they work, when each is appropriate, and what trade-offs they carry. The selection criteria (contention profile, retry cost, transaction duration, deployment topology, deadlock tolerance) are discussed in detail in the "Choosing Between Pessimistic and Optimistic Locking" section above.
 
 **Experiment with confidence:**
 
@@ -610,4 +599,4 @@ If Docker is not running, start it and retry.
 2. Remove the lock temporarily → tests fail, balance corrupted.
 3. Revert the change → tests pass again.
 
-This hands-on experience demonstrates the concurrency issues that both pessimistic and optimistic locking strategies exist to solve.
+This hands-on experience demonstrates the concurrency problem that both pessimistic and optimistic locking strategies exist to solve.
