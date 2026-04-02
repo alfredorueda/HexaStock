@@ -232,7 +232,7 @@ When all four disciplines converge, the AI is operating within a highly constrai
 
 ### 5.1 Context
 
-The HexaStock system was developed as part of a consulting engagement with a German company to demonstrate that a production-grade financial domain application could be built using specification-driven AI-assisted development. The project was not a proof of concept or a toy example. It is a multi-module Maven project with:
+The HexaStock system was developed to demonstrate that a production-grade financial domain application could be built using specification-driven AI-assisted development. The project was not a proof of concept or a toy example. It is a multi-module Maven project with:
 
 - 10 use cases (create portfolio, deposit/withdraw funds, buy/sell stocks, list portfolios, view holdings performance, get stock price, get transaction history)
 - A complete domain model with aggregates, entities, value objects, and domain events
