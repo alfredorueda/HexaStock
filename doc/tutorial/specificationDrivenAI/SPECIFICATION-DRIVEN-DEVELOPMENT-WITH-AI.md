@@ -245,17 +245,108 @@ The HexaStock system was developed to demonstrate that a production-grade financ
 
 ### 5.2 The Engineering Workflow
 
-The workflow followed a consistent sequence for each use case:
+The workflow followed a consistent sequence for each use case. The steps below describe the process as practised during the HexaStock engagement. Every step is human-directed, AI-assisted where appropriate, and human-validated before the team proceeds. Different stakeholder groups contribute at different stages according to their expertise.
 
-**Step 1 — Specification authoring (human).** The architect wrote Gherkin scenarios, UML diagrams, and OpenAPI contract definitions for the use case. This step required deep domain understanding and design judgment. It could not be delegated to AI.
+> **Terminological note.** In the descriptions that follow, *"business-side stakeholders"* refers to domain experts, product owners, business analysts, and anyone whose primary concern is business correctness. *"Engineering-side stakeholders"* refers to architects, developers, QA engineers, and anyone whose primary concern is technical correctness, architectural fitness, and production readiness.
 
-**Step 2 — Context assembly (human).** The relevant specification artefacts were assembled as context: the Gherkin file, the UML diagrams, the OpenAPI snippet, any relevant ADRs, and the existing codebase. In VS Code with GitHub Copilot, this context was provided through the conversation window and file references.
+#### Step 1 — Domain Discovery and Requirements Shaping
 
-**Step 3 — Implementation generation (AI).** GitHub Copilot, using the specification context, generated the implementation code: domain model classes, application services, REST controllers, JPA entities, mapper classes, and test classes. The generation was guided by the specifications, not by free-form prompts.
+**Primary ownership:** Joint \
+**Main participants:** Domain experts, product owner, architect, lead engineer \
+**Purpose:** Establish the business goals, behavioural expectations, acceptance criteria, edge cases, domain terminology, and any policy or compliance constraints that govern the use case.
 
-**Step 4 — Verification (human + AI).** The generated code was compiled and tested. Test failures were fed back to the AI for correction. The architect reviewed the generated code for architectural correctness, naming consistency, and design intent alignment.
+**Human role.** Domain experts articulate business rules, priorities, and boundary conditions. Engineers ask probing questions that surface unstated invariants, identify ambiguity, and test the completeness of the requirements. Together, both sides agree on the ubiquitous language that will appear in all downstream artefacts.
 
-**Step 5 — Refinement (human).** Edge cases, error flows, and cross-cutting concerns (transactionality, caching, concurrency) were refined through iterative dialogue between the architect and the AI, always grounded in specifications and test results.
+**AI assistance.** AI may assist in structuring raw requirements notes into a normalised format, suggesting potential edge cases derived from similar domains, or drafting initial scenario outlines from workshop notes. Any AI-produced draft is a starting point for discussion, not a finished artefact.
+
+**Human review requirement.** Domain experts validate that captured requirements reflect actual business intent and priorities. Engineers validate that requirements are specific enough to be formally specified and subsequently implemented. Disagreements are resolved in joint discussion — not by defaulting to either party.
+
+**Why this matters.** Requirements that are vague, incomplete, or expressed in inconsistent vocabulary propagate downstream into every subsequent artefact. This is the highest-leverage point for business-side participation because it directly shapes what gets built.
+
+#### Step 2 — Specification Authoring
+
+**Primary ownership:** Joint during behavioural specification; engineering-led during architectural formalisation \
+**Main participants:** Architect, domain experts (for Gherkin review and acceptance criteria validation), lead engineer \
+**Purpose:** Produce the formal specification stack — Gherkin scenarios with concrete values, UML class and sequence diagrams, OpenAPI 3.0 contract definitions, and Architecture Decision Records.
+
+**Human role.** The architect makes fundamental design decisions — aggregate boundaries, module structure, port definitions, API shape — that require deep understanding of both the domain and the target architecture. Domain experts review Gherkin scenarios to confirm they express the correct business behaviour, and both sides refine the ubiquitous language as captured in scenario vocabulary.
+
+**AI assistance.** AI may assist in drafting initial Gherkin syntax from structured requirements notes, normalising scenario format for consistency, generating UML diagram skeletons from verbal descriptions, proposing additional edge-case scenarios for human review, or improving OpenAPI schema completeness. Specification authoring is intellectually demanding work — AI assistance improves throughput and consistency without displacing the judgment that drives it.
+
+**Human review requirement.** The architect validates all architectural decisions (aggregate boundaries, layer responsibilities, dependency direction). Domain experts validate that every Gherkin scenario accurately reflects business expectations. Both validate that the ubiquitous language is consistent across artefacts. No specification artefact enters the workflow without explicit human approval from the appropriate stakeholder.
+
+**Why this matters.** Specifications are the single most consequential artefact in this workflow — they directly constrain all downstream generation. A Gherkin scenario with an incorrect `Then` clause or a UML diagram with a misplaced aggregate boundary will produce code that is structurally wrong regardless of how capable the AI is.
+
+#### Step 3 — Context Assembly
+
+**Primary ownership:** Engineering-led \
+**Main participants:** Architect or lead engineer \
+**Purpose:** Select and assemble the specification artefacts, relevant ADRs, and existing code samples that will serve as context for implementation generation. In VS Code with GitHub Copilot, this context is provided through the conversation window and file references.
+
+**Human role.** The engineer decides which specifications, existing code files, and architectural references are relevant to the current generation task. This requires judgment about scope, interrelationships, and what the AI needs to "see" to produce architecturally correct output. The engineer also determines the generation sequence — which layer first, what scope per step — based on the project's hexagonal structure.
+
+**AI assistance.** Minimal. Context selection is a judgment-intensive activity that depends on architectural awareness. AI may help surface related files through search or identify references between artefacts, but the selection and scoping decisions remain human.
+
+**Human review requirement.** The engineer verifies that the assembled context is complete and correctly scoped before proceeding. An incomplete context package produces incomplete or inaccurate generation; an overly broad package introduces noise.
+
+**Why this matters.** Context quality directly determines generation quality. The engineer's ability to curate the right context — providing enough for the AI to follow conventions and constraints without overwhelming it with irrelevant material — is a critical skill in this workflow.
+
+#### Step 4 — Implementation Generation
+
+**Primary ownership:** Engineering-led, AI-assisted \
+**Main participants:** Architect or lead engineer, AI coding assistant \
+**Purpose:** Generate implementation code — domain model classes, application services, REST controllers, JPA entities, mapper classes, test classes — from the assembled specification context.
+
+**Human role.** The engineer directs the generation process: which architectural layer to address first, what conventions to enforce, when to pause and verify, and when to reject and redirect. The engineer provides course corrections during generation, identifying when the AI drifts from architectural intent or naming conventions. This is an active, iterative collaboration — not a hands-off delegation.
+
+**AI assistance.** The AI generates code that translates the formal specifications into syntactically correct, idiomatically appropriate implementation. Given sufficiently precise specifications and existing code as context, the AI's role is primarily translation and synthesis — not design. The AI produces candidate artefacts that satisfy the specification constraints within the conventions established by the existing codebase.
+
+**Human review requirement.** All generated code is reviewed by a qualified engineer for architectural correctness, layer placement, naming consistency with the ubiquitous language, dependency direction, and design intent alignment. Code that compiles is not necessarily acceptable — it must be reviewed against both functional specifications and architectural constraints.
+
+**Why this matters.** AI-generated code can be structurally plausible but architecturally wrong — correct logic in the wrong layer, valid implementations of the wrong design pattern, or subtly broken business rules that compile and look reasonable. Active engineering review is the primary safeguard against these failure modes.
+
+#### Step 5 — Verification and Validation
+
+**Primary ownership:** Engineering-led, with business-side validation of observable behaviour \
+**Main participants:** Engineer (test verification, architectural validation), domain experts (acceptance validation) \
+**Purpose:** Confirm that generated code satisfies the specification stack and architectural constraints. Validate that observable system behaviour matches business expectations.
+
+**Human role.** Engineers compile, execute tests, and analyse results. They verify that test expected values derive from specifications — not from implementation output — and that architectural boundaries are respected. Domain experts review observable outcomes (response shapes, status codes, edge-case behaviour) against their understanding of business requirements.
+
+**AI assistance.** AI may assist in generating additional test cases for uncovered paths, interpreting test failure messages, and proposing implementation corrections based on precise error output. The engineer decides which corrections to accept.
+
+**Human review requirement.** Engineers confirm that all test assertions trace to specification values, not to implementation artefacts. Domain experts confirm that acceptance criteria are met. Failures are analysed for root cause — not merely corrected until tests pass — because a passing test suite built on incorrect specifications provides false assurance.
+
+**Why this matters.** Verification without validation is insufficient. Code can pass every automated test and still not do what the business intended, if the specifications themselves were incomplete or incorrect. This step closes the loop between engineering correctness and business correctness.
+
+#### Step 6 — Refinement and Hardening
+
+**Primary ownership:** Engineering-led \
+**Main participants:** Architect, senior engineers \
+**Purpose:** Address edge cases, error handling, cross-cutting concerns (transactionality, caching, concurrency, observability), and production readiness.
+
+**Human role.** Engineers make judgment calls about concurrency strategy, transaction isolation levels, cache invalidation policies, error response semantics, and performance trade-offs. These decisions require understanding of production operating conditions, failure modes, and non-functional requirements that are rarely captured fully in behavioural specifications. The engineer also identifies and specifies previously unstated invariants surfaced during implementation.
+
+**AI assistance.** Once engineering decisions are made, AI may assist in implementing the chosen patterns — applying a selected concurrency strategy, generating error-handling code following established project conventions, drafting configuration for caching or retry policies. The AI executes decisions; it does not make them.
+
+**Human review requirement.** All refinements are reviewed for architectural consistency, production suitability, and alignment with non-functional requirements. The architect confirms that cross-cutting decisions do not introduce unintended coupling or violate the hexagonal structure.
+
+**Why this matters.** Production-grade software requires engineering decisions that transcend functional correctness. Concurrency, resilience, observability, and security are domains where experienced human judgment is irreplaceable. AI can accelerate implementation of chosen patterns, but the choice of pattern remains an engineering responsibility.
+
+#### Stakeholder Participation Across the Workflow
+
+The table below summarises the realistic distribution of stakeholder involvement. The early phases are the most collaborative; later phases become progressively more engineering-led, with business stakeholders returning for validation of outcomes.
+
+| Step | Primary Ownership | Business-Side Role | Engineering-Side Role |
+|------|------------------|-------------------|-----------------------|
+| 1. Domain discovery | **Joint** | Lead: articulate goals, rules, edge cases, terminology | Facilitate, probe for completeness, identify ambiguity |
+| 2. Specification authoring | **Joint → Engineering-led** | Validate Gherkin scenarios and acceptance criteria | Author formal specifications, make architectural decisions |
+| 3. Context assembly | **Engineering-led** | — | Select, scope, and sequence context for generation |
+| 4. Implementation generation | **Engineering-led** | — | Direct generation, provide course corrections, review output |
+| 5. Verification & validation | **Engineering-led + Business validation** | Validate observable behaviour against business expectations | Verify test correctness, architectural fitness, non-functional alignment |
+| 6. Refinement & hardening | **Engineering-led** | Available for edge-case business clarification | Make cross-cutting engineering decisions, implement and review |
+
+**Key pattern.** Business-side stakeholders contribute most intensively in Steps 1–2, where the specifications that drive everything downstream are shaped and validated. Their role in Steps 5–6 is lighter but still meaningful — they validate that observable outcomes match business intent and clarify edge cases that surface during implementation. Steps 3–4 are primarily engineering activities where business-side participation would add little value.
 
 ### 5.3 What the AI Generated
 
@@ -282,7 +373,7 @@ For the sell-stocks use case specifically, the AI generated:
 - The Docker Compose configuration
 - The concurrency control strategy (pessimistic locking, isolation levels)
 
-The division is clear: **the architect specified; the AI implemented.** The architect's role was not reduced — it was refocused on specification, verification, and architectural judgment.
+The pattern is consistent: **humans directed, decided, and validated; AI assisted in implementation within human-defined boundaries.** The architect's role was not reduced — it was refocused on specification quality, architectural judgment, and verification that generated artefacts meet production engineering standards. At no point did AI operate autonomously; at no point did humans write every line manually. The process was human-led, AI-assisted, and human-accountable throughout.
 
 ---
 
