@@ -1,6 +1,6 @@
 # HexaStock: Engineering Architecture That Grows Stronger Through Change
 
-**A Technical Tutorial on Domain-Driven Design and Hexagonal Architecture in a Financial Domain**
+**Sell Stock Deep Dive — A Technical Tutorial on Domain-Driven Design, Hexagonal Architecture, and Specification-Driven Development in a Financial Domain**
 
 > *"Architecture is not documentation. It is an operational capability."*
 
@@ -8,33 +8,15 @@
 
 ## About This Tutorial
 
-This tutorial is a code-grounded study of one operation inside HexaStock — a stock portfolio management system built with Java 21, Spring Boot 3, Domain-Driven Design (DDD), and Hexagonal Architecture. It traces a single use case — **selling stocks** — through every architectural layer: from Gherkin specification to REST controller, through application service orchestration, into the aggregate root's FIFO lot-consumption algorithm, out through persistence adapters, and back as a structured financial result.
-
-By following one request end to end, the reader sees how value objects, aggregate boundaries, port interfaces, dependency inversion, concurrency control, error handling, and testing strategy work together — not as abstract principles, but as concrete engineering applied under realistic constraints.
+This tutorial traces a single use case — **selling stocks** — through every architectural layer of HexaStock, a stock portfolio management system built with Java 21, Spring Boot 3, Domain-Driven Design (DDD), and Hexagonal Architecture. By following one request end to end — from Gherkin specification to REST controller, through application service orchestration, into the aggregate root's FIFO lot-consumption algorithm, and back as a structured financial result — the reader sees how these engineering disciplines work together as applied practice, not abstract principles.
 
 **Intended audience:** Software engineers, architects, and technical leads with working knowledge of Java and Spring Boot who want to see DDD and Hexagonal Architecture applied in a realistic codebase.
-
-**Conventions:** Code listings are drawn from the actual repository source. Architecture and sequence diagrams are maintained as Mermaid (`.mmd`) or PlantUML (`.puml`) source files under `doc/tutorial/*/diagrams/` and rendered as SVG images. Gherkin scenarios are maintained as canonical `.feature` files under `doc/features/`. All financial calculations use `BigDecimal` with scale 2 and `RoundingMode.HALF_UP`.
 
 ---
 
 ## HexaStock in Brief
 
-### What the System Does
-
-HexaStock is a stock portfolio management platform. The system enables investors to create and manage investment portfolios, deposit and withdraw funds, buy and sell stocks with automatic FIFO lot accounting, track holdings performance with real-time market prices, and view complete transaction history. The platform integrates with external stock price providers (Finnhub, AlphaVantage), persists data through JPA with MySQL, and exposes a RESTful API documented via OpenAPI 3.0.
-
-### Architectural Identity
-
-HexaStock is structured according to two complementary architectural disciplines.
-
-**Domain-Driven Design** provides the modeling methodology. The system's core concepts — `Portfolio`, `Holding`, `Lot`, and `Transaction` — are modeled as aggregates, entities, and value objects that encapsulate business rules and protect invariants. Application services orchestrate use cases; controllers and adapters translate at the boundaries.
-
-**Hexagonal Architecture** (Ports and Adapters) provides the structural organization. The domain model has no dependencies on frameworks, databases, or HTTP. It communicates with the outside world exclusively through port interfaces, which are implemented by adapters in the infrastructure layer. All dependencies point inward toward the domain.
-
-### Module Structure: A Deliberate Choice
-
-HexaStock is built as a **Maven multi-module project**. Each module corresponds to a distinct architectural responsibility in the hexagonal model, so the boundaries that a developer reads in a diagram are the same boundaries enforced by the build system.
+HexaStock is a stock portfolio management platform supporting 10 use cases — portfolio creation, fund management, stock trading with automatic FIFO lot accounting, holdings performance tracking, and transaction history. It is structured as a Maven multi-module project where each module enforces a hexagonal architecture boundary at build time:
 
 ```
 HexaStock (parent pom)
@@ -46,51 +28,17 @@ HexaStock (parent pom)
 └── bootstrap/                           → Spring Boot entry point, composition root, runtime wiring
 ```
 
-**`domain`** contains the framework-independent core: aggregates, entities, value objects, domain exceptions, and business rules. It has no dependency on Spring, JPA, or any infrastructure library. All other modules may depend on `domain`; `domain` depends on nothing outside the JDK.
-
-**`application`** defines the use cases that the system supports. Inbound ports (e.g., `PortfolioStockOperationsUseCase`) declare what the outside world can ask the system to do; outbound ports (e.g., `PortfolioPort`, `StockPriceProviderPort`) declare what the application needs from infrastructure. Application services implement the inbound ports by orchestrating domain objects and outbound ports, without ever referencing a concrete adapter.
-
-**`adapters-inbound-rest`** is the driving adapter layer. It translates HTTP requests into calls on inbound ports and maps domain results back to JSON responses. REST controllers, request/response DTOs, and the global exception-handling advice live here.
-
-**`adapters-outbound-persistence-jpa`** is the driven persistence adapter. It implements the outbound `PortfolioPort` and `TransactionPort` using JPA entities, Spring Data repositories, and bidirectional mappers that convert between domain objects and their database representations.
-
-**`adapters-outbound-market`** is the driven external-service adapter. It implements `StockPriceProviderPort` by integrating with third-party market APIs (Finnhub, AlphaVantage), including a mock adapter for offline development and testing.
-
-**`bootstrap`** is the composition root. It contains `HexaStockApplication`, the Spring Boot entry point that scans all modules and wires ports to their adapter implementations at startup. Configuration classes and runtime profiles live here. No business logic resides in this module — its sole purpose is assembly.
-
-#### Domain organization: business meaning over technical category
-
-Inside the `domain` module, the model is not organized as a flat technical taxonomy (`entity/`, `valueobject/`, `exception/`). Instead, concepts are grouped by **business meaning**:
-
-```
-cat.gencat.agaur.hexastock.model
-├── portfolio/    → Portfolio aggregate root, Holding, Lot, SellResult, and related exceptions
-├── transaction/  → Transaction entity, TransactionId, TransactionType
-├── market/       → StockPrice, Ticker, and market-specific exceptions
-├── money/        → Money, Price, ShareQuantity, and monetary validation exceptions
-```
-
-`Portfolio` is the central aggregate. Its related concepts — `Holding`, `Lot`, `HoldingPerformance`, `SellResult` — live in the same `portfolio` package because they participate in the same consistency boundary. Shared value objects that cross aggregate boundaries (`Money`, `Price`, `ShareQuantity`) are grouped under `money`, and market-related concepts under `market`. This semantic grouping makes navigating the domain intuitive: the package name tells the reader *what business concept* the code belongs to, not merely *what DDD building block* it implements.
-
-#### Why a multi-module structure?
-
-Hexagonal Architecture does not mandate a single filesystem layout. Organizing by feature, by bounded context, or by a combination of both would be equally valid — and often preferable in larger systems with multiple bounded contexts. HexaStock uses module-level separation because its primary audiences — engineers, architects, and teams adopting hexagonal design — benefit most from seeing architectural boundaries enforced physically.
-
-When each layer is a separate Maven module, the compiler itself prevents illegal dependencies: the `domain` module *cannot* import a Spring annotation, and an adapter *cannot* bypass an application port to reach another adapter. This transforms the hexagonal dependency rule from a convention that requires discipline into a constraint that the build enforces automatically. ArchUnit fitness tests (see Section 5) provide a second enforcement layer: they scan compiled classes across all modules and catch dependency violations — such as a domain class importing a Spring type via a transitive path — that module boundaries alone cannot detect. The result is a codebase where the architecture is not just documented — it is structurally guaranteed at both build time and test time.
-
-These Maven modules do not represent separate bounded contexts. They are architectural partitions inside the same bounded context, used to make dependency rules explicit and enforceable at build time.
+The domain model has zero framework dependencies. All communication with infrastructure passes through port interfaces. Dependencies point inward — adapters depend on ports, never the reverse. For the full project background — detailed module descriptions, domain package layout, architectural identity, and the rationale behind the multi-module structure — see **[HexaStock — Project Overview](HEXASTOCK-PROJECT-OVERVIEW.md)**.
 
 ---
 
 ## Specification-First Engineering
 
-HexaStock follows a disciplined engineering sequence:
+HexaStock follows a disciplined engineering sequence rooted in **Behaviour-Driven Development (BDD)** and **specification-driven design**:
 
 > **Specification → Contract → Tests → Implementation → Refactor Safely**
 
-Behaviour is defined as Gherkin scenarios before any design decisions are made. The REST API is specified contract-first using OpenAPI 3.0. Tests are linked to specifications through `@SpecificationRef` annotations, creating a traceable chain from business requirements to running code — a chain enforced by the repository structure and verified by the test suite.
-
-The sections that follow apply this loop to the sell-stocks use case.
+Behaviour is defined as Gherkin scenarios before any design decisions are made. The REST API is specified contract-first using OpenAPI 3.0. Tests are linked to specifications through `@SpecificationRef` annotations, creating a traceable chain from business requirements to running code. For how this specification chain also enables AI-assisted development, see **[Specification-Driven Development with AI](../specificationDrivenAI/SPECIFICATION-DRIVEN-DEVELOPMENT-WITH-AI.md)**.
 
 ---
 
@@ -122,16 +70,7 @@ Before tracing the sell-stock flow through code, this section details the layers
 
 **Dependency Direction:** All dependencies point **inward** toward the domain. Adapters depend on ports, ports are defined by the core, and the domain has zero dependencies on infrastructure. This is **Dependency Inversion** in action.
 
-### Why This Architecture Matters
-
-Understanding this structure is critical because:
-- **Class diagrams** in this tutorial explicitly show domain model entities and their relationships
-- **Sequence diagrams** trace execution across architectural boundaries (adapter → port → service → domain)
-- **Persistence mapping** explains how the domain model (technology-agnostic) is separated from JPA entities (infrastructure)
-- **Transaction management** is placed at the application service level (infrastructure concern), not in the domain (business logic)
-- **Error handling** demonstrates how domain exceptions (business language) are translated by adapters into HTTP responses (technical protocol)
-
-The following diagram shows HexaStock's actual hexagonal architecture for the sell-stock use case, matching the Maven modules and classes discussed throughout this tutorial:
+The following diagram shows HexaStock's hexagonal architecture for the sell-stock use case, mapping each Maven module to its architectural role:
 
 <a href="diagrams/Rendered/Hexagonal Architecture - Mermaid.svg"><img src="diagrams/Rendered/Hexagonal%20Architecture%20-%20Mermaid.svg" alt="HexaStock Hexagonal Architecture" width="100%" /></a>
 
@@ -156,19 +95,7 @@ Sections 9–15 trace a real HTTP request flowing through these layers, showing 
 
 ## 2. Purpose and Scope
 
-The sell-stock use case provides the thread that ties every engineering phase together — from specification through design to implementation. The reader will see:
-
-- How **functional specifications written in Gherkin** capture expected behaviour in business language before any design decisions are made
-- How **executable specifications expressed as JUnit tests** validate that behaviour directly against the domain model, with no infrastructure required
-- How **Domain-Driven Design (DDD)** shapes the model into aggregates (`Portfolio`, `Holding`, `Lot`) that enforce business invariants at their boundaries
-- How the **aggregate root pattern** ensures that all state changes pass through a single consistency boundary, preventing invalid states
-- How **Hexagonal Architecture** separates the system into adapters, ports, and domain logic — and why that separation matters for testability and maintainability
-- How **application services orchestrate** use cases without containing business logic, while **aggregates decide** and protect invariants
-- How **FIFO (First-In-First-Out) accounting** is implemented entirely within the domain model as a core business rule
-- How **UML class diagrams** illustrate the domain model's entities, value objects, and their relationships
-- How **UML sequence diagrams** trace the sell use case as it flows through each architectural layer — from REST adapter to port to service to aggregate
-- How **Value Objects** (`Money`, `Price`, `ShareQuantity`, `Ticker`, `PortfolioId`, `HoldingId`, `LotId`, etc.) replace primitives to enforce domain constraints at construction time and make the [ubiquitous language](#ubiquitous-language-one-domain-vocabulary-across-all-artifacts) explicit in code
-- How **domain exceptions** propagate from the aggregate through the application service and are translated by adapters into meaningful HTTP/REST responses
+The sell-stock use case provides the thread that ties every engineering phase together — from Gherkin specification through domain modelling, hexagonal structure, persistence mapping, error handling, and integration testing. The tutorial follows one request end to end, showing how BDD specifications, DDD aggregates, hexagonal ports and adapters, value objects, FIFO accounting, and a four-level testing strategy work together as applied engineering, not abstract principles.
 
 ---
 
@@ -449,7 +376,7 @@ This controller represents the REST entry point of the SELL use case into the ap
 
 ## 8. Hexagonal Architecture Map for the SELL Use Case
 
-Here is the complete architecture trace for selling stocks:
+The table below provides a quick-reference map of every component the sell request touches. Each entry corresponds to a class or interface discussed in the execution trace that follows in Section 9.
 
 | Layer | Component | Type | Package/Class |
 |-------|-----------|------|---------------|
@@ -857,7 +784,7 @@ The transaction boundary is placed at the **application service** — not the do
 > - Race condition demonstrations with real tests
 > - When to use which strategy in production financial systems
 >
-> See the companion study: **[Concurrency Control with Pessimistic Database Locking](CONCURRENCY-PESSIMISTIC-LOCKING.md)**
+> See the companion study: **[Concurrency Control with Pessimistic and Optimistic Locking](../CONCURRENCY-PESSIMISTIC-LOCKING.md)**
 
 ---
 
@@ -1005,20 +932,15 @@ The error flows above cover **domain exceptions** — business rule violations t
 
 ## 14. Key Takeaways
 
-### Hexagonal Architecture
+### What the Sell Use Case Proved About the Architecture
 
-- **Ports define contracts** between the core and infrastructure — adapters implement them.
-- **Adapters are replaceable** without modifying domain or application code (e.g., swap Finnhub for AlphaVantage).
-- **Dependencies point inward** — adapters depend on ports, never the reverse.
-- **Testability follows naturally** — the domain can be tested with no infrastructure at all.
-
-### Domain-Driven Design
-
-- **Aggregates protect invariants** — in HexaStock, `Portfolio` is the chosen aggregate root for this consistency boundary, so all state changes to `Holding` and `Lot` are coordinated through `Portfolio`.
-- **Application services orchestrate** — they coordinate use cases without containing business logic.
-- **Value Objects eliminate primitive obsession** — types like `Money`, `Price`, `ShareQuantity`, `Ticker`, and `PortfolioId` enforce constraints at construction time and make the ubiquitous language explicit.
-- **Business rules live in the domain** — FIFO logic belongs in `Holding.sell()`, not in a service or adapter. The companion **[Rich vs Anemic Domain Model study](../richVsAnemicDomainModel/RICH_VS_ANEMIC_DOMAIN_MODEL_TUTORIAL.md)** shows what happens when this logic is moved to the service layer.
-- **Domain exceptions speak business language** — `ConflictQuantityException` represents a business rule violation, not a technical error.
+- **One use case exposed every layer.** A single `POST /api/portfolios/{id}/sales` request exercised the REST adapter, inbound port, application service, aggregate root, two entities, five value objects, three outbound ports, JPA persistence, and global error handling — all verifiable through the end-to-end trace.
+- **The hexagon kept its promise.** Swapping `MockFinhubStockPriceAdapter` for `FixedPriceStockPriceAdapter` in tests required zero changes to domain or application code. Dependency inversion is not just theory here — it is a testable, demonstrable property.
+- **Aggregate root enforcement prevented a real class of bugs.** The anti-pattern in Section 10B showed how direct service manipulation of lots produces FIFO duplication, balance inconsistency, and invariant violation. The aggregate root boundary is the reason that one-line `portfolio.sell(ticker, quantity, price)` call is both correct and complete.
+- **FIFO accounting lived entirely in `Holding.sell()`** — not in the service, not in the controller, not in the persistence layer. The companion **[Rich vs Anemic Domain Model study](../richVsAnemicDomainModel/RICH_VS_ANEMIC_DOMAIN_MODEL_TUTORIAL.md)** shows what happens when this logic migrates to the service layer.
+- **Value Objects created the ubiquitous language in code.** `Money`, `Price`, `ShareQuantity`, and `Ticker` did not just prevent primitive-obsession bugs — they made the domain's vocabulary compile-time-enforced. The Gherkin scenario says "proceeds = 1800.00" and the test asserts `assertEquals(Money.of("1800.00"), result.proceeds())`; every term is the same in both artifacts.
+- **The specification chain held end to end.** Gherkin → `@SpecificationRef` → JUnit → domain code created a traceable chain from business requirement to executable proof. The `costBasis` values in the integration tests are the mathematical proof of FIFO order.
+- **Domain exceptions spoke business language across the boundary.** `ConflictQuantityException` originated in `Holding.sell()`, propagated through the application service, and was translated by `ExceptionHandlingAdvice` into HTTP 409 with an RFC 7807 problem body — no framework-specific exception handling in the domain.
 
 ---
 
@@ -1186,7 +1108,7 @@ Each link in this chain serves a distinct purpose:
 
 This traceability is deliberately **lightweight and non-invasive**: no frameworks, no external tools, no runtime overhead. The annotation is purely informational — a human or tool can scan the codebase to produce a traceability matrix, but the tests themselves are unaffected.
 
-> **Why this matters for AI-assisted development:** When using AI tools to generate or modify tests, the `@SpecificationRef` annotation preserves institutional knowledge. An AI can read the annotation and understand *why* a test exists, not just *what* it asserts. This makes AI-generated changes safer because the tool can verify that every acceptance criterion remains covered.
+> **Why this matters for AI-assisted development:** When using AI tools to generate or modify tests, the `@SpecificationRef` annotation preserves institutional knowledge. An AI can read the annotation and understand *why* a test exists, not just *what* it asserts. This makes AI-generated changes safer because the tool can verify that every acceptance criterion remains covered. For a detailed treatment of how specifications like these enable high-quality AI-assisted implementation — including a real consulting case where Gherkin, UML, and OpenAPI artifacts drove end-to-end code generation — see **[Specification-Driven Development with AI](../specificationDrivenAI/SPECIFICATION-DRIVEN-DEVELOPMENT-WITH-AI.md)**.
 
 ---
 
@@ -1212,7 +1134,7 @@ This tutorial is part of a larger documentation ecosystem. The HexaStock reposit
 
 **Concurrency and Persistence**
 
-- [Concurrency Control with Pessimistic Database Locking](../CONCURRENCY-PESSIMISTIC-LOCKING.md) — Pessimistic and optimistic locking, transaction isolation levels, race condition demonstrations with real tests, and Java 21 virtual thread considerations.
+- [Concurrency Control with Pessimistic and Optimistic Locking](../CONCURRENCY-PESSIMISTIC-LOCKING.md) — Pessimistic and optimistic locking, transaction isolation levels, race condition demonstrations with real tests, and Java 21 virtual thread considerations.
 
 **Scalability and Evolution**
 
@@ -1235,6 +1157,10 @@ This tutorial is part of a larger documentation ecosystem. The HexaStock reposit
 **Requirements Traceability**
 
 - [Tutorial README — Traceability Chain](../README.md) — Architecture of the requirement traceability chain: Specification → Gherkin → Tests → Code, with the sell-stocks use case as the reference pilot.
+
+**Specification-Driven Development with AI**
+
+- [Specification-Driven Development with AI](../specificationDrivenAI/SPECIFICATION-DRIVEN-DEVELOPMENT-WITH-AI.md) — How structurally precise specifications (Gherkin, UML, OpenAPI, ADRs) enable high-quality AI-assisted implementation. Includes a real consulting case, success conditions, failure modes, and practical guidance for teams.
 
 ---
 
