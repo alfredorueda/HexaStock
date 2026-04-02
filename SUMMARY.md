@@ -3,6 +3,7 @@
 ## Reference Use Case
 
 * [Sell Stock Deep Dive](doc/tutorial/sellStocks/SELL-STOCK-TUTORIAL.md)
+* [HexaStock Project Overview](doc/tutorial/sellStocks/HEXASTOCK-PROJECT-OVERVIEW.md)
 * [Sell Stock — Domain Layer Only](doc/tutorial/sellStocks/SELL-STOCK-DOMAIN-TUTORIAL.md)
  
 ## Architecture and Design
@@ -14,6 +15,7 @@
 
 ## Supporting Chapters
 
+* [Specification-Driven Development with AI](doc/tutorial/specificationDrivenAI/SPECIFICATION-DRIVEN-DEVELOPMENT-WITH-AI.md)
 * [Concurrency Control with Pessimistic and Optimistic Locking](doc/tutorial/CONCURRENCY-PESSIMISTIC-LOCKING.md)
 * [Holdings Performance at Scale](doc/tutorial/portfolioReporting/HOLDINGS-PERFORMANCE-AT-SCALE.md)
 * [Watchlists and Market Sentinel](doc/tutorial/watchlists/WATCHLISTS-MARKET-SENTINEL.md)
