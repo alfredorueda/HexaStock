@@ -1187,9 +1187,44 @@ The acknowledgements for this tutorial are maintained separately. See [Acknowled
 - Nottingham, M. and Wilde, E. "Problem Details for HTTP APIs." RFC 7807, IETF, March 2016. https://www.rfc-editor.org/rfc/rfc7807
 - OpenAPI Initiative. *OpenAPI Specification, Version 3.0.* https://spec.openapis.org/oas/v3.0.3
 
-### Tools
+### Engineering Toolchain
 
-- ArchUnit. "Unit Test Your Java Architecture." https://www.archunit.org/
+The implementation traced in this chapter relies on a coordinated set of tools. Each entry below identifies the specific role the tool plays in the sell-stock use case and in the broader engineering practices the tutorial demonstrates.
+
+**Platform and Build**
+
+- **Java 21** (LTS) — the language runtime for the entire system. The domain model, application services, adapters, and all test code target Java 21. The tutorial's code listings use modern language features such as records (`SellResult`, `SaleRequestDTO`), sealed types, and the `getFirst()` collection method.
+- **Spring Boot 3.5** — provides the application framework: dependency injection, `@Transactional` boundaries at the application service level, `@ControllerAdvice` for global error mapping, and `@SpringBootTest` for full-context integration tests. The bootstrap module wires all hexagonal layers together at startup.
+- **Apache Maven** — orchestrates the multi-module build (`domain`, `application`, `adapters-inbound-rest`, `adapters-outbound-persistence-jpa`, `adapters-outbound-market`, `bootstrap`). Module-level dependency declarations enforce the hexagonal dependency rule at compile time: `domain` has zero framework dependencies; adapters depend on ports, never on each other.
+
+**Testing**
+
+- **JUnit 5** — the test execution platform. Domain tests (`PortfolioTest`, `HoldingTest`) use `@Test`, `@DisplayName`, and `assertEquals` to create executable specifications directly translatable from Gherkin scenarios. Integration tests extend a shared abstract base class that manages lifecycle and assertions across the full HTTP stack.
+- **REST Assured 5.4** — drives the integration tests in `PortfolioTradingRestIntegrationTest` and its sibling classes. Fluent assertions such as `.statusCode(200)`, `.body("proceeds", comparesEqualTo(...))` verify JSON responses against expected FIFO financial results, making cost-basis values the mathematical proof of lot-consumption order.
+- **Testcontainers** — provisions a disposable MySQL 8 container for each integration test run, ensuring that persistence round-tripping (domain → JPA entity → database → domain) is tested against a real relational engine, not an in-memory substitute.
+- **ArchUnit** — scans compiled classes across all modules and enforces six hexagonal dependency rules in `HexagonalArchitectureTest`. It complements Maven's module boundaries by catching transitive dependency violations within the same classpath that module declarations alone cannot detect. https://www.archunit.org/
+
+**Persistence and Data**
+
+- **Spring Data JPA / Hibernate** — implements the outbound `PortfolioPort` and `TransactionPort` adapters. Bidirectional mappers convert between the framework-independent domain model (`Portfolio`, `Holding`, `Lot`) and JPA entities (`PortfolioEntity`, `HoldingEntity`, `LotEntity`), keeping the persistence layer on the adapter side of the hexagonal boundary.
+- **MySQL 8** — the production database. Integration tests run against a Testcontainers-managed MySQL instance; local development uses a Docker Compose-provisioned container on port 3307.
+
+**API and Specification**
+
+- **OpenAPI 3.0 / SpringDoc** — the REST API is specified contract-first. SpringDoc (`springdoc-openapi-starter-webmvc-ui`) generates interactive Swagger UI documentation from the controller annotations. The tutorial's API Specification document defines acceptance criteria (e.g., `US-07.AC-1`) that Gherkin scenarios and `@SpecificationRef` annotations trace back to.
+- **Gherkin** — `.feature` files under `doc/features/` serve as the canonical functional specification. The sell-stocks scenarios define FIFO behaviour in business language; domain and integration tests are derived directly from them, creating an executable specification chain that the tutorial traces end to end.
+
+**Diagramming**
+
+- **PlantUML** — sequence diagrams (e.g., `sell-application-service.puml`, `sell-domain-fifo.puml`, `sell-error-portfolio-not-found.puml`) trace the sell request through architectural layers. Source files are maintained under `doc/tutorial/sellStocks/diagrams/` and rendered as SVG images referenced throughout the chapter.
+- **Mermaid** — the hexagonal architecture overview diagram is maintained as a `.mmd` source file (`hexastock-hexagonal-architecture.mmd`) and rendered with `mmdc`. Mermaid's text-based format makes the diagram versionable alongside the code it describes.
+
+**Quality and Continuous Integration**
+
+- **JaCoCo 0.8** — collects test coverage data across all modules. Coverage reports are generated during `mvn verify` and uploaded as build artefacts in the CI pipeline.
+- **SonarQube** — static analysis and quality gate enforcement. The project includes a `sonar-project.properties` configuration that feeds JaCoCo XML reports into Sonar for code quality tracking.
+- **GitHub Actions** — the CI pipeline (`.github/workflows/build.yml`) runs on every push and pull request to `main`: checks out the code, provisions JDK 21 (Temurin), executes `mvn clean verify` (which triggers Testcontainers, all test levels, and JaCoCo instrumentation), and uploads test results and coverage reports as build artefacts.
+- **Docker / Docker Compose** — provides the local development MySQL instance and is required by Testcontainers in the CI environment. The `docker-compose.yml` at the project root defines the database service.
 
 ### Project References
 
