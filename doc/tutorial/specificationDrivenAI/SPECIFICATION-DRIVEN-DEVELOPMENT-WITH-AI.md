@@ -8,9 +8,11 @@
 
 ## About This Chapter
 
-This chapter examines a specific, reproducible engineering practice: using structurally precise specifications — Gherkin scenarios, UML diagrams, OpenAPI contracts, Architecture Decision Records (ADRs), and stack constraints — to guide AI-assisted code generation within a disciplined software architecture. The analysis is grounded in a real consulting engagement where the entire HexaStock implementation was produced through this method using GitHub Copilot with Claude as the underlying model, operating within VS Code.
+This chapter examines a specific, reproducible engineering practice: using structurally precise specifications — Gherkin scenarios, UML diagrams, OpenAPI contracts, Architecture Decision Records (ADRs), and stack constraints — to guide AI-assisted code generation. The method was validated in real consulting practice, where participants used it both to extend existing codebases and to generate projects from scratch. The model used in those engagements was Claude Opus 4.6, operating through GitHub Copilot within VS Code.
 
-This is not a chapter about AI tooling. It is a chapter about software engineering — specifically, about what happens when the specification artefacts that already exist in a well-engineered project are used as the primary input to an AI coding assistant, and about the conditions under which that approach produces results that meet production engineering standards.
+The HexaStock repository serves as the concrete, repository-backed case study documented in this chapter. In that particular case, AI-generated implementation was produced partly within a pre-existing architectural and codebase context. This chapter should therefore be read as one reproducible instance of the method — not as a limitation of the method. The broader consulting experience demonstrated that, when the specification artefacts are sufficiently precise, the same approach is viable for true greenfield generation as well.
+
+This is not a chapter about AI tooling. It is a chapter about software engineering — specifically, about the conditions under which structurally precise specifications enable AI-assisted implementation that meets production engineering standards, whether in greenfield projects or in evolutionary development within an existing system.
 
 ---
 
@@ -38,9 +40,15 @@ Large Language Models (LLMs) integrated into development environments — GitHub
 
 Most discussions of AI-assisted development focus on the tool: which model, which IDE integration, which prompting technique. This chapter takes a different perspective. It asks: **what engineering practices must already be in place for AI-assisted implementation to produce results that meet the standards of a professional codebase?**
 
-The answer, as demonstrated by the HexaStock project, is that the same artefacts which make software engineering disciplined for humans — Gherkin specifications, UML models, OpenAPI contracts, ADRs, and well-defined architectural boundaries — are precisely the artefacts that make AI-assisted development reliable.
+The answer, as demonstrated by the HexaStock project and by broader consulting practice, is that the same artefacts which make software engineering disciplined for humans — Gherkin specifications, UML models, OpenAPI contracts, ADRs, and well-defined architectural boundaries — are precisely the artefacts that make AI-assisted development reliable.
 
 This is not a coincidence. It is a structural consequence of how specification-driven engineering works.
+
+### Scope of Validation
+
+A point of clarity is necessary before proceeding. The method described in this chapter — specification-driven development with AI — was not validated solely through the HexaStock repository. It was validated in consulting practice, where participants generated projects from scratch directly from precise specification artefacts using Claude Opus 4.6. Those experiments demonstrated that, when the specification stack is structurally complete, greenfield generation is genuinely feasible: the AI produces architecturally coherent, testable code without an existing codebase to imitate.
+
+The HexaStock material presented in the sections that follow documents one specific, reproducible application of the method within a repository that includes pre-existing architectural foundations. The presence of that architectural base in the documented case does not mean such a base is *required* for the approach to succeed. Rather, the method is viable both for greenfield generation and for extension within an established system. The HexaStock case was chosen for documentation because the repository is public, the specification artefacts are committed alongside the code, and the entire workflow is therefore independently reproducible.
 
 ---
 
@@ -232,7 +240,7 @@ When all four disciplines converge, the AI is operating within a highly constrai
 
 ### 5.1 Context
 
-The HexaStock system was developed to demonstrate that a production-grade financial domain application could be built using specification-driven AI-assisted development. The project was not a proof of concept or a toy example. It is a multi-module Maven project with:
+As noted in Section 1, the specification-driven approach documented here was validated in consulting practice in both greenfield and existing-codebase scenarios. The HexaStock system serves as the public, repository-backed case study: a production-grade financial domain application built using AI-assisted development guided by structurally precise specifications. The project was not a proof of concept or a toy example. It is a multi-module Maven project with:
 
 - 10 use cases (create portfolio, deposit/withdraw funds, buy/sell stocks, list portfolios, view holdings performance, get stock price, get transaction history)
 - A complete domain model with aggregates, entities, value objects, and domain events
@@ -387,7 +395,9 @@ Natural-language requirements alone were insufficient. The AI produced consisten
 
 ### 6.2 Existing Codebase as Context
 
-The AI did not generate the project from scratch. It generated new use cases within an existing codebase that already demonstrated the conventions, patterns, and naming standards. The existing code served as a powerful form of specification-by-example. When the AI needed to create a new value object, it could reference existing value objects (`Money`, `Price`, `ShareQuantity`) and follow the established pattern.
+In the HexaStock case documented here, the AI generated new use cases within an existing codebase that already demonstrated the conventions, patterns, and naming standards of the target architecture. The existing code served as a powerful form of specification-by-example: when the AI needed to create a new value object, it could reference existing value objects (`Money`, `Price`, `ShareQuantity`) and follow the established pattern.
+
+This should not be misread as a precondition of the method. As noted in Section 1, the same approach was validated in consulting practice in true greenfield scenarios, where no prior codebase existed. In those cases, the specification artefacts alone — Gherkin scenarios, UML models, OpenAPI contracts, ADRs, and stack constraints — provided sufficient context for the AI to generate architecturally coherent initial implementations. An existing codebase accelerates and stabilises generation, but it is not required for the method to work.
 
 ### 6.3 Hard Architectural Boundaries
 
@@ -590,7 +600,9 @@ The sell-stock tutorial was not written as an illustration of AI-assisted develo
 
 Specification-driven development with AI is not a new methodology. It is the application of established engineering practices — BDD, TDD, DDD, Hexagonal Architecture — in a context where AI serves as an implementation engine rather than a design authority. The quality of AI-generated code is determined not by the sophistication of the model or the cleverness of the prompt, but by the precision and completeness of the specifications provided as context.
 
-The HexaStock case demonstrates that when a project maintains formal specifications (Gherkin, UML, OpenAPI), enforces hard architectural boundaries (hexagonal modules, aggregate roots, port interfaces), and verifies output through executable tests (JUnit, Testcontainers, ArchUnit), AI-assisted implementation can produce code that meets production engineering standards.
+The HexaStock case documented here demonstrates that when a project maintains formal specifications (Gherkin, UML, OpenAPI), enforces hard architectural boundaries (hexagonal modules, aggregate roots, port interfaces), and verifies output through executable tests (JUnit, Testcontainers, ArchUnit), AI-assisted implementation can produce code that meets production engineering standards. The broader consulting experience confirms that the same method works in true greenfield scenarios — generating projects from scratch from precise specification artefacts using Claude Opus 4.6 — without requiring a pre-existing codebase as scaffolding.
+
+The method is therefore viable in two distinct modes: greenfield generation, where the specification stack alone drives initial implementation; and evolutionary development, where an existing codebase provides additional context and conventions. In both modes, the same principle holds: specification precision determines output quality.
 
 The architect's role does not diminish. It shifts — from writing implementation code to writing specifications, defining boundaries, and reviewing generated artefacts for architectural fitness. This shift places a higher premium on specification quality and architectural judgment, which are the activities where human engineering expertise is least replaceable.
 
@@ -629,9 +641,9 @@ The specifications that make AI-assisted development reliable are the same speci
 
 ## Acknowledgements
 
-This chapter reflects insights gained during a consulting engagement focused on specification-driven AI-assisted software development. The HexaStock project served as the case study vehicle, and the engineering workflow described here emerged from real development practice, not from theoretical projection.
+This chapter reflects insights gained during consulting engagements focused on specification-driven AI-assisted software development. The HexaStock project serves as the public, repository-backed case study, and the engineering workflow described here emerged from real development practice — both in evolutionary development within an existing codebase and in greenfield generation from scratch — not from theoretical projection.
 
-The author acknowledges the AI tools used during HexaStock development — specifically GitHub Copilot operating within VS Code — as implementation instruments whose output quality was directly determined by the specification artefacts described in this chapter.
+The author acknowledges the AI tools used — specifically GitHub Copilot with Claude Opus 4.6 operating within VS Code — as implementation instruments whose output quality was directly determined by the specification artefacts described in this chapter.
 
 ---
 
