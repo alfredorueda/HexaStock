@@ -6,7 +6,7 @@
 
 This documentation is organised as a book-style technical journey through a working financial portfolio system. HexaStock serves as a concrete architectural case study — built with Java 21, Spring Boot 3, and Maven — where every design decision is grounded in real code, executable specifications, and automated tests. The central narrative follows a single use case, **selling stocks**, through every architectural layer: from Gherkin specification to REST controller, through application service orchestration, into the aggregate root's FIFO lot-consumption algorithm, and back as a structured financial result. The goal is to show how Domain-Driven Design and Hexagonal Architecture function not as abstract principles but as engineering disciplines applied under realistic constraints.
 
-A companion chapter, **[Specification-Driven Development with AI](tutorial/specificationDrivenAI/SPECIFICATION-DRIVEN-DEVELOPMENT-WITH-AI.md)**, examines how the same specification artefacts that structure this book — Gherkin scenarios, UML models, OpenAPI contracts — serve as the enabling context for high-quality AI-assisted code generation, grounded in a real consulting case. 
+A companion chapter, **[Specification-Driven Development with AI](https://alfredo-rueda-unsain.gitbook.io/alfredo-rueda-unsain-docs/supporting-chapters/specification-driven-development-with-ai)**, examines how the same specification artefacts that structure this book — Gherkin scenarios, UML models, OpenAPI contracts — serve as the enabling context for high-quality AI-assisted code generation, grounded in a real consulting case. 
 
 Every chapter in this book is directly backed by a robust, working open-source project. The full source code is publicly available at [github.com/alfredorueda/HexaStock](https://github.com/alfredorueda/HexaStock). Readers are encouraged to clone the repository and explore the codebase alongside the text — the repository [README](https://github.com/alfredorueda/HexaStock#readme) provides the practical information needed to build and run the system locally.
 
@@ -40,7 +40,7 @@ These chapters deepen specific themes introduced in the main study.
 
 > How structurally precise specifications — Gherkin, UML, OpenAPI, ADRs — enable high-quality AI-assisted implementation. This chapter analyses a real consulting case where the HexaStock codebase was built using specification-driven AI-assisted development, and examines the conditions under which this approach meets production engineering standards.
 
-- [Specification-Driven Development with AI](tutorial/specificationDrivenAI/SPECIFICATION-DRIVEN-DEVELOPMENT-WITH-AI.md)
+- [Specification-Driven Development with AI](https://alfredo-rueda-unsain.gitbook.io/alfredo-rueda-unsain-docs/supporting-chapters/specification-driven-development-with-ai)
 
 ---
 
