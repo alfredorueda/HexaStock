@@ -16,24 +16,6 @@ This is not a chapter about AI tooling. It is a chapter about software engineeri
 
 ---
 
-## Table of Contents
-
-1. [Why This Topic Matters Now](#1-why-this-topic-matters-now)
-2. [The Specification Stack](#2-the-specification-stack)
-3. [From Prompting to Engineering](#3-from-prompting-to-engineering)
-4. [How BDD, TDD, DDD, and Hexagonal Architecture Reinforce AI-Assisted Delivery](#4-how-bdd-tdd-ddd-and-hexagonal-architecture-reinforce-ai-assisted-delivery)
-5. [The Consulting Case: End-to-End Implementation with AI](#5-the-consulting-case-end-to-end-implementation-with-ai)
-6. [What Made It Work: Analysis of Success Conditions](#6-what-made-it-work-analysis-of-success-conditions)
-7. [What Still Requires Human Engineering Judgment](#7-what-still-requires-human-engineering-judgment)
-8. [Risks, Limitations, and Failure Modes](#8-risks-limitations-and-failure-modes)
-9. [What Changes for Software Architects and Technical Leads](#9-what-changes-for-software-architects-and-technical-leads)
-10. [Practical Guidance for Teams](#10-practical-guidance-for-teams)
-11. [Relationship with the Sell Stock Tutorial](#11-relationship-with-the-sell-stock-tutorial)
-12. [Conclusion](#12-conclusion)
-13. [References](#13-references)
-
----
-
 ## 1. Why This Topic Matters Now
 
 Large Language Models (LLMs) integrated into development environments — GitHub Copilot, Cursor, Windsurf, and similar tools — have moved from experimental curiosity to daily engineering practice. Yet the results vary enormously. The same model that generates correct, idiomatic code in one context produces subtly broken, untestable, or architecturally incoherent code in another. The variable is not the model. The variable is the specification context available to the model at generation time.
