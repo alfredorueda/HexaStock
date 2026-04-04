@@ -80,14 +80,13 @@ Scenario: Sell stocks with FIFO lot consumption
 
 For an AI, this scenario is not prose — it is a structured, parseable specification of expected behaviour, with concrete values that can be directly translated into test assertions.
 
-### 2.2 UML Diagrams (Structural and Behavioural Models)
+### 2.2 UML Class Diagrams (Structural Model)
 
-UML class diagrams define the domain model's entities, value objects, aggregates, and their relationships. UML sequence diagrams trace the execution flow through architectural layers. In HexaStock, these are authored in PlantUML and rendered as SVG:
+UML class diagrams define the domain model's entities, value objects, aggregates, and their relationships. In HexaStock, these are authored in PlantUML and rendered as SVG:
 
 - **Class diagrams** show that `Portfolio` is the aggregate root, `Holding` and `Lot` are entities within the aggregate boundary, and `Money`, `Price`, `ShareQuantity` are value objects.
-- **Sequence diagrams** show the message flow: `PortfolioRestController` → `PortfolioStockOperationsUseCase` → `PortfolioStockOperationsService` → `Portfolio.sell()` → `Holding.sell()`.
 
-For an AI generating implementation code, a UML class diagram provides the type system. A UML sequence diagram provides the call graph. Together, they constrain generation to architecturally correct structure.
+For an AI generating implementation code, a UML class diagram provides the type system — aggregate boundaries, entity relationships, value object types, and method signatures. This constrains generation to architecturally correct structure.
 
 ### 2.3 OpenAPI 3.0 Contract (Interface Specification)
 
@@ -131,7 +130,6 @@ No single artefact is sufficient. The combined specification stack creates a mul
 |----------|--------------------|
 | Gherkin scenarios | Observable behaviour and business rules |
 | UML class diagrams | Type system, aggregate boundaries, relationships |
-| UML sequence diagrams | Call graph and layer responsibilities |
 | OpenAPI contract | HTTP interface, request/response shapes, error semantics |
 | ADRs | Architectural rationale and design intent |
 | Stack constraints | Technology, framework idioms, and conventions |
@@ -159,10 +157,9 @@ This prompt is ambiguous. What is "a service"? An application service? A domain 
 The AI reads:
 1. The Gherkin scenario defining FIFO behaviour with concrete values
 2. The UML class diagram showing `Portfolio` → `Holding` → `Lot` with `sell()` on `Holding`
-3. The UML sequence diagram showing the call chain from controller through service to aggregate
-4. The OpenAPI contract specifying the REST endpoint and response shape
-5. The ADR explaining why `Portfolio` is the aggregate root
-6. The existing codebase with its package structure, naming conventions, and value object types
+3. The OpenAPI contract specifying the REST endpoint and response shape
+4. The ADR explaining why `Portfolio` is the aggregate root
+5. The existing codebase with its package structure, naming conventions, and value object types
 
 The generation is no longer a creative act by the model. It is a *translation* from multiple formal specifications into implementation code. The degrees of freedom are minimal. The model's role is to synthesise the constraints into syntactically correct, idiomatically appropriate code — not to make design decisions.
 
@@ -275,7 +272,7 @@ The workflow followed a consistent sequence for each use case. The steps below d
 
 **Primary ownership:** Joint during behavioural specification; engineering-led during architectural formalisation \
 **Main participants:** Architect, domain experts (for Gherkin review and acceptance criteria validation), lead engineer \
-**Purpose:** Produce the formal specification stack — Gherkin scenarios with concrete values, UML class and sequence diagrams, OpenAPI 3.0 contract definitions, and Architecture Decision Records.
+**Purpose:** Produce the formal specification stack — Gherkin scenarios with concrete values, UML class diagrams, OpenAPI 3.0 contract definitions, and Architecture Decision Records.
 
 **Human role.** The architect makes fundamental design decisions — aggregate boundaries, module structure, port definitions, API shape — that require deep understanding of both the domain and the target architecture. Domain experts review Gherkin scenarios to confirm they express the correct business behaviour, and both sides refine the ubiquitous language as captured in scenario vocabulary.
 
@@ -373,7 +370,7 @@ For the sell-stocks use case specifically, the AI generated:
 ### 5.4 What the AI Did Not Generate
 
 - The Gherkin scenarios
-- The UML class and sequence diagrams
+- The UML class diagrams
 - The OpenAPI contract
 - The architectural decisions (aggregate boundaries, module structure, port definitions)
 - The `@SpecificationRef` traceability annotations (added by the architect to link tests to specifications)
@@ -586,7 +583,7 @@ Specific connections:
 | This Chapter | Sell Stock Tutorial |
 |-------------|-------------------|
 | Section 2.1 — Gherkin Scenarios | Section 3 — Functional Specification (Gherkin) |
-| Section 2.2 — UML Diagrams | Section 6 — Domain Context (class diagrams), Section 9 — Execution Trace (sequence diagrams) |
+| Section 2.2 — UML Class Diagrams | Section 6 — Domain Context (class diagrams) |
 | Section 2.3 — OpenAPI Contract | Section 7 — REST Entry Point |
 | Section 3 — From Prompting to Engineering | Section 16 — Requirements Traceability (`@SpecificationRef`) |
 | Section 4.3 — DDD and AI | Section 10 — Services vs Aggregates (anti-pattern demonstration) |
