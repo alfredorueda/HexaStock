@@ -8,9 +8,7 @@
 
 ## About This Chapter
 
-This chapter examines a specific, reproducible engineering practice: using structurally precise specifications — Gherkin scenarios, UML diagrams, OpenAPI contracts, Architecture Decision Records (ADRs), and stack constraints — to guide AI-assisted code generation. The method was validated in real consulting practice, where participants used it both to extend existing codebases and to generate projects from scratch. The model used in those engagements was Claude Opus 4.6, operating through GitHub Copilot within VS Code.
-
-The HexaStock repository serves as the concrete, repository-backed case study documented in this chapter. In that particular case, AI-generated implementation was produced partly within a pre-existing architectural and codebase context. This chapter should therefore be read as one reproducible instance of the method — not as a limitation of the method. The broader consulting experience demonstrated that, when the specification artefacts are sufficiently precise, the same approach is viable for true greenfield generation as well.
+This chapter examines a specific, reproducible engineering practice: using structurally precise specifications — Gherkin scenarios, UML diagrams, OpenAPI contracts, Architecture Decision Records (ADRs), and stack constraints — to guide AI-assisted code generation. The method was validated in real consulting practice, where participants used it both to extend existing codebases and to generate projects from scratch. The model used in those engagements was Claude Opus 4.6, running via GitHub Copilot in VS Code.
 
 This is not a chapter about AI tooling. It is a chapter about software engineering — specifically, about the conditions under which structurally precise specifications enable AI-assisted implementation that meets production engineering standards, whether in greenfield projects or in evolutionary development within an existing system.
 
@@ -28,9 +26,9 @@ This is not a coincidence. It is a structural consequence of how specification-d
 
 ### Scope of Validation
 
-The method described in this chapter — specification-driven development with AI — was validated in consulting practice, where participants generated projects from scratch directly from precise specification artefacts using Claude Opus 4.6. Those experiments demonstrated that, when the specification stack is structurally complete, greenfield generation is genuinely feasible: the AI produces architecturally coherent, testable code without an existing codebase to imitate.
+The method described in this chapter — specification-driven development with AI — was validated in a consulting practice, where participants generated projects from scratch using precise specification artefacts in Claude Opus 4.6. Those experiments demonstrated that, when the specification stack is structurally complete, greenfield generation is genuinely feasible: the AI produces architecturally coherent, testable code without an existing codebase to imitate.
 
-The HexaStock material presented in the sections that follow documents one specific, reproducible application of the method within a repository that includes pre-existing architectural foundations. The presence of that architectural base in the documented case does not mean such a base is *required* for the approach to succeed. Rather, the method is viable both for greenfield generation and for extension within an established system. The HexaStock case was chosen for documentation because the repository is public, the specification artefacts are committed alongside the code, and the entire workflow is therefore independently reproducible.
+The method is viable for both greenfield generation and extension within an established system. The HexaStock case was chosen for documentation because the repository is public, the specification artefacts are committed alongside the code, and the entire workflow is therefore independently reproducible.
 
 ---
 
@@ -68,7 +66,7 @@ UML class diagrams define the domain model's entities, value objects, aggregates
 
 - **Class diagrams** show that `Portfolio` is the aggregate root, `Holding` and `Lot` are entities within the aggregate boundary, and `Money`, `Price`, `ShareQuantity` are value objects.
 
-For an AI generating implementation code, a UML class diagram provides the type system — aggregate boundaries, entity relationships, value object types, and method signatures. This constrains generation to architecturally correct structure.
+For an AI-generated implementation, a UML class diagram provides the type system — aggregate boundaries, entity relationships, value object types, and method signatures. This constrains the generation to an architecturally correct structure.
 
 ### 2.3 OpenAPI 3.0 Contract (Interface Specification)
 
@@ -122,7 +120,7 @@ When an AI operates within all these constraints simultaneously, the space of va
 
 ## 3. From Prompting to Engineering
 
-The typical narrative around AI-assisted development emphasises *prompting* — crafting natural-language instructions that guide the model toward desired output. This framing has a fundamental limitation: it places the specification inside the prompt, making it ephemeral, informal, and unrepeatable.
+The typical narrative around AI-assisted development emphasises *prompting* — crafting natural-language instructions that guide the model toward desired output. This framing has a fundamental limitation: it embeds the specification within the prompt, rendering it ephemeral, informal, and unrepeatable.
 
 Specification-driven development with AI inverts this relationship. The specification is not in the prompt. The specification exists as a durable engineering artefact — a Gherkin file, a UML diagram, an OpenAPI contract — that is part of the project repository. The AI reads these artefacts as context and generates code that satisfies their constraints.
 
@@ -143,7 +141,7 @@ The AI reads:
 4. The ADR explaining why `Portfolio` is the aggregate root
 5. The existing codebase with its package structure, naming conventions, and value object types
 
-The generation is no longer a creative act by the model. It is a *translation* from multiple formal specifications into implementation code. The degrees of freedom are minimal. The model's role is to synthesise the constraints into syntactically correct, idiomatically appropriate code — not to make design decisions.
+The generation is no longer a creative act on the model's part. It is a *translation* from multiple formal specifications into implementation code. The degrees of freedom are minimal. The model's role is to synthesise the constraints into syntactically correct, idiomatically appropriate code — not to make design decisions.
 
 ### Why This Distinction Matters
 
@@ -219,7 +217,7 @@ When all four disciplines converge, the AI is operating within a highly constrai
 
 ### 5.1 Context
 
-As noted in Section 1, the specification-driven approach documented here was validated in consulting practice in both greenfield and existing-codebase scenarios. The HexaStock system serves as the public, repository-backed case study: a production-grade financial domain application built using AI-assisted development guided by structurally precise specifications. The project was not a proof of concept or a toy example. It is a multi-module Maven project with:
+As noted in Section 1, the specification-driven approach documented here was validated in consulting practice in both greenfield and existing-codebase scenarios. The HexaStock system serves as the public, repository-backed case study: a production-grade financial domain application built using AI-assisted development guided by structurally precise specifications. The project was not a proof-of-concept or a toy example. It is a multi-module Maven project with:
 
 - 10 use cases (create portfolio, deposit/withdraw funds, buy/sell stocks, list portfolios, view holdings performance, get stock price, get transaction history)
 - A complete domain model with aggregates, entities, value objects, and domain events
@@ -232,7 +230,7 @@ As noted in Section 1, the specification-driven approach documented here was val
 
 ### 5.2 The Engineering Workflow
 
-The workflow followed a consistent sequence for each use case. The steps below describe the process as practised during the HexaStock engagement. Every step is human-directed, AI-assisted where appropriate, and human-validated before the team proceeds. Different stakeholder groups contribute at different stages according to their expertise.
+The workflow followed a consistent sequence for each use case. The steps below describe the process as practised during the HexaStock engagement. Every step is human-directed, AI-assisted where appropriate, and human-validated before the team proceeds. Different stakeholder groups contribute at different stages, depending on their expertise.
 
 > **Terminological note.** In the descriptions that follow, *"business-side stakeholders"* refers to domain experts, product owners, business analysts, and anyone whose primary concern is business correctness. *"Engineering-side stakeholders"* refers to architects, developers, QA engineers, and anyone whose primary concern is technical correctness, architectural fitness, and production readiness.
 
@@ -270,7 +268,7 @@ The workflow followed a consistent sequence for each use case. The steps below d
 **Main participants:** Architect or lead engineer \
 **Purpose:** Select and assemble the specification artefacts, relevant ADRs, and existing code samples that will serve as context for implementation generation. In VS Code with GitHub Copilot, this context is provided through the conversation window and file references.
 
-**Human role.** The engineer decides which specifications, existing code files, and architectural references are relevant to the current generation task. This requires judgment about scope, interrelationships, and what the AI needs to "see" to produce architecturally correct output. The engineer also determines the generation sequence — which layer first, what scope per step — based on the project's hexagonal structure.
+**Human role.** The engineer decides which specifications, existing code files, and architectural references are relevant to the current generation task. This requires judgment about scope, interrelationships, and what the AI needs to "see" to produce architecturally correct output. The engineer also determines the generation sequence — which layer is generated first, and what scope is covered per step — based on the project's hexagonal structure.
 
 **AI assistance.** Minimal. Context selection is a judgment-intensive activity that depends on architectural awareness. AI may help surface related files through search or identify references between artefacts, but the selection and scoping decisions remain human.
 
@@ -312,17 +310,17 @@ The workflow followed a consistent sequence for each use case. The steps below d
 **Main participants:** Architect, senior engineers \
 **Purpose:** Address edge cases, error handling, cross-cutting concerns (transactionality, caching, concurrency, observability), and production readiness.
 
-**Human role.** Engineers make judgment calls about concurrency strategy, transaction isolation levels, cache invalidation policies, error response semantics, and performance trade-offs. These decisions require understanding of production operating conditions, failure modes, and non-functional requirements that are rarely captured fully in behavioural specifications. The engineer also identifies and specifies previously unstated invariants surfaced during implementation.
+**Human role.** Engineers make judgment calls about concurrency strategy, transaction isolation levels, cache invalidation policies, error response semantics, and performance trade-offs. These decisions require an understanding of production operating conditions, failure modes, and non-functional requirements that are rarely captured fully in behavioural specifications. The engineer also identifies and specifies previously unstated invariants surfaced during implementation.
 
-**AI assistance.** Once engineering decisions are made, AI may assist in implementing the chosen patterns — applying a selected concurrency strategy, generating error-handling code following established project conventions, drafting configuration for caching or retry policies. The AI executes decisions; it does not make them.
+**AI assistance.** Once engineering decisions are made, AI may assist in implementing the chosen patterns — applying a selected concurrency strategy, generating error-handling code following established project conventions, and drafting a configuration for caching or retry policies. The AI executes decisions; it does not make them.
 
 **Human review requirement.** All refinements are reviewed for architectural consistency, production suitability, and alignment with non-functional requirements. The architect confirms that cross-cutting decisions do not introduce unintended coupling or violate the hexagonal structure.
 
-**Why this matters.** Production-grade software requires engineering decisions that transcend functional correctness. Concurrency, resilience, observability, and security are domains where experienced human judgment is irreplaceable. AI can accelerate implementation of chosen patterns, but the choice of pattern remains an engineering responsibility.
+**Why this matters.** Production-grade software requires engineering decisions that transcend functional correctness. Concurrency, resilience, observability, and security are domains where experienced human judgment is irreplaceable. AI can accelerate the implementation of selected patterns, but the selection of patterns remains an engineering responsibility.
 
 #### Stakeholder Participation Across the Workflow
 
-The table below summarises the realistic distribution of stakeholder involvement. The early phases are the most collaborative; later phases become progressively more engineering-led, with business stakeholders returning for validation of outcomes.
+The table below summarises the realistic distribution of stakeholder involvement. The early phases are the most collaborative; later phases become progressively more engineering-led, with business stakeholders returning to validate outcomes.
 
 | Step | Primary Ownership | Business-Side Role | Engineering-Side Role |
 |------|------------------|-------------------|-----------------------|
@@ -374,7 +372,7 @@ Natural-language requirements alone were insufficient. The AI produced consisten
 
 ### 6.2 Existing Codebase as Context
 
-In the HexaStock case documented here, the AI generated new use cases within an existing codebase that already demonstrated the conventions, patterns, and naming standards of the target architecture. The existing code served as a powerful form of specification-by-example: when the AI needed to create a new value object, it could reference existing value objects (`Money`, `Price`, `ShareQuantity`) and follow the established pattern.
+In the HexaStock case documented here, the AI generated new use cases within an existing codebase that already adhered to the target architecture's conventions, patterns, and naming standards. The existing code served as a powerful form of specification-by-example: when the AI needed to create a new value object, it could reference existing value objects (`Money`, `Price`, `ShareQuantity`) and follow the established pattern.
 
 This should not be misread as a precondition of the method. As noted in Section 1, the same approach was validated in consulting practice in true greenfield scenarios, where no prior codebase existed. In those cases, the specification artefacts alone — Gherkin scenarios, UML models, OpenAPI contracts, ADRs, and stack constraints — provided sufficient context for the AI to generate architecturally coherent initial implementations. An existing codebase accelerates and stabilises generation, but it is not required for the method to work.
 
@@ -410,15 +408,15 @@ AI-assisted development shifts the architect's role but does not eliminate it. T
 
 ### 7.1 Defining Aggregate Boundaries
 
-Deciding that `Portfolio` is the aggregate root — and that `Holding` and `Lot` are entities within its boundary rather than separate aggregates — is a design decision that requires understanding of consistency requirements, transaction boundaries, and domain invariants. The AI can implement an aggregate root once the boundary is defined, but it cannot determine the boundary from business requirements alone.
+Deciding that `Portfolio` is the aggregate root — and that `Holding` and `Lot` are entities within its boundary rather than separate aggregates — is a design decision that requires understanding of consistency requirements, transaction boundaries, and domain invariants. The AI can implement an aggregate root once the boundary is defined, but it cannot determine the boundary solely from business requirements.
 
 ### 7.2 Choosing Concurrency Strategies
 
-Whether to use pessimistic locking, optimistic locking, or eventual consistency is a decision that depends on usage patterns, performance requirements, and failure tolerance. The HexaStock concurrency chapter demonstrates three approaches with real race-condition tests — but the decision of which approach to use in production was made by the architect, not by the AI.
+Deciding whether to use pessimistic, optimistic, or eventual consistency depends on usage patterns, performance requirements, and failure tolerance. The HexaStock concurrency chapter demonstrates three approaches with real race-condition tests—but the decision on which to use in production was made by the architect, not by the AI.
 
 ### 7.3 Balancing Completeness and Simplicity
 
-The AI, when given specifications, tends to generate complete implementations. But engineering judgment often requires *not* implementing something — deferring a feature, choosing a simpler approach, or deliberately accepting a limitation. The AI does not have the context of project timelines, team capabilities, or business priorities that inform these decisions.
+The AI, when given specifications, tends to generate complete implementations. But engineering judgment often requires *not* implementing something — deferring a feature, choosing a simpler approach, or deliberately accepting a limitation. The AI lacks the context of project timelines, team capabilities, and business priorities that inform these decisions.
 
 ### 7.4 Naming and Ubiquitous Language
 
@@ -430,7 +428,7 @@ Specifications capture stated requirements. But experienced engineers also prote
 
 ### 7.6 Architecture Evolution Decisions
 
-When the codebase grows, architectural decisions arise that cross use-case boundaries: Should we introduce domain events? Should we add a CQRS read model? Should we extract a bounded context into a separate service? These strategic decisions require understanding of the project's trajectory and organisational context that falls outside any single specification artefact.
+When the codebase grows, architectural decisions arise that cross use-case boundaries: Should we introduce domain events? Should we add a CQRS read model? Should we extract a bounded context into a separate service? These strategic decisions require an understanding of the project's trajectory and organisational context that falls outside any single specification artefact.
 
 ---
 
@@ -446,7 +444,7 @@ The AI generates code that satisfies the specifications it receives. If the spec
 
 ### 8.2 Confident Incorrectness
 
-LLMs generate plausible-looking code with high confidence, even when the code is subtly wrong. In the HexaStock development, the AI occasionally generated FIFO logic that consumed lots in the correct order but calculated cost basis incorrectly. The code compiled, the structure looked right, and a casual review would not catch the error. Only the executable specification — with its concrete numeric values — caught the discrepancy.
+LLMs generate plausible-looking code with high confidence, even when the code is subtly wrong. During HexaStock development, the AI occasionally generated FIFO logic that consumed lots in the correct order but incorrectly calculated cost basis. The code compiled, the structure looked right, and a casual review would not catch the error. Only the executable specification — with its concrete numeric values — caught the discrepancy.
 
 **Mitigation:** Never trust AI-generated code without executable verification. This is not a "nice to have" — it is the primary safety mechanism.
 
@@ -458,7 +456,7 @@ Current LLMs have finite context windows. For a small-to-medium project like Hex
 - Duplicate utility methods or value objects
 - Architectural drift when the AI cannot "see" the full hexagonal structure
 
-**Mitigation:** Use consistent file and package naming conventions. Maintain a living architecture document (like the HexaStock Architecture Map) that can be included in every generation session. Break generation into small, well-defined tasks where the relevant context fits within the window.
+**Mitigation:** Use consistent file and package naming conventions. Maintain a living architecture document (like the HexaStock Architecture Map) that can be included in every generation session. Break generation into small, well-defined tasks, with the relevant context fitting within the window.
 
 ### 8.4 Over-Reliance on Generated Tests
 
@@ -470,13 +468,13 @@ If the AI generates both implementation and tests, the tests may reflect the imp
 
 If AI-assisted development requires comprehensive specifications, and specification authoring remains a human activity, then the bottleneck shifts from implementation to specification. This is not necessarily a problem — specification is arguably where the most important engineering decisions are made — but it does mean that the total effort may not decrease as much as expected.
 
-**Mitigation:** Recognise that the value proposition is not primarily speed. It is quality, consistency, and the ability to maintain a traceable chain from requirements to code. Specification-driven development with AI produces a codebase that is more verifiable and more maintainable than ad-hoc implementation, whether performed by a human or an AI.
+**Mitigation:** Recognise that the value proposition is not primarily speed. It is quality, consistency, and the ability to maintain a traceable chain from requirements to code. Specification-driven development produces a codebase that is more verifiable and maintainable than ad hoc implementation, whether performed by a human or an AI.
 
 ### 8.6 Model Capability Degradation
 
 LLM capabilities vary across model versions, providers, and even between sessions. A workflow that produces excellent results with one model version may produce inferior results with the next. This is a practical concern for teams that depend on AI-assisted development for sustained productivity.
 
-**Mitigation:** Design the workflow to be model-agnostic. The specification stack does not depend on any particular AI model. If the model changes, the specifications remain. The feedback loop (generate → test → correct) works with any model that can read code and specifications.
+**Mitigation:** Design the workflow to be model-agnostic. The specification stack does not depend on any particular AI model. If the model changes, the specifications remain the same. The feedback loop (generate → test → correct) works with any model that can read code and specifications.
 
 ---
 
@@ -488,7 +486,7 @@ Specification-driven AI-assisted development does not eliminate the architect's 
 
 In traditional development, the architect's primary deliverable is often an architecture document or a set of design decisions that developers interpret into code. In specification-driven development with AI, the architect's primary deliverable is the specification stack itself — Gherkin scenarios, UML models, OpenAPI contracts, ADRs — because these artefacts directly drive implementation.
 
-This raises the quality bar for specifications. A Gherkin scenario with vague `Then` clauses or a UML diagram with ambiguous relationships will produce ambiguous code. The architect must write specifications that are precise enough to constrain generation to correct implementations.
+This raises the bar on specification quality. A Gherkin scenario with vague `Then` clauses or a UML diagram with ambiguous relationships will produce ambiguous code. The architect must write specifications that are precise enough to constrain generation to correct implementations.
 
 ### 9.2 Code Review Shifts to Architectural Verification
 
@@ -502,7 +500,7 @@ The architect spends less time reviewing whether the code "works" (tests verify 
 
 ### 9.3 Testing Strategy Becomes Infrastructure
 
-Tests are no longer just verification — they are the feedback mechanism that drives iterative correction of AI-generated code. The testing infrastructure (Testcontainers setup, base test classes, test data builders) becomes critical engineering infrastructure, not an afterthought.
+Tests are no longer just verification — they are the feedback mechanism that drives iterative correction of AI-generated code. The testing infrastructure (Testcontainers setup, base test classes, test data builders) becomes critical engineering infrastructure rather than an afterthought.
 
 ### 9.4 The Team Composition Question
 
@@ -522,11 +520,11 @@ For teams considering specification-driven AI-assisted development, the HexaStoc
 
 ### 10.1 Start with an Existing Specification Practice
 
-AI-assisted development amplifies existing engineering practices. If your team already writes Gherkin scenarios, maintains UML models, and uses contract-first API design, you can begin using these artefacts as AI context immediately. If your team does not have these practices, introducing AI-assisted development simultaneously with specification-driven design will conflate two significant workflow changes and make it difficult to diagnose problems.
+AI-assisted development amplifies existing engineering practices. If your team already writes Gherkin scenarios, maintains UML models, and uses contract-first API design, you can begin using these artefacts as AI context immediately. If your team does not have these practices, introducing AI-assisted development alongside specification-driven design will conflate two significant workflow changes, making it difficult to diagnose problems.
 
 ### 10.2 Define Architectural Boundaries Before Generating Code
 
-Ensure that module structure, package conventions, port interfaces, and aggregate boundaries are defined before the AI generates implementation code. These boundaries are constraints that improve generation quality. Defining them afterward means retroactively refactoring AI-generated code, which loses most of the productivity benefit.
+Ensure that module structure, package conventions, port interfaces, and aggregate boundaries are defined before the AI generates implementation code. These boundaries are constraints that improve the quality of generation. Defining them afterwards means retroactively refactoring AI-generated code, which loses most of the productivity benefit.
 
 ### 10.3 Generate One Layer at a Time
 
@@ -558,7 +556,7 @@ Some constraints are not captured in specifications: performance requirements, r
 
 ## 11. Relationship with the Sell Stock Tutorial
 
-The **[Sell Stock Deep Dive](../sellStocks/SELL-STOCK-TUTORIAL.md)** serves as the primary worked example for this chapter's principles. The entire specification stack described in Section 2 — Gherkin scenarios, UML diagrams, OpenAPI contracts — exists in the HexaStock repository, and the sell-stock tutorial traces how those specifications translate into implemented, tested code.
+The **[Sell Stock Deep Dive](../sellStocks/SELL-STOCK-TUTORIAL.md)** serves as the primary worked example for this chapter's principles. The entire specification stack described in Section 2 — Gherkin scenarios, UML diagrams, OpenAPI contracts — is available in the HexaStock repository, and the sell-stock tutorial shows how those specifications translate into implemented, tested code.
 
 Specific connections:
 
