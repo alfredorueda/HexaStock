@@ -4,7 +4,7 @@ import cat.gencat.agaur.hexastock.model.money.Money;
 import cat.gencat.agaur.hexastock.model.portfolio.Portfolio;
 import cat.gencat.agaur.hexastock.model.portfolio.PortfolioId;
 import cat.gencat.agaur.hexastock.model.money.InvalidAmountException;
-import cat.gencat.agaur.hexastock.model.portfolio.PortfolioNotFoundException;
+import cat.gencat.agaur.hexastock.application.exception.PortfolioNotFoundException;
 import java.util.List;
 
 /**

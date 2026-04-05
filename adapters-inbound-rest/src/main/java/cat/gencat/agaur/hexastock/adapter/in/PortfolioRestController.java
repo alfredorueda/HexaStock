@@ -12,7 +12,7 @@ import cat.gencat.agaur.hexastock.model.money.*;
 import cat.gencat.agaur.hexastock.model.portfolio.ConflictQuantityException;
 import cat.gencat.agaur.hexastock.model.money.InvalidAmountException;
 import cat.gencat.agaur.hexastock.model.money.InvalidQuantityException;
-import cat.gencat.agaur.hexastock.model.portfolio.PortfolioNotFoundException;
+import cat.gencat.agaur.hexastock.application.exception.PortfolioNotFoundException;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;

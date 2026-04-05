@@ -16,7 +16,7 @@ This tutorial traces a single use case — **selling stocks** — through every 
 
 ## HexaStock in Brief
 
-HexaStock is a stock portfolio management platform supporting 10 use cases — portfolio creation, fund management, stock trading with automatic FIFO lot accounting, holdings performance tracking, and transaction history. It is structured as a Maven multi-module project where each module enforces a hexagonal architecture boundary at build time:
+HexaStock is a stock portfolio management platform supporting 10 use cases — portfolio creation, fund management, stock trading with automatic FIFO lot accounting, holdings performance tracking, and transaction history. It is structured as a Maven multi-module project where module boundaries codify the dependency rule at build time:
 
 ```
 HexaStock (parent pom)
@@ -28,7 +28,7 @@ HexaStock (parent pom)
 └── bootstrap/                           → Spring Boot entry point, composition root, runtime wiring
 ```
 
-The domain model has zero framework dependencies. All communication with infrastructure passes through port interfaces. Dependencies point inward — adapters depend on ports, never the reverse. For the full project background — detailed module descriptions, domain package layout, architectural identity, and the rationale behind the multi-module structure — see **[HexaStock — Project Overview](HEXASTOCK-PROJECT-OVERVIEW.md)**.
+The domain model has zero framework dependencies. All communication with infrastructure passes through port interfaces. Dependencies point inward — adapters depend on ports, never the reverse. Maven module boundaries codify the dependency rule at build time because `domain/pom.xml` does not declare any infrastructure dependencies (Spring, JPA, etc.). The adapter modules depend on ports, and ports are defined in the application module. Any attempt to add a direct dependency from the domain to an outbound adapter module would fail unless that dependency were explicitly declared. For the full project background — detailed module descriptions, domain package layout, architectural identity, and the rationale behind the multi-module structure — see **[HexaStock — Project Overview](HEXASTOCK-PROJECT-OVERVIEW.md)**.
 
 ---
 
@@ -765,10 +765,10 @@ When concurrent requests target the same portfolio, several problems can arise w
 
 ### How HexaStock Handles Concurrency
 
-HexaStock uses **database-level transaction isolation**:
+HexaStock uses **database-level transaction isolation** combined with explicit locking:
 
 - `@Transactional` establishes the boundary at the application service level
-- Database isolation (typically READ_COMMITTED or higher) ensures consistent snapshots
+- Database isolation (typically READ_COMMITTED) prevents dirty reads but does not prevent lost updates or non-repeatable reads. For financial operations like stock selling, stronger mechanisms such as pessimistic locking (`SELECT FOR UPDATE`) or optimistic locking with version fields are required to avoid race conditions
 - For high-contention scenarios, **pessimistic locking** via `@Lock(LockModeType.PESSIMISTIC_WRITE)` serializes access to specific portfolio rows
 
 The transaction boundary is placed at the **application service** — not the domain model — because transaction management is an infrastructure concern and domain objects should remain technology-agnostic.
@@ -823,9 +823,9 @@ The persistence layer deals with primitives (`String`, `BigDecimal`, `int`), whi
 
 **Trigger:** Selling from a non-existent portfolio
 
-**Exception:** `PortfolioNotFoundException` (domain exception)
+**Exception:** `PortfolioNotFoundException` (application exception)
 
-> **📐 Architectural note:** `PortfolioNotFoundException` is defined in the domain module (`model.portfolio`) and extends `DomainException`, so it is classified as a domain exception. However, it is thrown by the *application service* — not by the aggregate root — since the portfolio lookup occurs before the domain model is invoked. This placement is a pragmatic choice: the exception names a domain concept (a missing portfolio) but guards an application-level precondition (the entity must exist before the use case can proceed).
+> **📐 Architectural note:** `PortfolioNotFoundException` is defined in the application module (`application.exception`) and extends `RuntimeException`. It is thrown by application services when looking up an aggregate that does not exist — a precondition check that occurs *before* the domain model is invoked. This correctly places the exception in the application layer: missing-aggregate retrieval is an application-level concern, not a domain invariant. Domain exceptions (those extending `DomainException`) are reserved for business-rule violations detected inside the aggregate root.
 
 **Code:**
 
@@ -845,7 +845,7 @@ HTTP 404 Not Found
 }
 ```
 
-**Exception Handler:** The `@ControllerAdvice` class (`ExceptionHandlingAdvice`) catches `PortfolioNotFoundException` and converts it to HTTP 404.
+**Exception Handler:** The `@ControllerAdvice` class (`ExceptionHandlingAdvice`) catches `PortfolioNotFoundException` and converts it to HTTP 404. Although this is an application exception (not a domain exception), it flows through the same `@ControllerAdvice` mechanism that handles domain exceptions.
 
 **Diagram Reference:** See [`diagrams/sell-error-portfolio-not-found.puml`](diagrams/sell-error-portfolio-not-found.puml)
 
@@ -927,6 +927,8 @@ HTTP 409 Conflict
 ### A Note on Infrastructure Failures
 
 The error flows above cover **domain exceptions** — business rule violations that the domain model detects and names. In production, the sell operation can also fail for **infrastructure reasons**: the stock price provider may be unreachable, may return an error (e.g., HTTP 429 rate limit), or may time out. These failures occur at the adapter boundary (e.g., inside `FinnhubStockPriceAdapter.fetchStockPrice()`), before the domain model is even invoked. The application service does not catch these explicitly — they propagate as unchecked exceptions and are translated by the global `@ControllerAdvice` (`ExceptionHandlingAdvice`) into appropriate HTTP responses (typically 502 Bad Gateway or 503 Service Unavailable). A detailed treatment of infrastructure error handling and resilience strategies is outside the scope of this tutorial.
+
+Production systems would typically add resilience patterns such as retries with backoff, circuit breakers (for example with Resilience4j), or cached price fallbacks when the external provider is unavailable. These concerns belong in the adapter layer and are orthogonal to the domain model, so they can be added without changing domain or application code.
 
 ---
 

@@ -30,8 +30,8 @@ Controller -> Handler: handle exception
 activate Handler
 note right of Handler
   Exception handler
-  translates domain
-  exceptions to HTTP
+  translates application and
+  domain exceptions to HTTP
   responses
 end note
 
@@ -44,7 +44,7 @@ Controller --> Client: HTTP 404 NOT FOUND\n{\n  "title": "Portfolio Not Found",\
 deactivate Controller
 
 note over Client, Handler
-  **Domain Exception → HTTP Status**
+  **Application Exception → HTTP Status**
   PortfolioNotFoundException → 404 Not Found
 end note
 

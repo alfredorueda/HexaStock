@@ -206,9 +206,6 @@ package "cat.gencat.agaur.hexastock.model.exception" as exceptions {
   class InsufficientFundsException extends DomainException {
   }
 
-  class PortfolioNotFoundException extends DomainException {
-  }
-
   class ConflictQuantityException extends DomainException {
   }
 
@@ -216,6 +213,12 @@ package "cat.gencat.agaur.hexastock.model.exception" as exceptions {
   }
 
   class EntityExistsException extends DomainException {
+  }
+}
+
+' Application-layer exception (not part of the domain model)
+package "cat.gencat.agaur.hexastock.application.exception" as appexceptions {
+  class PortfolioNotFoundException {
   }
 }
 

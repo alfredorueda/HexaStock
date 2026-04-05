@@ -2,7 +2,7 @@ package cat.gencat.agaur.hexastock.application.service;
 
 import cat.gencat.agaur.hexastock.application.port.in.PortfolioManagementUseCase;
 import cat.gencat.agaur.hexastock.model.money.InvalidAmountException;
-import cat.gencat.agaur.hexastock.model.portfolio.PortfolioNotFoundException;
+import cat.gencat.agaur.hexastock.application.exception.PortfolioNotFoundException;
 import cat.gencat.agaur.hexastock.application.port.out.PortfolioPort;
 import cat.gencat.agaur.hexastock.application.port.out.TransactionPort;
 import cat.gencat.agaur.hexastock.model.money.Money;
