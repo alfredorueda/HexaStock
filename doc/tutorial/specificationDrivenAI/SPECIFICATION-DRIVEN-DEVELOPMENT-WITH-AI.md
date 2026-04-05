@@ -24,6 +24,8 @@ The answer, as demonstrated by the HexaStock project and by broader consulting p
 
 This is not a coincidence. It is a structural consequence of how specification-driven engineering works.
 
+This chapter first demonstrates the method as practised: a specification-first workflow in which precise, multi-layered artefacts guide AI-assisted implementation within a hexagonal architecture. It then examines the method's limitations — particularly its treatment of specifications as initial design documents rather than evolving, living artefacts — and proposes a forward direction: iterative spec-driven engineering, where specifications evolve alongside the codebase, supported by emerging tooling, and where the closed loop between intent and implementation is maintained not only during first generation but across the project's lifetime.
+
 ### Scope of Validation
 
 The method described in this chapter — specification-driven development with AI — was validated in a consulting practice, where participants generated projects from scratch using precise specification artefacts in Claude Opus 4.6. Those experiments demonstrated that, when the specification stack is structurally complete, greenfield generation is genuinely feasible: the AI produces architecturally coherent, testable code without an existing codebase to imitate.
@@ -230,7 +232,7 @@ As noted in Section 1, the specification-driven approach documented here was val
 
 ### 5.2 The Engineering Workflow
 
-The workflow followed a consistent sequence for each use case. The steps below describe the process as practised during the HexaStock engagement. Every step is human-directed, AI-assisted where appropriate, and human-validated before the team proceeds. Different stakeholder groups contribute at different stages, depending on their expertise.
+The workflow followed a consistent sequence for each use case, though in practice the steps are iterative: verification (Step 5) frequently surfaces specification gaps that loop back to specification authoring (Step 2), and refinement (Step 6) may generate requirements that restart discovery (Step 1). The steps are numbered for clarity of exposition, not to imply a strictly linear process. Every step is human-directed, AI-assisted where appropriate, and human-validated before the team proceeds. Different stakeholder groups contribute at different stages, depending on their expertise.
 
 > **Terminological note.** In the descriptions that follow, *"business-side stakeholders"* refers to domain experts, product owners, business analysts, and anyone whose primary concern is business correctness. *"Engineering-side stakeholders"* refers to architects, developers, QA engineers, and anyone whose primary concern is technical correctness, architectural fitness, and production readiness.
 
@@ -478,17 +480,124 @@ LLM capabilities vary across model versions, providers, and even between session
 
 ---
 
-## 9. What Changes for Software Architects and Technical Leads
+## 9. From Specification-First Generation to Iterative Spec-Driven Engineering
+
+The HexaStock workflow described in Section 5 follows a clear sequence: author specifications, assemble context, generate implementation, verify, refine. For pedagogic clarity, this sequence was presented as a series of numbered steps. In practice, the steps are not strictly sequential — Step 5 (verification) frequently surfaces specification gaps that loop back to Step 2 (specification authoring), and Step 6 (refinement) routinely generates new requirements that restart the cycle at Step 1.
+
+This iterative character is not a deviation from the method. It is the method's natural operating mode. Yet the chapter's emphasis to this point has been on the *first pass* — the initial translation from specification to implementation — because that is where AI assistance produces its most visible and measurable gains. The next question is whether the method extends gracefully to ongoing development, where specifications evolve, new requirements emerge, and the codebase accumulates a history of design decisions that constrain future changes.
+
+The answer is conditioned on how specifications are managed over time. If specifications are treated as *initial design documents* — authored once, referenced during generation, and then filed away — the method degrades. Specifications drift from the implementation. New team members encounter code that no longer matches the Gherkin scenarios in the repository. AI-assisted generation in subsequent iterations uses stale context, producing code that contradicts current system behaviour.
+
+If, instead, specifications are treated as *living artefacts* — updated when requirements change, reconciled with implementation after refactoring, and versioned alongside the code they describe — then the method becomes sustainable across the project's lifetime. Specification-driven development evolves from a generation technique into an engineering discipline: not a way to produce the first version of the code, but a way to maintain a traceable, verifiable relationship between intent and implementation throughout the system's evolution.
+
+This distinction — between specification-first generation and iterative spec-driven engineering — is the central insight of this section. HexaStock, as documented in the preceding sections, demonstrates the former. Making the transition to the latter is the next engineering challenge.
+
+---
+
+## 10. Living Specifications as the Missing Agile Layer
+
+Agile methodologies introduced iterative development but left a gap in the specification layer. User stories capture intent in natural language; acceptance criteria are often informal; the relationship between requirements and implementation is maintained in team memory and retrospectives rather than in formal, machine-readable artefacts. When teams adopt AI-assisted development on top of agile workflows, this gap becomes a practical problem: the AI has no durable specification to read, because the specifications were never formalised in the first place, or were formalised once and never updated.
+
+Living specifications address this gap. A living specification is a formal artefact — a Gherkin scenario, an OpenAPI contract, a UML diagram — that is:
+
+1. **Co-located with the code** it describes, in the same repository and subject to the same version control.
+2. **Updated when requirements change**, with the specification diff reviewable alongside the code diff.
+3. **Executable or verifiable**, so that divergence between specification and implementation is detectible by automated means.
+4. **Reviewable by non-engineering stakeholders**, so that domain experts can validate specification changes without reading code.
+
+HexaStock already satisfies the first and third criteria: its Gherkin scenarios are committed to the repository and serve as executable specifications through JUnit tests. The second criterion — systematic updating upon requirement change — is currently a manual discipline. The fourth is partially addressed by Gherkin's business-readable syntax, though no formal review workflow currently formalises domain-expert participation in specification changes.
+
+The specification-driven workflow described in this chapter is therefore not complete in its present form. It demonstrates that precise specifications enable high-quality AI-assisted generation, but it does not yet demonstrate a closed-loop process in which specifications evolve alongside the implementation across multiple development iterations, with changes to either side propagated and reconciled systematically.
+
+This is not a theoretical concern. Any project that practises specification-driven development for more than a few iterations will face the question: *when the requirements change, what happens to the specifications?* If the answer is "they are manually updated by whoever remembers to do so," the method depends on human diligence in a way that is fragile and unverifiable. If the answer is "the tooling detects specification–implementation drift and surfaces it for review," the method becomes robust.
+
+The emerging generation of spec-driven development tools — discussed in the following section — represents the first serious effort to provide that tooling.
+
+---
+
+## 11. Next Step: Tool-Supported Spec Evolution in HexaStock
+
+The argument so far can be summarised as follows: precise specifications enable reliable AI-assisted generation (Sections 2–6); human judgment remains essential for architectural decisions, boundary definition, and unstated invariants (Section 7); the method has identifiable risks and failure modes (Section 8); and the next evolution is to make specifications living, iterative artefacts rather than one-pass design documents (Sections 9–10). The practical question is: what tooling exists to support this evolution?
+
+Two open-source projects merit evaluation as potential complements to the HexaStock workflow: **OpenSpec** and **GitHub Spec Kit**. Neither was used during HexaStock development. They are presented here not as endorsements but as tools whose design philosophies align with the iterative, specification-driven approach advocated in this chapter, and whose suitability for HexaStock's architecture and workflow warrants investigation.
+
+### 11.1 OpenSpec
+
+[OpenSpec](https://github.com/Fission-AI/OpenSpec) (Fission-AI, MIT licence) is a spec-driven development framework for AI coding assistants that emphasises fluidity and iteration over rigid phase gates. Its stated philosophy — *"fluid not rigid, iterative not waterfall, built for brownfield not just greenfield"* — directly addresses the limitation identified in Section 9: that specification-first workflows can become brittle if specifications are treated as immutable design documents rather than evolving artefacts.
+
+OpenSpec organises work around *changes*, each of which receives its own folder containing a proposal, specifications, a design document, and a task list. When a change is implemented and verified, it is archived, and the project specifications are updated to reflect the new state. This change-based workflow naturally supports specification evolution: each modification to the system is accompanied by a specification delta that is reviewable, traceable, and archivable.
+
+For HexaStock, the relevant question is whether OpenSpec's change-based structure could complement the existing Gherkin + UML + OpenAPI specification stack, providing a systematic process for updating specifications when requirements evolve — rather than relying on the current manual discipline of keeping specification artefacts in sync.
+
+### 11.2 GitHub Spec Kit
+
+[GitHub Spec Kit](https://github.com/github/spec-kit) (GitHub, MIT licence) provides a CLI-oriented toolkit that structures the spec-driven development lifecycle into explicit, composable phases: constitution (project principles), specification (what to build), planning (technical approach), task breakdown, and implementation. The workflow is formalised through the `specify` CLI and a set of slash commands that integrate with over twenty AI coding assistants, including GitHub Copilot.
+
+Spec Kit's extensibility is notable. A modular extension and preset system allows teams to customise templates, add domain-specific commands, enforce organisational standards, and integrate with external tools — without modifying the core workflow. Community walkthroughs include brownfield Java projects (extending a 420,000-line Jakarta EE runtime) and Spring Boot applications, demonstrating that the approach is not limited to greenfield scenarios.
+
+For HexaStock, Spec Kit's interest lies in its formalised operating model for moving from specification to implementation in a structured, repeatable way. The existing HexaStock workflow (Section 5.2) is conceptually similar — specification authoring, context assembly, generation, verification — but is currently orchestrated manually by the architect. Spec Kit's CLI-driven approach could provide guardrails and traceability that the current workflow achieves through discipline alone.
+
+### 11.3 Evaluation Criteria, Not Adoption Recommendations
+
+Neither OpenSpec nor Spec Kit has been evaluated against HexaStock's specific requirements: a hexagonal Java 21 / Spring Boot 3 project with DDD aggregates, JPA persistence, and an existing Gherkin + OpenAPI specification stack. This chapter does not recommend adopting either tool. It identifies them as promising candidates for a structured evaluation, which the following section outlines.
+
+The broader point is methodological, not tool-specific. The specification-driven approach described in this chapter requires tooling support to scale beyond manually orchestrated single-iteration workflows. Whether that support comes from OpenSpec, Spec Kit, a different tool, or a bespoke integration matters less than the principle: *the specifications that drive AI-assisted development must be maintainable, evolvable, and integrated into the team's development workflow as first-class artefacts.*
+
+---
+
+## 12. Concrete Experiment Scenarios for a Future Iteration
+
+The following experiments are designed to test whether the specification-driven approach, as practised in HexaStock, can be extended with tool support to achieve the iterative, living-specification workflow described in Sections 9–10. Each experiment is scoped to a specific, testable hypothesis.
+
+### 12.1 Specification-to-Implementation Traceability Under Change
+
+**Hypothesis:** Tooling can maintain automatic traceability between Gherkin scenarios and generated implementation code across requirement changes.
+
+**Experiment:** Select a HexaStock use case (e.g., deposit funds). Modify the Gherkin scenarios to add a new business rule (e.g., a maximum deposit limit). Use tool-assisted generation to update the implementation. Evaluate whether the tool correctly identifies all code locations affected by the specification change and whether the resulting implementation satisfies the modified specification without introducing regressions.
+
+### 12.2 Specification Drift Detection
+
+**Hypothesis:** Automated tooling can detect when implementation diverges from its governing specifications after manual code changes.
+
+**Experiment:** Manually modify a HexaStock domain class (e.g., alter the FIFO algorithm in `Holding.sell()`) without updating the corresponding Gherkin scenario. Run tool-assisted drift detection. Evaluate whether the tool identifies the divergence, reports which specification constraints are violated, and proposes corrective actions — either to update the specification or revert the code.
+
+### 12.3 Brownfield Specification Bootstrap
+
+**Hypothesis:** Spec-driven development tools can generate initial specifications from an existing, well-structured codebase.
+
+**Experiment:** Apply OpenSpec or Spec Kit to the existing HexaStock repository without providing any pre-authored specifications. Evaluate whether the tool generates meaningful specification artefacts from the codebase's structure, tests, and documentation — and how those generated artefacts compare in quality and completeness to the hand-authored specifications that currently exist in the repository.
+
+### 12.4 Multi-Iteration Specification Evolution
+
+**Hypothesis:** Specification-driven workflows can maintain coherence across multiple development iterations without manual reconciliation.
+
+**Experiment:** Implement three consecutive feature additions to HexaStock (e.g., watchlists, portfolio reporting, dividend tracking) using a tool-supported specification workflow. After each iteration, assess whether the specification stack remains internally consistent, whether traceability is maintained, and whether AI-assisted generation in later iterations benefits from the specification history accumulated in earlier ones.
+
+### 12.5 Cross-Stakeholder Specification Review
+
+**Hypothesis:** Tool-supported specification workflows can provide domain experts with a reviewable, non-technical view of specification changes.
+
+**Experiment:** Introduce a requirement change that affects both Gherkin scenarios and OpenAPI contracts. Use tooling to generate a change summary suitable for domain-expert review. Evaluate whether a non-technical stakeholder can assess the proposed change without reading implementation code, and whether their feedback can be incorporated into the specification before generation proceeds.
+
+### 12.6 Specification-Driven Refactoring Guidance
+
+**Hypothesis:** When architectural refactoring is needed, specifications can guide the refactoring and verify that the refactored implementation remains consistent with the original specification intent.
+
+**Experiment:** Select a refactoring candidate in HexaStock (e.g., extracting a bounded context, introducing domain events for sell operations). Use the existing specification stack to guide AI-assisted refactoring. Evaluate whether the specifications provide sufficient constraints to prevent the refactoring from altering observable behaviour, and whether the tests derived from those specifications catch any regressions introduced during the refactoring process.
+
+---
+
+## 13. What Changes for Software Architects and Technical Leads
 
 Specification-driven AI-assisted development does not eliminate the architect's role. It redefines the activities where the architect's time is most productive.
 
-### 9.1 Specification Authoring Becomes the Primary Deliverable
+### 13.1 Specification Authoring Becomes the Primary Deliverable
 
 In traditional development, the architect's primary deliverable is often an architecture document or a set of design decisions that developers interpret into code. In specification-driven development with AI, the architect's primary deliverable is the specification stack itself — Gherkin scenarios, UML models, OpenAPI contracts, ADRs — because these artefacts directly drive implementation.
 
 This raises the bar on specification quality. A Gherkin scenario with vague `Then` clauses or a UML diagram with ambiguous relationships will produce ambiguous code. The architect must write specifications that are precise enough to constrain generation to correct implementations.
 
-### 9.2 Code Review Shifts to Architectural Verification
+### 13.2 Code Review Shifts to Architectural Verification
 
 The architect spends less time reviewing whether the code "works" (tests verify this) and more time reviewing whether the code is *architecturally appropriate*:
 
@@ -498,11 +607,11 @@ The architect spends less time reviewing whether the code "works" (tests verify 
 - Are the aggregate boundaries respected?
 - Is the code unnecessarily complex?
 
-### 9.3 Testing Strategy Becomes Infrastructure
+### 13.3 Testing Strategy Becomes Infrastructure
 
 Tests are no longer just verification — they are the feedback mechanism that drives iterative correction of AI-generated code. The testing infrastructure (Testcontainers setup, base test classes, test data builders) becomes critical engineering infrastructure rather than an afterthought.
 
-### 9.4 The Team Composition Question
+### 13.4 The Team Composition Question
 
 If AI handles a significant portion of implementation, the team's skill distribution may shift. One possible model observed in HexaStock development:
 
@@ -514,31 +623,31 @@ This is not a prediction about the future of software teams. It is a description
 
 ---
 
-## 10. Practical Guidance for Teams
+## 14. Practical Guidance for Teams
 
 For teams considering specification-driven AI-assisted development, the HexaStock experience suggests the following practical steps.
 
-### 10.1 Start with an Existing Specification Practice
+### 14.1 Start with an Existing Specification Practice
 
 AI-assisted development amplifies existing engineering practices. If your team already writes Gherkin scenarios, maintains UML models, and uses contract-first API design, you can begin using these artefacts as AI context immediately. If your team does not have these practices, introducing AI-assisted development alongside specification-driven design will conflate two significant workflow changes, making it difficult to diagnose problems.
 
-### 10.2 Define Architectural Boundaries Before Generating Code
+### 14.2 Define Architectural Boundaries Before Generating Code
 
 Ensure that module structure, package conventions, port interfaces, and aggregate boundaries are defined before the AI generates implementation code. These boundaries are constraints that improve the quality of generation. Defining them afterwards means retroactively refactoring AI-generated code, which loses most of the productivity benefit.
 
-### 10.3 Generate One Layer at a Time
+### 14.3 Generate One Layer at a Time
 
 Do not ask the AI to generate an entire use case across all layers simultaneously. Generate the domain model first, then the application service, then the REST controller, then the persistence adapter. Verify each layer before proceeding. This mirrors the hexagonal architecture's layer separation and keeps each generation step small enough to review thoroughly.
 
-### 10.4 Derive Test Values from Specifications, Not from Implementation
+### 14.4 Derive Test Values from Specifications, Not from Implementation
 
 When the AI generates tests, verify that the expected values in assertions come from the Gherkin scenarios or business requirements — not from running the implementation and recording its output. Tests that merely record implementation behaviour are tautological and provide no safety.
 
-### 10.5 Keep a Living Architecture Document
+### 14.5 Keep a Living Architecture Document
 
 Maintain a concise document that summarises the project's architectural decisions, conventions, and boundaries. Include this document as context in every AI generation session. In HexaStock, the Architecture Map table in the sell-stock tutorial serves this purpose.
 
-### 10.6 Review AI Output for Architectural Correctness, Not Just Functional Correctness
+### 14.6 Review AI Output for Architectural Correctness, Not Just Functional Correctness
 
 Code that passes all tests may still be architecturally inappropriate. Look for:
 
@@ -548,13 +657,13 @@ Code that passes all tests may still be architecturally inappropriate. Look for:
 - Framework annotations in domain classes
 - Unnecessary abstractions or premature optimisations
 
-### 10.7 Document What the AI Cannot See
+### 14.7 Document What the AI Cannot See
 
 Some constraints are not captured in specifications: performance requirements, regulatory compliance, team conventions, deployment constraints. Maintain explicit documentation for these constraints and review AI-generated code against them.
 
 ---
 
-## 11. Relationship with the Sell Stock Tutorial
+## 15. Relationship with the Sell Stock Tutorial
 
 The **[Sell Stock Deep Dive](../sellStocks/SELL-STOCK-TUTORIAL.md)** serves as the primary worked example for this chapter's principles. The entire specification stack described in Section 2 — Gherkin scenarios, UML diagrams, OpenAPI contracts — is available in the HexaStock repository, and the sell-stock tutorial shows how those specifications translate into implemented, tested code.
 
@@ -573,21 +682,23 @@ The sell-stock tutorial was not written as an illustration of AI-assisted develo
 
 ---
 
-## 12. Conclusion
+## 16. Conclusion
 
 Specification-driven development with AI is not a new methodology. It is the application of established engineering practices — BDD, TDD, DDD, Hexagonal Architecture — in a context where AI serves as an implementation engine rather than a design authority. The quality of AI-generated code is determined not by the sophistication of the model or the cleverness of the prompt, but by the precision and completeness of the specifications provided as context.
 
-The HexaStock case documented here demonstrates that when a project maintains formal specifications (Gherkin, UML, OpenAPI), enforces hard architectural boundaries (hexagonal modules, aggregate roots, port interfaces), and verifies output through executable tests (JUnit, Testcontainers, ArchUnit), AI-assisted implementation can produce code that meets production engineering standards. The broader consulting experience confirms that the same method works in true greenfield scenarios — generating projects from scratch from precise specification artefacts using Claude Opus 4.6 — without requiring a pre-existing codebase as scaffolding.
+The HexaStock case demonstrates this principle concretely. When a project maintains formal specifications (Gherkin, UML, OpenAPI), enforces hard architectural boundaries (hexagonal modules, aggregate roots, port interfaces), and verifies output through executable tests (JUnit, Testcontainers, ArchUnit), AI-assisted implementation produces code that meets production engineering standards. The broader consulting experience confirms that the same method works in true greenfield scenarios — generating projects from scratch from precise specification artefacts — without requiring a pre-existing codebase as scaffolding.
 
-The method is therefore viable in two distinct modes: greenfield generation, where the specification stack alone drives initial implementation; and evolutionary development, where an existing codebase provides additional context and conventions. In both modes, the same principle holds: specification precision determines output quality.
+Yet HexaStock also reveals the method's current boundary. The workflow documented in this chapter treats specifications as durable artefacts that guide generation — but it does not yet demonstrate a fully iterative process in which specifications evolve systematically alongside the implementation across multiple development cycles. The specification updating that occurred during development relied on human discipline rather than tooling support. This is adequate for a demonstration project; it is insufficient for sustained production development.
 
-The architect's role does not diminish. It shifts — from writing implementation code to writing specifications, defining boundaries, and reviewing generated artefacts for architectural fitness. This shift places a higher premium on specification quality and architectural judgment, which are the activities where human engineering expertise is least replaceable.
+The forward direction is clear. Well-structured engineering specifications remain the foundation, and the next major advance is to make those specifications iterative, living, reviewable, and better integrated into agile development workflows. Emerging tools such as OpenSpec and GitHub Spec Kit represent early efforts to formalise this integration. Whether through these tools or through bespoke process discipline, the principle is the same: specifications that drive AI-assisted development must be maintained as first-class, evolving artefacts — not archived design documents.
 
-The specifications that make AI-assisted development reliable are the same specifications that make any software project well-engineered. There is no separate "AI-ready" practice. There is only disciplined engineering, which happens to be the optimal input for both human developers and AI assistants.
+HexaStock, as a public repository with committed specification artefacts, provides a credible demonstration of the first-generation approach and a concrete platform for evaluating the next. The experiments outlined in Section 12 offer a path from demonstration to validated practice. The aspiration is engineering discipline without rigidity, agility without vagueness, and iteration without architectural drift.
+
+The architect's role does not diminish. It evolves — from writing implementation code to writing and maintaining specifications, defining boundaries, reviewing generated artefacts for architectural fitness, and increasingly, orchestrating the tools and processes that keep specifications and implementation in sync. This shift places a higher premium on specification quality and architectural judgment: the activities where human engineering expertise is least replaceable.
 
 ---
 
-## 13. References
+## 17. References
 
 ### Books and Papers
 
@@ -614,11 +725,16 @@ The specifications that make AI-assisted development reliable are the same speci
 - [ArchUnit](https://www.archunit.org/) — Architecture verification through unit tests
 - [PlantUML](https://plantuml.com/) — Diagram authoring
 
+### Spec-Driven Development Tools (Referenced for Evaluation)
+
+- [OpenSpec](https://github.com/Fission-AI/OpenSpec) — Spec-driven development framework for AI coding assistants, emphasising iterative, change-based workflows
+- [GitHub Spec Kit](https://github.com/github/spec-kit) — CLI-oriented toolkit for structured spec-driven development with composable phases and extensibility
+
 ---
 
 ## Acknowledgements
 
-This chapter reflects insights gained during consulting engagements focused on specification-driven AI-assisted software development. The HexaStock project serves as the public, repository-backed case study, and the engineering workflow described here emerged from real development practice — both in evolutionary development within an existing codebase and in greenfield generation from scratch — not from theoretical projection.
+This chapter reflects insights gained during consulting engagements focused on specification-driven AI-assisted software development. The HexaStock project serves as the public, repository-backed case study, and the engineering workflow described here emerged from real development practice — both in evolutionary development within an existing codebase and in greenfield generation from scratch — not from theoretical projection. The forward-looking sections on iterative spec-driven engineering, living specifications, and tool-supported spec evolution (Sections 9–12) represent the author's analysis of natural next steps, informed by the practical experience documented in the earlier sections and by publicly available information about the tools referenced.
 
 The author acknowledges the AI tools used — specifically GitHub Copilot with Claude Opus 4.6 operating within VS Code — as implementation instruments whose output quality was directly determined by the specification artefacts described in this chapter.
 
