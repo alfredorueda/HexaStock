@@ -84,7 +84,7 @@ The following diagram shows HexaStock's hexagonal architecture for the sell-stoc
 
 > **📐 Mermaid source:** [`hexastock-hexagonal-architecture.mmd`](diagrams/hexastock-hexagonal-architecture.mmd) — open in any Mermaid-compatible editor or render with `mmdc`.
 
-> **  Reference diagrams:** For widely cited community diagrams that illustrate the conceptual foundation of Hexagonal Architecture (Tom Hombergs' simplified view and Herberto Graça's explicit architecture), see the companion document **[Hexagonal Architecture — Reference Diagrams](HEXAGONAL-ARCHITECTURE-REFERENCE-DIAGRAMS.md)**.
+> **📚 Reference sources and diagrams:** For the original 2005 article by Alistair Cockburn, who introduced Hexagonal Architecture (Ports and Adapters), together with widely cited community diagrams by Tom Hombergs and Herberto Graça, see the companion document **[Hexagonal Architecture — Reference Sources and Diagrams](HEXAGONAL-ARCHITECTURE-REFERENCE-DIAGRAMS.md)**.
 
 ### How This Tutorial Maps to the Architecture
 
