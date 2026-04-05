@@ -12,6 +12,14 @@ This tutorial traces a single use case — **selling stocks** — through every 
 
 **Intended audience:** Software engineers, architects, and technical leads with working knowledge of Java and Spring Boot who want to see DDD and Hexagonal Architecture applied in a realistic codebase.
 
+**What you will learn**
+
+- One end-to-end use case — selling stocks — traced through every layer, from REST controller to persistence and back.
+- How the aggregate root `Portfolio` protects business invariants while the application service orchestrates without making business decisions.
+- How value objects such as `Money`, `ShareQuantity`, and `Ticker` eliminate primitive obsession and encode ubiquitous language in the type system.
+- How Gherkin → `@SpecificationRef` → JUnit → production code creates a traceable specification chain.
+- Hexagonal architecture proven swappable in practice: replacing a live price provider with `FixedPriceStockPriceAdapter` in tests requires zero changes to domain or application code.
+
 ---
 
 ## HexaStock in Brief
@@ -95,7 +103,7 @@ Sections 9–15 trace a real HTTP request flowing through these layers, showing 
 
 ## 2. Purpose and Scope
 
-The sell-stock use case provides the thread that ties every engineering phase together — from Gherkin specification through domain modelling, hexagonal structure, persistence mapping, error handling, and integration testing. The tutorial follows one request end to end, showing how BDD specifications, DDD aggregates, hexagonal ports and adapters, value objects, FIFO accounting, and a four-level testing strategy work together as applied engineering, not abstract principles.
+The sell-stock use case provides the unifying thread that ties every engineering phase together — from Gherkin specification through domain modelling, hexagonal structure, persistence mapping, error handling, and integration testing. The tutorial follows one request end to end, showing how BDD specifications, DDD aggregates, hexagonal ports and adapters, value objects, FIFO accounting, and a four-level testing strategy work together as applied engineering, not abstract principles.
 
 ---
 
@@ -592,7 +600,7 @@ HTTP 200 OK
 
 ---
 
-## 10. Why Application Services Orchestrate and Aggregates Protect Invariants
+## 10. Orchestration vs. Invariants
 
 This is the **most important concept** in DDD and Hexagonal Architecture.
 
@@ -800,9 +808,45 @@ The `Portfolio` domain object is mapped to a `PortfolioEntity` (JPA):
 A **mapper** converts between the two, extracting primitive values from Value Objects for persistence and re-wrapping them when loading:
 
 ```java
-Portfolio domainPortfolio = PortfolioMapper.toDomain(portfolioEntity);
-PortfolioEntity jpaEntity = PortfolioMapper.toEntity(domainPortfolio);
+Portfolio domainPortfolio = PortfolioMapper.toModelEntity(portfolioJpaEntity);
+PortfolioJpaEntity jpaEntity = PortfolioMapper.toJpaEntity(domainPortfolio);
 ```
+
+The following excerpt shows the core of the real `PortfolioMapper` implementation:
+
+```java
+// PortfolioMapper.java (excerpt, simplified for readability)
+public class PortfolioMapper {
+
+    public static Portfolio toModelEntity(PortfolioJpaEntity jpaEntity) {
+        Portfolio portfolio = new Portfolio(
+                PortfolioId.of(jpaEntity.getId()),
+                jpaEntity.getOwnerName(),
+                Money.of(jpaEntity.getBalance()),
+                jpaEntity.getCreatedAt()
+        );
+        for (var holdingJpaEntity : jpaEntity.getHoldings()) {
+            portfolio.addHolding(HoldingMapper.toModelEntity(holdingJpaEntity));
+        }
+        return portfolio;
+    }
+
+    public static PortfolioJpaEntity toJpaEntity(Portfolio entity) {
+        PortfolioJpaEntity portfolioJpaEntity = new PortfolioJpaEntity(
+                entity.getId().value(),
+                entity.getOwnerName(),
+                entity.getBalance().amount(),
+                entity.getCreatedAt()
+        );
+        portfolioJpaEntity.setHoldings(entity.getHoldings().stream()
+                .map(HoldingMapper::toJpaEntity)
+                .collect(Collectors.toSet()));
+        return portfolioJpaEntity;
+    }
+}
+```
+
+Mapping nested entities such as holdings and lots requires careful handling of identity and lazy-loading concerns. See the full `PortfolioMapper.java` (and its companions `HoldingMapper` and `LotMapper`) in `adapters-outbound-persistence-jpa/.../mapper/` for the complete implementation.
 
 ### Repositories
 
@@ -921,6 +965,25 @@ HTTP 409 Conflict
 **Diagram Reference:** See [`diagrams/sell-error-sell-more-than-owned.puml`](diagrams/sell-error-sell-more-than-owned.puml)
 
 <a href="diagrams/Rendered/sell-error-sell-more-than-owned.svg"><img src="diagrams/Rendered/sell-error-sell-more-than-owned.png" alt="Sell Error — Selling More Than Owned" width="100%" /></a>
+
+### Integration Test: Verifying the 409 Response
+
+The real integration test in `PortfolioTradingRestIntegrationTest` verifies this error end-to-end through HTTP. The following snippet is taken directly from the repository (portfolio creation and funding are performed in the `@BeforeEach` setup — omitted here for brevity):
+
+```java
+// PortfolioTradingRestIntegrationTest.SellingShares (excerpt)
+@Test
+@SpecificationRef(value = "US-07.AC-3", level = TestLevel.INTEGRATION)
+void sellMoreThanOwned_returns409() {
+    sell(portfolioId, "AAPL", 10)
+            .statusCode(409)
+            .body("title", equalTo("Conflict Quantity"))
+            .body("detail", containsString("Not enough shares to sell"))
+            .body("status", equalTo(409));
+}
+```
+
+The `sell()` helper method issues a `POST /api/portfolios/{id}/sales` request. The `ConflictQuantityException` thrown by `Holding.sell()` propagates through the application service unchanged; `ExceptionHandlingAdvice` maps it to an RFC 7807 problem body with HTTP 409.
 
 ---
 
@@ -1189,9 +1252,25 @@ The acknowledgements for this tutorial are maintained separately. See [Acknowled
 - Nottingham, M. and Wilde, E. "Problem Details for HTTP APIs." RFC 7807, IETF, March 2016. https://www.rfc-editor.org/rfc/rfc7807
 - OpenAPI Initiative. *OpenAPI Specification, Version 3.0.* https://spec.openapis.org/oas/v3.0.3
 
-### Engineering Toolchain
+### Project References
 
-The implementation traced in this chapter relies on a coordinated set of tools. Each entry below identifies the specific role the tool plays in the sell-stock use case and in the broader engineering practices the tutorial demonstrates.
+- **API Specification:** `doc/stock-portfolio-api-specification.md`
+- **Gherkin Specification (canonical):** `doc/features/sell-stocks.feature`
+- **Traceability Annotation:** `src/test/java/cat/gencat/agaur/hexastock/specification/SpecificationRef.java`
+- **Integration Tests (shared base):** `src/test/java/cat/gencat/agaur/hexastock/adapter/in/AbstractPortfolioRestIntegrationTest.java`
+- **Integration Tests (trading + FIFO):** `src/test/java/cat/gencat/agaur/hexastock/adapter/in/PortfolioTradingRestIntegrationTest.java`
+- **Integration Tests (lifecycle):** `src/test/java/cat/gencat/agaur/hexastock/adapter/in/PortfolioLifecycleRestIntegrationTest.java`
+- **Integration Tests (error handling):** `src/test/java/cat/gencat/agaur/hexastock/adapter/in/PortfolioErrorHandlingRestIntegrationTest.java`
+- **Domain Tests:** `src/test/java/cat/gencat/agaur/hexastock/model/PortfolioTest.java`
+- **Source Code:** `src/main/java/cat/gencat/agaur/hexastock/`
+- **Value Object Tests:** `src/test/java/cat/gencat/agaur/hexastock/model/MoneyTest.java`, `ShareQuantityTest.java`, etc.
+- **Architecture Fitness Tests:** `bootstrap/src/test/java/cat/gencat/agaur/hexastock/architecture/HexagonalArchitectureTest.java`
+
+---
+
+## Appendix A: Engineering Toolchain
+
+The implementation traced in this tutorial relies on a coordinated set of tools. Each entry below identifies the specific role the tool plays in the sell-stock use case and in the broader engineering practices the tutorial demonstrates.
 
 **Platform and Build**
 
@@ -1227,19 +1306,5 @@ The implementation traced in this chapter relies on a coordinated set of tools. 
 - **SonarQube** — static analysis and quality gate enforcement. The project includes a `sonar-project.properties` configuration that feeds JaCoCo XML reports into Sonar for code quality tracking.
 - **GitHub Actions** — the CI pipeline (`.github/workflows/build.yml`) runs on every push and pull request to `main`: checks out the code, provisions JDK 21 (Temurin), executes `mvn clean verify` (which triggers Testcontainers, all test levels, and JaCoCo instrumentation), and uploads test results and coverage reports as build artefacts.
 - **Docker / Docker Compose** — provides the local development MySQL instance and is required by Testcontainers in the CI environment. The `docker-compose.yml` at the project root defines the database service.
-
-### Project References
-
-- **API Specification:** `doc/stock-portfolio-api-specification.md`
-- **Gherkin Specification (canonical):** `doc/features/sell-stocks.feature`
-- **Traceability Annotation:** `src/test/java/cat/gencat/agaur/hexastock/specification/SpecificationRef.java`
-- **Integration Tests (shared base):** `src/test/java/cat/gencat/agaur/hexastock/adapter/in/AbstractPortfolioRestIntegrationTest.java`
-- **Integration Tests (trading + FIFO):** `src/test/java/cat/gencat/agaur/hexastock/adapter/in/PortfolioTradingRestIntegrationTest.java`
-- **Integration Tests (lifecycle):** `src/test/java/cat/gencat/agaur/hexastock/adapter/in/PortfolioLifecycleRestIntegrationTest.java`
-- **Integration Tests (error handling):** `src/test/java/cat/gencat/agaur/hexastock/adapter/in/PortfolioErrorHandlingRestIntegrationTest.java`
-- **Domain Tests:** `src/test/java/cat/gencat/agaur/hexastock/model/PortfolioTest.java`
-- **Source Code:** `src/main/java/cat/gencat/agaur/hexastock/`
-- **Value Object Tests:** `src/test/java/cat/gencat/agaur/hexastock/model/MoneyTest.java`, `ShareQuantityTest.java`, etc.
-- **Architecture Fitness Tests:** `bootstrap/src/test/java/cat/gencat/agaur/hexastock/architecture/HexagonalArchitectureTest.java`
 
 ---
