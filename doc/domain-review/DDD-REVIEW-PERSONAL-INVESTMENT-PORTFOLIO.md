@@ -229,7 +229,7 @@ This creates two risks:
 
 A stronger design would have the aggregate produce the transaction record (or a domain event from which the record is derived), ensuring that the domain itself guarantees the completeness and correctness of its own audit trail. This is discussed in the alternatives section.
 
-### 5.5 The "Value Object" Misnomer
+### 5.5 The "Value Object" Misnomer (FIXED)
 
 The `Transaction` Javadoc describes it as a "Value Object," but it has a `TransactionId`, is persisted with identity, and is created with `TransactionId.generate()`. It is an **entity** by every DDD definition. Calling it a value object is misleading and should be corrected.
 
