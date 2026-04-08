@@ -511,7 +511,7 @@ The Portfolio (aggregate root):
 
 ```java
 public SellResult sell(ShareQuantity quantity, Price sellPrice) {
-    if (!getTotalShares().isGreaterThanOrEqual(quantity)) {
+    if (getTotalShares().isLessThan(quantity)) {
         throw new ConflictQuantityException(
                 "Not enough shares to sell. Available: " + getTotalShares().value()
                         + ", Requested: " + quantity.value());
