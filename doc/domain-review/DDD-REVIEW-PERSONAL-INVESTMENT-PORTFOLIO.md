@@ -1,8 +1,8 @@
-# Domain Model Review: Personal Investment Portfolio
+# Architectural Review: Domain-Driven Design and Hexagonal Architecture
 
 **Project:** HexaStock
 **Review Date:** April 2026
-**Scope:** Domain layer — `cat.gencat.agaur.hexastock.model.*`
+**Scope:** Full multi-module architecture — domain, application, adapters, bootstrap
 
 ---
 
@@ -10,20 +10,22 @@
 
 The HexaStock domain model is a well-constructed, behaviour-rich aggregate design that successfully captures the core mechanics of a personal investment portfolio. It is among the better DDD models one encounters in educational codebases and holds up respectably against production-grade designs for its stated scope.
 
-The model's principal strengths are:
+The model's principal DDD strengths are:
 
 - A genuinely rich `Portfolio` aggregate root that enforces cash balance, FIFO lot consumption, and share availability invariants through behaviour, not getters and setters.
 - A disciplined value object layer (`Money`, `Price`, `ShareQuantity`, `Ticker`) that eliminates primitive obsession and encodes domain rules at the type level.
 - A clean separation between the `Portfolio` aggregate (current positional state) and `Transaction` (historical record), with thoughtful reasoning documented in the code itself.
 
-Its principal weaknesses are:
+Its principal DDD weaknesses are:
 
 - The `Transaction` entity is structurally anemic: it is a flat, type-tagged data container that conflates four semantically distinct event types into a single class with nullable fields. This is the most significant modelling concern in the codebase.
 - Transaction creation is entirely an application-service concern with no domain involvement, which means the domain model does not participate in ensuring that its own history is correct.
 - The `HoldingPerformanceCalculator` domain service re-derives positional data from transactions rather than from the aggregate, creating a parallel truth that could diverge.
 - Some financial realism is deliberately sacrificed (single currency, integer share quantities, no fees or taxes), which is acceptable for pedagogy but should be explicitly acknowledged as a boundary.
 
-Overall verdict: the model is sound, well above average for a teaching codebase, and defensible for a simple production application. The transaction modelling is the area most deserving of architectural attention.
+**Hexagonal Architecture verdict:** The project is genuinely hexagonal — not merely in naming conventions, but in substance. The six-module Maven structure (`domain`, `application`, `adapters-inbound-rest`, `adapters-outbound-persistence-jpa`, `adapters-outbound-market`, `bootstrap`) enforces layer dependencies at the build level. The domain module carries zero framework dependencies. The application layer depends only on domain abstractions and outbound port interfaces, with `spring-tx` as its sole framework concession. Inbound adapters depend on inbound ports (use-case interfaces), outbound adapters implement outbound ports, and the bootstrap module acts as a clean composition root. ArchUnit fitness tests in `HexagonalArchitectureTest` mechanically enforce these boundaries at every build. The principal hexagonal weakness is a single adapter-to-domain leak: `TransactionDTO` wraps the domain `Transaction` object directly, exposing domain structure to the REST API contract rather than mapping to primitives as all other DTOs correctly do. A secondary concern is the presence of `protected` no-argument constructors and a `addLotFromPersistence()` method on the domain model — pragmatic JPA concessions that do not break the architecture but subtly reveal persistence awareness in the domain's API surface.
+
+**Combined verdict:** DDD and Hexagonal Architecture reinforce each other well in this project. The clean domain boundary that makes the DDD aggregate model credible is the same boundary that makes the hexagonal separation genuine. The project is well above average for a teaching codebase and defensible for a simple production application. The transaction modelling remains the area most deserving of architectural attention from both lenses.
 
 ---
 
@@ -658,13 +660,521 @@ The model is financially credible for its stated scope: a simplified personal in
 
 ---
 
-## 11. Final Recommendations
+## 11. Hexagonal Architecture Assessment
 
-### 11.1 Overall Verdict
+The preceding sections evaluate HexaStock through a DDD lens — aggregate design, invariant enforcement, ubiquitous language, and tactical patterns. This section evaluates whether the project also implements Hexagonal Architecture (ports and adapters) correctly and honestly, or merely borrows its vocabulary. The assessment is based on the actual source code, Maven module structure, dependency declarations, and runtime wiring — not on package names alone.
+
+### 11.1 Is the Architecture Truly Hexagonal?
+
+**Yes, in substance — not only in naming.**
+
+The project is structured as a six-module Maven reactor:
+
+| Module | Hexagonal Role | Maven Artifact |
+|---|---|---|
+| `domain` | Domain core — entities, value objects, aggregate, domain services, domain exceptions | `hexastock-domain` |
+| `application` | Application core — use-case interfaces (inbound ports), outbound port interfaces, application services | `hexastock-application` |
+| `adapters-inbound-rest` | Driving adapter — REST controllers, DTOs, exception handler | `hexastock-adapters-inbound-rest` |
+| `adapters-outbound-persistence-jpa` | Driven adapter — JPA entities, mappers, Spring Data repositories | `hexastock-adapters-outbound-persistence-jpa` |
+| `adapters-outbound-market` | Driven adapter — external stock price API integration (Finnhub, AlphaVantage, mock) | `hexastock-adapters-outbound-market` |
+| `bootstrap` | Composition root — Spring Boot application, Spring configuration, integration tests | `hexastock-bootstrap` |
+
+This structure directly reflects the ports-and-adapters model: the domain and application form the inner hexagon; inbound and outbound adapters form the outer hexagon; and the bootstrap module is the composition root that wires them together. The fact that these are separate Maven modules — not mere packages within a monolith — means that dependency violations produce **compile-time errors**, not runtime surprises. This is meaningfully stronger than a single-module project that relies on developer discipline alone for layer separation.
+
+The domain module's `pom.xml` declares **zero external dependencies** — no Spring, no JPA, no Jakarta, no Jackson, no test frameworks. This is the purest possible domain layer: it compiles against the Java standard library and nothing else.
+
+The application module's `pom.xml` depends on `hexastock-domain` and `spring-tx` (for the `@Transactional` annotation). The `spring-tx` dependency is the sole framework intrusion into the application core. It is a pragmatic trade-off: `@Transactional` is a cross-cutting concern that in pure hexagonal theory should be handled by the composition root or an infrastructure decorator, but in Spring practice is almost universally placed on application services. The dependency is on `spring-tx` only — not `spring-boot-starter`, not `spring-data-jpa`, not `spring-web`. This minimal coupling is acceptable.
+
+No adapter module depends on another adapter module. The inbound REST adapter, the outbound JPA adapter, and the outbound market adapter are completely independent. Each depends only on `hexastock-application` (which transitively includes `hexastock-domain`). This means:
+
+- The REST adapter can be replaced with a CLI, gRPC, or messaging adapter without touching persistence or market integration.
+- The JPA persistence adapter can be swapped for an in-memory, MongoDB, or event-store adapter without touching REST or market integration.
+- The market data adapter already demonstrates this substitutability: three implementations exist (`FinhubStockPriceAdapter`, `AlphaVantageStockPriceAdapter`, `MockFinhubStockPriceAdapter`), selectable at runtime via Spring profiles.
+
+The `bootstrap` module depends on all other modules and acts as the composition root. `SpringAppConfig` manually instantiates application services (use-case implementations), wiring them with output port implementations that Spring discovers through component scanning and profile selection. This explicit wiring makes the dependency graph visible and auditable.
+
+**Verification guard:** The `HexagonalArchitectureTest` class in the bootstrap module uses ArchUnit to enforce six structural rules at every build:
+
+1. Domain must not depend on application.
+2. Domain must not depend on adapters.
+3. Domain must not depend on Spring.
+4. Application must not depend on adapters.
+5. Inbound adapters must not depend on outbound adapters.
+6. Outbound adapters must not depend on inbound adapters.
+
+These are not aspirational guidelines — they are executable architecture fitness tests that fail the build if violated. This is a mature architectural practice that many production codebases lack.
+
+**Assessment:** The architecture is genuinely hexagonal. The module structure, dependency declarations, compilation isolation, composition root wiring, and automated fitness tests all converge on an honest implementation of ports and adapters. This is not a project that merely names its packages `port.in` and `port.out` while allowing arbitrary cross-layer imports.
+
+### 11.2 Dependency Direction
+
+**Rule:** In hexagonal architecture, all compile-time dependencies must point inward — from adapters toward the application core, and from the application core toward the domain. The domain depends on nothing outside itself.
+
+**Verification:**
+
+| Source → Target | Expected | Actual | Status |
+|---|---|---|---|
+| `domain` → `application` | Forbidden | Not present | ✅ |
+| `domain` → any adapter | Forbidden | Not present | ✅ |
+| `domain` → Spring/Jakarta | Forbidden | Not present | ✅ |
+| `application` → `domain` | Required | Present (via `hexastock-domain` dependency) | ✅ |
+| `application` → any adapter | Forbidden | Not present | ✅ |
+| `application` → Spring | Minimal | `spring-tx` only (`@Transactional`) | ✅ (pragmatic) |
+| `adapters-inbound-rest` → `application` | Required | Present (via `hexastock-application` dependency) | ✅ |
+| `adapters-outbound-persistence-jpa` → `application` | Required | Present (via `hexastock-application` dependency) | ✅ |
+| `adapters-outbound-market` → `application` | Required | Present (via `hexastock-application` dependency) | ✅ |
+| Any adapter → any other adapter | Forbidden | Not present | ✅ |
+| `bootstrap` → all modules | Required (composition root) | Present | ✅ |
+
+**Specific observations:**
+
+- The domain module is **completely framework-free**. No class in `cat.gencat.agaur.hexastock.model.*` imports anything from `org.springframework`, `jakarta.persistence`, `com.fasterxml.jackson`, or any framework. This is verified by the ArchUnit rule `domainDoesNotDependOnSpring()` and confirmed by examining every import statement in all 26 domain Java files.
+
+- The application module's services (`PortfolioManagementService`, `PortfolioStockOperationsService`, `ReportingService`, `TransactionService`) are annotated with `@Transactional` from `org.springframework.transaction.annotation`. They are **not** annotated with `@Service` or `@Component` — Spring does not discover them through component scanning. Instead, `SpringAppConfig` in the bootstrap module explicitly constructs them via `@Bean` factory methods. This is an unusually disciplined approach: it prevents the application services from being Spring-aware beyond the single `@Transactional` annotation.
+
+- The inbound REST adapter (`PortfolioRestController`) injects use-case interfaces (`PortfolioManagementUseCase`, `PortfolioStockOperationsUseCase`, `ReportingUseCase`, `TransactionUseCase`) — never concrete service classes. This is textbook inbound port usage.
+
+- The outbound persistence adapter (`JpaPortfolioRepository`, `JpaTransactionRepository`) implements outbound port interfaces (`PortfolioPort`, `TransactionPort`) defined in the application layer. The adapter is annotated with `@Component` and `@Profile("jpa")`, making it profile-selectable. It delegates to Spring Data `JpaRepository` interfaces and uses dedicated mapper classes for domain ↔ JPA entity conversion.
+
+- The outbound market adapter (`FinhubStockPriceAdapter`, `AlphaVantageStockPriceAdapter`, `MockFinhubStockPriceAdapter`) implements the `StockPriceProviderPort` interface, each activated by a distinct Spring profile (`finhub`, `alphaVantage`, `mockfinhub`).
+
+**One subtle observation about domain "awareness" of persistence:**
+
+The `Portfolio` class has a `protected Portfolio() {}` no-argument constructor, and the `Holding` class likewise has `protected Holding() {}`. These exist to support JPA reconstitution (Hibernate requires a no-arg constructor on entities it manages). However, the domain does not actually reference JPA — these constructors are plain Java. The JPA adapter's mapper classes (`PortfolioMapper`, `HoldingMapper`) do not use these constructors; they use the public constructors with full arguments. Instead, the no-arg constructors appear to be a vestigial concession, likely added "just in case" or for a previous persistence strategy. They do not break dependency direction but they are a scent: why would a pure domain object need a no-arg constructor if nothing in its own module uses it?
+
+Similarly, `Holding.addLotFromPersistence(Lot lot)` is a public method documented as "not a business operation — do not call from application services," existing solely for aggregate reconstitution from storage. Its name reveals persistence awareness in the domain vocabulary. A cleaner alternative would be a package-private factory or reconstruction method visible only within the domain, or passing lots through the constructor. This is a minor blemish, not a structural violation.
+
+**Dependency direction verdict:** The dependency direction is correct at every layer. The domain is pristine. The application layer's sole framework coupling (`@Transactional`) is a widely accepted pragmatic choice. No adapter-to-adapter coupling exists. The project enforces these rules both at the Maven dependency level and through ArchUnit tests.
+
+### 11.3 Port Design Quality
+
+Hexagonal architecture defines two kinds of ports:
+
+- **Inbound (driving) ports:** interfaces that the outside world uses to invoke the application. In HexaStock, these are named `*UseCase` and live in `application.port.in`.
+- **Outbound (driven) ports:** interfaces that the application uses to reach external systems. In HexaStock, these are named `*Port` and live in `application.port.out`.
+
+#### 11.3.1 Inbound Ports
+
+| Port | Methods | Assessment |
+|---|---|---|
+| `PortfolioManagementUseCase` | `createPortfolio`, `getPortfolio`, `getAllPortfolios`, `deposit`, `withdraw` | Well-scoped: cohesive set of portfolio lifecycle and cash management operations. Named in domain language, not technical language. |
+| `PortfolioStockOperationsUseCase` | `buyStock`, `sellStock` | Excellent. Two methods, each representing a genuine domain use case. Clean separation from portfolio management. |
+| `ReportingUseCase` | `getHoldingsPerformance` | Clean single-responsibility port for read-side performance queries. |
+| `TransactionUseCase` | `getTransactions` | Minimal read port for transaction history. |
+| `GetStockPriceUseCase` | `getPrice` | Clean single-method port for live price lookup. |
+
+**Strengths:**
+- The ports are named using **domain language** (`buyStock`, `sellStock`, `deposit`, `withdraw`), not technical language (`executeTransaction`, `processRequest`).
+- The ports use **domain types** in their signatures (`PortfolioId`, `Ticker`, `ShareQuantity`, `Money`, `SellResult`, `HoldingPerformance`), not primitives or DTOs.
+- The responsibility split between `PortfolioManagementUseCase` (lifecycle + cash) and `PortfolioStockOperationsUseCase` (trading) reflects natural domain boundaries and supports cohesion: a UI that only needs portfolio listing does not need to know about trading operations.
+- `ReportingUseCase` is separated from the write-side use cases, which is a step toward CQRS and a clean read/write boundary.
+
+**Weaknesses:**
+- `PortfolioManagementUseCase` groups `createPortfolio`/`getPortfolio`/`getAllPortfolios` (lifecycle queries) with `deposit`/`withdraw` (financial mutations) in a single interface. This violates Interface Segregation: a consumer that only lists portfolios is forced to see deposit and withdraw methods. A production design might split this into `PortfolioLifecycleUseCase` and `CashManagementUseCase`.
+- `TransactionUseCase.getTransactions(String portfolioId, Optional<String> type)` accepts raw `String` parameters where domain types (`PortfolioId`, `TransactionType`) would be more appropriate and type-safe. This inconsistency is notable because all other inbound ports correctly use domain value objects. The `Optional<String> type` parameter for filtering is especially weak: it pushes parsing logic into the service rather than letting the port express the filtering intent through the type system.
+- `GetStockPriceUseCase` is fine but sits slightly outside the portfolio domain — it exposes raw market data retrieval as a first-class use case. Whether stock price lookup belongs in the portfolio application layer or in a separate market-data bounded context is debatable, but for a single-bounded-context project this is acceptable.
+
+**Port verbosity observation:** Five inbound ports for a relatively small application may seem fine-grained, but each port aligns with a distinct actor intent (manage portfolios, trade, report, view history, check prices). This granularity supports independent evolution and makes the system auditable: each entry point into the application has an explicit named contract.
+
+#### 11.3.2 Outbound Ports
+
+| Port | Methods | Assessment |
+|---|---|---|
+| `PortfolioPort` | `getPortfolioById`, `createPortfolio`, `savePortfolio`, `getAllPortfolios` | Repository port for the Portfolio aggregate. |
+| `TransactionPort` | `getTransactionsByPortfolioId`, `save` | Repository port for Transaction entities. |
+| `StockPriceProviderPort` | `fetchStockPrice(Ticker)`, `fetchStockPrice(Set<Ticker>)` | External market data port with single and batch fetch. |
+
+**Strengths:**
+- Ports are named in **domain language** (`PortfolioPort`, `TransactionPort`, `StockPriceProviderPort`), not persistence language (`PortfolioRepository`, `TransactionDAO`).
+- Port methods use domain types (`Portfolio`, `PortfolioId`, `Transaction`, `Ticker`, `StockPrice`) — the adapter is responsible for translating these to/from its own representation (JPA entities, API responses).
+- `StockPriceProviderPort` provides a default method `fetchStockPrice(Set<Ticker>)` that iterates over singles, allowing simple adapters to implement only the single-ticker method while sophisticated adapters can override with a batch implementation. This is a thoughtful API design.
+- `PortfolioPort` methods are aggregate-granular: `savePortfolio` saves the entire aggregate (Portfolio + Holdings + Lots) atomically, which is the correct DDD repository pattern.
+
+**Weaknesses:**
+- `PortfolioPort` mixes commands and queries (`createPortfolio`/`savePortfolio` vs `getPortfolioById`/`getAllPortfolios`) in a single interface. In a CQRS-conscious design, read and write ports would be separate.
+- The distinction between `createPortfolio` and `savePortfolio` is unclear from the port interface alone — both accept a `Portfolio` and return `void`. The semantics depend on the adapter implementation (insert vs update). An alternative would be a single `save` method, or the port could return the persisted entity to confirm success.
+- `PortfolioPort` declares `PortfolioNotFoundException` in its import signature (visible in its Javadoc), but this exception is an application-layer concept (`application.exception.PortfolioNotFoundException`). An outbound port should ideally not reference application-layer exceptions — it should return `Optional<Portfolio>` and let the application service decide whether to throw. The current design partially does this (returns `Optional`) but the exception import creates a conceptual coupling.
+
+**Overall port quality:** The ports are well-designed for this scope. They express domain contracts rather than technical APIs, they use domain types for type safety, and they provide clean seams for adapter substitution. The weaknesses are matters of granularity and interface segregation, not structural defects.
+
+### 11.4 Adapter Quality
+
+#### 11.4.1 Inbound Adapter: REST
+
+The REST inbound adapter consists of two controllers (`PortfolioRestController`, `StockRestController`), a global exception handler (`ExceptionHandlingAdvice`), an error response class, and eleven DTO records.
+
+**Thin and focused:** The controllers contain no business logic. Each endpoint method follows the same pattern:
+1. Extract raw values from the HTTP request (path variables, request body DTOs).
+2. Construct domain value objects (`PortfolioId.of(id)`, `Ticker.of(request.ticker())`, `ShareQuantity.positive(request.quantity())`).
+3. Invoke a use-case port method.
+4. Map the domain result to a response DTO.
+5. Return an HTTP response.
+
+This is exemplary adapter behaviour: the adapter is a **translator** between the HTTP protocol world and the domain/application world. No business decisions are made in the controller. For example, `buyStock()` does not check cash sufficiency — it delegates to the use case, which delegates to the aggregate, where the invariant lives.
+
+**DTO mapping:** Ten of the eleven DTOs properly map between domain types and primitive representations. `CreatePortfolioResponseDTO.from(Portfolio)`, `PortfolioResponseDTO.from(Portfolio)`, `SaleResponseDTO.from(...)`, and `StockPriceDTO.fromDomainModel(StockPrice)` all destructure domain objects into primitive fields suitable for JSON serialisation.
+
+**Exception handling:** `ExceptionHandlingAdvice` translates domain and application exceptions into appropriate HTTP status codes using `ProblemDetail` (RFC 7807). Each exception handler maps to a specific HTTP status:
+- `PortfolioNotFoundException`, `HoldingNotFoundException` → 404
+- `InvalidAmountException`, `InvalidQuantityException`, `InvalidTickerException` → 400
+- `ConflictQuantityException`, `InsufficientFundsException` → 409
+- `ExternalApiException` → 503
+
+This is a well-designed exception-to-HTTP-status translation layer. The adapter knows about domain exceptions (which it must, to translate them), but it does not catch and reinterpret domain logic — it only maps exception types to HTTP semantics.
+
+**Critical issue: `TransactionDTO` domain leakage.** The `TransactionDTO` is defined as:
+
+```java
+public record TransactionDTO(Transaction transaction) {
+}
+```
+
+This record wraps the **domain `Transaction` object directly** and exposes it through JSON serialisation. When Jackson serialises a `TransactionDTO`, it traverses the domain `Transaction`'s getters (`getId()`, `getPortfolioId()`, `getTicker()`, `getQuantity()`, `getUnitPrice()`, `getTotalAmount()`, `getProfit()`, `getCreatedAt()`, `getType()`), and the nested domain value objects (`TransactionId`, `PortfolioId`, `Ticker`, `ShareQuantity`, `Price`, `Money`, `TransactionType`) are serialised according to their own structure.
+
+This creates three problems:
+1. **Coupling:** The REST API contract is now structurally coupled to the domain model. If the domain `Transaction` adds a field, renames a getter, or restructures a value object, the API changes silently.
+2. **Inconsistency:** Every other DTO in the REST adapter properly maps to primitives. `TransactionDTO` is the only one that leaks domain objects, making it an anomaly that erodes architectural trust.
+3. **Serialisation fragility:** Domain value objects like `Money(BigDecimal amount)`, `Price(BigDecimal value)`, and `Ticker(String value)` serialise as `{"amount": 100.00}`, `{"value": 50.00}`, and `{"value": "AAPL"}` respectively — wrapping primitives in JSON objects. This produces verbose, non-idiomatic API payloads that differ from what most API consumers expect.
+
+This is the **most significant hexagonal violation** in the codebase. It is also the easiest to fix: create a `TransactionDTO` with explicit primitive fields and a `from(Transaction)` factory method, following the same pattern as `PortfolioResponseDTO` and `SaleResponseDTO`.
+
+**From a DDD perspective,** this leak also undermines the transaction modelling critique from Section 5: the nullable fields and type-tagged structure of the domain `Transaction` are now directly visible in the API, exposing internal modelling compromises to API consumers.
+
+#### 11.4.2 Outbound Adapter: JPA Persistence
+
+The JPA persistence adapter consists of four JPA entity classes (`PortfolioJpaEntity`, `HoldingJpaEntity`, `LotJpaEntity`, `TransactionJpaEntity`), four mapper classes (`PortfolioMapper`, `HoldingMapper`, `LotMapper`, `TransactionMapper`), and two Spring Data repository interfaces (`JpaPortfolioSpringDataRepository`, `JpaTransactionSpringDataRepository`) behind two adapter classes (`JpaPortfolioRepository`, `JpaTransactionRepository`) that implement the outbound ports.
+
+**Anti-corruption layer:** The mapper classes provide a clean anti-corruption layer between the domain model and the JPA persistence model. The domain knows nothing about `PortfolioJpaEntity`; the JPA layer knows nothing about `Portfolio`'s internal behaviour. The mappers translate in both directions:
+
+- `PortfolioMapper.toModelEntity(PortfolioJpaEntity)` reconstructs the domain `Portfolio` aggregate from JPA entities, recursively mapping holdings and lots via `HoldingMapper` and `LotMapper`. The reconstruction uses `Portfolio`'s public constructor and `portfolio.addHolding()`, which means the aggregate's own structural invariants (no duplicate tickers) are enforced during reconstitution.
+- `PortfolioMapper.toJpaEntity(Portfolio)` flattens the domain aggregate into JPA entities, extracting primitive values from value objects (`entity.getId().value()`, `entity.getBalance().amount()`).
+
+This bidirectional mapping is the correct hexagonal pattern: the adapter translates between the domain's language and the persistence technology's language.
+
+**FIFO ordering preservation:** The `HoldingJpaEntity` annotates its `lots` collection with `@OrderBy("purchasedAt ASC")`, ensuring that lots are loaded from the database in chronological order. This directly addresses the DDD concern raised in Section 6.2 (FIFO ordering depends on persistence): the adapter explicitly guarantees the ordering that the domain's FIFO algorithm relies on. This is evidence of thoughtful coordination between the domain requirement and the adapter implementation. However, the domain model itself does not enforce or verify this ordering — it trusts the adapter. A defensive domain model might sort lots on reconstitution, but the current approach of trusting the adapter's `@OrderBy` is a reasonable production compromise.
+
+**Pessimistic locking:** `JpaPortfolioSpringDataRepository` defines a custom query `findByIdForUpdate` with `@Lock(LockModeType.PESSIMISTIC_WRITE)`. The `JpaPortfolioRepository.getPortfolioById()` method uses this lock-aware query, ensuring that concurrent modifications to the same portfolio are serialised at the database level. This is a critical correctness property for a financial application and is correctly placed in the adapter — the domain should not know about database locking strategies.
+
+**Aggregate-granular persistence:** `JpaPortfolioRepository.savePortfolio()` maps the entire domain aggregate to a JPA entity graph and saves it as a unit. The `@OneToMany(cascade = ALL, orphanRemoval = true)` annotations on `PortfolioJpaEntity.holdings` and `HoldingJpaEntity.lots` ensure that Hibernate cascades saves and deletes through the entity hierarchy. This matches the DDD aggregate repository pattern: the aggregate is loaded and saved as a whole.
+
+**Profile-based activation:** Both `JpaPortfolioRepository` and `JpaTransactionRepository` are annotated with `@Profile("jpa")`, meaning they are only active when the `jpa` Spring profile is enabled. This enables testing with alternative (e.g., in-memory) port implementations without any adapter code changes.
+
+**No business logic in the adapter:** The JPA adapter contains no business rules, no validation logic, no domain computations. It maps, persists, and retrieves — exactly what an adapter should do.
+
+#### 11.4.3 Outbound Adapter: Market Data
+
+Three implementations of `StockPriceProviderPort` exist:
+
+- `FinhubStockPriceAdapter` — calls the Finnhub REST API, parses JSON, constructs `StockPrice` domain objects. Annotated with `@Cacheable` using Caffeine cache and `@Profile("finhub")`.
+- `AlphaVantageStockPriceAdapter` — calls the AlphaVantage REST API with a similar pattern. Uses `@Profile("alphaVantage")`.
+- `MockFinhubStockPriceAdapter` — generates random prices using `SecureRandom`. Uses `@Profile("mockfinhub")`.
+
+**Strengths:**
+- Three implementations of the same port demonstrate **genuine substitutability** — the hexagonal promise that adapters can be swapped is not theoretical; it is exercised in practice.
+- The mock adapter enables integration tests (`PortfolioTradingRestIntegrationTest` and others) to run without external API dependencies, which is exactly the testability benefit that hexagonal architecture promises.
+- Both real adapters include throttling (`Thread.sleep(THROTTLE_MS)`) and caching (`@Cacheable`) — infrastructure concerns that belong in the adapter, not in the application core.
+- Both real adapters throw `ExternalApiException` (a domain exception) when the external service returns invalid data, translating infrastructure failures into domain-language exceptions.
+
+**Observation:** The fact that `ExternalApiException` is a domain exception (`cat.gencat.agaur.hexastock.model.ExternalApiException`) used by adapters to signal infrastructure failures creates a mild conceptual tension. The domain defines an exception type for infrastructure failures, even though the domain itself never encounters infrastructure. This is arguably backwards — the adapter should define its own exception, and the application or domain should define an abstract "external dependency failed" concept if needed. In practice, this is harmless because the exception flows outward (adapter → application → REST exception handler), but it reveals a minor layer-awareness concern.
+
+#### 11.4.4 Adapter Quality Verdict
+
+The adapters are well-constructed overall. They are thin, focused on translation, and free of business logic. The JPA adapter provides a textbook anti-corruption layer with dedicated JPA entities, bidirectional mappers, and aggregate-granular persistence. The market adapter demonstrates genuine adapter substitutability. The REST adapter is mostly clean, with one significant exception: `TransactionDTO` leaks the domain `Transaction` object directly into the API contract, undermining the hexagonal boundary for that specific endpoint.
+
+### 11.5 Application Layer Orchestration
+
+The application layer contains five service classes, each implementing one inbound port. The services are responsible for use-case orchestration: loading domain objects through outbound ports, delegating business decisions to the domain, persisting results, and recording transactions.
+
+**Orchestration vs business logic placement:**
+
+| Service | Domain Logic Location | Application Logic | Assessment |
+|---|---|---|---|
+| `PortfolioManagementService.createPortfolio` | `Portfolio.create()` constructs the aggregate | Service calls `portfolioPort.createPortfolio()` | ✅ Correct: creation logic in domain, persistence in application |
+| `PortfolioManagementService.deposit` | `Portfolio.deposit(amount)` validates and mutates balance | Service orchestrates load → mutate → save → record transaction | ✅ Correct: validation and mutation in domain, orchestration in application |
+| `PortfolioManagementService.withdraw` | `Portfolio.withdraw(amount)` validates, checks sufficiency, mutates | Same orchestration pattern | ✅ Correct |
+| `PortfolioStockOperationsService.buyStock` | `Portfolio.buy()` validates, checks funds, delegates to `Holding.buy()`, creates `Lot` | Service fetches price, orchestrates flow, records transaction | ✅ Correct: all investment logic in domain |
+| `PortfolioStockOperationsService.sellStock` | `Portfolio.sell()` → `Holding.sell()` implements FIFO, computes cost basis, returns `SellResult` | Service fetches price, orchestrates flow, records transaction | ✅ Correct: FIFO algorithm entirely in domain |
+| `ReportingService.getHoldingsPerformance` | `HoldingPerformanceCalculator` computes metrics | Service loads portfolio, transactions, fetches prices, delegates to domain service | ✅ Correct: computation in domain service, I/O orchestration in application |
+| `TransactionService.getTransactions` | None | Delegates directly to `TransactionPort` | ✅ Correct (read-only pass-through) |
+| `GetStockPriceService.getPrice` | None | Delegates directly to `StockPriceProviderPort` | ✅ Correct (read-only pass-through) |
+
+**Balance assessment:** The application services are appropriately thin. They perform orchestration — load, delegate, save, record — without absorbing domain logic. The FIFO algorithm lives in `Holding.sell()`, not in `PortfolioStockOperationsService`. Cash sufficiency checks live in `Portfolio.buy()` and `Portfolio.withdraw()`, not in the services. `HoldingPerformanceCalculator` lives in the domain module, not in the application module. This distribution is correct.
+
+**Transaction creation concern (cross-reference with DDD Section 5.4):** The application services are responsible for creating `Transaction` records after each domain operation. This creates an orchestration burden: the service must know which `Transaction.create*()` factory method to call and which domain results to pass. As analysed in the DDD sections, this creates a consistency risk (a future developer could forget to create a transaction for a new operation) and a knowledge-leakage concern (the service must understand the financial semantics of `SellResult` to record the transaction correctly).
+
+From a hexagonal perspective, this concern manifests as **the application layer doing too much transcription work** — it must translate between the domain operation's output (`SellResult`) and the transaction record's input (`Transaction.createSale(..., sellResult.proceeds(), sellResult.profit())`). If the domain emitted events, the application service would be simpler: orchestrate the domain operation, save the aggregate, and let an event handler create the transaction from the domain event. The hexagonal boundary would be cleaner because the event handler (which is adapter-like infrastructure) would handle the transcription, not the application core.
+
+**`@Transactional` placement:** All five services are annotated with `@Transactional` at the class level. This means every public method in each service runs within a Spring-managed database transaction. This is correct for the write-side services (portfolio mutations + transaction recording must be atomic), but slightly heavy-handed for the read-side services (`TransactionService.getTransactions`, `GetStockPriceService.getPrice`). Read-only operations do not need write-transaction overhead. A minor optimisation would be `@Transactional(readOnly = true)` for read-side methods or splitting read and write service concerns more explicitly.
+
+### 11.6 Domain Protection from Infrastructure
+
+A key hexagonal architecture goal is protecting the domain model from infrastructure distortion. The question is: does the domain model in HexaStock look like a financial domain model, or does it look like a persistence model dressed up in domain vocabulary?
+
+**The domain looks like a domain model, not a persistence model.** Specific evidence:
+
+1. **No JPA annotations anywhere in the domain module.** Not a single `@Entity`, `@Id`, `@Column`, `@OneToMany`, `@ManyToOne`, or `@Table` annotation exists in any domain class. The JPA entity hierarchy (`PortfolioJpaEntity`, `HoldingJpaEntity`, `LotJpaEntity`, `TransactionJpaEntity`) is entirely confined to the persistence adapter.
+
+2. **No Jackson annotations.** No `@JsonProperty`, `@JsonIgnore`, or `@JsonCreator` annotations exist in the domain. Serialisation is the adapter's concern.
+
+3. **No Spring annotations.** No `@Service`, `@Component`, `@Repository`, or `@Autowired` in the domain.
+
+4. **Value objects are Java records.** `Money`, `Price`, `ShareQuantity`, `Ticker`, `SellResult`, `HoldingPerformance`, `StockPrice`, and all ID types are records — immutable, with auto-generated `equals`/`hashCode`/`toString`. Records cannot be JPA-managed entities (Hibernate requires mutable classes), which makes the value object / JPA entity distinction structural rather than convention-based.
+
+5. **Collections are domain-natural.** `Portfolio` uses `Map<Ticker, Holding>` (indexed by ticker for O(1) lookup); `Holding` uses `List<Lot>` (ordered for FIFO). These collections serve domain purposes, not persistence mapping. The JPA adapter translates them: `Map<Ticker, Holding>` becomes `Set<HoldingJpaEntity>` with a `@JoinColumn`; `List<Lot>` becomes `List<LotJpaEntity>` with `@OrderBy`.
+
+**Minor infrastructure awareness in the domain:**
+
+1. **`protected` no-arg constructors.** `Portfolio`, `Holding`, and `Lot` (the three mutable entities) each have a `protected` no-arg constructor. These are a common JPA-ORM accommodation — Hibernate needs a no-arg constructor for proxied entities. However, in this architecture the domain entities are **not** Hibernate-managed; the JPA entities are separate classes in the adapter. The no-arg constructors are therefore vestigial: they existed in an earlier design (or were added prophylactically) and are currently unused. They do not break anything, but they represent a lingering persistence concern in the domain's API surface. Removing them would make the domain demonstrably independent of any ORM requirement.
+
+2. **`Holding.addLotFromPersistence(Lot lot)`.** This public method is documented as a persistence hook, and its name explicitly references persistence. It exists so that `PortfolioMapper.toModelEntity()` can reconstruct the `Holding → Lot` relationship during aggregate reconstitution from storage. The method enforces the no-duplicate-lot-ID invariant internally, which is correct, but its naming and purpose reveal that the domain's API was shaped by a persistence need rather than a business need. A cleaner approach would be passing the lots through the `Holding` constructor or providing a domain-motivated method like `reconstitute(List<Lot> lots)` that does not name persistence.
+
+3. **`HoldingPerformance` uses `BigDecimal` instead of domain value objects.** The `HoldingPerformance` record uses raw `BigDecimal` for all its fields (`quantity`, `remaining`, `averagePurchasePrice`, `currentPrice`, `unrealizedGain`, `realizedGain`) rather than the domain's `Money`, `Price`, and `ShareQuantity` types. This appears to be an accommodation for easy serialisation and DTO mapping — the REST adapter can map `BigDecimal` fields directly without destructuring value objects. While pragmatic, it means `HoldingPerformance` is a **leaky abstraction** within the domain: it breaks the type discipline that the rest of the domain enforces with `Money`, `Price`, and `ShareQuantity`.
+
+**Domain protection verdict:** The domain is well-protected. The three observations above are minor concessions, not structural compromises. The absence of any framework annotation in the domain is the strongest evidence that infrastructure has not distorted the domain model. The domain looks like what a financial domain expert would design, not what a JPA-first developer would produce.
+
+### 11.7 End-to-End Boundary Trace of Key Use Cases
+
+To verify that hexagonal boundaries hold in practice, this section traces four representative use cases from HTTP entry to database persistence.
+
+#### 11.7.1 Deposit Funds
+
+```
+HTTP POST /api/portfolios/{id}/deposits  { "amount": 500.00 }
+```
+
+1. **Inbound adapter** (`PortfolioRestController.deposit`):
+   - Extracts `id` from path variable, `amount` from request body `DepositRequestDTO`.
+   - Constructs domain value objects: `PortfolioId.of(id)`, `Money.of(request.amount())`.
+   - Calls `portfolioManagementUseCase.deposit(portfolioId, amount)` — the inbound port.
+
+2. **Application service** (`PortfolioManagementService.deposit`):
+   - Calls `portfolioPort.getPortfolioById(portfolioId)` — outbound port for loading.
+   - Calls `portfolio.deposit(amount)` — domain operation. `Portfolio.deposit()` validates that the amount is positive and adds it to the balance. No infrastructure involved.
+   - Calls `portfolioPort.savePortfolio(portfolio)` — outbound port for persisting.
+   - Calls `Transaction.createDeposit(portfolioId, amount)` then `transactionPort.save(transaction)` — outbound port for recording.
+
+3. **Outbound persistence adapter** (`JpaPortfolioRepository`):
+   - `getPortfolioById`: calls `jpaSpringDataRepository.findByIdForUpdate()` (pessimistic lock), maps result via `PortfolioMapper.toModelEntity()` → returns domain `Portfolio`.
+   - `savePortfolio`: maps domain `Portfolio` via `PortfolioMapper.toJpaEntity()`, saves via `jpaSpringDataRepository.save()`.
+
+**Boundary assessment:** ✅ Clean hexagonal flow. Control enters through the inbound port, business logic executes in the domain, persistence occurs through the outbound port. No layer skipping, no business logic in adapters, no infrastructure in the domain.
+
+#### 11.7.2 Buy Stock
+
+```
+HTTP POST /api/portfolios/{id}/purchases  { "ticker": "AAPL", "quantity": 10 }
+```
+
+1. **Inbound adapter** (`PortfolioRestController.buyStock`):
+   - Constructs `PortfolioId.of(id)`, `Ticker.of(request.ticker())`, `ShareQuantity.positive(request.quantity())`.
+   - Calls `portfolioStockOperationsUseCase.buyStock(...)` — inbound port.
+
+2. **Application service** (`PortfolioStockOperationsService.buyStock`):
+   - Calls `portfolioPort.getPortfolioById(portfolioId)` — outbound port (persistence).
+   - Calls `stockPriceProviderPort.fetchStockPrice(ticker)` — outbound port (market data).
+   - Calls `portfolio.buy(ticker, quantity, stockPrice.price())` — domain operation. The aggregate validates quantity, checks cash sufficiency, finds or creates the holding, delegates to `Holding.buy()` which creates a `Lot`, and debits the balance.
+   - Calls `portfolioPort.savePortfolio(portfolio)` then `transactionPort.save(transaction)` — outbound ports (persistence).
+
+3. **Outbound market adapter** (e.g., `FinhubStockPriceAdapter.fetchStockPrice`):
+   - Calls Finnhub REST API, parses JSON response, constructs `StockPrice(ticker, Price.of(price), time)` — domain value object.
+   - Returns through the outbound port interface.
+
+**Boundary assessment:** ✅ Clean. Two outbound adapters are invoked (market + persistence), but the application service orchestrates them through port interfaces. The aggregate root performs all business validation. Price discovery is an adapter concern; the domain receives a `Price` and is unaware of where it came from.
+
+#### 11.7.3 Sell Stock (FIFO)
+
+```
+HTTP POST /api/portfolios/{id}/sales  { "ticker": "AAPL", "quantity": 5 }
+```
+
+1. **Inbound adapter** (`PortfolioRestController.sellStock`):
+   - Constructs domain value objects, calls inbound port.
+   - Receives `SellResult`, maps it to `SaleResponseDTO` using `SaleResponseDTO.from(...)`.
+
+2. **Application service** (`PortfolioStockOperationsService.sellStock`):
+   - Loads portfolio, fetches price, calls `portfolio.sell(ticker, quantity, price)`.
+   - The aggregate delegates to `Holding.sell()`, which implements the FIFO algorithm: iterates lots in chronological order, reduces lot shares, accumulates cost basis, removes depleted lots, and computes `SellResult(proceeds, costBasis, profit)`.
+   - Saves portfolio, records transaction with proceeds and profit from `SellResult`.
+
+3. **Domain logic (FIFO):** Entirely within `Holding.sell()`:
+   - Validates share availability against total remaining across all lots.
+   - Iterates lots via `ArrayList` iterator (oldest first by insertion order).
+   - For each lot: takes `min(lot.remaining, quantity.remaining)`, accumulates cost basis, reduces lot, removes if empty.
+   - Returns `SellResult.of(proceeds, costBasis)` which computes profit as `proceeds - costBasis`.
+
+**Boundary assessment:** ✅ Clean. The most complex business logic in the system (FIFO lot consumption with cost basis tracking) lives entirely in the domain aggregate. The application service is a thin orchestrator. The adapter merely translates HTTP to domain and back.
+
+**Cross-reference with DDD:** The FIFO algorithm's correctness depends on lot ordering, which in turn depends on the persistence adapter's `@OrderBy("purchasedAt ASC")` annotation on `HoldingJpaEntity.lots`. This is an implicit contract between the domain and adapter — the domain assumes insertion-ordered lots, and the adapter guarantees chronological ordering from the database. This is an acceptable contract for this architecture, but it is not enforced by the domain itself. From a hexagonal perspective, this is a clean adapter responsibility: the adapter ensures that the data it provides through the outbound port meets the domain's expectations.
+
+#### 11.7.4 Holdings Performance Report
+
+```
+HTTP GET /api/portfolios/{id}/holdings
+```
+
+1. **Inbound adapter** (`PortfolioRestController.getHoldings`):
+   - Calls `reportingUseCase.getHoldingsPerformance(id)` — inbound port.
+   - Maps `List<HoldingPerformance>` to `List<HoldingDTO>` — each `HoldingPerformance` record's `BigDecimal` fields are passed directly to `HoldingDTO`.
+
+2. **Application service** (`ReportingService.getHoldingsPerformance`):
+   - Loads portfolio via `portfolioPort` — outbound port.
+   - Loads transactions via `transactionPort` — outbound port.
+   - Determines distinct tickers from portfolio holdings.
+   - Fetches live prices via `stockPriceProviderPort.fetchStockPrice(Set<Ticker>)` — outbound port.
+   - Delegates to `HoldingPerformanceCalculator.getHoldingsPerformance(portfolio, transactions, tickerPrices)` — domain service.
+
+3. **Domain service** (`HoldingPerformanceCalculator`):
+   - Single-pass O(T) aggregation over transactions to compute per-ticker bought quantities, bought costs, and realised gains.
+   - For each ticker: reads remaining shares and unrealised gain from the `Portfolio` aggregate.
+   - Builds `HoldingPerformance` records.
+
+**Boundary assessment:** ✅ Clean hexagonal flow. The application service orchestrates three outbound ports (load portfolio, load transactions, fetch prices) and delegates computation to a domain service. No business logic in the application service beyond orchestration.
+
+**Cross-reference with DDD (Section 5.4, 9.6):** This use case highlights the "parallel truth" concern: `HoldingPerformanceCalculator` reads remaining shares from the aggregate (`portfolio.getHolding(ticker).getTotalShares()`) but reads total purchased quantities from the transaction history. If these two data sources diverge, the performance calculation will be inconsistent. From a hexagonal perspective, this is an orchestration concern: the application service is responsible for ensuring that both data sources are consistent, but it has no mechanism to verify this. A domain-event-based design would eliminate this concern because transactions would be derived from the same events that update the aggregate.
+
+### 11.8 Testability Consequences
+
+One of hexagonal architecture's primary promises is improved testability: the ability to test domain and application logic without infrastructure.
+
+**Evidence that hexagonal structure improves testability:**
+
+1. **Domain tests are pure unit tests.** The domain module contains only Java standard library code. Domain tests (in `domain/src/test/`) test aggregate behaviour, value object validation, and the FIFO algorithm without any Spring context, database, or external service. `Portfolio.buy()`, `Holding.sell()`, `Lot.reduce()`, `Money.add()` — all are testable with plain JUnit assertions.
+
+2. **Application tests mock outbound ports.** `ReportingServiceTest` demonstrates the pattern: the three outbound ports (`PortfolioPort`, `TransactionPort`, `StockPriceProviderPort`) are mocked with Mockito, and the real `HoldingPerformanceCalculator` (a pure domain service) is used directly. The test verifies:
+   - Correct exception on unknown portfolio ID.
+   - Correct delegation to the domain calculator.
+   - Correct port call sequence (portfolio first, then transactions, then prices).
+
+   This is only possible because the application service depends on **port interfaces**, not concrete adapter classes. If `ReportingService` depended directly on `JpaPortfolioRepository` or `FinhubStockPriceAdapter`, mocking would require Spring context initialisation or Testcontainers — dramatically increasing test time and complexity.
+
+3. **Integration tests are isolated by adapter profiles.** The bootstrap module's integration tests use `@Profile("mockfinhub")` to substitute the real Finnhub adapter with a mock that returns random prices. This enables full end-to-end HTTP testing (via RestAssured + Testcontainers for MySQL) without depending on external market data APIs. The `@Profile("jpa")` annotation on persistence adapters similarly enables future in-memory adapter substitution for faster test cycles.
+
+4. **ArchUnit tests enforce architecture mechanically.** `HexagonalArchitectureTest` runs as a standard JUnit test, meaning architectural violations are caught during `mvn test`, not during code review or production debugging.
+
+**Testability weaknesses:**
+
+1. **No unit tests for REST controllers.** The inbound REST adapter is tested only through integration tests in the bootstrap module. Unit testing the controller in isolation (mocking the use-case ports) would verify DTO mapping, HTTP status codes, and request validation independently of the full Spring context. The hexagonal structure makes this easy — the controller depends on port interfaces — but the project does not exploit this opportunity.
+
+2. **No unit tests for persistence mappers.** The bidirectional mapper classes (`PortfolioMapper`, `HoldingMapper`, `LotMapper`, `TransactionMapper`) are pure functions that convert between domain and JPA objects. They should be unit-testable without a database. Testing them would catch mapping errors (field mismatches, null handling, ordering changes) before integration tests.
+
+3. **Application services are not annotated with `@Service`**, which means they are not Spring beans by default. This is architecturally correct (they are instantiated explicitly in `SpringAppConfig`), but it means that testing them requires manual construction rather than using `@MockBean` and `@Autowired`. The current test approach (manual construction in `@BeforeEach`) is actually cleaner and faster than Spring-managed testing, so this is a strength disguised as a minor inconvenience.
+
+**Testability verdict:** The hexagonal structure delivers real testability benefits. Domain logic is testable in pure unit tests. Application logic is testable with mocked ports. Integration tests use adapter profile substitution to avoid external dependencies. The project could go further by adding controller unit tests and mapper unit tests, but the current test architecture is sound.
+
+### 11.9 Hexagonal Risks and Architectural Smells
+
+This section identifies concrete hexagonal risks, ordered by severity.
+
+#### Severity: High
+
+**1. `TransactionDTO` leaks domain `Transaction` into the REST API.**
+As analysed in Section 11.4.1, `TransactionDTO(Transaction transaction)` exposes the domain entity directly. This:
+- Couples the API contract to the domain model structure.
+- Exposes nullable fields and internal type-tag structure.
+- Contradicts the pattern established by all other DTOs.
+- Makes the REST API vulnerable to domain refactoring.
+
+**Remediation:** Replace with a properly mapped DTO:
+```java
+public record TransactionDTO(String id, String portfolioId, String type,
+                              String ticker, int quantity, BigDecimal unitPrice,
+                              BigDecimal totalAmount, BigDecimal profit,
+                              LocalDateTime createdAt) {
+    public static TransactionDTO from(Transaction tx) { ... }
+}
+```
+
+#### Severity: Medium
+
+**2. Application services create transactions manually — dual-write orchestration burden.**
+This is both a DDD and hexagonal concern. The application service must correctly transcribe domain results into `Transaction` records. From a hexagonal perspective, this makes the application layer thicker than necessary: it must understand domain semantics (what fields a `SALE` transaction needs, where to get proceeds and profit from `SellResult`) rather than simply orchestrating port calls. A domain event pattern would push this concern to the adapter layer (event handler) and make the application service simpler.
+
+**3. `ExternalApiException` is a domain exception used to signal adapter failures.**
+`ExternalApiException` lives in `cat.gencat.agaur.hexastock.model` (the domain root package), but it represents an infrastructure failure (external API unavailable or returning invalid data). Domain exceptions should model **business rule violations** (insufficient funds, invalid quantity), not infrastructure failures. The adapters (`FinhubStockPriceAdapter`, `AlphaVantageStockPriceAdapter`) throw this exception.
+
+**Remediation:** Move `ExternalApiException` to the application layer or create an adapter-specific exception that the application layer translates into an application-level error.
+
+**4. `HoldingPerformance` uses `BigDecimal` instead of domain value objects.**
+As noted in Section 11.6, this record breaks the domain's type discipline. It uses `BigDecimal` for quantities, prices, and monetary amounts where the rest of the domain uses `ShareQuantity`, `Price`, and `Money`. This appears to be an optimisation for DTO mapping but it weakens type safety within the domain itself.
+
+#### Severity: Low
+
+**5. `protected` no-arg constructors in domain entities.**
+The no-arg constructors on `Portfolio`, `Holding`, and `Lot` are vestigial ORM accommodations not currently needed (since the domain entities are not JPA-managed). They are harmless but signal false persistence awareness.
+
+**6. `Holding.addLotFromPersistence()` names persistence in the domain.**
+A minor naming issue: the method's name references "persistence" in the domain's ubiquitous language. `reconstitute(Lot lot)` or simply providing lots through the constructor would be cleaner.
+
+**7. `@Transactional` on the application service creates a framework dependency.**
+Acknowledged as a pragmatic trade-off. In strict hexagonal design, transaction management would be handled by a decorator or the composition root, not by the application service. However, Spring's `@Transactional` is so universally used that this is an accepted industry convention, not a real-world risk.
+
+**8. `PortfolioManagementUseCase` aggregates multiple concerns.**
+Five methods spanning lifecycle management and cash operations in one interface. This is an interface segregation concern, not a hexagonal boundary violation, but it increases coupling for consumers that need only a subset of the operations.
+
+**9. `TransactionUseCase.getTransactions` uses `String` instead of domain types.**
+The use of `String portfolioId` and `Optional<String> type` where `PortfolioId` and `Optional<TransactionType>` would be more appropriate is a minor type-safety gap in the port definition.
+
+#### Not Present (Positive Findings)
+
+The following common hexagonal anti-patterns were evaluated and **not found**:
+
+- ❌ **Bidirectional coupling between layers.** Not present. Dependencies are strictly unidirectional inward.
+- ❌ **Adapter-to-adapter dependencies.** Not present. REST, JPA, and market adapters are mutually independent.
+- ❌ **Domain model shaped by JPA.** Not present. Domain entities use `Map`, `List`, records — not JPA-friendly `Set<>` with `@ManyToOne` back-references.
+- ❌ **Framework annotations in the domain.** Not present. Zero Spring, Zero JPA, Zero Jackson annotations in the domain module.
+- ❌ **Application service as transaction script.** Not present. Services orchestrate; business logic lives in aggregates and domain services.
+- ❌ **Duplicate business rules across layers.** Not present. Validation happens in the domain (value object constructors, aggregate methods); adapters and application services do not re-validate.
+- ❌ **Hidden dependence on adapter ordering.** The FIFO ordering dependency on `@OrderBy` is explicit and documented, not hidden.
+
+---
+
+## 12. Combined DDD + Hexagonal Architecture Verdict
+
+### 12.1 DDD Quality Assessment
+
+**Rating: Strong.**
+
+The HexaStock domain model is a credible, behaviour-rich DDD implementation. The `Portfolio` aggregate root enforces real financial invariants. Value objects eliminate primitive obsession. The FIFO lot-consumption algorithm is genuine domain logic, not framework glue. The aggregate boundary is correctly drawn. The main DDD weakness — anemic, type-tagged transaction modelling with application-service-driven creation — is a significant modelling concern but does not undermine the aggregate root's integrity.
+
+### 12.2 Hexagonal Architecture Quality Assessment
+
+**Rating: Strong with one notable leak.**
+
+The hexagonal architecture is genuine, enforced at the Maven module level, tested by ArchUnit fitness rules, and demonstrated by working adapter substitution (three market data implementations, profile-based selection). The domain is framework-free. The application layer is minimally coupled (only `@Transactional`). Adapters are thin, focused, and independent. The composition root is explicit. The sole significant violation — `TransactionDTO` wrapping a domain object — is easy to fix and does not compromise the architecture's structural integrity.
+
+### 12.3 How DDD and Hexagonal Architecture Reinforce Each Other
+
+In HexaStock, the two architectural approaches are **mutually reinforcing**, not competing:
+
+1. **The aggregate boundary is the hexagonal core boundary.** The `Portfolio` aggregate defines what the domain protects; the hexagonal boundary defines what the domain is insulated from. These are the same boundary, expressed through different lenses.
+
+2. **Value objects enforce type safety across layers.** Domain value objects (`Money`, `Price`, `ShareQuantity`, `Ticker`) appear in inbound port signatures, outbound port signatures, and the domain itself. Adapters must construct them (translating from primitives) and destructure them (translating back to primitives). This forces adapters to go through the domain's type system, reinforcing both DDD type discipline and hexagonal boundary discipline.
+
+3. **The FIFO algorithm demonstrates both patterns simultaneously.** The FIFO lot-consumption logic lives in `Holding.sell()` (DDD: rich aggregate behaviour; Hexagonal: domain core has no infrastructure dependency). The persistence adapter ensures lots are loaded in chronological order (DDD: repository contract guarantees aggregate preconditions; Hexagonal: adapter translates infrastructure behaviour into domain expectations). The application service orchestrates the flow without knowledge of FIFO mechanics (DDD: service delegates to aggregate; Hexagonal: service uses ports, not concrete adapters).
+
+4. **The reporting concern reveals tension in both lenses.** `HoldingPerformanceCalculator` merges data from the aggregate and the transaction store (DDD: parallel truth risk, as analysed in Section 9.6). This same concern appears through the hexagonal lens: the application service (`ReportingService`) must orchestrate three outbound ports to assemble the inputs for the domain service, creating a thick orchestration layer for what is conceptually a single query. Both DDD and hexagonal analysis point to the same root cause — the transaction record is disconnected from the aggregate — and suggest the same solution: domain events that unify the data flow.
+
+5. **Weak transaction modelling weakens both patterns.** The anemic `Transaction` entity (DDD concern) manifests as a hexagonal concern through `TransactionDTO`: because the domain `Transaction` is a flat data container, it is tempting to expose it directly through the adapter — and the project does exactly this. A richer, type-safe transaction hierarchy (DDD improvement) would naturally lead to proper adapter mapping (hexagonal improvement) because heterogeneous types cannot be transparently serialised without explicit DTO translation.
+
+### 12.4 Overall Combined Verdict
+
+HexaStock is a well-executed educational project that successfully demonstrates both DDD and Hexagonal Architecture in a mutually reinforcing way. It is not a toy example: the domain model protects real financial invariants, the hexagonal structure is mechanically enforced, and the adapter layer demonstrates genuine substitutability. The project's weaknesses are concentrated in the transaction modelling, which is both the most significant DDD concern and the source of the most visible hexagonal leak.
+
+**For a teaching codebase:** This project is exceptionally well-suited. It provides concrete, working examples of aggregate roots, value objects, domain services, inbound and outbound ports, adapter mapping, anti-corruption layers, composition root wiring, profile-based adapter substitution, and architectural fitness tests. The transaction modelling weakness is itself a valuable teaching opportunity.
+
+**For a production application:** The project would need targeted improvements in transaction modelling and the `TransactionDTO` leak, but the fundamental architecture is sound and would not require restructuring.
+
+---
+
+## 13. Final Recommendations
+
+### 13.1 Overall Verdict
 
 The HexaStock domain model is a **well-designed, behaviour-rich DDD model** that successfully captures the essential mechanics of a personal investment portfolio. It is significantly above average for educational DDD projects and would serve as a credible starting point for a simple production application.
 
-### 11.2 Main Strengths
+### 13.2 Main Strengths
+
+**DDD:**
 
 1. **Genuinely rich aggregate root.** `Portfolio.buy()` and `Portfolio.sell()` are real domain operations with real invariant enforcement, not getters and setters dressed in business method names.
 2. **Disciplined value object design.** `Money`, `Price`, `ShareQuantity`, and `Ticker` are exemplary value objects — immutable, self-validating, and eliminating primitive obsession.
@@ -672,7 +1182,17 @@ The HexaStock domain model is a **well-designed, behaviour-rich DDD model** that
 4. **Non-trivial domain algorithm.** The FIFO lot-consumption algorithm in `Holding.sell()` is real domain logic, not framework glue. Its correctness relies on domain knowledge (lot ordering, partial consumption, cost-basis accumulation), making it an excellent teaching vehicle.
 5. **Thoughtful documentation.** The code contains detailed Javadoc explaining design decisions, alternatives considered, and DDD classification. The `ShareQuantity` documentation on why zero is allowed is particularly well-written.
 
-### 11.3 Main Weaknesses
+**Hexagonal Architecture:**
+
+6. **Genuine module-level separation.** Six Maven modules enforce layer boundaries at compile time, not by convention.
+7. **Framework-free domain.** Zero framework dependencies in the domain module — the purest possible domain core.
+8. **Executable architecture fitness tests.** `HexagonalArchitectureTest` mechanically enforces hexagonal dependency rules at every build with ArchUnit.
+9. **Demonstrated adapter substitutability.** Three market data implementations (`FinhubStockPriceAdapter`, `AlphaVantageStockPriceAdapter`, `MockFinhubStockPriceAdapter`) prove that port-adapter separation is not theoretical.
+10. **Clean anti-corruption layer.** Dedicated JPA entities and bidirectional mapper classes insulate the domain from persistence technology.
+
+### 13.3 Main Weaknesses
+
+**DDD:**
 
 1. **Anemic Transaction model.** `Transaction` is a flat, type-tagged data container with nullable fields and no domain behaviour. It is the most significant modelling weakness.
 2. **Transaction creation in application service.** The domain model does not participate in ensuring that its own audit trail is correct. Transaction creation is an application-service responsibility, creating a consistency gap addressable through domain events.
@@ -680,16 +1200,31 @@ The HexaStock domain model is a **well-designed, behaviour-rich DDD model** that
 4. **Parallel truth in performance calculation.** `HoldingPerformanceCalculator` derives positional data from transactions while the aggregate maintains positions independently. These two data paths could diverge.
 5. **FIFO ordering depends on persistence.** The FIFO guarantee depends on `ArrayList` insertion order being preserved through persistence round-trips — an implicit contract between domain and adapter layers.
 
-### 11.4 Most Important Risks
+**Hexagonal Architecture:**
+
+6. **`TransactionDTO` leaks domain `Transaction` into the REST API.** The only response DTO that wraps a domain entity directly, coupling the API contract to the domain model and contradicting the pattern established by all other DTOs.
+7. **`ExternalApiException` is a domain exception for infrastructure failures.** An infrastructure concern (`ExternalApiException`) is modelled as a domain exception, creating a minor conceptual layer violation.
+8. **`HoldingPerformance` uses `BigDecimal` instead of domain value objects.** Breaks the type discipline within the domain for apparent DTO-mapping convenience.
+9. **No unit tests for REST controllers or persistence mappers.** The hexagonal structure enables isolated adapter testing, but this opportunity is not fully exploited.
+
+### 13.4 Most Important Risks
+
+**DDD Risks:**
 
 1. **Silent portfolio-transaction divergence.** If a future developer adds a new operation and forgets to create a transaction, the audit trail becomes incomplete with no runtime warning.
-2. **FIFO corruption through mis-ordered lot loading.** If the JPA adapter changes its query ordering, FIFO breaks silently.
+2. **FIFO corruption through mis-ordered lot loading.** If the JPA adapter changes its query ordering, FIFO breaks silently. (Mitigated by the current `@OrderBy("purchasedAt ASC")` on `HoldingJpaEntity.lots`, but not enforced by the domain itself.)
 3. **Integer share quantities limiting future evolution.** If the domain later needs fractional shares, `ShareQuantity(int)` cannot represent them.
 
-### 11.5 Practical Recommendation for a DDD Teaching Project
+**Hexagonal Risks:**
 
-Keep the current model. It is well-suited for teaching:
+4. **API contract coupled to domain internals via `TransactionDTO`.** A domain refactoring (e.g., introducing a sealed transaction hierarchy) would break the REST API, because `TransactionDTO` wraps the domain entity directly.
+5. **Reporting flow creates thick orchestration.** `ReportingService` must coordinate three outbound ports and pass results to a domain service, creating a non-trivial orchestration surface that could become fragile as the reporting model evolves.
 
+### 13.5 Practical Recommendation for Teaching
+
+Keep the current model and architecture. Both are well-suited for teaching:
+
+**DDD teaching value:**
 - Rich aggregate root with real invariants.
 - Nested entities (Holding, Lot) within the aggregate.
 - Value objects with self-validation.
@@ -697,11 +1232,27 @@ Keep the current model. It is well-suited for teaching:
 - Clean separation between aggregate and external entity.
 - Transaction modelling as a discussion topic (what's wrong? how could it be improved?).
 
-Consider using the Transaction design as a **deliberate teaching exercise**: present the current tagged-union design, analyse its weaknesses, and challenge students to propose a sealed-hierarchy or domain-event–based alternative.
+**Hexagonal Architecture teaching value:**
+- Multi-module Maven structure demonstrating compile-time layer enforcement.
+- Framework-free domain module as a concrete example of domain protection.
+- Inbound and outbound port interfaces with clear naming conventions.
+- Dedicated JPA entity layer with bidirectional mappers (anti-corruption layer).
+- Three implementations of a single outbound port (market data), demonstrating real adapter substitutability.
+- Profile-based adapter selection showing runtime flexibility.
+- ArchUnit fitness tests demonstrating executable architecture rules.
+- Explicit composition root wiring in `SpringAppConfig` showing how ports and adapters are connected.
+- `TransactionDTO` as a deliberate teaching anti-example — a hexagonal leak that students can identify, analyse, and fix.
+- The contrast between services that are `@Component`-annotated (adapters) and services that are `@Bean`-constructed (application services) illustrates different wiring strategies and their trade-offs.
 
-### 11.6 Practical Recommendation for a Production Application
+Consider using the `TransactionDTO` design as a **deliberate teaching exercise**: present the current wrapped-domain-object design, analyse its hexagonal violation, and challenge students to refactor it following the pattern of `PortfolioResponseDTO.from()` and `SaleResponseDTO.from()`.
+
+Similarly, the transaction creation pattern (application service manually creates transactions) can be presented alongside a domain event alternative, showing how both DDD and hexagonal architecture guide toward the same improved design.
+
+### 13.6 Practical Recommendation for Production
 
 Apply the following targeted improvements:
+
+**DDD improvements:**
 
 1. **Introduce domain events.** Have `Portfolio.buy()` and `Portfolio.sell()` produce domain events (`StockPurchased`, `StockSold`). Derive transactions from events.
 2. **Refactor Transaction into a sealed hierarchy.** Eliminate nullable fields. Make each transaction type self-documenting and self-validating.
@@ -709,15 +1260,25 @@ Apply the following targeted improvements:
 4. **Guarantee lot ordering explicitly.** Add an `ordinal` or `purchasedAt` comparator and enforce ordering at load time, not by implicit `ArrayList` convention.
 5. **Rename `balance` to `cashBalance`** and consider `PURCHASE`/`SALE` → `BUY`/`SELL`.
 
-These changes are incremental and preserve the model's existing strengths.
+**Hexagonal Architecture improvements:**
+
+6. **Fix `TransactionDTO`.** Replace `record TransactionDTO(Transaction transaction)` with a properly mapped DTO that destructures the domain entity into primitives, following the established pattern of `PortfolioResponseDTO.from()`.
+7. **Move `ExternalApiException` out of the domain module.** Place it in the application layer or define an abstract failure concept in the domain and concrete infrastructure exceptions in the adapters.
+8. **Add `@Transactional(readOnly = true)` to read-side services.** `TransactionService` and `GetStockPriceService` do not modify data and should not acquire write locks.
+9. **Remove vestigial `protected` no-arg constructors from domain entities.** The domain entities are not JPA-managed; these constructors serve no purpose and signal false persistence awareness.
+10. **Rename `Holding.addLotFromPersistence()` to `Holding.reconstitute(Lot)`** or accept lots through the constructor, removing persistence vocabulary from the domain.
+11. **Split `PortfolioManagementUseCase`** into `PortfolioLifecycleUseCase` (create, get, list) and `CashManagementUseCase` (deposit, withdraw) for better interface segregation.
+12. **Add unit tests for REST controllers and persistence mappers.** The hexagonal structure enables isolated adapter testing — exploit this for faster, more targeted test feedback.
+
+These changes are incremental and preserve both the model's existing DDD strengths and the architecture's existing hexagonal integrity. No structural redesign is required.
 
 ---
 
-## 12. Suggested Revised Model
+## 14. Suggested Evolutionary Improvements
 
 The following sketch illustrates the recommended improvements while preserving the current model's core strengths.
 
-### 12.1 Aggregate Structure (Unchanged)
+### 14.1 Aggregate Structure (Unchanged)
 
 ```
 Portfolio (aggregate root)
@@ -734,7 +1295,7 @@ Portfolio (aggregate root)
 └── domainEvents: List<DomainEvent>  (← NEW: collected during operations)
 ```
 
-### 12.2 Domain Events (New)
+### 14.2 Domain Events (New)
 
 ```java
 sealed interface PortfolioEvent {
@@ -758,7 +1319,7 @@ record StockSold(PortfolioId portfolioId, Ticker ticker, ShareQuantity quantity,
     implements PortfolioEvent {}
 ```
 
-### 12.3 Transaction Sealed Hierarchy (Revised)
+### 14.3 Transaction Sealed Hierarchy (Revised)
 
 ```java
 sealed interface Transaction permits
@@ -791,7 +1352,7 @@ record SaleTransaction(TransactionId id, PortfolioId portfolioId,
     implements Transaction {}
 ```
 
-### 12.4 Application Service (Revised Flow)
+### 14.4 Application Service (Revised Flow)
 
 ```java
 // Illustrative — not compilable production code
@@ -809,7 +1370,7 @@ public SellResult sellStock(PortfolioId portfolioId, Ticker ticker, ShareQuantit
 }
 ```
 
-### 12.5 What This Changes
+### 14.5 What This Changes
 
 | Aspect | Current | Revised |
 |---|---|---|
@@ -823,6 +1384,65 @@ public SellResult sellStock(PortfolioId portfolioId, Ticker ticker, ShareQuantit
 | Value objects | Unchanged | Unchanged |
 
 This revision is evolutionary, not revolutionary. It addresses the identified weaknesses while preserving everything that already works well.
+
+### 14.6 Hexagonal Architecture Improvements
+
+The hexagonal architecture requires fewer structural changes than the DDD model because the architecture is already sound. The following improvements refine what exists rather than restructure it.
+
+#### 14.6.1 Fix `TransactionDTO` Mapping
+
+```java
+// Current (leaks domain entity):
+public record TransactionDTO(Transaction transaction) {}
+
+// Revised (proper adapter mapping):
+public record TransactionDTO(
+        String id,
+        String portfolioId,
+        String type,
+        String ticker,
+        int quantity,
+        BigDecimal unitPrice,
+        BigDecimal totalAmount,
+        BigDecimal profit,
+        LocalDateTime createdAt
+) {
+    public static TransactionDTO from(Transaction tx) {
+        return new TransactionDTO(
+                tx.getId().value(),
+                tx.getPortfolioId().value(),
+                tx.getType().name(),
+                tx.getTicker() != null ? tx.getTicker().value() : null,
+                tx.getQuantity() != null ? tx.getQuantity().value() : 0,
+                tx.getUnitPrice() != null ? tx.getUnitPrice().value() : null,
+                tx.getTotalAmount().amount(),
+                tx.getProfit() != null ? tx.getProfit().amount() : null,
+                tx.getCreatedAt()
+        );
+    }
+}
+```
+
+This follows the established pattern of `PortfolioResponseDTO.from()` and `SaleResponseDTO.from()`. If the Transaction sealed hierarchy from Section 14.3 is adopted, the `from()` method would use pattern matching instead of null checks.
+
+#### 14.6.2 Relocate `ExternalApiException`
+
+Move `ExternalApiException` from `cat.gencat.agaur.hexastock.model` to `cat.gencat.agaur.hexastock.application.exception`, alongside `PortfolioNotFoundException` and `HoldingNotFoundException`. The market adapter still throws it, the REST exception handler still catches it — only the package location changes, but the conceptual alignment improves: infrastructure failures are now an application-layer concern, not a domain concept.
+
+#### 14.6.3 Domain Events Improve Hexagonal Flow
+
+The domain event proposal from Section 14.2 also simplifies the hexagonal flow:
+
+```
+Current:
+  Adapter → Port → Service → Aggregate → Service creates Transaction → Port → Adapter
+
+Revised:
+  Adapter → Port → Service → Aggregate (emits event) → Service saves aggregate → Port → Adapter
+                                                       → Event handler creates Transaction → Port → Adapter
+```
+
+The service becomes thinner (orchestrate and save, not transcribe), and the event handler (an application-layer component) handles the translation between domain events and transaction records. This aligns with hexagonal principles: each component has a single translation responsibility.
 
 ---
 
