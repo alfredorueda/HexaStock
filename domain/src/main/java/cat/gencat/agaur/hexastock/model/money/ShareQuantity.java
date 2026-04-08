@@ -151,6 +151,10 @@ public record ShareQuantity(int value) {
         return this.value >= other.value;
     }
 
+    public boolean isLessThan(ShareQuantity quantity) {
+        return this.value < quantity.value;
+    }
+
     /**
      * Checks if this quantity is less than or equal to another.
      *
