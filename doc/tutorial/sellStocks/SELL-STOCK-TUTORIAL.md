@@ -1229,7 +1229,9 @@ This tutorial is part of a larger documentation ecosystem. The HexaStock reposit
 
 ## Acknowledgements
 
-The acknowledgements for this tutorial are maintained separately. See [Acknowledgements](../../ACKNOWLEDGEMENTS.md).
+I would like to thank Víctor García for his collaboration on the hexagonal architecture diagram included in this tutorial. His work helped sharpen the clarity and precision of the visual material, strengthening the tutorial as a resource for both academic learning and professional practice.
+
+For broader acknowledgements covering the HexaStock project as a whole, see [Acknowledgements](../../ACKNOWLEDGEMENTS.md).
 
 ---
 
