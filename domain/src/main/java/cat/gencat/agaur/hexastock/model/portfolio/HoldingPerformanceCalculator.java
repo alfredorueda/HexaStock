@@ -89,7 +89,7 @@ public class HoldingPerformanceCalculator {
      *         ticker field (deposits / withdrawals) are silently skipped
      */
     public List<HoldingPerformance> getHoldingsPerformance(Portfolio portfolio,
-                                                   List<Transaction> transactions,
+                                                   List<? extends Transaction> transactions,
                                                    Map<Ticker, StockPrice> tickerPrices) {
 
         // 1. Single-pass aggregation — O(T)
@@ -97,20 +97,20 @@ public class HoldingPerformanceCalculator {
 
         for (var tx : transactions) {
             // Skip non-stock transactions (deposits, withdrawals have null ticker)
-            if (tx.getTicker() == null) continue;
+            if (tx.ticker() == null) continue;
 
-            var acc = accumulators.computeIfAbsent(tx.getTicker(), k -> new TickerAccumulator());
+            var acc = accumulators.computeIfAbsent(tx.ticker(), k -> new TickerAccumulator());
 
             // Java 21 switch expression — exhaustive, no fall-through
-            switch (tx.getType()) {
+            switch (tx.type()) {
                 case PURCHASE -> {
-                    var qty = BigDecimal.valueOf(tx.getQuantity().value());
+                    var qty = BigDecimal.valueOf(tx.quantity().value());
                     acc.totalBoughtQty = acc.totalBoughtQty.add(qty);
                     acc.totalBoughtCost = acc.totalBoughtCost.add(
-                            tx.getUnitPrice().value().multiply(qty));
+                            tx.unitPrice().value().multiply(qty));
                 }
                 case SALE -> acc.realizedGain = acc.realizedGain.add(
-                        tx.getProfit().amount());
+                        tx.profit().amount());
 
                 // Deposits and withdrawals should already be filtered by the null-ticker
                 // guard above, but the switch must be exhaustive.
