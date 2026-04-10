@@ -66,29 +66,55 @@ package "cat.gencat.agaur.hexastock.model" as model {
     +getPurchasedAt(): LocalDateTime
   }
 
-  class Transaction {
+  interface Transaction <<sealed>> {
+    +id(): TransactionId
+    +portfolioId(): PortfolioId
+    +type(): TransactionType
+    +totalAmount(): Money
+    +createdAt(): LocalDateTime
+    +ticker(): Ticker
+    +quantity(): ShareQuantity
+    +unitPrice(): Price
+    +profit(): Money
+    +{static} createDeposit(portfolioId: PortfolioId, amount: Money): Transaction
+    +{static} createWithdrawal(portfolioId: PortfolioId, amount: Money): Transaction
+    +{static} createPurchase(portfolioId: PortfolioId, ticker: Ticker, quantity: ShareQuantity, unitPrice: Price): Transaction
+    +{static} createSale(portfolioId: PortfolioId, ticker: Ticker, quantity: ShareQuantity, unitPrice: Price, totalAmount: Money, profit: Money): Transaction
+  }
+
+  class DepositTransaction <<record>> {
     -id: TransactionId
     -portfolioId: PortfolioId
-    -type: TransactionType
+    -totalAmount: Money
+    -createdAt: LocalDateTime
+  }
+
+  class WithdrawalTransaction <<record>> {
+    -id: TransactionId
+    -portfolioId: PortfolioId
+    -totalAmount: Money
+    -createdAt: LocalDateTime
+  }
+
+  class PurchaseTransaction <<record>> {
+    -id: TransactionId
+    -portfolioId: PortfolioId
+    -ticker: Ticker
+    -quantity: ShareQuantity
+    -unitPrice: Price
+    -totalAmount: Money
+    -createdAt: LocalDateTime
+  }
+
+  class SaleTransaction <<record>> {
+    -id: TransactionId
+    -portfolioId: PortfolioId
     -ticker: Ticker
     -quantity: ShareQuantity
     -unitPrice: Price
     -totalAmount: Money
     -profit: Money
     -createdAt: LocalDateTime
-    +{static} createDeposit(portfolioId: PortfolioId, amount: Money): Transaction
-    +{static} createWithdrawal(portfolioId: PortfolioId, amount: Money): Transaction
-    +{static} createPurchase(portfolioId: PortfolioId, ticker: Ticker, quantity: ShareQuantity, unitPrice: Price): Transaction
-    +{static} createSale(portfolioId: PortfolioId, ticker: Ticker, quantity: ShareQuantity, unitPrice: Price, totalAmount: Money, profit: Money): Transaction
-    +getId(): TransactionId
-    +getPortfolioId(): PortfolioId
-    +getType(): TransactionType
-    +getTicker(): Ticker
-    +getQuantity(): ShareQuantity
-    +getUnitPrice(): Price
-    +getTotalAmount(): Money
-    +getProfit(): Money
-    +getCreatedAt(): LocalDateTime
   }
 
   ' Value Objects
@@ -247,12 +273,19 @@ Lot --> Price : unitPrice
 Lot ..> Money : returns
 
 Transaction --> TransactionId : identified by
+Transaction <|.. DepositTransaction : implements
+Transaction <|.. WithdrawalTransaction : implements
+Transaction <|.. PurchaseTransaction : implements
+Transaction <|.. SaleTransaction : implements
 Transaction --> PortfolioId : references
 Transaction --> TransactionType : has
-Transaction --> Ticker : references
-Transaction --> ShareQuantity : quantity
-Transaction --> Price : unitPrice
-Transaction --> Money : totalAmount, profit
+PurchaseTransaction --> Ticker : references
+PurchaseTransaction --> ShareQuantity : quantity
+PurchaseTransaction --> Price : unitPrice
+SaleTransaction --> Ticker : references
+SaleTransaction --> ShareQuantity : quantity
+SaleTransaction --> Price : unitPrice
+SaleTransaction --> Money : profit
 
 StockPrice --> Ticker : for
 StockPrice --> Price : contains

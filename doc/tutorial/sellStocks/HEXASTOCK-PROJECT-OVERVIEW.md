@@ -53,7 +53,7 @@ Inside the `domain` module, the model is not organized as a flat technical taxon
 ```
 cat.gencat.agaur.hexastock.model
 ├── portfolio/    → Portfolio aggregate root, Holding, Lot, SellResult, and related exceptions
-├── transaction/  → Transaction entity, TransactionId, TransactionType
+├── transaction/  → Transaction sealed interface + record subtypes, TransactionId, TransactionType
 ├── market/       → StockPrice, Ticker, and market-specific exceptions
 ├── money/        → Money, Price, ShareQuantity, and monetary validation exceptions
 ```

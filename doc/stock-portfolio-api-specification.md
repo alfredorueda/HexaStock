@@ -744,7 +744,7 @@ Feature: Get Transaction History (US-08)
     When I GET /api/portfolios/{id}/transactions
     Then I receive 200 OK with a JSON array of transaction objects
     And the array contains at least a DEPOSIT and a PURCHASE transaction
-    And each transaction object wraps the full Transaction domain object
+    And each transaction object contains flattened primitive fields (id, portfolioId, type, ticker, quantity, unitPrice, totalAmount, profit, createdAt)
 
   Scenario: Retrieving transaction history with type filter parameter
     Given a portfolio exists for owner "Alice"
@@ -761,27 +761,25 @@ Feature: Get Transaction History (US-08)
 
 #### Success Response (200 OK)
 
-Each element in the array wraps the full `Transaction` domain object:
+Each element in the array is a flat JSON object with primitive fields:
 
 ```json
 [
   {
-    "transaction": {
-      "id": { "value": "..." },
-      "portfolioId": { "value": "..." },
-      "type": "PURCHASE",
-      "ticker": { "value": "AAPL" },
-      "quantity": { "value": 10 },
-      "unitPrice": { "value": 150.00 },
-      "totalAmount": { "amount": 1500.00 },
-      "profit": { "amount": 0.00 },
-      "createdAt": "2025-01-15T10:30:00"
-    }
+    "id": "a1b2c3d4-...",
+    "portfolioId": "e5f6g7h8-...",
+    "type": "PURCHASE",
+    "ticker": "AAPL",
+    "quantity": 10,
+    "unitPrice": 150.00,
+    "totalAmount": 1500.00,
+    "profit": null,
+    "createdAt": "2025-01-15T10:30:00"
   }
 ]
 ```
 
-> **⚠️ Observed behavior:** The `TransactionDTO` record wraps the raw `Transaction` domain object (`TransactionDTO(Transaction transaction)`). This means the JSON serialization exposes internal value-object structure (e.g., `{"value": "..."}` for `PortfolioId`, `Ticker`, etc.) rather than flattened primitives. See [Follow-up Issue #2](#follow-up-issue-2-transactiondto-exposes-domain-internals).
+> **Note:** `TransactionDTO` is a flat record with primitive fields (`String id`, `String portfolioId`, `String type`, `String ticker`, `Integer quantity`, `BigDecimal unitPrice`, `BigDecimal totalAmount`, `BigDecimal profit`, `LocalDateTime createdAt`) and a `from(Transaction)` factory method. This follows the same anti-corruption mapping pattern as all other DTOs in the REST adapter.
 
 > **⚠️ Observed behavior:** The `type` query parameter is accepted by the controller but the `TransactionService.getTransactions()` method ignores it — it always returns all transactions for the portfolio. See [Follow-up Issue #1](#follow-up-issue-1-transaction-type-filter-not-implemented).
 
@@ -791,9 +789,9 @@ Each element in the array wraps the full `Transaction` domain object:
 |---|---|
 | Controller | `PortfolioRestController.getTransactions(String id, String type)` — `@RequestParam(required = false) String type` |
 | Use Case | `TransactionUseCase.getTransactions(String portfolioId, Optional<String> type)` |
-| Service | `TransactionService.getTransactions(String, Optional<String>)` — retrieves all transactions, wraps each in `TransactionDTO`, **does not filter by type** |
+| Service | `TransactionService.getTransactions(String, Optional<String>)` — retrieves all transactions, maps each via `TransactionDTO.from(Transaction)`, **does not filter by type** |
 | Port (out) | `TransactionPort.getTransactionsByPortfolioId(PortfolioId)` |
-| DTO (response) | `TransactionDTO(Transaction transaction)` — wraps raw domain object |
+| DTO (response) | `TransactionDTO` — flat record with primitive fields and `from(Transaction)` factory method |
 | Tests | `PortfolioTransactionHistoryRestIntegrationTest` — `getTransactions_returnsAllTransactions()` (`@SpecificationRef("US-08.AC-1")`), `getTransactions_withTypeParameter_returnsTransactions()` (`@SpecificationRef("US-08.AC-2")`) |
 
 ---
@@ -1121,20 +1119,55 @@ class Lot <<Entity>> {
   +getPurchasedAt(): LocalDateTime
 }
 
-class Transaction <<Separate Aggregate>> {
+interface Transaction <<sealed>> <<Separate Aggregate>> {
+  +id(): TransactionId
+  +portfolioId(): PortfolioId
+  +type(): TransactionType
+  +totalAmount(): Money
+  +createdAt(): LocalDateTime
+  +ticker(): Ticker
+  +quantity(): ShareQuantity
+  +unitPrice(): Price
+  +profit(): Money
+  +{static} createPurchase(...)
+  +{static} createSale(...)
+  +{static} createDeposit(...)
+  +{static} createWithdrawal(...)
+}
+
+class DepositTransaction <<record>> {
   -id: TransactionId
   -portfolioId: PortfolioId
-  -type: TransactionType
+  -totalAmount: Money
+  -createdAt: LocalDateTime
+}
+
+class WithdrawalTransaction <<record>> {
+  -id: TransactionId
+  -portfolioId: PortfolioId
+  -totalAmount: Money
+  -createdAt: LocalDateTime
+}
+
+class PurchaseTransaction <<record>> {
+  -id: TransactionId
+  -portfolioId: PortfolioId
+  -ticker: Ticker
+  -quantity: ShareQuantity
+  -unitPrice: Price
+  -totalAmount: Money
+  -createdAt: LocalDateTime
+}
+
+class SaleTransaction <<record>> {
+  -id: TransactionId
+  -portfolioId: PortfolioId
   -ticker: Ticker
   -quantity: ShareQuantity
   -unitPrice: Price
   -totalAmount: Money
   -profit: Money
   -createdAt: LocalDateTime
-  +{static} createPurchase(...)
-  +{static} createSale(...)
-  +{static} createDeposit(...)
-  +{static} createWithdrawal(...)
 }
 
 enum TransactionType {
@@ -1191,6 +1224,10 @@ class HoldingPerformanceCalculator <<Domain Service>> {
 Portfolio "1" *-- "0..*" Holding : contains >
 Holding "1" *-- "0..*" Lot : contains >
 Portfolio "1" -- "0..*" Transaction : has >
+Transaction <|.. DepositTransaction : implements
+Transaction <|.. WithdrawalTransaction : implements
+Transaction <|.. PurchaseTransaction : implements
+Transaction <|.. SaleTransaction : implements
 Transaction -- TransactionType : has >
 Portfolio --> PortfolioId : identified by
 Portfolio --> Money : balance
@@ -1344,16 +1381,12 @@ The `GET /api/portfolios/{id}/transactions?type=PURCHASE` endpoint accepts the `
 
 ---
 
-### Follow-up Issue #2: TransactionDTO Exposes Domain Internals
+### Follow-up Issue #2: TransactionDTO Exposes Domain Internals ✅ RESOLVED
 
-**Observed behavior in code/tests:**
-`TransactionDTO` is defined as `record TransactionDTO(Transaction transaction)` which wraps the raw domain `Transaction` object. When serialized to JSON, this exposes the internal value-object structure (e.g., `"id": {"value": "..."}`, `"ticker": {"value": "AAPL"}`, `"totalAmount": {"amount": 1500.00}`) rather than providing a flattened API-friendly representation.
+~~**Observed behavior in code/tests:**~~
+~~`TransactionDTO` is defined as `record TransactionDTO(Transaction transaction)` which wraps the raw domain `Transaction` object.~~
 
-**Reproduction pointers:**
-- `TransactionDTO.java` — wraps `Transaction` directly
-- Compare with `PortfolioResponseDTO` and `SaleResponseDTO` which properly flatten domain objects to primitives
-
-**Suggested fix:** Flatten `TransactionDTO` to expose primitive fields (String, BigDecimal, etc.) like other DTOs in the project.
+**Resolution:** `TransactionDTO` is now a flat record with primitive fields (`String id`, `String portfolioId`, `String type`, `String ticker`, `Integer quantity`, `BigDecimal unitPrice`, `BigDecimal totalAmount`, `BigDecimal profit`, `LocalDateTime createdAt`) and a `from(Transaction)` factory method. This follows the same anti-corruption mapping pattern as `PortfolioResponseDTO`, `SaleResponseDTO`, and all other DTOs in the REST adapter.
 
 ---
 

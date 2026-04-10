@@ -206,7 +206,7 @@ This explicit wiring (rather than annotation-based auto-discovery on service cla
 | **Aggregate root** | `Portfolio` | Javadoc: "In DDD terms, this is an Aggregate Root"; all state changes to Holdings flow through Portfolio methods |
 | **Entity** | `Holding` | Javadoc: "In DDD terms, this is an Entity that belongs to the Portfolio aggregate"; has `HoldingId` identity |
 | **Entity** | `Lot` | Javadoc: "In DDD terms, this is an Entity that belongs to the Holding aggregate"; has `LotId` identity |
-| **Entity** | `Transaction` | Identified by `TransactionId`; records financial events |
+| **Sealed interface + records** | `Transaction` (sealed), `DepositTransaction`, `WithdrawalTransaction`, `PurchaseTransaction`, `SaleTransaction` | Identified by `TransactionId`; immutable ledger entries; each record subtype carries only the fields meaningful to its transaction kind; compact constructors enforce invariants |
 | **Value object** | `Money` | Java `record`; immutable; equality by value; normalised to 2 decimal places |
 | **Value object** | `Price` | Java `record`; immutable; must be positive |
 | **Value object** | `ShareQuantity` | Java `record`; immutable; non-negative |

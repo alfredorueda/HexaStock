@@ -45,15 +45,15 @@ static final class TickerAccumulator {
 For each transaction, a `switch` expression dispatches on the transaction type:
 
 ```java
-switch (tx.getType()) {
+switch (tx.type()) {
     case PURCHASE -> {
-        var qty = BigDecimal.valueOf(tx.getQuantity().value());
+        var qty = BigDecimal.valueOf(tx.quantity().value());
         acc.totalBoughtQty  = acc.totalBoughtQty.add(qty);
         acc.totalBoughtCost = acc.totalBoughtCost.add(
-                tx.getUnitPrice().value().multiply(qty));
+                tx.unitPrice().value().multiply(qty));
     }
     case SALE -> acc.realizedGain = acc.realizedGain.add(
-            tx.getProfit().amount());
+            tx.profit().amount());
     case DEPOSIT, WITHDRAWAL -> { /* no-op — null ticker already filtered */ }
 }
 ```

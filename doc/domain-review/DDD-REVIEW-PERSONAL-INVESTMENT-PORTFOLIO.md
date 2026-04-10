@@ -16,16 +16,19 @@ The model's principal DDD strengths are:
 - A disciplined value object layer (`Money`, `Price`, `ShareQuantity`, `Ticker`) that eliminates primitive obsession and encodes domain rules at the type level.
 - A clean separation between the `Portfolio` aggregate (current positional state) and `Transaction` (historical record), with thoughtful reasoning documented in the code itself.
 
-Its principal DDD weaknesses are:
+Its principal remaining DDD concerns are:
 
-- The `Transaction` entity is structurally anemic: it is a flat, type-tagged data container that conflates four semantically distinct event types into a single class with nullable fields. This is the most significant modelling concern in the codebase.
-- Transaction creation is entirely an application-service concern with no domain involvement, which means the domain model does not participate in ensuring that its own history is correct.
+- Transaction creation is an application-service concern with no domain involvement, which means the domain model does not participate in ensuring that its own history is correct. Domain events — which would close this gap — are an intentional future enhancement, not yet introduced.
 - The `HoldingPerformanceCalculator` domain service re-derives positional data from transactions rather than from the aggregate, creating a parallel truth that could diverge.
 - Some financial realism is deliberately sacrificed (single currency, integer share quantities, no fees or taxes), which is acceptable for pedagogy but should be explicitly acknowledged as a boundary.
 
-**Hexagonal Architecture verdict:** The project is genuinely hexagonal — not merely in naming conventions, but in substance. The six-module Maven structure (`domain`, `application`, `adapters-inbound-rest`, `adapters-outbound-persistence-jpa`, `adapters-outbound-market`, `bootstrap`) enforces layer dependencies at the build level. The domain module carries zero framework dependencies. The application layer depends only on domain abstractions and outbound port interfaces, with `spring-tx` as its sole framework concession. Inbound adapters depend on inbound ports (use-case interfaces), outbound adapters implement outbound ports, and the bootstrap module acts as a clean composition root. ArchUnit fitness tests in `HexagonalArchitectureTest` mechanically enforce these boundaries at every build. The principal hexagonal weakness is a single adapter-to-domain leak: `TransactionDTO` wraps the domain `Transaction` object directly, exposing domain structure to the REST API contract rather than mapping to primitives as all other DTOs correctly do. A secondary concern is the presence of `protected` no-argument constructors and a `addLotFromPersistence()` method on the domain model — pragmatic JPA concessions that do not break the architecture but subtly reveal persistence awareness in the domain's API surface.
+A previous version of this review identified the `Transaction` entity as a structurally anemic, type-tagged data container. **This has been resolved.** `Transaction` is now a sealed interface hierarchy with four record subtypes (`DepositTransaction`, `WithdrawalTransaction`, `PurchaseTransaction`, `SaleTransaction`), each carrying only the fields meaningful to its transaction kind, with self-validation in every compact constructor. The sealed hierarchy eliminates nullable fields, enables exhaustive pattern matching in Java 21, and aligns each subtype with domain language.
 
-**Combined verdict:** DDD and Hexagonal Architecture reinforce each other well in this project. The clean domain boundary that makes the DDD aggregate model credible is the same boundary that makes the hexagonal separation genuine. The project is well above average for a teaching codebase and defensible for a simple production application. The transaction modelling remains the area most deserving of architectural attention from both lenses.
+**Hexagonal Architecture verdict:** The project is genuinely hexagonal — not merely in naming conventions, but in substance. The six-module Maven structure (`domain`, `application`, `adapters-inbound-rest`, `adapters-outbound-persistence-jpa`, `adapters-outbound-market`, `bootstrap`) enforces layer dependencies at the build level. The domain module carries zero framework dependencies. The application layer depends only on domain abstractions and outbound port interfaces, with `spring-tx` as its sole framework concession. Inbound adapters depend on inbound ports (use-case interfaces), outbound adapters implement outbound ports, and the bootstrap module acts as a clean composition root. ArchUnit fitness tests in `HexagonalArchitectureTest` mechanically enforce these boundaries at every build. A secondary concern is the presence of `protected` no-argument constructors and a `addLotFromPersistence()` method on the domain model — pragmatic JPA concessions that do not break the architecture but subtly reveal persistence awareness in the domain's API surface.
+
+A previous version of this review identified a hexagonal leak in `TransactionDTO`, which wrapped the domain `Transaction` object directly, exposing domain structure to the REST API contract. **This has been fixed.** `TransactionDTO` is now a flat record of primitive/simple fields with a `from(Transaction)` factory method, following the same mapping pattern as all other DTOs in the REST adapter.
+
+**Combined verdict:** DDD and Hexagonal Architecture reinforce each other well in this project. The clean domain boundary that makes the DDD aggregate model credible is the same boundary that makes the hexagonal separation genuine. The project is well above average for a teaching codebase and defensible for a simple production application. The transaction model — now a sealed interface hierarchy with self-validating record subtypes — is aligned with the rest of the domain's type-safe, behaviour-rich design. The remaining areas for future improvement are domain event–driven transaction creation (to close the consistency gap between aggregate and audit trail) and richer financial realism (fees, fractional shares, multi-currency).
 
 ---
 
@@ -89,7 +92,7 @@ The model enforces the critical invariants identified in Section 2.2:
 | Cash sufficiency | `Portfolio.buy()`, `Portfolio.withdraw()` | Correct. Checked before mutation. |
 | Share availability | `Holding.sell()` | Correct. Checked before lot consumption. |
 | Lot integrity | `Lot.reduce()` | Correct. Cannot reduce below zero. |
-| FIFO ordering | `Holding.sell()` — iterates lots in insertion order | Correct, but depends on `ArrayList` ordering. |
+| FIFO ordering | `Holding.sell()` — iterates lots in insertion order; `Holding.addLotFromPersistence()` inserts in chronological order | Correct. Domain-side insertion sort guarantees FIFO regardless of persistence load order. |
 | Cost basis correctness | `Lot.calculateCostBasis()` + `SellResult` | Correct. Computed from actual lot prices. |
 | Non-negative quantities | `ShareQuantity` constructor, `Money` arithmetic | Correct for shares. Money can go negative (no floor), which is acceptable for intermediate calculations but worth noting. |
 | Portfolio coherence | `Portfolio.addHolding()`, `findOrCreateHolding()` | Correct. No duplicate holdings per ticker. |
@@ -106,7 +109,7 @@ The model is **genuinely rich**, not anemic:
 - `Lot.reduce()` and `Lot.calculateCostBasis()` encapsulate lot-level behaviour.
 - `SellResult` is a well-designed value object that captures the financial outcome of a sale.
 
-The only area where behaviour is conspicuously absent is `Transaction`, which is discussed at length in Section 5.
+The `Transaction` sealed interface and its four record subtypes (`DepositTransaction`, `WithdrawalTransaction`, `PurchaseTransaction`, `SaleTransaction`) extend this richness to the transaction model: each subtype carries only the fields meaningful to its kind, compact constructors enforce non-null and positivity invariants, and the sealed hierarchy enables exhaustive pattern matching in Java 21. Section 5 discusses the transaction modelling in detail.
 
 ### 3.4 Overall Assessment
 
@@ -162,56 +165,70 @@ The aggregate structure — `Portfolio` containing `Holding` containing `Lot`, w
 
 ## 5. Transaction Modelling Review
 
-This is the area of the model that deserves the most critical scrutiny.
+This section reviews the current transaction modelling, which has been significantly strengthened since the initial codebase.
 
 ### 5.1 Current Design
 
-`Transaction` is a domain entity (despite its Javadoc calling it a value object) with:
+`Transaction` is a **sealed interface** with four record subtypes:
 
-- A `TransactionId` for identity.
-- A `PortfolioId` foreign key.
-- A `TransactionType` enum (`DEPOSIT`, `WITHDRAWAL`, `PURCHASE`, `SALE`).
-- Fields for `ticker`, `quantity`, `unitPrice`, `totalAmount`, `profit`, and `createdAt`.
-- Factory methods for each transaction type.
-- A builder for construction.
-- No domain behaviour beyond construction.
+```java
+public sealed interface Transaction
+        permits DepositTransaction, WithdrawalTransaction, PurchaseTransaction, SaleTransaction
+```
+
+Each subtype is a Java record carrying only the fields meaningful to its transaction kind:
+
+- `DepositTransaction(TransactionId, PortfolioId, Money totalAmount, LocalDateTime)` — cash deposited.
+- `WithdrawalTransaction(TransactionId, PortfolioId, Money totalAmount, LocalDateTime)` — cash withdrawn.
+- `PurchaseTransaction(TransactionId, PortfolioId, Ticker, ShareQuantity, Price, Money totalAmount, LocalDateTime)` — shares bought.
+- `SaleTransaction(TransactionId, PortfolioId, Ticker, ShareQuantity, Price, Money totalAmount, Money profit, LocalDateTime)` — shares sold, with realised profit.
+
+The sealed interface defines:
+
+- Core accessor methods: `id()`, `portfolioId()`, `type()`, `totalAmount()`, `createdAt()`.
+- Default accessor methods with safe defaults for non-applicable fields: `ticker()` returns `null`, `quantity()` returns `ShareQuantity.ZERO`, `unitPrice()` returns `null`, `profit()` returns `Money.ZERO`. These defaults allow gradual migration away from type-checking in consuming code while pattern matching is the preferred approach.
+- Static factory methods (`createDeposit`, `createWithdrawal`, `createPurchase`, `createSale`) for convenience.
+
+Each record's compact constructor enforces non-null invariants and rejects zero or negative amounts and quantities, preventing the construction of semantically invalid transaction instances at the type level.
 
 Transactions are created by the application services (`PortfolioStockOperationsService`, `PortfolioManagementService`) after the aggregate is mutated, and saved through `TransactionPort`.
 
-### 5.2 Structural Critique: The Type-Tag Problem
+### 5.2 Structural Assessment: From Type-Tag to Sealed Hierarchy
 
-The most significant design weakness is that `Transaction` is a **tagged union without the benefits of a tagged union**. All four transaction types share the same flat field structure, but different types use different fields:
+The previous design used a single flat `Transaction` class with a `TransactionType` enum tag and nullable fields. Different transaction types used different subsets of fields, which meant:
 
-| Field | DEPOSIT | WITHDRAWAL | PURCHASE | SALE |
+- Deposit and withdrawal transactions carried meaningless `quantity` and `ticker` fields.
+- Sale transactions had a `profit` field that was nullable at the type level but required by the business.
+- No compile-time guarantee prevented constructing semantically invalid combinations.
+
+**This has been resolved.** The sealed hierarchy eliminates nullable fields entirely. Each subtype carries exactly the fields it needs:
+
+| Field        | `DepositTransaction` | `WithdrawalTransaction` | `PurchaseTransaction` | `SaleTransaction` |
 |---|---|---|---|---|
-| `ticker` | null | null | set | set |
-| `quantity` | ZERO | ZERO | set | set |
-| `unitPrice` | null | null | set | set |
-| `totalAmount` | set | set | set | set |
-| `profit` | ZERO | ZERO | ZERO | set |
+| `totalAmount` | ✅ | ✅ | ✅ | ✅ |
+| `ticker`      | — | — | ✅ | ✅ |
+| `quantity`    | — | — | ✅ | ✅ |
+| `unitPrice`   | — | — | ✅ | ✅ |
+| `profit`      | — | — | — | ✅ |
 
-This means:
+The sealed hierarchy enables exhaustive `switch` expressions in Java 21. The `TransactionMapper` (persistence adapter) and `HoldingPerformanceCalculator` (domain service) both use exhaustive switches on `TransactionType`, ensuring that adding a new transaction subtype produces a compile-time error in every consumer that must handle it.
 
-- A `DEPOSIT` transaction has a `quantity` field that is always `ShareQuantity.ZERO` — meaningless noise.
-- A `PURCHASE` transaction has a `profit` field that is always `Money.ZERO` — a lie by convention.
-- A `SALE` transaction's `ticker` field is nullable in the type system but required by the business — a latent null pointer exception.
-- There is nothing in the type system preventing the construction of a `DEPOSIT` with a non-null `ticker`, or a `SALE` with zero profit when profit should be mandatory.
+### 5.3 Behavioural Assessment: Self-Validating Records
 
-This is not a fatal flaw, but it is a missed opportunity for stronger domain modelling.
+Each record subtype validates its own invariants in its compact constructor:
 
-### 5.3 Behavioural Critique: Anemic Transactions
+- All subtypes reject null `id`, `portfolioId`, `totalAmount`, and `createdAt`.
+- `DepositTransaction` and `WithdrawalTransaction` reject non-positive amounts.
+- `PurchaseTransaction` rejects null `ticker`, `unitPrice`, and non-positive `quantity`.
+- `SaleTransaction` rejects null `ticker`, `unitPrice`, `profit`, and non-positive `quantity`.
 
-`Transaction` has no domain behaviour. It is created, persisted, and queried — but it never participates in domain logic, never validates its own consistency, and never enforces any invariant.
+This self-validation is a significant improvement. It is no longer possible to construct a `SaleTransaction` without a ticker, or a `DepositTransaction` with a negative amount. The domain's type system enforces these constraints at construction time, not by convention.
 
-This is partly by design: transactions in this model are historical records, not active domain objects. But even as historical records, they could benefit from:
+**What remains outside the subtypes:** The `totalAmount` for a `PurchaseTransaction` is `unitPrice × quantity`, but the constructor accepts it as a parameter rather than computing it. This is a pragmatic choice: the factory method (`Transaction.createPurchase`) computes it, while the constructor allows reconstitution from persistence where the stored value should be preserved rather than recomputed. The trade-off is that `totalAmount` could, in theory, be passed incorrectly during reconstitution — but the persistence mapper is the only code path that uses the constructor directly, and it passes the stored value.
 
-- **Self-validation:** A `SALE` transaction should reject construction with a null ticker. A `DEPOSIT` should reject construction with a non-zero quantity.
-- **Derived field computation:** The `totalAmount` for a `PURCHASE` is always `unitPrice × quantity`, but the factory method computes this externally and passes it in. The transaction could compute it internally and guarantee consistency.
-- **Equality and identity semantics:** The current design gives transactions UUID identity but no `equals`/`hashCode` override, which means identity comparison falls back to object reference equality.
+### 5.4 Architectural Concern: Who Is Responsible for Creating Transactions?
 
-### 5.4 Architectural Critique: Who Is Responsible for Creating Transactions?
-
-Currently, the application service creates transactions:
+Transaction creation remains an application-service responsibility:
 
 ```java
 // In PortfolioStockOperationsService.sellStock()
@@ -223,52 +240,25 @@ Transaction transaction = Transaction.createSale(
 transactionPort.save(transaction);
 ```
 
-This creates two risks:
+This creates two risks that remain present in the current design:
 
-1. **Consistency risk:** If `portfolioPort.savePortfolio()` succeeds but `transactionPort.save()` fails (or is never called due to a bug), the portfolio state and transaction history diverge. Both calls are within a `@Transactional` boundary, which mitigates the infrastructure failure case, but does not protect against developer error in future modifications.
+1. **Consistency risk:** If a developer adds a new operation and forgets to create a corresponding transaction, the audit trail becomes incomplete. Both `portfolioPort.savePortfolio()` and `transactionPort.save()` are within a `@Transactional` boundary, which ensures atomicity for infrastructure failures, but does not protect against developer omission.
 
-2. **Knowledge leakage:** The application service must know the internal financial details of the sell operation (proceeds, profit) to construct the transaction. This information comes from `SellResult`, which is a reasonable coupling, but it means the application service is responsible for correctly transcribing domain results into transaction records — a responsibility that arguably belongs to the domain.
+2. **Transcription burden:** The application service must extract financial details from `SellResult` and pass them to `Transaction.createSale()`. While `SellResult` makes this coupling explicit and reasonable, the responsibility for correctly transcribing domain results into transaction records arguably belongs closer to the domain.
 
-A stronger design would have the aggregate produce the transaction record (or a domain event from which the record is derived), ensuring that the domain itself guarantees the completeness and correctness of its own audit trail. This is discussed in the alternatives section.
+**Intentional trade-off:** Domain events — where the aggregate emits events and an event handler derives transaction records — would close this consistency gap. This enhancement has been intentionally deferred: the current design keeps the domain model free of event infrastructure, and the audit record is written within the same `@Transactional` boundary. Domain events remain the natural evolution path when the project needs asynchronous processing (e.g., notifying a tax service or updating a reporting database).
 
-### 5.5 The "Value Object" Misnomer (FIXED)
+### 5.5 DDD Classification: Immutable Ledger Entry
 
-The `Transaction` Javadoc describes it as a "Value Object," but it has a `TransactionId`, is persisted with identity, and is created with `TransactionId.generate()`. It is an **entity** by every DDD definition. Calling it a value object is misleading and should be corrected.
+The `Transaction` Javadoc correctly describes it as an **immutable ledger entry** — an entity with identity (`TransactionId`), created by the application layer after the aggregate mutation, persisted for auditability and reporting, but never modified after creation. This classification is accurate:
 
-One could argue that a transaction is conceptually immutable (once created, it is never modified), and therefore "value-like." This is true, but immutability alone does not make something a value object. A value object is identified by its attributes, not by a unique identifier. A transaction with a `TransactionId` is an entity with immutable state — a perfectly valid and common pattern, but distinct from a value object.
+- It is an **entity** because it has a unique identifier (`TransactionId`).
+- It is **immutable** because all subtypes are Java records (inherently immutable).
+- It is not a **value object** (it has identity) and not a **domain event** (it is not infrastructure).
 
-### 5.6 What Transaction Should Be
+The use of Java records for the subtypes makes immutability structural rather than conventional — the compiler enforces it.
 
-For this domain, `Transaction` is best understood as an **immutable ledger entry** — an entity with identity, created by or on behalf of the domain, persisted for auditability and reporting, but never modified after creation. This is different from a domain event (which is infrastructure), a value object (which has no identity), or a mutable entity (which changes state).
-
-The current implementation is close to this, but it would benefit from:
-
-1. Making immutability explicit (final fields, no protected no-arg constructor, or using a record).
-2. Splitting into type-specific classes or using a sealed hierarchy.
-3. Adding self-validation per transaction type.
-4. Optionally, having the domain produce transaction records rather than the application service.
-
-### 5.7 Should Transaction Types Be Modelled Separately?
-
-**There is a strong argument for a sealed hierarchy.** Java 21 provides the language features to do this elegantly:
-
-```
-sealed interface Transaction permits DepositTransaction, WithdrawalTransaction,
-                                     PurchaseTransaction, SaleTransaction
-```
-
-Each subtype would carry only the fields relevant to it:
-
-- `DepositTransaction(TransactionId, PortfolioId, Money amount, LocalDateTime)`
-- `WithdrawalTransaction(TransactionId, PortfolioId, Money amount, LocalDateTime)`
-- `PurchaseTransaction(TransactionId, PortfolioId, Ticker, ShareQuantity, Price, Money totalCost, LocalDateTime)`
-- `SaleTransaction(TransactionId, PortfolioId, Ticker, ShareQuantity, Price, Money proceeds, Money costBasis, Money profit, LocalDateTime)`
-
-This eliminates nullable fields, makes each type self-documenting, enables exhaustive pattern matching, and aligns with domain language (a "sale" is not the same concept as a "deposit" — they should not be the same type).
-
-The trade-off is persistence complexity: a single `transactions` table with a discriminator column is simpler to map than a sealed hierarchy. But this is an adapter concern, not a domain concern, and should not drive the domain model.
-
-### 5.8 Should Transactions Live Inside the Portfolio Aggregate?
+### 5.6 Should Transactions Live Inside the Portfolio Aggregate?
 
 **No.** The current design's decision to keep transactions external is correct. Transactions are an unbounded, append-only collection. Including them in the aggregate would:
 
@@ -278,9 +268,11 @@ The trade-off is persistence complexity: a single `transactions` table with a di
 
 The trade-off (potential consistency gap between portfolio state and transaction log) is acceptable and manageable through the `@Transactional` boundary.
 
-### 5.9 Transaction Modelling Verdict
+### 5.7 Transaction Modelling Verdict
 
-The transaction model is the weakest part of the domain design. It is functional but structurally anemic, uses nullable fields where type safety would be better, and places transaction creation responsibility in the application service rather than the domain. For a teaching codebase, this is an excellent opportunity to demonstrate the progression from a simple tagged-union design to a richer, type-safe, domain-driven transaction model.
+The transaction model is now well-aligned with the rest of the domain's type-safe, behaviour-rich design. The sealed hierarchy eliminates the structural anemia that previously characterised this area of the model: nullable fields are gone, each subtype is self-documenting and self-validating, and Java 21 exhaustive pattern matching is used throughout the codebase.
+
+The remaining design concern is transaction creation responsibility. The application service creates transactions manually after aggregate mutations, creating a consistency gap that domain events would close. This is an intentional simplification for the current scope — the `@Transactional` boundary provides atomicity, and the event infrastructure would add complexity without immediate pedagogical or production payoff. Domain events are the recommended next evolutionary step when the project's requirements justify the additional infrastructure.
 
 ---
 
@@ -314,7 +306,7 @@ As discussed in Section 5, there is no domain-level guarantee that the transacti
 The `Money` value object does not enforce non-negativity. The balance can theoretically go negative through incorrect usage (e.g., subtracting more than available). The aggregate root prevents this for buy and withdraw operations, but `Money.subtract()` itself does not throw on negative results. This is actually correct — `Money` should support negative values for representing losses and intermediate calculations — but it means the non-negativity invariant for portfolio balance depends entirely on the aggregate root's guards.
 
 **Lot ordering stability:**
-FIFO correctness depends on `ArrayList` insertion order being stable across persistence round-trips. If the JPA adapter loads lots in a different order (e.g., by `LotId` rather than `purchasedAt`), FIFO would silently break. This is a subtle invariant that is enforced by convention between the domain and persistence layers, not by the domain model itself. The persistence adapter should be tested against this specifically.
+FIFO correctness depends on lots being ordered chronologically within each `Holding`. The domain now enforces this explicitly: `Holding.addLotFromPersistence()` inserts each lot in chronological order by `purchasedAt`, using an insertion sort. This means FIFO correctness does not silently depend on the persistence adapter's load order. The JPA adapter's `@OrderBy("purchasedAt ASC")` on `HoldingJpaEntity` provides the primary ordering from the database, and the domain-side insertion sort acts as a safety net. Both the adapter convention and the domain-side guarantee are covered by tests.
 
 ### 6.3 Cross-Aggregate Consistency
 
@@ -501,7 +493,11 @@ The model makes correct entity/value object distinctions with one exception:
 | `Portfolio` | Entity (aggregate root) | Yes |
 | `Holding` | Entity | Yes — has identity within the aggregate |
 | `Lot` | Entity | Yes — has identity and mutable state (`remainingShares`) |
-| `Transaction` | Entity (documented as VO) | Should be entity. Has `TransactionId`. Documentation says "Value Object" but this is incorrect. |
+| `Transaction` | Sealed interface (entity) | Yes — immutable ledger entry with `TransactionId`. Correctly documented as such. |
+| `DepositTransaction` | Record (entity subtype) | Yes — sealed subtype of `Transaction`, self-validating |
+| `WithdrawalTransaction` | Record (entity subtype) | Yes — sealed subtype of `Transaction`, self-validating |
+| `PurchaseTransaction` | Record (entity subtype) | Yes — sealed subtype of `Transaction`, self-validating |
+| `SaleTransaction` | Record (entity subtype) | Yes — sealed subtype of `Transaction`, self-validating |
 | `Money` | Value Object (record) | Yes |
 | `Price` | Value Object (record) | Yes |
 | `ShareQuantity` | Value Object (record) | Yes |
@@ -575,7 +571,7 @@ This is a clean and appropriate repository contract. The aggregate is loaded and
 
 ### 9.8 Tactical DDD Verdict
 
-The model exhibits strong tactical DDD discipline: rich behaviour in the aggregate, immutable value objects, proper identity management, defensive copying, and clean repository boundaries. The main tactical improvement needed is correcting the `Transaction` classification from "value object" to "entity" and strengthening its internal validation.
+The model exhibits strong tactical DDD discipline: rich behaviour in the aggregate, immutable value objects, proper identity management, defensive copying, and clean repository boundaries. The `Transaction` sealed hierarchy extends this discipline with type-safe, self-validating subtypes that carry only the fields meaningful to each transaction kind.
 
 ---
 
@@ -812,7 +808,9 @@ The REST inbound adapter consists of two controllers (`PortfolioRestController`,
 
 This is exemplary adapter behaviour: the adapter is a **translator** between the HTTP protocol world and the domain/application world. No business decisions are made in the controller. For example, `buyStock()` does not check cash sufficiency — it delegates to the use case, which delegates to the aggregate, where the invariant lives.
 
-**DTO mapping:** Ten of the eleven DTOs properly map between domain types and primitive representations. `CreatePortfolioResponseDTO.from(Portfolio)`, `PortfolioResponseDTO.from(Portfolio)`, `SaleResponseDTO.from(...)`, and `StockPriceDTO.fromDomainModel(StockPrice)` all destructure domain objects into primitive fields suitable for JSON serialisation.
+**DTO mapping:** All eleven DTOs properly map between domain types and primitive representations. `CreatePortfolioResponseDTO.from(Portfolio)`, `PortfolioResponseDTO.from(Portfolio)`, `SaleResponseDTO.from(...)`, `StockPriceDTO.fromDomainModel(StockPrice)`, and `TransactionDTO.from(Transaction)` all destructure domain objects into primitive fields suitable for JSON serialisation.
+
+`TransactionDTO` deserves specific mention: it is a flat record with primitive fields (`String id`, `String portfolioId`, `String type`, `String ticker`, `Integer quantity`, `BigDecimal unitPrice`, `BigDecimal totalAmount`, `BigDecimal profit`, `LocalDateTime createdAt`) and a `from(Transaction)` factory method that extracts values from the sealed interface's accessor methods. This follows the same anti-corruption mapping pattern as every other DTO in the REST adapter, keeping the API contract fully decoupled from the domain model. The sealed hierarchy's default accessor methods (`ticker()` returns `null`, `quantity()` returns `ZERO`, `unitPrice()` returns `null`, `profit()` returns `ZERO`) allow the DTO mapper to access these fields uniformly while nullable fields serialise naturally as JSON `null`.
 
 **Exception handling:** `ExceptionHandlingAdvice` translates domain and application exceptions into appropriate HTTP status codes using `ProblemDetail` (RFC 7807). Each exception handler maps to a specific HTTP status:
 - `PortfolioNotFoundException`, `HoldingNotFoundException` → 404
@@ -821,24 +819,6 @@ This is exemplary adapter behaviour: the adapter is a **translator** between the
 - `ExternalApiException` → 503
 
 This is a well-designed exception-to-HTTP-status translation layer. The adapter knows about domain exceptions (which it must, to translate them), but it does not catch and reinterpret domain logic — it only maps exception types to HTTP semantics.
-
-**Critical issue: `TransactionDTO` domain leakage.** The `TransactionDTO` is defined as:
-
-```java
-public record TransactionDTO(Transaction transaction) {
-}
-```
-
-This record wraps the **domain `Transaction` object directly** and exposes it through JSON serialisation. When Jackson serialises a `TransactionDTO`, it traverses the domain `Transaction`'s getters (`getId()`, `getPortfolioId()`, `getTicker()`, `getQuantity()`, `getUnitPrice()`, `getTotalAmount()`, `getProfit()`, `getCreatedAt()`, `getType()`), and the nested domain value objects (`TransactionId`, `PortfolioId`, `Ticker`, `ShareQuantity`, `Price`, `Money`, `TransactionType`) are serialised according to their own structure.
-
-This creates three problems:
-1. **Coupling:** The REST API contract is now structurally coupled to the domain model. If the domain `Transaction` adds a field, renames a getter, or restructures a value object, the API changes silently.
-2. **Inconsistency:** Every other DTO in the REST adapter properly maps to primitives. `TransactionDTO` is the only one that leaks domain objects, making it an anomaly that erodes architectural trust.
-3. **Serialisation fragility:** Domain value objects like `Money(BigDecimal amount)`, `Price(BigDecimal value)`, and `Ticker(String value)` serialise as `{"amount": 100.00}`, `{"value": 50.00}`, and `{"value": "AAPL"}` respectively — wrapping primitives in JSON objects. This produces verbose, non-idiomatic API payloads that differ from what most API consumers expect.
-
-This is the **most significant hexagonal violation** in the codebase. It is also the easiest to fix: create a `TransactionDTO` with explicit primitive fields and a `from(Transaction)` factory method, following the same pattern as `PortfolioResponseDTO` and `SaleResponseDTO`.
-
-**From a DDD perspective,** this leak also undermines the transaction modelling critique from Section 5: the nullable fields and type-tagged structure of the domain `Transaction` are now directly visible in the API, exposing internal modelling compromises to API consumers.
 
 #### 11.4.2 Outbound Adapter: JPA Persistence
 
@@ -851,7 +831,7 @@ The JPA persistence adapter consists of four JPA entity classes (`PortfolioJpaEn
 
 This bidirectional mapping is the correct hexagonal pattern: the adapter translates between the domain's language and the persistence technology's language.
 
-**FIFO ordering preservation:** The `HoldingJpaEntity` annotates its `lots` collection with `@OrderBy("purchasedAt ASC")`, ensuring that lots are loaded from the database in chronological order. This directly addresses the DDD concern raised in Section 6.2 (FIFO ordering depends on persistence): the adapter explicitly guarantees the ordering that the domain's FIFO algorithm relies on. This is evidence of thoughtful coordination between the domain requirement and the adapter implementation. However, the domain model itself does not enforce or verify this ordering — it trusts the adapter. A defensive domain model might sort lots on reconstitution, but the current approach of trusting the adapter's `@OrderBy` is a reasonable production compromise.
+**FIFO ordering preservation:** The `HoldingJpaEntity` annotates its `lots` collection with `@OrderBy("purchasedAt ASC")`, ensuring that lots are loaded from the database in chronological order. Additionally, `Holding.addLotFromPersistence()` performs an insertion sort by `purchasedAt`, guaranteeing chronological order at the domain level regardless of persistence load order. This dual-safety approach addresses the FIFO concern raised in Section 6.2: the adapter provides the primary ordering, and the domain enforces it as a safety net. Both layers are tested independently.
 
 **Pessimistic locking:** `JpaPortfolioSpringDataRepository` defines a custom query `findByIdForUpdate` with `@Lock(LockModeType.PESSIMISTIC_WRITE)`. The `JpaPortfolioRepository.getPortfolioById()` method uses this lock-aware query, ensuring that concurrent modifications to the same portfolio are serialised at the database level. This is a critical correctness property for a financial application and is correctly placed in the adapter — the domain should not know about database locking strategies.
 
@@ -879,7 +859,7 @@ Three implementations of `StockPriceProviderPort` exist:
 
 #### 11.4.4 Adapter Quality Verdict
 
-The adapters are well-constructed overall. They are thin, focused on translation, and free of business logic. The JPA adapter provides a textbook anti-corruption layer with dedicated JPA entities, bidirectional mappers, and aggregate-granular persistence. The market adapter demonstrates genuine adapter substitutability. The REST adapter is mostly clean, with one significant exception: `TransactionDTO` leaks the domain `Transaction` object directly into the API contract, undermining the hexagonal boundary for that specific endpoint.
+The adapters are well-constructed. They are thin, focused on translation, and free of business logic. The JPA adapter provides a textbook anti-corruption layer with dedicated JPA entities, bidirectional mappers, and aggregate-granular persistence. The market adapter demonstrates genuine adapter substitutability. The REST adapter is clean: all DTOs — including `TransactionDTO` — follow the same pattern of mapping domain objects to flat, primitive-valued records suitable for JSON serialisation, keeping the API contract fully decoupled from the domain model.
 
 ### 11.5 Application Layer Orchestration
 
@@ -1067,45 +1047,30 @@ This section identifies concrete hexagonal risks, ordered by severity.
 
 #### Severity: High
 
-**1. `TransactionDTO` leaks domain `Transaction` into the REST API.**
-As analysed in Section 11.4.1, `TransactionDTO(Transaction transaction)` exposes the domain entity directly. This:
-- Couples the API contract to the domain model structure.
-- Exposes nullable fields and internal type-tag structure.
-- Contradicts the pattern established by all other DTOs.
-- Makes the REST API vulnerable to domain refactoring.
-
-**Remediation:** Replace with a properly mapped DTO:
-```java
-public record TransactionDTO(String id, String portfolioId, String type,
-                              String ticker, int quantity, BigDecimal unitPrice,
-                              BigDecimal totalAmount, BigDecimal profit,
-                              LocalDateTime createdAt) {
-    public static TransactionDTO from(Transaction tx) { ... }
-}
-```
+No high-severity hexagonal risks remain. The previously identified `TransactionDTO` domain leak (where `TransactionDTO(Transaction transaction)` exposed the domain entity directly in the REST API) has been resolved. `TransactionDTO` is now a flat record with primitive fields and a `from(Transaction)` factory method, following the same anti-corruption pattern as all other DTOs in the REST adapter.
 
 #### Severity: Medium
 
-**2. Application services create transactions manually — dual-write orchestration burden.**
+**1. Application services create transactions manually — dual-write orchestration burden.**
 This is both a DDD and hexagonal concern. The application service must correctly transcribe domain results into `Transaction` records. From a hexagonal perspective, this makes the application layer thicker than necessary: it must understand domain semantics (what fields a `SALE` transaction needs, where to get proceeds and profit from `SellResult`) rather than simply orchestrating port calls. A domain event pattern would push this concern to the adapter layer (event handler) and make the application service simpler.
 
-**3. `ExternalApiException` is a domain exception used to signal adapter failures.**
+**2. `ExternalApiException` is a domain exception used to signal adapter failures.**
 `ExternalApiException` lives in `cat.gencat.agaur.hexastock.model` (the domain root package), but it represents an infrastructure failure (external API unavailable or returning invalid data). Domain exceptions should model **business rule violations** (insufficient funds, invalid quantity), not infrastructure failures. The adapters (`FinhubStockPriceAdapter`, `AlphaVantageStockPriceAdapter`) throw this exception.
 
 **Remediation:** Move `ExternalApiException` to the application layer or create an adapter-specific exception that the application layer translates into an application-level error.
 
-**4. `HoldingPerformance` uses `BigDecimal` instead of domain value objects.**
+**3. `HoldingPerformance` uses `BigDecimal` instead of domain value objects.**
 As noted in Section 11.6, this record breaks the domain's type discipline. It uses `BigDecimal` for quantities, prices, and monetary amounts where the rest of the domain uses `ShareQuantity`, `Price`, and `Money`. This appears to be an optimisation for DTO mapping but it weakens type safety within the domain itself.
 
 #### Severity: Low
 
-**5. `protected` no-arg constructors in domain entities.**
+**4. `protected` no-arg constructors in domain entities.**
 The no-arg constructors on `Portfolio`, `Holding`, and `Lot` are vestigial ORM accommodations not currently needed (since the domain entities are not JPA-managed). They are harmless but signal false persistence awareness.
 
-**6. `Holding.addLotFromPersistence()` names persistence in the domain.**
+**5. `Holding.addLotFromPersistence()` names persistence in the domain.**
 A minor naming issue: the method's name references "persistence" in the domain's ubiquitous language. `reconstitute(Lot lot)` or simply providing lots through the constructor would be cleaner.
 
-**7. `@Transactional` on the application service creates a framework dependency.**
+**6. `@Transactional` on the application service creates a framework dependency.**
 Acknowledged as a pragmatic trade-off. In strict hexagonal design, transaction management would be handled by a decorator or the composition root, not by the application service. However, Spring's `@Transactional` is so universally used that this is an accepted industry convention, not a real-world risk.
 
 **8. `PortfolioManagementUseCase` aggregates multiple concerns.**
@@ -1134,13 +1099,13 @@ The following common hexagonal anti-patterns were evaluated and **not found**:
 
 **Rating: Strong.**
 
-The HexaStock domain model is a credible, behaviour-rich DDD implementation. The `Portfolio` aggregate root enforces real financial invariants. Value objects eliminate primitive obsession. The FIFO lot-consumption algorithm is genuine domain logic, not framework glue. The aggregate boundary is correctly drawn. The main DDD weakness — anemic, type-tagged transaction modelling with application-service-driven creation — is a significant modelling concern but does not undermine the aggregate root's integrity.
+The HexaStock domain model is a credible, behaviour-rich DDD implementation. The `Portfolio` aggregate root enforces real financial invariants. Value objects eliminate primitive obsession. The FIFO lot-consumption algorithm is genuine domain logic, not framework glue. The aggregate boundary is correctly drawn. The `Transaction` sealed interface with four self-validating record subtypes demonstrates Java 21 type-safe domain modelling. The remaining DDD concern — application-service-driven transaction creation rather than domain events — is a clear intentional trade-off that does not undermine the aggregate root's integrity.
 
 ### 12.2 Hexagonal Architecture Quality Assessment
 
-**Rating: Strong with one notable leak.**
+**Rating: Strong.**
 
-The hexagonal architecture is genuine, enforced at the Maven module level, tested by ArchUnit fitness rules, and demonstrated by working adapter substitution (three market data implementations, profile-based selection). The domain is framework-free. The application layer is minimally coupled (only `@Transactional`). Adapters are thin, focused, and independent. The composition root is explicit. The sole significant violation — `TransactionDTO` wrapping a domain object — is easy to fix and does not compromise the architecture's structural integrity.
+The hexagonal architecture is genuine, enforced at the Maven module level, tested by ArchUnit fitness rules, and demonstrated by working adapter substitution (three market data implementations, profile-based selection). The domain is framework-free. The application layer is minimally coupled (only `@Transactional`). Adapters are thin, focused, and independent. The composition root is explicit. All DTOs — including `TransactionDTO` — follow the same anti-corruption pattern of mapping domain objects to flat, primitive-valued records. No significant hexagonal violations remain.
 
 ### 12.3 How DDD and Hexagonal Architecture Reinforce Each Other
 
@@ -1154,15 +1119,15 @@ In HexaStock, the two architectural approaches are **mutually reinforcing**, not
 
 4. **The reporting concern reveals tension in both lenses.** `HoldingPerformanceCalculator` merges data from the aggregate and the transaction store (DDD: parallel truth risk, as analysed in Section 9.6). This same concern appears through the hexagonal lens: the application service (`ReportingService`) must orchestrate three outbound ports to assemble the inputs for the domain service, creating a thick orchestration layer for what is conceptually a single query. Both DDD and hexagonal analysis point to the same root cause — the transaction record is disconnected from the aggregate — and suggest the same solution: domain events that unify the data flow.
 
-5. **Weak transaction modelling weakens both patterns.** The anemic `Transaction` entity (DDD concern) manifests as a hexagonal concern through `TransactionDTO`: because the domain `Transaction` is a flat data container, it is tempting to expose it directly through the adapter — and the project does exactly this. A richer, type-safe transaction hierarchy (DDD improvement) would naturally lead to proper adapter mapping (hexagonal improvement) because heterogeneous types cannot be transparently serialised without explicit DTO translation.
+5. **Transaction modelling reinforces both patterns.** The `Transaction` sealed hierarchy (DDD: type-safe, self-validating domain entities with Java 21 records) directly supports hexagonal discipline: `TransactionDTO.from(Transaction)` uses the sealed interface's accessor methods to produce a cleanly mapped primitive DTO, and `TransactionMapper` in the JPA adapter uses exhaustive switches on `TransactionType` to translate between domain and persistence representations. The improvement in DDD modelling (sealed hierarchy replacing flat tagged union) naturally improved hexagonal compliance (the previous wrapper-DTO leak was eliminated as part of the same refactoring).
 
 ### 12.4 Overall Combined Verdict
 
-HexaStock is a well-executed educational project that successfully demonstrates both DDD and Hexagonal Architecture in a mutually reinforcing way. It is not a toy example: the domain model protects real financial invariants, the hexagonal structure is mechanically enforced, and the adapter layer demonstrates genuine substitutability. The project's weaknesses are concentrated in the transaction modelling, which is both the most significant DDD concern and the source of the most visible hexagonal leak.
+HexaStock is a well-executed educational project that successfully demonstrates both DDD and Hexagonal Architecture in a mutually reinforcing way. It is not a toy example: the domain model protects real financial invariants, the hexagonal structure is mechanically enforced, and the adapter layer demonstrates genuine substitutability. The `Transaction` sealed hierarchy and flat `TransactionDTO` mapping complete the alignment between the two architectural approaches — the domain model is consistently type-safe and behaviour-rich, and all adapters consistently translate between domain and infrastructure representations without leaking domain concepts.
 
-**For a teaching codebase:** This project is exceptionally well-suited. It provides concrete, working examples of aggregate roots, value objects, domain services, inbound and outbound ports, adapter mapping, anti-corruption layers, composition root wiring, profile-based adapter substitution, and architectural fitness tests. The transaction modelling weakness is itself a valuable teaching opportunity.
+**For a teaching codebase:** This project is exceptionally well-suited. It provides concrete, working examples of aggregate roots, value objects, domain services, sealed interface hierarchies with Java 21 records, inbound and outbound ports, adapter mapping, anti-corruption layers, composition root wiring, profile-based adapter substitution, and architectural fitness tests. The transaction creation responsibility (application service vs. domain events) is itself a valuable teaching discussion topic.
 
-**For a production application:** The project would need targeted improvements in transaction modelling and the `TransactionDTO` leak, but the fundamental architecture is sound and would not require restructuring.
+**For a production application:** The project provides a sound architectural foundation. The remaining improvements — domain events for transaction creation, relocating `ExternalApiException`, stronger `HoldingPerformance` typing — are incremental refinements, not structural redesigns.
 
 ---
 
@@ -1190,35 +1155,29 @@ The HexaStock domain model is a **well-designed, behaviour-rich DDD model** that
 9. **Demonstrated adapter substitutability.** Three market data implementations (`FinhubStockPriceAdapter`, `AlphaVantageStockPriceAdapter`, `MockFinhubStockPriceAdapter`) prove that port-adapter separation is not theoretical.
 10. **Clean anti-corruption layer.** Dedicated JPA entities and bidirectional mapper classes insulate the domain from persistence technology.
 
-### 13.3 Main Weaknesses
+### 13.3 Remaining Concerns
 
 **DDD:**
 
-1. **Anemic Transaction model.** `Transaction` is a flat, type-tagged data container with nullable fields and no domain behaviour. It is the most significant modelling weakness.
-2. **Transaction creation in application service.** The domain model does not participate in ensuring that its own audit trail is correct. Transaction creation is an application-service responsibility, creating a consistency gap addressable through domain events.
-3. **Transaction misclassified as Value Object.** The Javadoc calls it a Value Object, but it is an entity with identity.
-4. **Parallel truth in performance calculation.** `HoldingPerformanceCalculator` derives positional data from transactions while the aggregate maintains positions independently. These two data paths could diverge.
-5. **FIFO ordering depends on persistence.** The FIFO guarantee depends on `ArrayList` insertion order being preserved through persistence round-trips — an implicit contract between domain and adapter layers.
+1. **Transaction creation in application service.** The domain model does not participate in ensuring that its own audit trail is correct. Transaction creation is an application-service responsibility, creating a consistency gap addressable through domain events.
+2. **Parallel truth in performance calculation.** `HoldingPerformanceCalculator` derives positional data from transactions while the aggregate maintains positions independently. These two data paths could diverge.
 
 **Hexagonal Architecture:**
 
-6. **`TransactionDTO` leaks domain `Transaction` into the REST API.** The only response DTO that wraps a domain entity directly, coupling the API contract to the domain model and contradicting the pattern established by all other DTOs.
-7. **`ExternalApiException` is a domain exception for infrastructure failures.** An infrastructure concern (`ExternalApiException`) is modelled as a domain exception, creating a minor conceptual layer violation.
-8. **`HoldingPerformance` uses `BigDecimal` instead of domain value objects.** Breaks the type discipline within the domain for apparent DTO-mapping convenience.
-9. **No unit tests for REST controllers or persistence mappers.** The hexagonal structure enables isolated adapter testing, but this opportunity is not fully exploited.
+3. **`ExternalApiException` is a domain exception for infrastructure failures.** An infrastructure concern (`ExternalApiException`) is modelled as a domain exception, creating a minor conceptual layer violation.
+4. **`HoldingPerformance` uses `BigDecimal` instead of domain value objects.** Breaks the type discipline within the domain for apparent DTO-mapping convenience.
+5. **No unit tests for REST controllers or persistence mappers.** The hexagonal structure enables isolated adapter testing, but this opportunity is not fully exploited.
 
 ### 13.4 Most Important Risks
 
 **DDD Risks:**
 
 1. **Silent portfolio-transaction divergence.** If a future developer adds a new operation and forgets to create a transaction, the audit trail becomes incomplete with no runtime warning.
-2. **FIFO corruption through mis-ordered lot loading.** If the JPA adapter changes its query ordering, FIFO breaks silently. (Mitigated by the current `@OrderBy("purchasedAt ASC")` on `HoldingJpaEntity.lots`, but not enforced by the domain itself.)
-3. **Integer share quantities limiting future evolution.** If the domain later needs fractional shares, `ShareQuantity(int)` cannot represent them.
+2. **Integer share quantities limiting future evolution.** If the domain later needs fractional shares, `ShareQuantity(int)` cannot represent them.
 
 **Hexagonal Risks:**
 
-4. **API contract coupled to domain internals via `TransactionDTO`.** A domain refactoring (e.g., introducing a sealed transaction hierarchy) would break the REST API, because `TransactionDTO` wraps the domain entity directly.
-5. **Reporting flow creates thick orchestration.** `ReportingService` must coordinate three outbound ports and pass results to a domain service, creating a non-trivial orchestration surface that could become fragile as the reporting model evolves.
+3. **Reporting flow creates thick orchestration.** `ReportingService` must coordinate three outbound ports and pass results to a domain service, creating a non-trivial orchestration surface that could become fragile as the reporting model evolves.
 
 ### 13.5 Practical Recommendation for Teaching
 
@@ -1230,7 +1189,8 @@ Keep the current model and architecture. Both are well-suited for teaching:
 - Value objects with self-validation.
 - Non-trivial domain algorithm (FIFO).
 - Clean separation between aggregate and external entity.
-- Transaction modelling as a discussion topic (what's wrong? how could it be improved?).
+- Sealed interface hierarchy with Java 21 records for transaction modelling.
+- Transaction creation responsibility (application service vs. domain events) as a discussion topic.
 
 **Hexagonal Architecture teaching value:**
 - Multi-module Maven structure demonstrating compile-time layer enforcement.
@@ -1241,12 +1201,10 @@ Keep the current model and architecture. Both are well-suited for teaching:
 - Profile-based adapter selection showing runtime flexibility.
 - ArchUnit fitness tests demonstrating executable architecture rules.
 - Explicit composition root wiring in `SpringAppConfig` showing how ports and adapters are connected.
-- `TransactionDTO` as a deliberate teaching anti-example — a hexagonal leak that students can identify, analyse, and fix.
+- Consistent DTO mapping pattern: all response DTOs (including `TransactionDTO`) follow the same `from()` factory method pattern, mapping domain objects to flat primitive records.
 - The contrast between services that are `@Component`-annotated (adapters) and services that are `@Bean`-constructed (application services) illustrates different wiring strategies and their trade-offs.
 
-Consider using the `TransactionDTO` design as a **deliberate teaching exercise**: present the current wrapped-domain-object design, analyse its hexagonal violation, and challenge students to refactor it following the pattern of `PortfolioResponseDTO.from()` and `SaleResponseDTO.from()`.
-
-Similarly, the transaction creation pattern (application service manually creates transactions) can be presented alongside a domain event alternative, showing how both DDD and hexagonal architecture guide toward the same improved design.
+The domain event alternative can be presented alongside the current design, showing how both DDD and hexagonal architecture guide toward the same improved design for transaction creation.
 
 ### 13.6 Practical Recommendation for Production
 
@@ -1255,14 +1213,14 @@ Apply the following targeted improvements:
 **DDD improvements:**
 
 1. **Introduce domain events.** Have `Portfolio.buy()` and `Portfolio.sell()` produce domain events (`StockPurchased`, `StockSold`). Derive transactions from events.
-2. **Refactor Transaction into a sealed hierarchy.** Eliminate nullable fields. Make each transaction type self-documenting and self-validating.
-3. **Correct the Transaction Javadoc.** It is an entity, not a value object.
-4. **Guarantee lot ordering explicitly.** Add an `ordinal` or `purchasedAt` comparator and enforce ordering at load time, not by implicit `ArrayList` convention.
+2. ~~**Refactor Transaction into a sealed hierarchy.**~~ ✅ **IMPLEMENTED.** `Transaction` is now a sealed interface with four record subtypes. Nullable fields are eliminated. Each subtype is self-documenting and self-validating.
+3. ~~**Correct the Transaction Javadoc.**~~ ✅ **IMPLEMENTED.** Javadoc now correctly describes `Transaction` as an "immutable ledger entry."
+4. ~~**Guarantee lot ordering explicitly.**~~ ✅ **IMPLEMENTED.** `Holding.addLotFromPersistence()` inserts lots in chronological order by `purchasedAt`, providing a domain-side safety net in addition to the JPA adapter's `@OrderBy("purchasedAt ASC")`.
 5. **Rename `balance` to `cashBalance`** and consider `PURCHASE`/`SALE` → `BUY`/`SELL`.
 
 **Hexagonal Architecture improvements:**
 
-6. **Fix `TransactionDTO`.** Replace `record TransactionDTO(Transaction transaction)` with a properly mapped DTO that destructures the domain entity into primitives, following the established pattern of `PortfolioResponseDTO.from()`.
+6. ~~**Fix `TransactionDTO`.**~~ ✅ **IMPLEMENTED.** `TransactionDTO` is now a flat record with primitive fields and a `from(Transaction)` factory method, following the established pattern.
 7. **Move `ExternalApiException` out of the domain module.** Place it in the application layer or define an abstract failure concept in the domain and concrete infrastructure exceptions in the adapters.
 8. **Add `@Transactional(readOnly = true)` to read-side services.** `TransactionService` and `GetStockPriceService` do not modify data and should not acquire write locks.
 9. **Remove vestigial `protected` no-arg constructors from domain entities.** The domain entities are not JPA-managed; these constructors serve no purpose and signal false persistence awareness.
@@ -1319,38 +1277,57 @@ record StockSold(PortfolioId portfolioId, Ticker ticker, ShareQuantity quantity,
     implements PortfolioEvent {}
 ```
 
-### 14.3 Transaction Sealed Hierarchy (Revised)
+### 14.3 Transaction Sealed Hierarchy ✅ IMPLEMENTED
+
+The following sealed hierarchy is now implemented in the codebase:
 
 ```java
-sealed interface Transaction permits
-    DepositTransaction, WithdrawalTransaction,
-    PurchaseTransaction, SaleTransaction {
+public sealed interface Transaction
+        permits DepositTransaction, WithdrawalTransaction,
+                PurchaseTransaction, SaleTransaction {
 
     TransactionId id();
     PortfolioId portfolioId();
-    Money amount();
+    TransactionType type();
+    Money totalAmount();
     LocalDateTime createdAt();
+
+    // Default accessors for fields not applicable to all subtypes
+    default Ticker ticker() { return null; }
+    default ShareQuantity quantity() { return ShareQuantity.ZERO; }
+    default Price unitPrice() { return null; }
+    default Money profit() { return Money.ZERO; }
 }
 
-record DepositTransaction(TransactionId id, PortfolioId portfolioId,
-                          Money amount, LocalDateTime createdAt)
-    implements Transaction {}
+public record DepositTransaction(TransactionId id, PortfolioId portfolioId,
+                                  Money totalAmount, LocalDateTime createdAt)
+    implements Transaction {
+    // Compact constructor validates non-null and positive amount
+    public TransactionType type() { return TransactionType.DEPOSIT; }
+}
 
-record WithdrawalTransaction(TransactionId id, PortfolioId portfolioId,
-                             Money amount, LocalDateTime createdAt)
-    implements Transaction {}
+public record WithdrawalTransaction(TransactionId id, PortfolioId portfolioId,
+                                     Money totalAmount, LocalDateTime createdAt)
+    implements Transaction {
+    public TransactionType type() { return TransactionType.WITHDRAWAL; }
+}
 
-record PurchaseTransaction(TransactionId id, PortfolioId portfolioId,
-                           Ticker ticker, ShareQuantity quantity, Price unitPrice,
-                           Money amount, LocalDateTime createdAt)
-    implements Transaction {}
+public record PurchaseTransaction(TransactionId id, PortfolioId portfolioId,
+                                   Ticker ticker, ShareQuantity quantity, Price unitPrice,
+                                   Money totalAmount, LocalDateTime createdAt)
+    implements Transaction {
+    public TransactionType type() { return TransactionType.PURCHASE; }
+}
 
-record SaleTransaction(TransactionId id, PortfolioId portfolioId,
-                       Ticker ticker, ShareQuantity quantity, Price sellPrice,
-                       Money amount, Money costBasis, Money profit,
-                       LocalDateTime createdAt)
-    implements Transaction {}
+public record SaleTransaction(TransactionId id, PortfolioId portfolioId,
+                               Ticker ticker, ShareQuantity quantity, Price unitPrice,
+                               Money totalAmount, Money profit, LocalDateTime createdAt)
+    implements Transaction {
+    public TransactionType type() { return TransactionType.SALE; }
+}
 ```
+
+Each record subtype carries only the fields meaningful to its transaction kind. Compact constructors enforce non-null and positivity invariants at construction time. Java records provide structural immutability and automatic `equals()`/`hashCode()` based on all fields.
 
 ### 14.4 Application Service (Revised Flow)
 
@@ -1370,18 +1347,21 @@ public SellResult sellStock(PortfolioId portfolioId, Ticker ticker, ShareQuantit
 }
 ```
 
-### 14.5 What This Changes
+### 14.5 What Has Changed and What Remains
 
-| Aspect | Current | Revised |
-|---|---|---|
-| Transaction creation | Application service | Domain event → event handler |
-| Transaction types | Single class + enum tag | Sealed interface + records |
-| Nullable fields | Yes (ticker, unitPrice for deposits) | Eliminated |
-| Audit completeness | Convention-dependent | Guaranteed by event emission |
-| Domain event support | None | Built-in event collection |
-| Aggregate structure | Unchanged | Unchanged |
-| FIFO algorithm | Unchanged | Unchanged |
-| Value objects | Unchanged | Unchanged |
+| Aspect | Previous | Current | Future (Domain Events) |
+|---|---|---|---|
+| Transaction types | Single class + enum tag | ✅ Sealed interface + records | Unchanged |
+| Nullable fields | Yes (ticker, unitPrice for deposits) | ✅ Eliminated | Unchanged |
+| Self-validation | None | ✅ Compact constructor invariants | Unchanged |
+| `TransactionDTO` | Wrapped domain entity | ✅ Flat DTO with `from()` factory | Unchanged |
+| FIFO ordering | Implicit ArrayList convention | ✅ Domain-side chronological insertion | Unchanged |
+| Transaction creation | Application service | Application service | Domain event → event handler |
+| Audit completeness | Convention-dependent | Convention-dependent | Guaranteed by event emission |
+| Domain event support | None | None | Built-in event collection |
+| Aggregate structure | Unchanged | Unchanged | Unchanged |
+| FIFO algorithm | Unchanged | Unchanged | Unchanged |
+| Value objects | Unchanged | Unchanged | Unchanged |
 
 This revision is evolutionary, not revolutionary. It addresses the identified weaknesses while preserving everything that already works well.
 
@@ -1389,19 +1369,17 @@ This revision is evolutionary, not revolutionary. It addresses the identified we
 
 The hexagonal architecture requires fewer structural changes than the DDD model because the architecture is already sound. The following improvements refine what exists rather than restructure it.
 
-#### 14.6.1 Fix `TransactionDTO` Mapping
+#### 14.6.1 `TransactionDTO` Mapping ✅ IMPLEMENTED
+
+`TransactionDTO` is now a flat record with primitive fields and a `from(Transaction)` factory method:
 
 ```java
-// Current (leaks domain entity):
-public record TransactionDTO(Transaction transaction) {}
-
-// Revised (proper adapter mapping):
 public record TransactionDTO(
         String id,
         String portfolioId,
         String type,
         String ticker,
-        int quantity,
+        Integer quantity,
         BigDecimal unitPrice,
         BigDecimal totalAmount,
         BigDecimal profit,
@@ -1409,21 +1387,21 @@ public record TransactionDTO(
 ) {
     public static TransactionDTO from(Transaction tx) {
         return new TransactionDTO(
-                tx.getId().value(),
-                tx.getPortfolioId().value(),
-                tx.getType().name(),
-                tx.getTicker() != null ? tx.getTicker().value() : null,
-                tx.getQuantity() != null ? tx.getQuantity().value() : 0,
-                tx.getUnitPrice() != null ? tx.getUnitPrice().value() : null,
-                tx.getTotalAmount().amount(),
-                tx.getProfit() != null ? tx.getProfit().amount() : null,
-                tx.getCreatedAt()
+                tx.id().value(),
+                tx.portfolioId().value(),
+                tx.type().name(),
+                tx.ticker() != null ? tx.ticker().value() : null,
+                tx.quantity() != null ? tx.quantity().value() : null,
+                tx.unitPrice() != null ? tx.unitPrice().value() : null,
+                tx.totalAmount().amount(),
+                tx.profit() != null ? tx.profit().amount() : null,
+                tx.createdAt()
         );
     }
 }
 ```
 
-This follows the established pattern of `PortfolioResponseDTO.from()` and `SaleResponseDTO.from()`. If the Transaction sealed hierarchy from Section 14.3 is adopted, the `from()` method would use pattern matching instead of null checks.
+This follows the established pattern of `PortfolioResponseDTO.from()` and `SaleResponseDTO.from()`. The sealed interface's default accessor methods (`ticker()` returns `null`, `quantity()` returns `ZERO`, etc.) allow uniform field access across all transaction subtypes.
 
 #### 14.6.2 Relocate `ExternalApiException`
 
