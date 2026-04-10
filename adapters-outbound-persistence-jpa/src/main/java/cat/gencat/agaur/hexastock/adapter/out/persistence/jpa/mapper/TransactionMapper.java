@@ -7,31 +7,53 @@ import cat.gencat.agaur.hexastock.model.market.*;
 import cat.gencat.agaur.hexastock.model.money.*;
 
 public class TransactionMapper {
-    public static Transaction toModelEntity(TransactionJpaEntity jpaEntity) {
-        return Transaction.builder()
-                .id(TransactionId.of(jpaEntity.getId()))
-                .portfolioId(PortfolioId.of(jpaEntity.getPortfolioId()))
-                .type(jpaEntity.getType())
-                .ticker(jpaEntity.getTicker() != null ? Ticker.of(jpaEntity.getTicker()) : null)
-                .quantity(ShareQuantity.of(jpaEntity.getQuantity()))
-                .unitPrice(jpaEntity.getUnitPrice() != null ? Price.of(jpaEntity.getUnitPrice()) : null)
-                .totalAmount(Money.of(jpaEntity.getTotalAmount()))
-                .profit(Money.of(jpaEntity.getProfit()))
-                .createdAt(jpaEntity.getCreatedAt())
-                .build();
+
+    public static Transaction toModelEntity(TransactionJpaEntity e) {
+        return switch (e.getType()) {
+            case DEPOSIT -> new DepositTransaction(
+                    TransactionId.of(e.getId()),
+                    PortfolioId.of(e.getPortfolioId()),
+                    Money.of(e.getTotalAmount()),
+                    e.getCreatedAt());
+
+            case WITHDRAWAL -> new WithdrawalTransaction(
+                    TransactionId.of(e.getId()),
+                    PortfolioId.of(e.getPortfolioId()),
+                    Money.of(e.getTotalAmount()),
+                    e.getCreatedAt());
+
+            case PURCHASE -> new PurchaseTransaction(
+                    TransactionId.of(e.getId()),
+                    PortfolioId.of(e.getPortfolioId()),
+                    Ticker.of(e.getTicker()),
+                    ShareQuantity.of(e.getQuantity()),
+                    Price.of(e.getUnitPrice()),
+                    Money.of(e.getTotalAmount()),
+                    e.getCreatedAt());
+
+            case SALE -> new SaleTransaction(
+                    TransactionId.of(e.getId()),
+                    PortfolioId.of(e.getPortfolioId()),
+                    Ticker.of(e.getTicker()),
+                    ShareQuantity.of(e.getQuantity()),
+                    Price.of(e.getUnitPrice()),
+                    Money.of(e.getTotalAmount()),
+                    Money.of(e.getProfit()),
+                    e.getCreatedAt());
+        };
     }
 
-    public static TransactionJpaEntity toJpaEntity(Transaction entity) {
+    public static TransactionJpaEntity toJpaEntity(Transaction tx) {
         return TransactionJpaEntity.builder()
-                .id(entity.getId().value())
-                .portfolioId(entity.getPortfolioId().value())
-                .type(entity.getType())
-                .ticker(entity.getTicker() != null ? entity.getTicker().value() : null)
-                .quantity(entity.getQuantity().value())
-                .unitPrice(entity.getUnitPrice() != null ? entity.getUnitPrice().value() : null)
-                .totalAmount(entity.getTotalAmount().amount())
-                .profit(entity.getProfit().amount())
-                .createdAt(entity.getCreatedAt())
+                .id(tx.id().value())
+                .portfolioId(tx.portfolioId().value())
+                .type(tx.type())
+                .ticker(tx.ticker() != null ? tx.ticker().value() : null)
+                .quantity(tx.quantity().value())
+                .unitPrice(tx.unitPrice() != null ? tx.unitPrice().value() : null)
+                .totalAmount(tx.totalAmount().amount())
+                .profit(tx.profit().amount())
+                .createdAt(tx.createdAt())
                 .build();
     }
 }

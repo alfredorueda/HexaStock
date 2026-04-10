@@ -348,5 +348,71 @@ class HoldingTest {
             assertEquals("Second", holdingMap.get(holding2));
         }
     }
+
+    // ====================================================================
+    //  FIFO ordering guarantees in addLotFromPersistence
+    // ====================================================================
+
+    @Nested
+    @DisplayName("FIFO ordering in addLotFromPersistence")
+    class FifoOrdering {
+
+        @Test
+        @DisplayName("lots added in order remain in FIFO order")
+        void lotsInOrderRemainFifo() {
+            var t1 = LocalDateTime.of(2025, 1, 1, 10, 0);
+            var t2 = LocalDateTime.of(2025, 1, 2, 10, 0);
+            var t3 = LocalDateTime.of(2025, 1, 3, 10, 0);
+
+            holding.addLotFromPersistence(new Lot(LotId.generate(), ShareQuantity.of(5), ShareQuantity.of(5), PRICE_100, t1));
+            holding.addLotFromPersistence(new Lot(LotId.generate(), ShareQuantity.of(3), ShareQuantity.of(3), PRICE_120, t2));
+            holding.addLotFromPersistence(new Lot(LotId.generate(), ShareQuantity.of(7), ShareQuantity.of(7), PRICE_90, t3));
+
+            var lots = holding.getLots();
+            assertEquals(3, lots.size());
+            assertTrue(lots.get(0).getPurchasedAt().isBefore(lots.get(1).getPurchasedAt()));
+            assertTrue(lots.get(1).getPurchasedAt().isBefore(lots.get(2).getPurchasedAt()));
+        }
+
+        @Test
+        @DisplayName("lots added out of order are sorted into FIFO order")
+        void lotsOutOfOrderAreSorted() {
+            var t1 = LocalDateTime.of(2025, 1, 1, 10, 0);
+            var t2 = LocalDateTime.of(2025, 1, 2, 10, 0);
+            var t3 = LocalDateTime.of(2025, 1, 3, 10, 0);
+
+            // Add in reverse order: t3, t1, t2
+            holding.addLotFromPersistence(new Lot(LotId.generate(), ShareQuantity.of(7), ShareQuantity.of(7), PRICE_90, t3));
+            holding.addLotFromPersistence(new Lot(LotId.generate(), ShareQuantity.of(5), ShareQuantity.of(5), PRICE_100, t1));
+            holding.addLotFromPersistence(new Lot(LotId.generate(), ShareQuantity.of(3), ShareQuantity.of(3), PRICE_120, t2));
+
+            var lots = holding.getLots();
+            assertEquals(3, lots.size());
+            assertEquals(t1, lots.get(0).getPurchasedAt());
+            assertEquals(t2, lots.get(1).getPurchasedAt());
+            assertEquals(t3, lots.get(2).getPurchasedAt());
+        }
+
+        @Test
+        @DisplayName("FIFO sell after out-of-order persistence load consumes oldest lot first")
+        void fifoSellAfterOutOfOrderLoad() {
+            var t1 = LocalDateTime.of(2025, 1, 1, 10, 0);
+            var t2 = LocalDateTime.of(2025, 1, 2, 10, 0);
+
+            // Add newer lot first, then older lot
+            holding.addLotFromPersistence(new Lot(LotId.generate(), ShareQuantity.of(5), ShareQuantity.of(5), PRICE_120, t2));
+            holding.addLotFromPersistence(new Lot(LotId.generate(), ShareQuantity.of(10), ShareQuantity.of(10), PRICE_100, t1));
+
+            // Sell 8 shares — FIFO should consume from t1 (price 100) first
+            var result = holding.sell(ShareQuantity.of(8), PRICE_150);
+
+            // Cost basis: 8 × 100 = 800 (all from the oldest lot)
+            assertEquals(Money.of("800.00"), result.costBasis());
+            // Proceeds: 8 × 150 = 1200
+            assertEquals(Money.of("1200.00"), result.proceeds());
+            // Profit: 1200 - 800 = 400
+            assertEquals(Money.of("400.00"), result.profit());
+        }
+    }
 }
 

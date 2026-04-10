@@ -8,194 +8,96 @@ import java.time.LocalDateTime;
 
 /**
  * Transaction represents a financial activity within a portfolio.
- * 
- * Think of Transactions as your financial history or ledger.
- * They track every money movement and stock trade, allowing you to:
- * - Review your investment history
- * - Calculate profits and losses
- * - Analyze your investment performance over time
- * 
- * Transactions are created through factory methods that ensure all required data
- * for each type of transaction is properly recorded.
  *
- * #########
+ * <p>In DDD terms, this is an <strong>immutable ledger entry</strong> — an entity
+ * with identity, created by the application layer after the aggregate mutation,
+ * persisted for auditability and reporting, but never modified after creation.</p>
  *
- * Why Separating Transactions from the Portfolio Aggregate is Better
+ * <p>The sealed hierarchy models the four semantically distinct transaction kinds
+ * as separate types, each carrying only the fields meaningful to that kind.
+ * This eliminates nullable/meaningless fields and enables exhaustive pattern
+ * matching in Java 21.</p>
  *
- * There are several significant benefits to this approach compared to including
- * transactions directly within the Portfolio aggregate:
+ * <h3>Subtypes</h3>
+ * <ul>
+ *   <li>{@link DepositTransaction} — cash deposited into the portfolio</li>
+ *   <li>{@link WithdrawalTransaction} — cash withdrawn from the portfolio</li>
+ *   <li>{@link PurchaseTransaction} — shares purchased at a given price</li>
+ *   <li>{@link SaleTransaction} — shares sold, recording proceeds and profit</li>
+ * </ul>
  *
- * Key Benefits of Separate Transaction Aggregate
- * Performance and Memory Efficiency
- *
- * A portfolio with 20,000+ transactions would create a massive aggregate if loaded entirely
- * The current approach allows loading just the portfolio with its positions (current state) without the entire transaction history
- * Memory usage is significantly reduced for common operations that don't need transaction details
- * Transactional Boundaries
-
- *
- * Each portfolio operation doesn't need to lock the entire transaction history
- * Transaction creation/modification can happen independently of other portfolio operations
- * Reduced contention in high-throughput systems with many concurrent users
- * Scalability
- *
- * The system can scale to handle portfolios with unlimited transaction history
- * Historical transactions can be archived or stored differently from active positions
- * Specialized queries can be optimized for different access patterns
- * Flexibility in Data Access
- *
- ** Portfolio maintains the current state
- * Transaction records historical events that led to the current state
- *
- * In DDD terms, this design respects aggregate boundaries based on consistency
- * requirements while optimizing for the reality of large transaction volumes in financial systems.
+ * <h3>Why Transactions Are Separate from the Portfolio Aggregate</h3>
+ * <p>Transaction history is append-only and unbounded. Including it in the
+ * Portfolio aggregate would force loading all historical transactions for every
+ * operation. Transactions do not participate in the invariants that the Portfolio
+ * aggregate protects (cash sufficiency, share availability, FIFO ordering).</p>
  */
-public class Transaction {
-    private TransactionId id;
-    private PortfolioId portfolioId;
-    private TransactionType type;
-    private Ticker ticker;
-    private ShareQuantity quantity;
-    private Price unitPrice;
-    private Money totalAmount;
-    private Money profit;
-    private LocalDateTime createdAt;
+public sealed interface Transaction
+        permits DepositTransaction, WithdrawalTransaction, PurchaseTransaction, SaleTransaction {
 
-    protected Transaction() {}
+    /** Unique identity of this transaction. */
+    TransactionId id();
 
-    /** Returns a new {@link Builder} for constructing a {@code Transaction}. */
-    public static Builder builder() {
-        return new Builder();
-    }
+    /** The portfolio this transaction belongs to. */
+    PortfolioId portfolioId();
 
-    public static Transaction createDeposit(PortfolioId portfolioId, Money amount) {
-        return builder()
-                .id(TransactionId.generate())
-                .portfolioId(portfolioId)
-                .type(TransactionType.DEPOSIT)
-                .quantity(ShareQuantity.ZERO)
-                .totalAmount(amount)
-                .profit(Money.ZERO)
-                .createdAt(LocalDateTime.now())
-                .build();
-    }
+    /** The type discriminator (for persistence and switch expressions). */
+    TransactionType type();
 
-    public static Transaction createWithdrawal(PortfolioId portfolioId, Money amount) {
-        return builder()
-                .id(TransactionId.generate())
-                .portfolioId(portfolioId)
-                .type(TransactionType.WITHDRAWAL)
-                .quantity(ShareQuantity.ZERO)
-                .totalAmount(amount)
-                .profit(Money.ZERO)
-                .createdAt(LocalDateTime.now())
-                .build();
-    }
+    /** The total monetary amount of this transaction. */
+    Money totalAmount();
 
-    public static Transaction createPurchase(PortfolioId portfolioId, Ticker ticker,
-                                             ShareQuantity quantity, Price unitPrice) {
-        return builder()
-                .id(TransactionId.generate())
-                .portfolioId(portfolioId)
-                .type(TransactionType.PURCHASE)
-                .ticker(ticker)
-                .quantity(quantity)
-                .unitPrice(unitPrice)
-                .totalAmount(unitPrice.multiply(quantity))
-                .profit(Money.ZERO)
-                .createdAt(LocalDateTime.now())
-                .build();
-    }
+    /** When this transaction was created. */
+    LocalDateTime createdAt();
 
-    public static Transaction createSale(PortfolioId portfolioId, Ticker ticker,
-                                         ShareQuantity quantity, Price unitPrice,
-                                         Money totalAmount, Money profit) {
-        return builder()
-                .id(TransactionId.generate())
-                .portfolioId(portfolioId)
-                .type(TransactionType.SALE)
-                .ticker(ticker)
-                .quantity(quantity)
-                .unitPrice(unitPrice)
-                .totalAmount(totalAmount)
-                .profit(profit)
-                .createdAt(LocalDateTime.now())
-                .build();
-    }
-
-    public TransactionId getId() {
-        return id;
-    }
-
-    public PortfolioId getPortfolioId() {
-        return portfolioId;
-    }
-
-    public TransactionType getType() {
-        return type;
-    }
-
-    public Ticker getTicker() {
-        return ticker;
-    }
-
-    public ShareQuantity getQuantity() {
-        return quantity;
-    }
-
-    public Price getUnitPrice() {
-        return unitPrice;
-    }
-
-    public Money getTotalAmount() {
-        return totalAmount;
-    }
-
-    public Money getProfit() {
-        return profit;
-    }
-
-    public LocalDateTime getCreatedAt() {
-        return createdAt;
-    }
+    // ── Convenience accessors with safe defaults for non-stock transactions ──
 
     /**
-     * Fluent builder for {@link Transaction}.
-     * Eliminates the need for a constructor with more than seven parameters.
+     * Returns the ticker for stock transactions, or {@code null} for cash transactions.
+     * Prefer pattern matching over this method when possible.
      */
-    public static class Builder {
-        private TransactionId id;
-        private PortfolioId portfolioId;
-        private TransactionType type;
-        private Ticker ticker;
-        private ShareQuantity quantity;
-        private Price unitPrice;
-        private Money totalAmount;
-        private Money profit;
-        private LocalDateTime createdAt;
+    default Ticker ticker() { return null; }
 
-        public Builder id(TransactionId id) { this.id = id; return this; }
-        public Builder portfolioId(PortfolioId portfolioId) { this.portfolioId = portfolioId; return this; }
-        public Builder type(TransactionType type) { this.type = type; return this; }
-        public Builder ticker(Ticker ticker) { this.ticker = ticker; return this; }
-        public Builder quantity(ShareQuantity quantity) { this.quantity = quantity; return this; }
-        public Builder unitPrice(Price unitPrice) { this.unitPrice = unitPrice; return this; }
-        public Builder totalAmount(Money totalAmount) { this.totalAmount = totalAmount; return this; }
-        public Builder profit(Money profit) { this.profit = profit; return this; }
-        public Builder createdAt(LocalDateTime createdAt) { this.createdAt = createdAt; return this; }
+    /**
+     * Returns the share quantity for stock transactions, or {@link ShareQuantity#ZERO}
+     * for cash transactions.
+     */
+    default ShareQuantity quantity() { return ShareQuantity.ZERO; }
 
-        public Transaction build() {
-            var tx = new Transaction();
-            tx.id = this.id;
-            tx.portfolioId = this.portfolioId;
-            tx.type = this.type;
-            tx.ticker = this.ticker;
-            tx.quantity = this.quantity;
-            tx.unitPrice = this.unitPrice;
-            tx.totalAmount = this.totalAmount;
-            tx.profit = this.profit;
-            tx.createdAt = this.createdAt;
-            return tx;
-        }
+    /**
+     * Returns the unit price for stock transactions, or {@code null} for cash transactions.
+     */
+    default Price unitPrice() { return null; }
+
+    /**
+     * Returns the profit for sale transactions, or {@link Money#ZERO} for all others.
+     */
+    default Money profit() { return Money.ZERO; }
+
+    // ── Factory methods for convenience ─────────────────────────────────
+
+    static DepositTransaction createDeposit(PortfolioId portfolioId, Money amount) {
+        return new DepositTransaction(
+                TransactionId.generate(), portfolioId, amount, LocalDateTime.now());
+    }
+
+    static WithdrawalTransaction createWithdrawal(PortfolioId portfolioId, Money amount) {
+        return new WithdrawalTransaction(
+                TransactionId.generate(), portfolioId, amount, LocalDateTime.now());
+    }
+
+    static PurchaseTransaction createPurchase(PortfolioId portfolioId, Ticker ticker,
+                                              ShareQuantity quantity, Price unitPrice) {
+        return new PurchaseTransaction(
+                TransactionId.generate(), portfolioId, ticker, quantity, unitPrice,
+                unitPrice.multiply(quantity), LocalDateTime.now());
+    }
+
+    static SaleTransaction createSale(PortfolioId portfolioId, Ticker ticker,
+                                      ShareQuantity quantity, Price unitPrice,
+                                      Money totalAmount, Money profit) {
+        return new SaleTransaction(
+                TransactionId.generate(), portfolioId, ticker, quantity, unitPrice,
+                totalAmount, profit, LocalDateTime.now());
     }
 }

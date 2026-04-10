@@ -96,14 +96,27 @@ public class Holding {
 
     /**
      * Persistence-only hook used to reconstitute the aggregate from storage.
-     * Not a business operation. Do not call from application services.
+     *
+     * <p>Inserts the lot in chronological (FIFO) order by {@code purchasedAt},
+     * so that FIFO correctness does not silently depend on persistence ordering
+     * conventions alone.</p>
+     *
+     * <p>Not a business operation. Do not call from application services.</p>
      */
     public void addLotFromPersistence(Lot lot) {
         boolean exists = lots.stream().anyMatch(l -> l.getId().equals(lot.getId()));
         if (exists) {
             throw new EntityExistsException("Lot " + lot.getId() + " already exists");
         }
-        lots.add(lot);
+        // Insert in FIFO order by purchasedAt to guarantee correct sell ordering
+        int insertPos = lots.size();
+        for (int i = 0; i < lots.size(); i++) {
+            if (lot.getPurchasedAt().isBefore(lots.get(i).getPurchasedAt())) {
+                insertPos = i;
+                break;
+            }
+        }
+        lots.add(insertPos, lot);
     }
 
     public Money getRemainingSharesPurchasePrice() {

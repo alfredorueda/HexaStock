@@ -235,7 +235,7 @@ public class PortfolioRestController {
                 Optional.ofNullable(type)
         );
 
-        return ResponseEntity.ok(transactions.stream().map(TransactionDTO::new).toList());
+        return ResponseEntity.ok(transactions.stream().map(TransactionDTO::from).toList());
     }
 
     @GetMapping("/{id}/holdings")
