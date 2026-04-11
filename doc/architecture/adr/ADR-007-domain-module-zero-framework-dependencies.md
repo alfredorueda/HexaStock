@@ -22,7 +22,7 @@ This is enforced at three levels:
 
 ## Alternatives considered
 
-- **Allow `@Transactional` in the domain:** Some DDD practitioners place transaction boundaries on aggregate root methods. The project explicitly chose to keep `@Transactional` in the application layer instead. The `application/pom.xml` contains a comment justifying this: "minimal Spring dependency justified to preserve existing behavior".
+- **Allow `@Transactional` in the domain:** Some DDD practitioners place transaction boundaries on aggregate root methods. The project explicitly chose to keep `@Transactional` in the application layer instead, using the standard Jakarta `@Transactional` annotation (`jakarta.transaction.Transactional`) to avoid any Spring compile-time dependency.
 - **Allow Jakarta Validation annotations (`@NotNull`, `@Pattern`) in domain types:** Would provide declarative validation but introduces a framework dependency. The project uses constructor-based self-validation instead (e.g. `Ticker` validates against a regex in its constructor).
 - **Allow Lombok in the domain:** Would reduce boilerplate but adds a compile-time dependency and hides generated code. The project uses Java records instead.
 

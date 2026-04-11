@@ -9,7 +9,7 @@ import cat.gencat.agaur.hexastock.model.money.Money;
 import cat.gencat.agaur.hexastock.model.portfolio.Portfolio;
 import cat.gencat.agaur.hexastock.model.portfolio.PortfolioId;
 import cat.gencat.agaur.hexastock.model.transaction.Transaction;
-import org.springframework.transaction.annotation.Transactional;
+import jakarta.transaction.Transactional;
 import java.util.List;
 
 /**

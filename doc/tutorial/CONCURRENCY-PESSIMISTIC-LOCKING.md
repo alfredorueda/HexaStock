@@ -215,9 +215,9 @@ The `@Lock(LockModeType.PESSIMISTIC_WRITE)` annotation tells Hibernate to:
 - If the transaction is never committed, the lock is never released (except on timeout).
 - This is why `@Transactional` is critical for pessimistic locking to work correctly.
 
-### Spring @Transactional
+### Jakarta `@Transactional` (managed by Spring at runtime)
 
-The `@Transactional` annotation on the use case service method defines the transaction boundary:
+The `@Transactional` annotation (from `jakarta.transaction`) on the use case service method defines the transaction boundary. Spring's transaction infrastructure recognises this standard Jakarta annotation at runtime:
 
 ```java
 @Transactional

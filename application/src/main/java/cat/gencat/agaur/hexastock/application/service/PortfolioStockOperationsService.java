@@ -11,7 +11,7 @@ import cat.gencat.agaur.hexastock.model.money.*;
 import cat.gencat.agaur.hexastock.model.portfolio.ConflictQuantityException;
 import cat.gencat.agaur.hexastock.model.money.InvalidQuantityException;
 import cat.gencat.agaur.hexastock.application.exception.PortfolioNotFoundException;
-import org.springframework.transaction.annotation.Transactional;
+import jakarta.transaction.Transactional;
 
 import java.math.BigDecimal;
 

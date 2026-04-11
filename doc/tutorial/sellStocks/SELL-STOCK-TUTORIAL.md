@@ -740,7 +740,7 @@ public class PortfolioStockOperationsService
 
 ### Why Transactions Matter for Stock Selling
 
-Selling stocks involves multiple database writes — updating the portfolio balance, reducing lot quantities via FIFO, and recording an audit transaction. These must **all succeed or all fail together**; partial updates would corrupt the portfolio state. Spring's `@Transactional` ensures ACID guarantees:
+Selling stocks involves multiple database writes — updating the portfolio balance, reducing lot quantities via FIFO, and recording an audit transaction. These must **all succeed or all fail together**; partial updates would corrupt the portfolio state. The `@Transactional` annotation (from `jakarta.transaction`, managed by Spring at runtime) ensures ACID guarantees:
 
 1. **Atomicity:** All database operations succeed or fail together
 2. **Consistency:** If the transaction record fails to save, the portfolio changes are rolled back

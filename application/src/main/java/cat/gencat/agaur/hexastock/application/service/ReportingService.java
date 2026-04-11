@@ -11,7 +11,7 @@ import cat.gencat.agaur.hexastock.model.transaction.*;
 import cat.gencat.agaur.hexastock.model.market.*;
 import cat.gencat.agaur.hexastock.model.money.*;
 import cat.gencat.agaur.hexastock.model.portfolio.HoldingPerformanceCalculator;
-import org.springframework.transaction.annotation.Transactional;
+import jakarta.transaction.Transactional;
 
 import java.util.List;
 import java.util.stream.Collectors;

@@ -27,7 +27,7 @@ Use Spring Boot 3.5.0 (with Spring Framework 6.x) as the application framework. 
 - `spring-boot-starter-*` modules simplify dependency management.
 
 **Negative:**
-- The application layer has a minimal coupling to `spring-tx` for `@Transactional`.
+- The application layer has no compile-time coupling to Spring. Transactional demarcation uses the standard Jakarta `@Transactional` annotation; Spring recognises it at runtime.
 - Contributors must understand Spring Boot conventions (profiles, auto-configuration, component scanning).
 - Runtime startup is slower than compile-time frameworks (acceptable for the project's context).
 
@@ -39,7 +39,7 @@ Use Spring Boot 3.5.0 (with Spring Framework 6.x) as the application framework. 
 - `adapters-outbound-market/pom.xml`: `spring-boot-starter-web`, `spring-boot-starter-cache`
 - `bootstrap/pom.xml`: `spring-boot-starter`, `spring-boot-maven-plugin`
 - `HexaStockApplication.java`: `@SpringBootApplication(scanBasePackages = "cat.gencat.agaur.hexastock")`
-- `application/pom.xml`: `spring-tx` dependency with comment justifying the minimal coupling
+- `application/pom.xml`: `jakarta.transaction-api` dependency (standard API for `@Transactional`; zero Spring compile-time dependencies)
 - `AbstractPortfolioRestIntegrationTest.java`: `@SpringBootTest(webEnvironment = RANDOM_PORT)`
 
 ## Relation to other specifications

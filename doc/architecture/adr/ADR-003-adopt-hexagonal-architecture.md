@@ -41,10 +41,10 @@ Dependencies flow strictly inward: adapters depend on ports, ports are defined b
 
 - Root `pom.xml`: 6 modules (`domain`, `application`, `adapters-inbound-rest`, `adapters-outbound-persistence-jpa`, `adapters-outbound-market`, `bootstrap`)
 - `domain/pom.xml`: no dependencies on Spring, JPA, or any adapter module
-- `application/pom.xml`: depends only on `hexastock-domain` (plus minimal `spring-tx`)
-- `HexagonalArchitectureTest.java`: 6 ArchUnit rules enforcing:
+- `application/pom.xml`: depends only on `hexastock-domain` and standard `jakarta.transaction-api`
+- `HexagonalArchitectureTest.java`: 7 ArchUnit rules enforcing:
   - Domain does not depend on application, adapters, or Spring
-  - Application does not depend on adapters
+  - Application does not depend on adapters or Spring
   - Inbound adapters do not depend on outbound adapters (and vice versa)
 - `CONTRIBUTING.md`: "The Inward Dependency Rule. Adapters depend on ports. Ports are defined by the core. The domain depends on nothing external. Violating this rule - even for convenience - is not acceptable."
 - Input ports: `PortfolioManagementUseCase`, `PortfolioStockOperationsUseCase`, `ReportingUseCase`, `GetStockPriceUseCase`, `TransactionUseCase`

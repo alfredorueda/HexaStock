@@ -48,7 +48,7 @@ Additionally, the `domain` module publishes a `test-jar` containing shared test 
 
 - `pom.xml`: `<packaging>pom</packaging>`, `<modules>` block listing 6 modules
 - `domain/pom.xml`: zero dependencies on other modules or frameworks; `maven-jar-plugin` with `test-jar` execution
-- `application/pom.xml`: depends only on `hexastock-domain` and `spring-tx`; `<description>` states "Application layer: input/output ports (use cases) and application services"
+- `application/pom.xml`: depends only on `hexastock-domain` and standard `jakarta.transaction-api`; `<description>` states "Application layer: input/output ports (use cases) and application services"
 - `adapters-inbound-rest/pom.xml`: depends on `hexastock-application`; `<description>` states "Inbound REST adapter"
 - `adapters-outbound-persistence-jpa/pom.xml`: depends on `hexastock-application`; `<description>` states "Outbound JPA persistence adapter"
 - `adapters-outbound-market/pom.xml`: depends on `hexastock-application`; `<description>` states "Outbound market adapter"

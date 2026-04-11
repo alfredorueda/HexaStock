@@ -17,10 +17,10 @@
             <groupId>cat.gencat.agaur</groupId>
             <artifactId>hexastock-domain</artifactId>
         </dependency>
-        <!-- @Transactional support - minimal Spring dependency justified to preserve existing behavior -->
+        <!-- Jakarta Transactions API — standard annotation, no Spring import in application layer -->
         <dependency>
-            <groupId>org.springframework</groupId>
-            <artifactId>spring-tx</artifactId>
+            <groupId>jakarta.transaction</groupId>
+            <artifactId>jakarta.transaction-api</artifactId>
         </dependency>
         <!-- Shared test annotations from domain (SpecificationRef, TestLevel) -->
         <dependency>

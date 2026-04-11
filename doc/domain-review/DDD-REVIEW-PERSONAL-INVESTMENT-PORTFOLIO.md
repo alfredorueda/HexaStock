@@ -24,7 +24,7 @@ Its principal remaining DDD concerns are:
 
 A previous version of this review identified the `Transaction` entity as a structurally anemic, type-tagged data container. **This has been resolved.** `Transaction` is now a sealed interface hierarchy with four record subtypes (`DepositTransaction`, `WithdrawalTransaction`, `PurchaseTransaction`, `SaleTransaction`), each carrying only the fields meaningful to its transaction kind, with self-validation in every compact constructor. The sealed hierarchy eliminates nullable fields, enables exhaustive pattern matching in Java 21, and aligns each subtype with domain language.
 
-**Hexagonal Architecture verdict:** The project is genuinely hexagonal — not merely in naming conventions, but in substance. The six-module Maven structure (`domain`, `application`, `adapters-inbound-rest`, `adapters-outbound-persistence-jpa`, `adapters-outbound-market`, `bootstrap`) enforces layer dependencies at the build level. The domain module carries zero framework dependencies. The application layer depends only on domain abstractions and outbound port interfaces, with `spring-tx` as its sole framework concession. Inbound adapters depend on inbound ports (use-case interfaces), outbound adapters implement outbound ports, and the bootstrap module acts as a clean composition root. ArchUnit fitness tests in `HexagonalArchitectureTest` mechanically enforce these boundaries at every build. A secondary concern is the presence of `protected` no-argument constructors and a `addLotFromPersistence()` method on the domain model — pragmatic JPA concessions that do not break the architecture but subtly reveal persistence awareness in the domain's API surface.
+**Hexagonal Architecture verdict:** The project is genuinely hexagonal — not merely in naming conventions, but in substance. The six-module Maven structure (`domain`, `application`, `adapters-inbound-rest`, `adapters-outbound-persistence-jpa`, `adapters-outbound-market`, `bootstrap`) enforces layer dependencies at the build level. The domain module carries zero framework dependencies. The application layer depends only on domain abstractions, outbound port interfaces, and the standard `jakarta.transaction-api` for transactional demarcation — it contains zero Spring imports. Inbound adapters depend on inbound ports (use-case interfaces), outbound adapters implement outbound ports, and the bootstrap module acts as a clean composition root. ArchUnit fitness tests in `HexagonalArchitectureTest` mechanically enforce these boundaries at every build, including an explicit rule verifying that the application layer does not depend on Spring. A secondary concern is the presence of `protected` no-argument constructors and a `addLotFromPersistence()` method on the domain model — pragmatic JPA concessions that do not break the architecture but subtly reveal persistence awareness in the domain's API surface.
 
 A previous version of this review identified a hexagonal leak in `TransactionDTO`, which wrapped the domain `Transaction` object directly, exposing domain structure to the REST API contract. **This has been fixed.** `TransactionDTO` is now a flat record of primitive/simple fields with a `from(Transaction)` factory method, following the same mapping pattern as all other DTOs in the REST adapter.
 
@@ -679,7 +679,7 @@ This structure directly reflects the ports-and-adapters model: the domain and ap
 
 The domain module's `pom.xml` declares **zero external dependencies** — no Spring, no JPA, no Jakarta, no Jackson, no test frameworks. This is the purest possible domain layer: it compiles against the Java standard library and nothing else.
 
-The application module's `pom.xml` depends on `hexastock-domain` and `spring-tx` (for the `@Transactional` annotation). The `spring-tx` dependency is the sole framework intrusion into the application core. It is a pragmatic trade-off: `@Transactional` is a cross-cutting concern that in pure hexagonal theory should be handled by the composition root or an infrastructure decorator, but in Spring practice is almost universally placed on application services. The dependency is on `spring-tx` only — not `spring-boot-starter`, not `spring-data-jpa`, not `spring-web`. This minimal coupling is acceptable.
+The application module's `pom.xml` depends on `hexastock-domain` and `jakarta.transaction-api` (for the `@Transactional` annotation). The application layer has no Spring dependency whatsoever — it uses the standard Jakarta Transactions `@Transactional` annotation (`jakarta.transaction.Transactional`) rather than Spring's proprietary version. At runtime, Spring's transaction infrastructure in the bootstrap layer transparently honours the Jakarta annotation through its `JtaTransactionAnnotationParser`, so transactional behaviour is preserved without any compile-time coupling to Spring in the application module.
 
 No adapter module depends on another adapter module. The inbound REST adapter, the outbound JPA adapter, and the outbound market adapter are completely independent. Each depends only on `hexastock-application` (which transitively includes `hexastock-domain`). This means:
 
@@ -689,14 +689,15 @@ No adapter module depends on another adapter module. The inbound REST adapter, t
 
 The `bootstrap` module depends on all other modules and acts as the composition root. `SpringAppConfig` manually instantiates application services (use-case implementations), wiring them with output port implementations that Spring discovers through component scanning and profile selection. This explicit wiring makes the dependency graph visible and auditable.
 
-**Verification guard:** The `HexagonalArchitectureTest` class in the bootstrap module uses ArchUnit to enforce six structural rules at every build:
+**Verification guard:** The `HexagonalArchitectureTest` class in the bootstrap module uses ArchUnit to enforce seven structural rules at every build:
 
 1. Domain must not depend on application.
 2. Domain must not depend on adapters.
 3. Domain must not depend on Spring.
 4. Application must not depend on adapters.
-5. Inbound adapters must not depend on outbound adapters.
-6. Outbound adapters must not depend on inbound adapters.
+5. Application must not depend on Spring.
+6. Inbound adapters must not depend on outbound adapters.
+7. Outbound adapters must not depend on inbound adapters.
 
 These are not aspirational guidelines — they are executable architecture fitness tests that fail the build if violated. This is a mature architectural practice that many production codebases lack.
 
@@ -715,7 +716,7 @@ These are not aspirational guidelines — they are executable architecture fitne
 | `domain` → Spring/Jakarta | Forbidden | Not present | ✅ |
 | `application` → `domain` | Required | Present (via `hexastock-domain` dependency) | ✅ |
 | `application` → any adapter | Forbidden | Not present | ✅ |
-| `application` → Spring | Minimal | `spring-tx` only (`@Transactional`) | ✅ (pragmatic) |
+| `application` → Spring | Forbidden | Not present (uses `jakarta.transaction-api` for `@Transactional`) | ✅ |
 | `adapters-inbound-rest` → `application` | Required | Present (via `hexastock-application` dependency) | ✅ |
 | `adapters-outbound-persistence-jpa` → `application` | Required | Present (via `hexastock-application` dependency) | ✅ |
 | `adapters-outbound-market` → `application` | Required | Present (via `hexastock-application` dependency) | ✅ |
@@ -726,7 +727,7 @@ These are not aspirational guidelines — they are executable architecture fitne
 
 - The domain module is **completely framework-free**. No class in `cat.gencat.agaur.hexastock.model.*` imports anything from `org.springframework`, `jakarta.persistence`, `com.fasterxml.jackson`, or any framework. This is verified by the ArchUnit rule `domainDoesNotDependOnSpring()` and confirmed by examining every import statement in all 26 domain Java files.
 
-- The application module's services (`PortfolioManagementService`, `PortfolioStockOperationsService`, `ReportingService`, `TransactionService`) are annotated with `@Transactional` from `org.springframework.transaction.annotation`. They are **not** annotated with `@Service` or `@Component` — Spring does not discover them through component scanning. Instead, `SpringAppConfig` in the bootstrap module explicitly constructs them via `@Bean` factory methods. This is an unusually disciplined approach: it prevents the application services from being Spring-aware beyond the single `@Transactional` annotation.
+- The application module's services (`PortfolioManagementService`, `PortfolioStockOperationsService`, `ReportingService`, `TransactionService`) are annotated with `@Transactional` from `jakarta.transaction` — the standard Jakarta Transactions annotation. They are **not** annotated with `@Service` or `@Component` — Spring does not discover them through component scanning. Instead, `SpringAppConfig` in the bootstrap module explicitly constructs them via `@Bean` factory methods. This is an unusually disciplined approach: the application services have zero Spring imports. Spring's transaction infrastructure recognises the Jakarta annotation at runtime, so transactional behaviour is preserved.
 
 - The inbound REST adapter (`PortfolioRestController`) injects use-case interfaces (`PortfolioManagementUseCase`, `PortfolioStockOperationsUseCase`, `ReportingUseCase`, `TransactionUseCase`) — never concrete service classes. This is textbook inbound port usage.
 
@@ -740,7 +741,7 @@ The `Portfolio` class has a `protected Portfolio() {}` no-argument constructor, 
 
 Similarly, `Holding.addLotFromPersistence(Lot lot)` is a public method documented as "not a business operation — do not call from application services," existing solely for aggregate reconstitution from storage. Its name reveals persistence awareness in the domain vocabulary. A cleaner alternative would be a package-private factory or reconstruction method visible only within the domain, or passing lots through the constructor. This is a minor blemish, not a structural violation.
 
-**Dependency direction verdict:** The dependency direction is correct at every layer. The domain is pristine. The application layer's sole framework coupling (`@Transactional`) is a widely accepted pragmatic choice. No adapter-to-adapter coupling exists. The project enforces these rules both at the Maven dependency level and through ArchUnit tests.
+**Dependency direction verdict:** The dependency direction is correct at every layer. The domain is pristine. The application layer is free of Spring dependencies — transactional demarcation uses the standard Jakarta `@Transactional` annotation, and Spring’s transaction infrastructure recognises it at runtime. No adapter-to-adapter coupling exists. The project enforces these rules both at the Maven dependency level and through ArchUnit tests.
 
 ### 11.3 Port Design Quality
 
@@ -1070,8 +1071,8 @@ The no-arg constructors on `Portfolio`, `Holding`, and `Lot` are vestigial ORM a
 **5. `Holding.addLotFromPersistence()` names persistence in the domain.**
 A minor naming issue: the method's name references "persistence" in the domain's ubiquitous language. `reconstitute(Lot lot)` or simply providing lots through the constructor would be cleaner.
 
-**6. `@Transactional` on the application service creates a framework dependency.**
-Acknowledged as a pragmatic trade-off. In strict hexagonal design, transaction management would be handled by a decorator or the composition root, not by the application service. However, Spring's `@Transactional` is so universally used that this is an accepted industry convention, not a real-world risk.
+**6. Application services use Jakarta `@Transactional` — a standard API, not a framework coupling.**
+The application layer uses `jakarta.transaction.Transactional` rather than a Spring-specific annotation. This is a standard Java API, not a framework concession. Spring’s transaction infrastructure recognises the Jakarta annotation at runtime, so transactional behaviour is preserved without compile-time coupling to any framework.
 
 **8. `PortfolioManagementUseCase` aggregates multiple concerns.**
 Five methods spanning lifecycle management and cash operations in one interface. This is an interface segregation concern, not a hexagonal boundary violation, but it increases coupling for consumers that need only a subset of the operations.
@@ -1105,7 +1106,7 @@ The HexaStock domain model is a credible, behaviour-rich DDD implementation. The
 
 **Rating: Strong.**
 
-The hexagonal architecture is genuine, enforced at the Maven module level, tested by ArchUnit fitness rules, and demonstrated by working adapter substitution (three market data implementations, profile-based selection). The domain is framework-free. The application layer is minimally coupled (only `@Transactional`). Adapters are thin, focused, and independent. The composition root is explicit. All DTOs — including `TransactionDTO` — follow the same anti-corruption pattern of mapping domain objects to flat, primitive-valued records. No significant hexagonal violations remain.
+The hexagonal architecture is genuine, enforced at the Maven module level, tested by ArchUnit fitness rules, and demonstrated by working adapter substitution (three market data implementations, profile-based selection). The domain is framework-free. The application layer is also framework-free — it uses the standard Jakarta `@Transactional` annotation for transactional demarcation, with Spring providing the transaction infrastructure at runtime in the outer layer. Adapters are thin, focused, and independent. The composition root is explicit. All DTOs — including `TransactionDTO` — follow the same anti-corruption pattern of mapping domain objects to flat, primitive-valued records. No significant hexagonal violations remain.
 
 ### 12.3 How DDD and Hexagonal Architecture Reinforce Each Other
 

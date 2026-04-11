@@ -18,7 +18,7 @@ import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.noClasses;
  * dependency directions follow the hexagonal architecture constraints:</p>
  * <ul>
  *   <li>Domain has no dependencies on application, adapters, or Spring</li>
- *   <li>Application depends only on domain (not on adapters)</li>
+ *   <li>Application depends only on domain (not on adapters or Spring)</li>
  *   <li>Adapters depend on application (ports) but not on each other</li>
  * </ul>
  */
@@ -76,6 +76,15 @@ class HexagonalArchitectureTest {
             noClasses()
                     .that().resideInAPackage("..application..")
                     .should().dependOnClassesThat().resideInAPackage("..adapter..")
+                    .check(allClasses);
+        }
+
+        @Test
+        @DisplayName("should not depend on Spring framework")
+        void applicationDoesNotDependOnSpring() {
+            noClasses()
+                    .that().resideInAPackage("..application..")
+                    .should().dependOnClassesThat().resideInAPackage("org.springframework..")
                     .check(allClasses);
         }
     }

@@ -118,7 +118,7 @@ The project is decomposed into six Maven modules:
 | Module | Artifact ID | Architectural role |
 |--------|------------|-------------------|
 | `domain` | `hexastock-domain` | Domain model: aggregates, entities, value objects, domain exceptions. Zero framework dependencies. |
-| `application` | `hexastock-application` | Application layer: input ports (use cases), output ports, application services. Minimal dependency on `spring-tx` for `@Transactional`. |
+| `application` | `hexastock-application` | Application layer: input ports (use cases), output ports, application services. Uses standard `jakarta.transaction-api` for `@Transactional`. Zero Spring dependencies. |
 | `adapters-inbound-rest` | `hexastock-adapters-inbound-rest` | Primary (driving) adapter: REST controllers, DTOs, exception handler. Depends on Spring Web, Validation, SpringDoc. |
 | `adapters-outbound-persistence-jpa` | `hexastock-adapters-outbound-persistence-jpa` | Secondary (driven) adapter: JPA entities, mappers, Spring Data repositories. Depends on Spring Data JPA, MySQL connector. |
 | `adapters-outbound-market` | `hexastock-adapters-outbound-market` | Secondary (driven) adapter: external stock price API clients (Finnhub, AlphaVantage, mock). Depends on Spring Web, Cache, Caffeine. |
@@ -138,12 +138,12 @@ Adapters  -->  Application (ports)  -->  Domain
 ```
 
 - **Domain** depends on nothing external. No Spring, no JPA, no framework annotations.
-- **Application** depends on Domain only. The sole Spring dependency is `spring-tx` for `@Transactional`, explicitly justified in [application/pom.xml](../../application/pom.xml): "minimal Spring dependency justified to preserve existing behavior".
+- **Application** depends on Domain only. It uses the standard `jakarta.transaction-api` for `@Transactional` — no Spring dependency at compile time. Spring’s transaction infrastructure recognises the Jakarta annotation at runtime.
 - **Inbound REST adapter** depends on Application (ports) and Spring Web.
 - **Outbound adapters** depend on Application (ports) and their respective infrastructure libraries.
 - **Adapters do not depend on each other.** ArchUnit tests enforce this: `restDoesNotDependOnPersistence()`, `outboundDoesNotDependOnInbound()`.
 
-**Evidence:** [HexagonalArchitectureTest.java](../../bootstrap/src/test/java/cat/gencat/agaur/hexastock/architecture/HexagonalArchitectureTest.java) (6 ArchUnit rules); each module's `pom.xml`.
+**Evidence:** [HexagonalArchitectureTest.java](../../bootstrap/src/test/java/cat/gencat/agaur/hexastock/architecture/HexagonalArchitectureTest.java) (7 ArchUnit rules); each module's `pom.xml`.
 
 ### Package naming conventions
 
@@ -603,11 +603,11 @@ The bootstrap module is packaged as a WAR with `spring-boot-starter-tomcat` as `
 
 **Evidence:** [bootstrap/pom.xml](../../bootstrap/pom.xml): `<packaging>war</packaging>`, `spring-boot-starter-tomcat` scope `provided`.
 
-### Minimal `@Transactional` dependency in application layer
+### Standard `@Transactional` annotation in application layer
 
-The application layer introduces a deliberate, minimal dependency on `spring-tx` for `@Transactional` support. The [application/pom.xml](../../application/pom.xml) explicitly justifies this: "minimal Spring dependency justified to preserve existing behavior".
+The application layer uses the standard Jakarta Transactions `@Transactional` annotation (`jakarta.transaction.Transactional`) for transactional demarcation. The [application/pom.xml](../../application/pom.xml) depends on `jakarta.transaction-api` — a standard Java API, not a framework library. At runtime, Spring’s transaction infrastructure in the bootstrap layer transparently recognises the Jakarta annotation, so transactional behaviour is preserved without compile-time coupling to Spring.
 
-*Architectural interpretation based on repository evidence:* This is a pragmatic trade-off. Pure hexagonal architecture would push transaction management to the adapter layer, but `@Transactional` on application services is a widely accepted compromise that keeps transaction boundaries aligned with use-case boundaries.
+*Architectural interpretation based on repository evidence:* The application layer is fully framework-agnostic. Transaction boundaries are expressed using a standard annotation, and the transaction infrastructure is provided externally by the composition root. This is a clean separation of concerns: the application layer declares *what* should be transactional; the outer layer provides *how* transactions are managed.
 
 ### Stock price mock for tests
 
@@ -648,7 +648,7 @@ Key repository artefacts used as evidence:
 ### Build and configuration
 - [pom.xml](../../pom.xml) - Root POM with module definitions and shared dependencies
 - [domain/pom.xml](../../domain/pom.xml) - Domain module (zero framework dependencies)
-- [application/pom.xml](../../application/pom.xml) - Application module with justified `spring-tx` dependency
+- [application/pom.xml](../../application/pom.xml) - Application module with standard `jakarta.transaction-api` dependency (zero Spring dependencies)
 - [adapters-inbound-rest/pom.xml](../../adapters-inbound-rest/pom.xml) - REST adapter dependencies
 - [adapters-outbound-persistence-jpa/pom.xml](../../adapters-outbound-persistence-jpa/pom.xml) - JPA adapter dependencies
 - [adapters-outbound-market/pom.xml](../../adapters-outbound-market/pom.xml) - Market adapter dependencies
