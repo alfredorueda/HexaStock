@@ -1,7 +1,8 @@
 package cat.gencat.agaur.hexastock.adapter.in;
 
 import cat.gencat.agaur.hexastock.adapter.in.webmodel.*;
-import cat.gencat.agaur.hexastock.application.port.in.PortfolioManagementUseCase;
+import cat.gencat.agaur.hexastock.application.port.in.CashManagementUseCase;
+import cat.gencat.agaur.hexastock.application.port.in.PortfolioLifecycleUseCase;
 import cat.gencat.agaur.hexastock.application.port.in.PortfolioStockOperationsUseCase;
 import cat.gencat.agaur.hexastock.application.port.in.ReportingUseCase;
 import cat.gencat.agaur.hexastock.application.port.in.TransactionUseCase;
@@ -48,7 +49,8 @@ import java.util.Optional;
 @RequestMapping("/api/portfolios")
 public class PortfolioRestController {
     
-    private final PortfolioManagementUseCase portfolioManagementUseCase;
+    private final PortfolioLifecycleUseCase portfolioLifecycleUseCase;
+    private final CashManagementUseCase cashManagementUseCase;
     private final ReportingUseCase reportingUseCase;
     private final PortfolioStockOperationsUseCase portfolioStockOperationsUseCase;
     private final TransactionUseCase transactionUseCase;
@@ -56,13 +58,18 @@ public class PortfolioRestController {
     /**
      * Constructs a new PortfolioRestController with the required application ports.
      * 
-     * @param portfolioManagementUseCase Port for portfolio and cash management
+     * @param portfolioLifecycleUseCase Port for portfolio creation and retrieval
+     * @param cashManagementUseCase Port for cash deposits and withdrawals
      * @param portfolioStockOperationsUseCase Port for stock operations
      * @param transactionUseCase Port for transaction history
+     * @param reportingUseCase Port for holdings performance reporting
      */
-    public PortfolioRestController(PortfolioManagementUseCase portfolioManagementUseCase, PortfolioStockOperationsUseCase portfolioStockOperationsUseCase,
+    public PortfolioRestController(PortfolioLifecycleUseCase portfolioLifecycleUseCase,
+                                   CashManagementUseCase cashManagementUseCase,
+                                   PortfolioStockOperationsUseCase portfolioStockOperationsUseCase,
                                    TransactionUseCase transactionUseCase, ReportingUseCase reportingUseCase) {
-        this.portfolioManagementUseCase = portfolioManagementUseCase;
+        this.portfolioLifecycleUseCase = portfolioLifecycleUseCase;
+        this.cashManagementUseCase = cashManagementUseCase;
         this.portfolioStockOperationsUseCase = portfolioStockOperationsUseCase;
         this.transactionUseCase = transactionUseCase;
         this.reportingUseCase = reportingUseCase;
@@ -82,7 +89,7 @@ public class PortfolioRestController {
      */
     @PostMapping
     public ResponseEntity<CreatePortfolioResponseDTO> createPortfolio(@RequestBody CreatePortfolioDTO request) {
-        Portfolio portfolio = portfolioManagementUseCase.createPortfolio(request.ownerName());
+        Portfolio portfolio = portfolioLifecycleUseCase.createPortfolio(request.ownerName());
         CreatePortfolioResponseDTO responseDTO = CreatePortfolioResponseDTO.from(portfolio);
         
         URI location = ServletUriComponentsBuilder
@@ -105,7 +112,7 @@ public class PortfolioRestController {
      */
     @GetMapping("/{id}")
     public ResponseEntity<PortfolioResponseDTO> getPortfolio(@PathVariable String id) {
-        Portfolio portfolio = portfolioManagementUseCase.getPortfolio(PortfolioId.of(id));
+        Portfolio portfolio = portfolioLifecycleUseCase.getPortfolio(PortfolioId.of(id));
         return ResponseEntity.ok(PortfolioResponseDTO.from(portfolio));
     }
 
@@ -118,7 +125,7 @@ public class PortfolioRestController {
      */
     @GetMapping
     public ResponseEntity<List<PortfolioResponseDTO>> getAllPortfolios() {
-        List<Portfolio> portfolios = portfolioManagementUseCase.getAllPortfolios();
+        List<Portfolio> portfolios = portfolioLifecycleUseCase.getAllPortfolios();
         List<PortfolioResponseDTO> dtos = portfolios.stream()
             .map(PortfolioResponseDTO::from)
             .toList();
@@ -138,7 +145,7 @@ public class PortfolioRestController {
      */
     @PostMapping("/{id}/deposits")
     public ResponseEntity<Void> deposit(@PathVariable String id, @RequestBody DepositRequestDTO request) {
-        portfolioManagementUseCase.deposit(PortfolioId.of(id), Money.of(request.amount()));
+        cashManagementUseCase.deposit(PortfolioId.of(id), Money.of(request.amount()));
         return ResponseEntity.ok().build();
     }
 
@@ -156,7 +163,7 @@ public class PortfolioRestController {
      */
     @PostMapping("/{id}/withdrawals")
     public ResponseEntity<Void> withdraw(@PathVariable String id, @RequestBody WithdrawalRequestDTO request) {
-        portfolioManagementUseCase.withdraw(PortfolioId.of(id), Money.of(request.amount()));
+        cashManagementUseCase.withdraw(PortfolioId.of(id), Money.of(request.amount()));
         return ResponseEntity.ok().build();
     }
     

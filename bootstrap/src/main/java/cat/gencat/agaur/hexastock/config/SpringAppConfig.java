@@ -46,8 +46,13 @@ public class SpringAppConfig {
   }
 
   @Bean
-  PortfolioManagementUseCase getPortfolioManagementUseCase() {
-    return new PortfolioManagementService(portfolioPort, transactionPort);
+  PortfolioLifecycleUseCase getPortfolioLifecycleUseCase() {
+    return new PortfolioLifecycleService(portfolioPort);
+  }
+
+  @Bean
+  CashManagementUseCase getCashManagementUseCase() {
+    return new CashManagementService(portfolioPort, transactionPort);
   }
 
   @Bean

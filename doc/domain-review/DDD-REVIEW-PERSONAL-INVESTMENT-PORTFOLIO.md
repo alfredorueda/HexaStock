@@ -191,7 +191,7 @@ The sealed interface defines:
 
 Each record's compact constructor enforces non-null invariants and rejects zero or negative amounts and quantities, preventing the construction of semantically invalid transaction instances at the type level.
 
-Transactions are created by the application services (`PortfolioStockOperationsService`, `PortfolioManagementService`) after the aggregate is mutated, and saved through `TransactionPort`.
+Transactions are created by the application services (`PortfolioStockOperationsService`, `CashManagementService`) after the aggregate is mutated, and saved through `TransactionPort`.
 
 ### 5.2 Structural Assessment: From Type-Tag to Sealed Hierarchy
 
@@ -727,9 +727,9 @@ These are not aspirational guidelines — they are executable architecture fitne
 
 - The domain module is **completely framework-free**. No class in `cat.gencat.agaur.hexastock.model.*` imports anything from `org.springframework`, `jakarta.persistence`, `com.fasterxml.jackson`, or any framework. This is verified by the ArchUnit rule `domainDoesNotDependOnSpring()` and confirmed by examining every import statement in all 26 domain Java files.
 
-- The application module's services (`PortfolioManagementService`, `PortfolioStockOperationsService`, `ReportingService`, `TransactionService`) are annotated with `@Transactional` from `jakarta.transaction` — the standard Jakarta Transactions annotation. They are **not** annotated with `@Service` or `@Component` — Spring does not discover them through component scanning. Instead, `SpringAppConfig` in the bootstrap module explicitly constructs them via `@Bean` factory methods. This is an unusually disciplined approach: the application services have zero Spring imports. Spring's transaction infrastructure recognises the Jakarta annotation at runtime, so transactional behaviour is preserved.
+- The application module's services (`PortfolioLifecycleService`, `CashManagementService`, `PortfolioStockOperationsService`, `ReportingService`, `TransactionService`, `GetStockPriceService`) are annotated with `@Transactional` from `jakarta.transaction` — the standard Jakarta Transactions annotation. They are **not** annotated with `@Service` or `@Component` — Spring does not discover them through component scanning. Instead, `SpringAppConfig` in the bootstrap module explicitly constructs them via `@Bean` factory methods. This is an unusually disciplined approach: the application services have zero Spring imports. Spring's transaction infrastructure recognises the Jakarta annotation at runtime, so transactional behaviour is preserved.
 
-- The inbound REST adapter (`PortfolioRestController`) injects use-case interfaces (`PortfolioManagementUseCase`, `PortfolioStockOperationsUseCase`, `ReportingUseCase`, `TransactionUseCase`) — never concrete service classes. This is textbook inbound port usage.
+- The inbound REST adapter (`PortfolioRestController`) injects use-case interfaces (`PortfolioLifecycleUseCase`, `CashManagementUseCase`, `PortfolioStockOperationsUseCase`, `ReportingUseCase`, `TransactionUseCase`) — never concrete service classes. This is textbook inbound port usage.
 
 - The outbound persistence adapter (`JpaPortfolioRepository`, `JpaTransactionRepository`) implements outbound port interfaces (`PortfolioPort`, `TransactionPort`) defined in the application layer. The adapter is annotated with `@Component` and `@Profile("jpa")`, making it profile-selectable. It delegates to Spring Data `JpaRepository` interfaces and uses dedicated mapper classes for domain ↔ JPA entity conversion.
 
@@ -754,7 +754,8 @@ Hexagonal architecture defines two kinds of ports:
 
 | Port | Methods | Assessment |
 |---|---|---|
-| `PortfolioManagementUseCase` | `createPortfolio`, `getPortfolio`, `getAllPortfolios`, `deposit`, `withdraw` | Well-scoped: cohesive set of portfolio lifecycle and cash management operations. Named in domain language, not technical language. |
+| `PortfolioLifecycleUseCase` | `createPortfolio`, `getPortfolio`, `getAllPortfolios` | Excellent. Focused on portfolio lifecycle operations (creation and retrieval). Clean Interface Segregation: consumers that only need portfolio listing are not exposed to cash operations. |
+| `CashManagementUseCase` | `deposit`, `withdraw` | Excellent. Focused on cash management mutations. Clients that manage deposits and withdrawals are not forced to depend on portfolio creation or listing methods. |
 | `PortfolioStockOperationsUseCase` | `buyStock`, `sellStock` | Excellent. Two methods, each representing a genuine domain use case. Clean separation from portfolio management. |
 | `ReportingUseCase` | `getHoldingsPerformance` | Clean single-responsibility port for read-side performance queries. |
 | `TransactionUseCase` | `getTransactions` | Minimal read port for transaction history. |
@@ -763,15 +764,15 @@ Hexagonal architecture defines two kinds of ports:
 **Strengths:**
 - The ports are named using **domain language** (`buyStock`, `sellStock`, `deposit`, `withdraw`), not technical language (`executeTransaction`, `processRequest`).
 - The ports use **domain types** in their signatures (`PortfolioId`, `Ticker`, `ShareQuantity`, `Money`, `SellResult`, `HoldingPerformance`), not primitives or DTOs.
-- The responsibility split between `PortfolioManagementUseCase` (lifecycle + cash) and `PortfolioStockOperationsUseCase` (trading) reflects natural domain boundaries and supports cohesion: a UI that only needs portfolio listing does not need to know about trading operations.
+- The separation of `PortfolioLifecycleUseCase` (lifecycle queries) from `CashManagementUseCase` (financial mutations) demonstrates the **Interface Segregation Principle**: each port exposes a cohesive set of operations aligned with a single actor intent. A UI that only lists portfolios depends on `PortfolioLifecycleUseCase` and is not forced to see deposit/withdraw methods.
+- The responsibility split between portfolio lifecycle, cash management, and `PortfolioStockOperationsUseCase` (trading) reflects natural domain boundaries and supports cohesion.
 - `ReportingUseCase` is separated from the write-side use cases, which is a step toward CQRS and a clean read/write boundary.
 
 **Weaknesses:**
-- `PortfolioManagementUseCase` groups `createPortfolio`/`getPortfolio`/`getAllPortfolios` (lifecycle queries) with `deposit`/`withdraw` (financial mutations) in a single interface. This violates Interface Segregation: a consumer that only lists portfolios is forced to see deposit and withdraw methods. A production design might split this into `PortfolioLifecycleUseCase` and `CashManagementUseCase`.
 - `TransactionUseCase.getTransactions(String portfolioId, Optional<String> type)` accepts raw `String` parameters where domain types (`PortfolioId`, `TransactionType`) would be more appropriate and type-safe. This inconsistency is notable because all other inbound ports correctly use domain value objects. The `Optional<String> type` parameter for filtering is especially weak: it pushes parsing logic into the service rather than letting the port express the filtering intent through the type system.
 - `GetStockPriceUseCase` is fine but sits slightly outside the portfolio domain — it exposes raw market data retrieval as a first-class use case. Whether stock price lookup belongs in the portfolio application layer or in a separate market-data bounded context is debatable, but for a single-bounded-context project this is acceptable.
 
-**Port verbosity observation:** Five inbound ports for a relatively small application may seem fine-grained, but each port aligns with a distinct actor intent (manage portfolios, trade, report, view history, check prices). This granularity supports independent evolution and makes the system auditable: each entry point into the application has an explicit named contract.
+**Port verbosity observation:** Six inbound ports for a relatively small application may seem fine-grained, but each port aligns with a distinct actor intent (manage portfolio lifecycle, manage cash, trade, report, view history, check prices). This granularity supports independent evolution and makes the system auditable: each entry point into the application has an explicit named contract. The split of the former `PortfolioManagementUseCase` into `PortfolioLifecycleUseCase` and `CashManagementUseCase` demonstrates that Interface Segregation can be applied incrementally as the design matures.
 
 #### 11.3.2 Outbound Ports
 
@@ -864,28 +865,28 @@ The adapters are well-constructed. They are thin, focused on translation, and fr
 
 ### 11.5 Application Layer Orchestration
 
-The application layer contains five service classes, each implementing one inbound port. The services are responsible for use-case orchestration: loading domain objects through outbound ports, delegating business decisions to the domain, persisting results, and recording transactions.
+The application layer contains six service classes, each implementing one inbound port. The services are responsible for use-case orchestration: loading domain objects through outbound ports, delegating business decisions to the domain, persisting results, and recording transactions.
 
 **Orchestration vs business logic placement:**
 
 | Service | Domain Logic Location | Application Logic | Assessment |
 |---|---|---|---|
-| `PortfolioManagementService.createPortfolio` | `Portfolio.create()` constructs the aggregate | Service calls `portfolioPort.createPortfolio()` | ✅ Correct: creation logic in domain, persistence in application |
-| `PortfolioManagementService.deposit` | `Portfolio.deposit(amount)` validates and mutates balance | Service orchestrates load → mutate → save → record transaction | ✅ Correct: validation and mutation in domain, orchestration in application |
-| `PortfolioManagementService.withdraw` | `Portfolio.withdraw(amount)` validates, checks sufficiency, mutates | Same orchestration pattern | ✅ Correct |
+| `PortfolioLifecycleService.createPortfolio` | `Portfolio.create()` constructs the aggregate | Service calls `portfolioPort.createPortfolio()` | ✅ Correct: creation logic in domain, persistence in application |
+| `CashManagementService.deposit` | `Portfolio.deposit(amount)` validates and mutates balance | Service orchestrates load → mutate → save → record transaction | ✅ Correct: validation and mutation in domain, orchestration in application |
+| `CashManagementService.withdraw` | `Portfolio.withdraw(amount)` validates, checks sufficiency, mutates | Same orchestration pattern | ✅ Correct |
 | `PortfolioStockOperationsService.buyStock` | `Portfolio.buy()` validates, checks funds, delegates to `Holding.buy()`, creates `Lot` | Service fetches price, orchestrates flow, records transaction | ✅ Correct: all investment logic in domain |
 | `PortfolioStockOperationsService.sellStock` | `Portfolio.sell()` → `Holding.sell()` implements FIFO, computes cost basis, returns `SellResult` | Service fetches price, orchestrates flow, records transaction | ✅ Correct: FIFO algorithm entirely in domain |
 | `ReportingService.getHoldingsPerformance` | `HoldingPerformanceCalculator` computes metrics | Service loads portfolio, transactions, fetches prices, delegates to domain service | ✅ Correct: computation in domain service, I/O orchestration in application |
 | `TransactionService.getTransactions` | None | Delegates directly to `TransactionPort` | ✅ Correct (read-only pass-through) |
 | `GetStockPriceService.getPrice` | None | Delegates directly to `StockPriceProviderPort` | ✅ Correct (read-only pass-through) |
 
-**Balance assessment:** The application services are appropriately thin. They perform orchestration — load, delegate, save, record — without absorbing domain logic. The FIFO algorithm lives in `Holding.sell()`, not in `PortfolioStockOperationsService`. Cash sufficiency checks live in `Portfolio.buy()` and `Portfolio.withdraw()`, not in the services. `HoldingPerformanceCalculator` lives in the domain module, not in the application module. This distribution is correct.
+**Balance assessment:** The application services are appropriately thin. They perform orchestration — load, delegate, save, record — without absorbing domain logic. The FIFO algorithm lives in `Holding.sell()`, not in `PortfolioStockOperationsService`. Cash sufficiency checks live in `Portfolio.buy()` and `Portfolio.withdraw()`, not in the services. `HoldingPerformanceCalculator` lives in the domain module, not in the application module. The split of `PortfolioLifecycleService` (depends only on `PortfolioPort`) from `CashManagementService` (depends on `PortfolioPort` + `TransactionPort`) reflects the Interface Segregation Principle at the service level: each service has the minimal set of dependencies required by its operations.
 
 **Transaction creation concern (cross-reference with DDD Section 5.4):** The application services are responsible for creating `Transaction` records after each domain operation. This creates an orchestration burden: the service must know which `Transaction.create*()` factory method to call and which domain results to pass. As analysed in the DDD sections, this creates a consistency risk (a future developer could forget to create a transaction for a new operation) and a knowledge-leakage concern (the service must understand the financial semantics of `SellResult` to record the transaction correctly).
 
 From a hexagonal perspective, this concern manifests as **the application layer doing too much transcription work** — it must translate between the domain operation's output (`SellResult`) and the transaction record's input (`Transaction.createSale(..., sellResult.proceeds(), sellResult.profit())`). If the domain emitted events, the application service would be simpler: orchestrate the domain operation, save the aggregate, and let an event handler create the transaction from the domain event. The hexagonal boundary would be cleaner because the event handler (which is adapter-like infrastructure) would handle the transcription, not the application core.
 
-**`@Transactional` placement:** All five services are annotated with `@Transactional` at the class level. This means every public method in each service runs within a Spring-managed database transaction. This is correct for the write-side services (portfolio mutations + transaction recording must be atomic), but slightly heavy-handed for the read-side services (`TransactionService.getTransactions`, `GetStockPriceService.getPrice`). Read-only operations do not need write-transaction overhead. A minor optimisation would be `@Transactional(readOnly = true)` for read-side methods or splitting read and write service concerns more explicitly.
+**`@Transactional` placement:** All six services are annotated with `@Transactional` at the class level. This means every public method in each service runs within a Spring-managed database transaction. This is correct for the write-side services (portfolio mutations + transaction recording must be atomic), but slightly heavy-handed for the read-side services (`TransactionService.getTransactions`, `GetStockPriceService.getPrice`). Read-only operations do not need write-transaction overhead. A minor optimisation would be `@Transactional(readOnly = true)` for read-side methods or splitting read and write service concerns more explicitly.
 
 ### 11.6 Domain Protection from Infrastructure
 
@@ -926,9 +927,9 @@ HTTP POST /api/portfolios/{id}/deposits  { "amount": 500.00 }
 1. **Inbound adapter** (`PortfolioRestController.deposit`):
    - Extracts `id` from path variable, `amount` from request body `DepositRequestDTO`.
    - Constructs domain value objects: `PortfolioId.of(id)`, `Money.of(request.amount())`.
-   - Calls `portfolioManagementUseCase.deposit(portfolioId, amount)` — the inbound port.
+   - Calls `cashManagementUseCase.deposit(portfolioId, amount)` — the inbound port.
 
-2. **Application service** (`PortfolioManagementService.deposit`):
+2. **Application service** (`CashManagementService.deposit`):
    - Calls `portfolioPort.getPortfolioById(portfolioId)` — outbound port for loading.
    - Calls `portfolio.deposit(amount)` — domain operation. `Portfolio.deposit()` validates that the amount is positive and adds it to the balance. No infrastructure involved.
    - Calls `portfolioPort.savePortfolio(portfolio)` — outbound port for persisting.
@@ -1074,8 +1075,8 @@ A minor naming issue: the method's name references "persistence" in the domain's
 **6. Application services use Jakarta `@Transactional` — a standard API, not a framework coupling.**
 The application layer uses `jakarta.transaction.Transactional` rather than a Spring-specific annotation. This is a standard Java API, not a framework concession. Spring’s transaction infrastructure recognises the Jakarta annotation at runtime, so transactional behaviour is preserved without compile-time coupling to any framework.
 
-**8. `PortfolioManagementUseCase` aggregates multiple concerns.**
-Five methods spanning lifecycle management and cash operations in one interface. This is an interface segregation concern, not a hexagonal boundary violation, but it increases coupling for consumers that need only a subset of the operations.
+**8. ✅ DONE: `PortfolioManagementUseCase` was split into `PortfolioLifecycleUseCase` and `CashManagementUseCase`.**
+The former five-method interface combining lifecycle management and cash operations has been split into two focused interfaces: `PortfolioLifecycleUseCase` (create, get, list) and `CashManagementUseCase` (deposit, withdraw). This resolves the Interface Segregation concern: consumers that only need portfolio listing depend on `PortfolioLifecycleUseCase` and are not forced to see deposit/withdraw methods. The corresponding services were also split: `PortfolioLifecycleService` (depends only on `PortfolioPort`) and `CashManagementService` (depends on `PortfolioPort` + `TransactionPort`), which improves cohesion at the service level.
 
 **9. `TransactionUseCase.getTransactions` uses `String` instead of domain types.**
 The use of `String portfolioId` and `Optional<String> type` where `PortfolioId` and `Optional<TransactionType>` would be more appropriate is a minor type-safety gap in the port definition.
@@ -1226,7 +1227,7 @@ Apply the following targeted improvements:
 8. **Add `@Transactional(readOnly = true)` to read-side services.** `TransactionService` and `GetStockPriceService` do not modify data and should not acquire write locks.
 9. **Remove vestigial `protected` no-arg constructors from domain entities.** The domain entities are not JPA-managed; these constructors serve no purpose and signal false persistence awareness.
 10. **Rename `Holding.addLotFromPersistence()` to `Holding.reconstitute(Lot)`** or accept lots through the constructor, removing persistence vocabulary from the domain.
-11. **Split `PortfolioManagementUseCase`** into `PortfolioLifecycleUseCase` (create, get, list) and `CashManagementUseCase` (deposit, withdraw) for better interface segregation.
+11. ✅ **DONE:** Split `PortfolioManagementUseCase` into `PortfolioLifecycleUseCase` (create, get, list) and `CashManagementUseCase` (deposit, withdraw) for better interface segregation. Corresponding services split into `PortfolioLifecycleService` and `CashManagementService`.
 12. **Add unit tests for REST controllers and persistence mappers.** The hexagonal structure enables isolated adapter testing — exploit this for faster, more targeted test feedback.
 
 These changes are incremental and preserve both the model's existing DDD strengths and the architecture's existing hexagonal integrity. No structural redesign is required.

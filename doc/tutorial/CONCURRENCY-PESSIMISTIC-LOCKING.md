@@ -266,7 +266,7 @@ Pessimistic locking's main scalability cost is that blocked threads consume reso
 This branch contains teaching-only instrumentation to widen the race window. The code is located in:
 
 ```
-src/main/java/cat/gencat/agaur/hexastock/application/service/PortfolioManagementService.java
+src/main/java/cat/gencat/agaur/hexastock/application/service/CashManagementService.java
 ```
 
 **Relevant snippet (inside the `withdraw()` method):**

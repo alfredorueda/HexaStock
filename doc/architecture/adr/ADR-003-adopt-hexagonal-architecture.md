@@ -47,7 +47,7 @@ Dependencies flow strictly inward: adapters depend on ports, ports are defined b
   - Application does not depend on adapters or Spring
   - Inbound adapters do not depend on outbound adapters (and vice versa)
 - `CONTRIBUTING.md`: "The Inward Dependency Rule. Adapters depend on ports. Ports are defined by the core. The domain depends on nothing external. Violating this rule - even for convenience - is not acceptable."
-- Input ports: `PortfolioManagementUseCase`, `PortfolioStockOperationsUseCase`, `ReportingUseCase`, `GetStockPriceUseCase`, `TransactionUseCase`
+- Input ports: `PortfolioLifecycleUseCase`, `CashManagementUseCase`, `PortfolioStockOperationsUseCase`, `ReportingUseCase`, `GetStockPriceUseCase`, `TransactionUseCase`
 - Output ports: `PortfolioPort`, `TransactionPort`, `StockPriceProviderPort`
 - `SpringAppConfig.java`: explicit wiring of services to ports (composition root pattern)
 

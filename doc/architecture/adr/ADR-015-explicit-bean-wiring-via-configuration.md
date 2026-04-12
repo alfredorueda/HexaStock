@@ -23,8 +23,13 @@ public class SpringAppConfig {
     @Autowired StockPriceProviderPort stockPricePort;
 
     @Bean
-    PortfolioManagementUseCase getPortfolioManagementUseCase() {
-        return new PortfolioManagementService(portfolioPort, transactionPort);
+    PortfolioLifecycleUseCase getPortfolioLifecycleUseCase() {
+        return new PortfolioLifecycleService(portfolioPort);
+    }
+
+    @Bean
+    CashManagementUseCase getCashManagementUseCase() {
+        return new CashManagementService(portfolioPort, transactionPort);
     }
 
     @Bean
@@ -55,8 +60,9 @@ public class SpringAppConfig {
 
 ## Repository evidence
 
-- `bootstrap/src/main/java/.../config/SpringAppConfig.java`: 5 `@Bean` methods wiring use cases to service implementations
-- `PortfolioManagementService.java`: annotated `@Transactional`, no `@Service` annotation
+- `bootstrap/src/main/java/.../config/SpringAppConfig.java`: 6 `@Bean` methods wiring use cases to service implementations
+- `PortfolioLifecycleService.java`: annotated `@Transactional`, no `@Service` annotation
+- `CashManagementService.java`: annotated `@Transactional`, no `@Service` annotation
 - `PortfolioStockOperationsService.java`: annotated `@Transactional`, no `@Service` annotation
 - `application/pom.xml`: depends on standard `jakarta.transaction-api` only, not `spring-tx`, `spring-context` or `spring-beans`
 - `CONTRIBUTING.md`: Documents the composition root pattern and warns against adding `@Service` to application services

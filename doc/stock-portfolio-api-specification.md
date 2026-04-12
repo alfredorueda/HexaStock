@@ -99,8 +99,8 @@ Location: http://localhost:8080/api/portfolios/550e8400-e29b-41d4-a716-446655440
 | Layer | Class / Method |
 |---|---|
 | Controller | `PortfolioRestController.createPortfolio(CreatePortfolioDTO)` |
-| Use Case | `PortfolioManagementUseCase.createPortfolio(String)` |
-| Service | `PortfolioManagementService.createPortfolio(String)` |
+| Use Case | `PortfolioLifecycleUseCase.createPortfolio(String)` |
+| Service | `PortfolioLifecycleService.createPortfolio(String)` |
 | Domain | `Portfolio.create(String)` |
 | DTO (request) | `CreatePortfolioDTO(String ownerName)` |
 | DTO (response) | `CreatePortfolioResponseDTO(String id, String ownerName, BigDecimal cashBalance, String currency)` |
@@ -174,8 +174,8 @@ Feature: Get Portfolio (US-02)
 | Layer | Class / Method |
 |---|---|
 | Controller | `PortfolioRestController.getPortfolio(String id)` |
-| Use Case | `PortfolioManagementUseCase.getPortfolio(PortfolioId)` |
-| Service | `PortfolioManagementService.getPortfolio(PortfolioId)` |
+| Use Case | `PortfolioLifecycleUseCase.getPortfolio(PortfolioId)` |
+| Service | `PortfolioLifecycleService.getPortfolio(PortfolioId)` |
 | DTO (response) | `PortfolioResponseDTO(String id, String ownerName, BigDecimal balance, LocalDateTime createdAt)` |
 | Tests | `PortfolioLifecycleRestIntegrationTest.WhenPortfolioExists.getPortfolio_returnsDtoWithBasicFields()` (`@SpecificationRef("US-02.AC-1")`), `PortfolioErrorHandlingRestIntegrationTest.getNonExistentPortfolio_returns404()` (`@SpecificationRef("US-02.AC-2")`) |
 
@@ -253,8 +253,8 @@ Feature: List All Portfolios (US-03)
 | Layer | Class / Method |
 |---|---|
 | Controller | `PortfolioRestController.getAllPortfolios()` |
-| Use Case | `PortfolioManagementUseCase.getAllPortfolios()` |
-| Service | `PortfolioManagementService.getAllPortfolios()` |
+| Use Case | `PortfolioLifecycleUseCase.getAllPortfolios()` |
+| Service | `PortfolioLifecycleService.getAllPortfolios()` |
 | Port (out) | `PortfolioPort.getAllPortfolios()` |
 | Tests | `PortfolioLifecycleRestIntegrationTest.ListAllPortfolios.returnsAllCreatedPortfoliosWithCorrectBalances()` (`@SpecificationRef("US-03.AC-1")`) |
 
@@ -329,8 +329,8 @@ Feature: Deposit Funds (US-04)
 | Layer | Class / Method |
 |---|---|
 | Controller | `PortfolioRestController.deposit(String id, DepositRequestDTO request)` |
-| Use Case | `PortfolioManagementUseCase.deposit(PortfolioId, Money)` |
-| Service | `PortfolioManagementService.deposit(PortfolioId, Money)` |
+| Use Case | `CashManagementUseCase.deposit(PortfolioId, Money)` |
+| Service | `CashManagementService.deposit(PortfolioId, Money)` |
 | Domain | `Portfolio.deposit(Money)` — throws `InvalidAmountException` if not positive |
 | DTO (request) | `DepositRequestDTO(BigDecimal amount)` |
 | Tests | `PortfolioLifecycleRestIntegrationTest.DepositsAndWithdrawals` — `deposit_updatesBalance()` (`@SpecificationRef("US-04.AC-1")`), `depositZeroAmount_returns400()` (`@SpecificationRef("US-04.AC-2")`), `depositNegativeAmount_returns400()` (`@SpecificationRef("US-04.AC-3")`); `PortfolioErrorHandlingRestIntegrationTest.depositToNonExistentPortfolio_returns404()` (`@SpecificationRef("US-04.AC-4")`) |
@@ -428,8 +428,8 @@ Feature: Withdraw Funds (US-05)
 | Layer | Class / Method |
 |---|---|
 | Controller | `PortfolioRestController.withdraw(String id, WithdrawalRequestDTO request)` |
-| Use Case | `PortfolioManagementUseCase.withdraw(PortfolioId, Money)` |
-| Service | `PortfolioManagementService.withdraw(PortfolioId, Money)` |
+| Use Case | `CashManagementUseCase.withdraw(PortfolioId, Money)` |
+| Service | `CashManagementService.withdraw(PortfolioId, Money)` |
 | Domain | `Portfolio.withdraw(Money)` — throws `InvalidAmountException` if not positive, `InsufficientFundsException` if balance < amount |
 | DTO (request) | `WithdrawalRequestDTO(BigDecimal amount)` |
 | Tests | `PortfolioLifecycleRestIntegrationTest.DepositsAndWithdrawals` — `withdraw_updatesBalance()` (`@SpecificationRef("US-05.AC-1")`), `withdrawZeroAmount_returns400()` (`@SpecificationRef("US-05.AC-2")`), `withdrawNegativeAmount_returns400()` (`@SpecificationRef("US-05.AC-3")`), `withdrawMoreThanBalance_returns409()` (`@SpecificationRef("US-05.AC-4")`), `withdrawFromZeroBalance_returns409()` (`@SpecificationRef("US-05.AC-5")`); `PortfolioErrorHandlingRestIntegrationTest.withdrawFromNonExistentPortfolio_returns404()` (`@SpecificationRef("US-05.AC-6")`) |

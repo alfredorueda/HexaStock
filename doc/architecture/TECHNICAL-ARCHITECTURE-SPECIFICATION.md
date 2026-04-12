@@ -164,7 +164,8 @@ ArchUnit rules use these package patterns (`..model..`, `..application..`, `..ad
 
 | Port | Package | Description |
 |------|---------|-------------|
-| `PortfolioManagementUseCase` | `application.port.in` | Create portfolio, get portfolio, deposit, withdraw |
+| `PortfolioLifecycleUseCase` | `application.port.in` | Create portfolio, get portfolio, list portfolios |
+| `CashManagementUseCase` | `application.port.in` | Deposit, withdraw |
 | `PortfolioStockOperationsUseCase` | `application.port.in` | Buy stock, sell stock |
 | `ReportingUseCase` | `application.port.in` | Holdings performance |
 | `GetStockPriceUseCase` | `application.port.in` | Fetch current stock price |
@@ -186,8 +187,13 @@ The `bootstrap` module's [SpringAppConfig.java](../../bootstrap/src/main/java/ca
 
 ```java
 @Bean
-PortfolioManagementUseCase getPortfolioManagementUseCase() {
-    return new PortfolioManagementService(portfolioPort, transactionPort);
+PortfolioLifecycleUseCase getPortfolioLifecycleUseCase() {
+    return new PortfolioLifecycleService(portfolioPort);
+}
+
+@Bean
+CashManagementUseCase getCashManagementUseCase() {
+    return new CashManagementService(portfolioPort, transactionPort);
 }
 ```
 
@@ -375,13 +381,16 @@ Application services are annotated with `@Transactional`, establishing the unit 
 
 ```java
 @Transactional
-public class PortfolioManagementService implements PortfolioManagementUseCase { ... }
+public class PortfolioLifecycleService implements PortfolioLifecycleUseCase { ... }
+
+@Transactional
+public class CashManagementService implements CashManagementUseCase { ... }
 
 @Transactional
 public class PortfolioStockOperationsService implements PortfolioStockOperationsUseCase { ... }
 ```
 
-**Evidence:** [PortfolioManagementService.java](../../application/src/main/java/cat/gencat/agaur/hexastock/application/PortfolioManagementService.java), [PortfolioStockOperationsService.java](../../application/src/main/java/cat/gencat/agaur/hexastock/application/PortfolioStockOperationsService.java).
+**Evidence:** [PortfolioLifecycleService.java](../../application/src/main/java/cat/gencat/agaur/hexastock/application/service/PortfolioLifecycleService.java), [CashManagementService.java](../../application/src/main/java/cat/gencat/agaur/hexastock/application/service/CashManagementService.java), [PortfolioStockOperationsService.java](../../application/src/main/java/cat/gencat/agaur/hexastock/application/service/PortfolioStockOperationsService.java).
 
 ### Schema management
 
@@ -555,11 +564,11 @@ Triggers: push to `main`, pull requests targeting `main`.
 
 | Specification source | Traced by | Verified by | Implemented in |
 |---------------------|-----------|-------------|----------------|
-| [create-portfolio.feature](../features/create-portfolio.feature) (US-01) | `@SpecificationRef("US-01.AC-1")` | `PortfolioLifecycleRestIntegrationTest` | `PortfolioManagementService.createPortfolio()` |
-| [get-portfolio.feature](../features/get-portfolio.feature) (US-02) | `@SpecificationRef("US-02.AC-1")` | `PortfolioLifecycleRestIntegrationTest` | `PortfolioManagementService.getPortfolio()` |
-| [list-portfolios.feature](../features/list-portfolios.feature) (US-03) | `@SpecificationRef("US-03.AC-1")` | `PortfolioLifecycleRestIntegrationTest` | `PortfolioManagementService.getAllPortfolios()` |
-| [deposit-funds.feature](../features/deposit-funds.feature) (US-04) | `@SpecificationRef("US-04.AC-*")` | `PortfolioLifecycleRestIntegrationTest` | `Portfolio.deposit()` |
-| [withdraw-funds.feature](../features/withdraw-funds.feature) (US-05) | `@SpecificationRef("US-05.AC-*")` | `PortfolioLifecycleRestIntegrationTest` | `Portfolio.withdraw()` |
+| [create-portfolio.feature](../features/create-portfolio.feature) (US-01) | `@SpecificationRef("US-01.AC-1")` | `PortfolioLifecycleRestIntegrationTest` | `PortfolioLifecycleService.createPortfolio()` |
+| [get-portfolio.feature](../features/get-portfolio.feature) (US-02) | `@SpecificationRef("US-02.AC-1")` | `PortfolioLifecycleRestIntegrationTest` | `PortfolioLifecycleService.getPortfolio()` |
+| [list-portfolios.feature](../features/list-portfolios.feature) (US-03) | `@SpecificationRef("US-03.AC-1")` | `PortfolioLifecycleRestIntegrationTest` | `PortfolioLifecycleService.getAllPortfolios()` |
+| [deposit-funds.feature](../features/deposit-funds.feature) (US-04) | `@SpecificationRef("US-04.AC-*")` | `PortfolioLifecycleRestIntegrationTest` | `CashManagementService.deposit()`, `Portfolio.deposit()` |
+| [withdraw-funds.feature](../features/withdraw-funds.feature) (US-05) | `@SpecificationRef("US-05.AC-*")` | `PortfolioLifecycleRestIntegrationTest` | `CashManagementService.withdraw()`, `Portfolio.withdraw()` |
 | [buy-stocks.feature](../features/buy-stocks.feature) (US-06) | `@SpecificationRef("US-06.AC-*")` | `PortfolioTradingRestIntegrationTest` | `Portfolio.buy()`, `Holding.buy()`, `Lot.create()` |
 | [sell-stocks.feature](../features/sell-stocks.feature) (US-07) | `@SpecificationRef("US-07.FIFO-*")` | `PortfolioTradingRestIntegrationTest.GherkinFifoScenarios` | `Portfolio.sell()`, `Holding.sell()`, `Lot.reduce()` |
 | [get-holdings-performance.feature](../features/get-holdings-performance.feature) (US-09) | `@SpecificationRef("US-09.AC-*")` | `PortfolioLifecycleRestIntegrationTest` | `ReportingService`, `HoldingPerformanceCalculator` |
@@ -669,7 +678,8 @@ Key repository artefacts used as evidence:
 - [SpringAppConfig.java](../../bootstrap/src/main/java/cat/gencat/agaur/hexastock/config/SpringAppConfig.java) - Composition root
 
 ### Ports and adapters
-- [PortfolioManagementUseCase.java](../../application/src/main/java/cat/gencat/agaur/hexastock/application/port/in/PortfolioManagementUseCase.java) - Input port
+- [PortfolioLifecycleUseCase.java](../../application/src/main/java/cat/gencat/agaur/hexastock/application/port/in/PortfolioLifecycleUseCase.java) - Input port (portfolio lifecycle)
+- [CashManagementUseCase.java](../../application/src/main/java/cat/gencat/agaur/hexastock/application/port/in/CashManagementUseCase.java) - Input port (cash operations)
 - [PortfolioPort.java](../../application/src/main/java/cat/gencat/agaur/hexastock/application/port/out/PortfolioPort.java) - Output port
 - [PortfolioRestController.java](../../adapters-inbound-rest/src/main/java/cat/gencat/agaur/hexastock/adapter/in/PortfolioRestController.java) - Primary adapter
 - [JpaPortfolioRepository.java](../../adapters-outbound-persistence-jpa/src/main/java/cat/gencat/agaur/hexastock/adapter/out/persistence/jpa/repository/JpaPortfolioRepository.java) - Secondary adapter
