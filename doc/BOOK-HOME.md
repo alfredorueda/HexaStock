@@ -42,6 +42,12 @@ These chapters deepen specific themes introduced in the main study.
 
 ---
 
+## Technical Review
+
+- [AI-Assisted Architectural Review — DDD and Hexagonal Architecture](domain-review/DDD-REVIEW-PERSONAL-INVESTMENT-PORTFOLIO.md) — A structured assessment of the domain model, aggregate design, and hexagonal layer separation.
+
+---
+
 ## API and Specifications
 
 - [Stock Portfolio API Specification](stock-portfolio-api-specification.md) — Complete REST API for all 10 use cases, RFC 7807 error contract, domain model, and exception mapping.

@@ -21,6 +21,10 @@
 * [Watchlists and Market Sentinel](doc/tutorial/watchlists/WATCHLISTS-MARKET-SENTINEL.md)
 * [Lot Selection Strategies — DDD Hexagonal Exercise](doc/tutorial/DDD-Hexagonal-exercise.md)
 
+## Technical Review
+
+* [AI-Assisted Architectural Review](doc/domain-review/DDD-REVIEW-PERSONAL-INVESTMENT-PORTFOLIO.md)
+
 ## Specifications
 
 * [Stock Portfolio API Specification](doc/stock-portfolio-api-specification.md)

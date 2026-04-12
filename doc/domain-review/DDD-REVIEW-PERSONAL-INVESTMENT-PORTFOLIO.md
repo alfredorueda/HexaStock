@@ -1,4 +1,6 @@
-# Architectural Review: Domain-Driven Design and Hexagonal Architecture
+# AI-Assisted Architectural Review: Domain-Driven Design and Hexagonal Architecture
+
+> **Note:** This review was generated with Claude Opus and used as a technical assessment artifact during the refinement of the project and the book.
 
 **Project:** HexaStock
 **Review Date:** April 2026
@@ -7,6 +9,8 @@
 ---
 
 ## 1. Executive Summary
+
+This AI-assisted review examines the HexaStock domain model and hexagonal architecture across all modules. It was used during project development as a structured technical assessment to identify strengths, weaknesses, and areas for improvement.
 
 The HexaStock domain model is a well-constructed, behaviour-rich aggregate design that successfully captures the core mechanics of a personal investment portfolio. It is among the better DDD models one encounters in educational codebases and holds up respectably against production-grade designs for its stated scope.
 
