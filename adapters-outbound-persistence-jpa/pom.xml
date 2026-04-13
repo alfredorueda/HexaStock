@@ -27,6 +27,31 @@
             <version>${mysql-connector.version}</version>
             <scope>runtime</scope>
         </dependency>
+        <!-- Testcontainers MySQL — real database for @DataJpaTest adapter tests -->
+        <dependency>
+            <groupId>org.testcontainers</groupId>
+            <artifactId>mysql</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.testcontainers</groupId>
+            <artifactId>junit-jupiter</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <!-- Abstract port contract tests from application (test-jar) -->
+        <dependency>
+            <groupId>cat.gencat.agaur</groupId>
+            <artifactId>hexastock-application</artifactId>
+            <type>test-jar</type>
+            <scope>test</scope>
+        </dependency>
+        <!-- Shared test annotations from domain (SpecificationRef, TestLevel) -->
+        <dependency>
+            <groupId>cat.gencat.agaur</groupId>
+            <artifactId>hexastock-domain</artifactId>
+            <type>test-jar</type>
+            <scope>test</scope>
+        </dependency>
     </dependencies>
 
 </project>

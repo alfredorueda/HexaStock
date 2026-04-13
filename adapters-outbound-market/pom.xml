@@ -29,6 +29,20 @@
             <groupId>com.github.ben-manes.caffeine</groupId>
             <artifactId>caffeine</artifactId>
         </dependency>
+        <!-- WireMock for HTTP-level adapter testing -->
+        <dependency>
+            <groupId>org.wiremock</groupId>
+            <artifactId>wiremock-standalone</artifactId>
+            <version>3.10.0</version>
+            <scope>test</scope>
+        </dependency>
+        <!-- Shared test annotations from domain (SpecificationRef, TestLevel) -->
+        <dependency>
+            <groupId>cat.gencat.agaur</groupId>
+            <artifactId>hexastock-domain</artifactId>
+            <type>test-jar</type>
+            <scope>test</scope>
+        </dependency>
     </dependencies>
 
 </project>

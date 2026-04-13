@@ -20,12 +20,16 @@ import java.time.LocalDateTime;
  *   <li>Records different types of transactions (deposits, withdrawals, purchases, sales)</li>
  * </ul>
  * 
- * <p>The entity corresponds to the "transaction" table in the database and captures
- * all financial activities within the system, providing a complete audit trail
- * of portfolio operations.</p>
+ * <p>The entity corresponds to the {@code portfolio_transaction} table in the database
+ * and captures all financial activities within the system, providing a complete
+ * audit trail of portfolio operations.</p>
+ *
+ * <p><strong>Naming note:</strong> the table is named {@code portfolio_transaction}
+ * rather than {@code transaction} because {@code TRANSACTION} is a reserved SQL
+ * keyword in MySQL, PostgreSQL, Oracle, and the SQL standard.</p>
  */
 @Entity
-@Table(name = "transaction")
+@Table(name = "portfolio_transaction")
 public class TransactionJpaEntity {
     /**
      * The unique identifier of the transaction.

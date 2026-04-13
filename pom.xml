@@ -77,6 +77,12 @@
             </dependency>
             <dependency>
                 <groupId>cat.gencat.agaur</groupId>
+                <artifactId>hexastock-application</artifactId>
+                <version>${project.version}</version>
+                <type>test-jar</type>
+            </dependency>
+            <dependency>
+                <groupId>cat.gencat.agaur</groupId>
                 <artifactId>hexastock-adapters-inbound-rest</artifactId>
                 <version>${project.version}</version>
             </dependency>
