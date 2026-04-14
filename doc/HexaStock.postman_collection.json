@@ -1,0 +1,190 @@
+{
+	"info": {
+		"name": "HexaStock",
+		"description": "Portfolio management API — HexaStock academic project",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"variable": [
+		{
+			"key": "baseUrl",
+			"value": "http://localhost:8081"
+		},
+		{
+			"key": "portfolioId",
+			"value": ""
+		}
+	],
+	"item": [
+		{
+			"name": "Create Portfolio",
+			"request": {
+				"method": "POST",
+				"header": [
+					{ "key": "Content-Type", "value": "application/json" }
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"ownerName\": \"Rachel Green\"\n}"
+				},
+				"url": {
+					"raw": "{{baseUrl}}/api/portfolios",
+					"host": ["{{baseUrl}}"],
+					"path": ["api", "portfolios"]
+				}
+			},
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"type": "text/javascript",
+						"exec": [
+							"var json = pm.response.json();",
+							"pm.collectionVariables.set('portfolioId', json.id);"
+						]
+					}
+				}
+			]
+		},
+		{
+			"name": "Get Portfolio",
+			"request": {
+				"method": "GET",
+				"url": {
+					"raw": "{{baseUrl}}/api/portfolios/{{portfolioId}}",
+					"host": ["{{baseUrl}}"],
+					"path": ["api", "portfolios", "{{portfolioId}}"]
+				}
+			}
+		},
+		{
+			"name": "Deposit Funds",
+			"request": {
+				"method": "POST",
+				"header": [
+					{ "key": "Content-Type", "value": "application/json" }
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"amount\": \"1000000\"\n}"
+				},
+				"url": {
+					"raw": "{{baseUrl}}/api/portfolios/{{portfolioId}}/deposits",
+					"host": ["{{baseUrl}}"],
+					"path": ["api", "portfolios", "{{portfolioId}}", "deposits"]
+				}
+			}
+		},
+		{
+			"name": "Purchase GOOGL",
+			"request": {
+				"method": "POST",
+				"header": [
+					{ "key": "Content-Type", "value": "application/json" }
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"ticker\": \"GOOGL\",\n  \"quantity\": 20\n}"
+				},
+				"url": {
+					"raw": "{{baseUrl}}/api/portfolios/{{portfolioId}}/purchases",
+					"host": ["{{baseUrl}}"],
+					"path": ["api", "portfolios", "{{portfolioId}}", "purchases"]
+				}
+			}
+		},
+		{
+			"name": "Purchase AAPL (10)",
+			"request": {
+				"method": "POST",
+				"header": [
+					{ "key": "Content-Type", "value": "application/json" }
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"ticker\": \"AAPL\",\n  \"quantity\": 10\n}"
+				},
+				"url": {
+					"raw": "{{baseUrl}}/api/portfolios/{{portfolioId}}/purchases",
+					"host": ["{{baseUrl}}"],
+					"path": ["api", "portfolios", "{{portfolioId}}", "purchases"]
+				}
+			}
+		},
+		{
+			"name": "Purchase AAPL (20)",
+			"request": {
+				"method": "POST",
+				"header": [
+					{ "key": "Content-Type", "value": "application/json" }
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"ticker\": \"AAPL\",\n  \"quantity\": 20\n}"
+				},
+				"url": {
+					"raw": "{{baseUrl}}/api/portfolios/{{portfolioId}}/purchases",
+					"host": ["{{baseUrl}}"],
+					"path": ["api", "portfolios", "{{portfolioId}}", "purchases"]
+				}
+			}
+		},
+		{
+			"name": "Sell AAPL (15)",
+			"request": {
+				"method": "POST",
+				"header": [
+					{ "key": "Content-Type", "value": "application/json" }
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"ticker\": \"AAPL\",\n  \"quantity\": 15\n}"
+				},
+				"url": {
+					"raw": "{{baseUrl}}/api/portfolios/{{portfolioId}}/sales",
+					"host": ["{{baseUrl}}"],
+					"path": ["api", "portfolios", "{{portfolioId}}", "sales"]
+				}
+			}
+		},
+		{
+			"name": "Withdraw Funds",
+			"request": {
+				"method": "POST",
+				"header": [
+					{ "key": "Content-Type", "value": "application/json" }
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"amount\": \"10000\"\n}"
+				},
+				"url": {
+					"raw": "{{baseUrl}}/api/portfolios/{{portfolioId}}/withdrawals",
+					"host": ["{{baseUrl}}"],
+					"path": ["api", "portfolios", "{{portfolioId}}", "withdrawals"]
+				}
+			}
+		},
+		{
+			"name": "Get Transactions",
+			"request": {
+				"method": "GET",
+				"url": {
+					"raw": "{{baseUrl}}/api/portfolios/{{portfolioId}}/transactions",
+					"host": ["{{baseUrl}}"],
+					"path": ["api", "portfolios", "{{portfolioId}}", "transactions"]
+				}
+			}
+		},
+		{
+			"name": "Get Holdings",
+			"request": {
+				"method": "GET",
+				"url": {
+					"raw": "{{baseUrl}}/api/portfolios/{{portfolioId}}/holdings",
+					"host": ["{{baseUrl}}"],
+					"path": ["api", "portfolios", "{{portfolioId}}", "holdings"]
+				}
+			}
+		}
+	]
+}
