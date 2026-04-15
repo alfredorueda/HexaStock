@@ -305,6 +305,8 @@ These rules complement the Maven module boundaries described earlier. Maven prev
 
 This ordering reflects the natural direction of design: define behaviour first, model the domain, then verify the entire stack — and finally, guard the architecture itself.
 
+> **📖 Full treatment:** This section provides a focused overview of the four testing levels relevant to the sell use case. For the complete testing strategy covering all seven testing layers — including application service tests, WireMock-based market adapter tests, abstract port contract tests for persistence portability, and architecture fitness tests — see **[Testing Strategy for a Hexagonal Architecture](../TESTING-STRATEGY.md)**.
+
 ---
 
 ## 6. Domain Context: What "Selling Stocks" Means in HexaStock
@@ -1198,6 +1200,10 @@ This tutorial is part of a larger documentation ecosystem. The HexaStock reposit
 **Concurrency and Persistence**
 
 - [Concurrency Control with Pessimistic and Optimistic Locking](../CONCURRENCY-PESSIMISTIC-LOCKING.md) — Pessimistic and optimistic locking, transaction isolation levels, race condition demonstrations with real tests, and Java 21 virtual thread considerations.
+
+**Testing**
+
+- [Testing Strategy for a Hexagonal Architecture](../TESTING-STRATEGY.md) — The complete testing strategy across all seven layers — domain, application, REST, market adapters (WireMock), persistence (Testcontainers, abstract port contracts), full-stack integration, and ArchUnit architecture fitness — with deep dives on deterministic market-price testing and persistence portability.
 
 **Scalability and Evolution**
 
