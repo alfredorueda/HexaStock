@@ -226,9 +226,9 @@ class FinhubStockPriceAdapterTest {
 
 The test verifies three things simultaneously: (1) the adapter constructs the correct URL with the right query parameters, (2) it parses the JSON response into the correct domain value object, and (3) it propagates `ExternalApiException` when the response is malformed or the server returns an error.
 
-> **Why WireMock instead of Mockito?** The adapter under test is a concrete class that uses `RestTemplate` to make HTTP calls. Mocking `RestTemplate` would only verify method calls on a mock — it would not catch errors in URL construction, header configuration, or JSON deserialization. WireMock tests the actual HTTP contract, including the wire format.
+> **Why WireMock instead of mocking the HTTP client?** Both production adapters use Spring's `RestClient` — the modern, fluent HTTP client introduced in Spring Framework 6.1. Each adapter builds a `RestClient` per request via `RestClient.builder()` with a `SimpleClientHttpRequestFactory` for timeout control. Mocking the `RestClient` fluent chain (`get().uri(…).retrieve().body(…)`) would only verify interactions with a mock object — it would not catch errors in URL construction, query-parameter assembly, timeout configuration, or JSON deserialization. WireMock tests the actual HTTP contract at the wire level, including the request path, query parameters, and response parsing.
 
-For a detailed walkthrough of how WireMock eliminates non-determinism when testing external APIs, see [Deep Dive: Deterministic Testing of External Market-Price Adapters](#9-deep-dive-deterministic-testing-of-external-market-price-adapters).
+For a detailed walkthrough of how WireMock eliminates non-determinism when testing external APIs — and why `RestClient`'s fluent API makes HTTP-level testing especially valuable — see [Deep Dive: Deterministic Testing of External Market-Price Adapters](#9-deep-dive-deterministic-testing-of-external-market-price-adapters).
 
 ---
 
@@ -391,19 +391,37 @@ adapters-outbound-market/
         └── MockFinhubStockPriceAdapterTest.java     ← Unit test: random-price mock
 ```
 
-**Why WireMock and not Mockito?** The Finnhub adapter is a concrete class that uses `RestTemplate` to make HTTP calls. Mocking `RestTemplate` would mean testing mock-call expectations, not real HTTP behaviour. WireMock starts a real HTTP server and stubs responses at the wire level. This means the test exercises the *actual HTTP request construction* — URL path, query parameters, headers — and the *actual JSON deserialization* logic. If the Finnhub API changes its response format, the WireMock stub can be updated to reflect the change, and the test will fail if the adapter's parsing logic doesn't match.
+**Why WireMock and not Mockito?** Both the `FinhubStockPriceAdapter` and the `AlphaVantageStockPriceAdapter` are concrete classes that use Spring's **`RestClient`** — the modern, fluent HTTP client introduced in Spring Framework 6.1 (Spring Boot 3.2+). Each adapter builds a `RestClient` instance per request using `RestClient.builder()` with a `SimpleClientHttpRequestFactory` for timeout control, and then makes the actual HTTP call through the fluent chain `restClient.get().uri(url).retrieve().body(JsonNode.class)`.
+
+Mocking this `RestClient` fluent API chain would mean stubbing `get()`, `uri()`, `retrieve()`, and `body()` in sequence — and would only verify that the adapter calls those methods in the expected order. Such a mock would **not** validate:
+
+- whether the URL is correctly assembled from `baseUrl`, path, and query parameters
+- whether the `symbol` and `token`/`apikey` query parameters are correct
+- whether `SimpleClientHttpRequestFactory` timeout settings take effect
+- whether `body(JsonNode.class)` correctly parses the response JSON into a `JsonNode`
+- whether the adapter correctly navigates the JSON structure (`"c"` for Finnhub, `"Global Quote"."05. price"` for Alpha Vantage)
+- whether the adapter throws the right `ExternalApiException` when the response is malformed
+
+WireMock eliminates this gap by starting a real HTTP server. The adapter sends a real HTTP request to `localhost:<port>`, and WireMock matches the incoming request against the stub — verifying URL path, query parameters, and headers — then returns a canned JSON response. The adapter's Jackson-based deserialization runs against the actual JSON payload, and the test asserts the final domain value object. The full HTTP contract — from URL construction to response parsing — is exercised in a single test.
 
 **What WireMock tests catch:**
 
 | Defect | Example | How WireMock Detects It |
 |---|---|---|
-| Wrong URL path | `/quotes` instead of `/quote` | Stub doesn't match → `SocketTimeoutException` |
+| Wrong URL path | `/quotes` instead of `/quote` | Stub doesn't match → connection error or timeout |
 | Missing query parameter | Forgot `token` param | `withQueryParam` assertion fails |
-| Incorrect field extraction | Reading `price` instead of `c` | `assertThat(result.price())...` fails |
+| Incorrect JSON field navigation | Reading `"price"` instead of `"c"` | `assertThat(result.price())...` fails |
 | Missing error handling | No catch for 500 response | `stubFor(serverError())` + `assertThatThrownBy(...)` |
 | Null-safety gap | API returns `null` JSON body | `stubFor(okJson("null"))` exposes `NullPointerException` |
+| `RestClient` builder misconfiguration | Wrong `baseUrl` or missing `requestFactory` | Request goes to wrong endpoint or ignores timeout |
 
-**WireMock uses `ReflectionTestUtils`** to inject the WireMock server's URL and a test API key into the adapter's `@Value`-annotated fields, bypassing the need for a Spring context:
+**What remains outside the scope of WireMock adapter tests:**
+
+- **Spring wiring:** `@Value` injection, `@Profile` activation, and `@Cacheable` behaviour are not exercised because the tests instantiate the adapter directly, without a Spring context.
+- **Concurrency under load:** The 500ms throttle (`Thread.sleep`) is present in production code but is not meaningfully validated.
+- **Real API contract drift:** WireMock stubs are a snapshot of the expected API contract. If Finnhub changes its response format, the stubs must be manually updated.
+
+**Setting up the adapter without Spring:** `ReflectionTestUtils` injects the WireMock server's URL and a test API key directly into the adapter's `@Value`-annotated fields, bypassing the need for a Spring context:
 
 ```java
 @BeforeEach
@@ -473,8 +491,8 @@ HexaStock has three implementations of `StockPriceProviderPort`, each serving a 
 
 | Adapter | Purpose | Activated By |
 |---|---|---|
-| `FinhubStockPriceAdapter` | Production: real Finnhub API | Default profile |
-| `AlphaVantageStockPriceAdapter` | Production: alternative provider | `alphavantage` profile |
+| `FinhubStockPriceAdapter` | Production: real Finnhub API | `finhub` profile |
+| `AlphaVantageStockPriceAdapter` | Production: alternative provider | `alphaVantage` profile |
 | `MockFinhubStockPriceAdapter` | Testing: random prices in [10, 1000] | `mockfinhub` profile |
 | `FixedPriceStockPriceAdapter` | Testing: deterministic price queue | `@Primary` in `@TestConfiguration` |
 
