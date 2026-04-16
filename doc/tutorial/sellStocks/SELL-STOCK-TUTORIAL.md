@@ -848,6 +848,45 @@ public class PortfolioMapper {
 
 Mapping nested entities such as holdings and lots requires careful handling of identity and lazy-loading concerns. See the full `PortfolioMapper.java` (and its companions `HoldingMapper` and `LotMapper`) in `adapters-outbound-persistence-jpa/.../mapper/` for the complete implementation.
 
+### Aggregate Loading and Query Behaviour
+
+The mapper code above reveals an important performance characteristic. When `PortfolioMapper.toModelEntity()` is called:
+
+1. **`jpaEntity.getHoldings()`** triggers a lazy-load SQL query to fetch all holdings for this portfolio.
+2. **For each holding**, `HoldingMapper.toModelEntity()` calls `jpaEntity.getLots()`, triggering another lazy-load query per holding.
+
+Without optimisation, loading a portfolio with *H* holdings produces **2 + H SQL queries** — one for the portfolio itself (the `SELECT ... FOR UPDATE` from `findByIdForUpdate`), one for the holdings collection, and one per holding for its lots. This is the classic **N+1 query problem**: the number of queries grows linearly with the number of holdings.
+
+For a portfolio with 3 holdings, that means 5 queries. For 20 holdings, 22 queries. Each additional holding adds a round-trip to the database.
+
+**The fix: Hibernate `@BatchSize`**
+
+HexaStock addresses this with Hibernate's `@BatchSize(size = 30)` annotation on both `@OneToMany` collections:
+
+```java
+// PortfolioJpaEntity.java
+@OneToMany(cascade = ALL, orphanRemoval = true)
+@JoinColumn(name = "portfolio_id")
+@BatchSize(size = 30)
+private Set<HoldingJpaEntity> holdings = new HashSet<>();
+
+// HoldingJpaEntity.java
+@OneToMany(cascade = ALL, orphanRemoval = true)
+@JoinColumn(name = "holding_id")
+@OrderBy("purchasedAt ASC")
+@BatchSize(size = 30)
+private List<LotJpaEntity> lots = new ArrayList<>();
+```
+
+When Hibernate initialises a lazy collection annotated with `@BatchSize`, it looks for other uninitialised collections of the same role in the persistence context and loads up to 30 of them in a single `IN`-clause query. This means:
+
+- **Without `@BatchSize`:** 1 query per holding's lots = *H* queries
+- **With `@BatchSize(size = 30)`:** ⌈*H* / 30⌉ queries for all holdings' lots
+
+For any portfolio with up to 30 holdings, the lots are loaded in a **single query** instead of *H* separate queries. The total query count drops from **2 + H** to a constant **3** (portfolio + holdings + one batched lots query).
+
+> **💡 Why not `JOIN FETCH`?** A `JOIN FETCH` on two levels (portfolio → holdings → lots) would produce a Cartesian product in the SQL result set: every combination of holding × lot appears as a row. For a portfolio with 10 holdings averaging 5 lots each, the result set would contain 50 rows instead of 10 + 50. `@BatchSize` avoids this by keeping the queries separate but batching them efficiently. It also requires no changes to the JPQL query or the mapper traversal logic — it works transparently with the existing lazy-loading pattern.
+
 ### Repositories
 
 - `PortfolioRepository` (JPA) implements `PortfolioPort` (domain interface)

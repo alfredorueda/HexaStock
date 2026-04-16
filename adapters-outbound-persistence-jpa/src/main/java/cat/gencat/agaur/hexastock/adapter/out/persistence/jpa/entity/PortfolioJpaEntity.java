@@ -1,6 +1,7 @@
 package cat.gencat.agaur.hexastock.adapter.out.persistence.jpa.entity;
 
 import jakarta.persistence.*;
+import org.hibernate.annotations.BatchSize;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -59,8 +60,12 @@ public class PortfolioJpaEntity {
      * ensures that operations on the portfolio (like save or delete) are propagated
      * to its holdings.</p>
      */
+    // @BatchSize: when multiple Portfolio proxies are in the persistence context,
+    // Hibernate initialises up to 30 holdings collections in a single
+    // IN-clause query instead of issuing one SELECT per portfolio (N+1 → ⌈N/30⌉).
     @OneToMany(cascade = ALL, orphanRemoval = true)
     @JoinColumn(name = "portfolio_id")
+    @BatchSize(size = 30)
     private Set<HoldingJpaEntity> holdings = new HashSet<>();
 
     /**

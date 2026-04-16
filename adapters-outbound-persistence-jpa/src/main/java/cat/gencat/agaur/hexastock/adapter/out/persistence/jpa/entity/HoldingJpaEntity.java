@@ -1,6 +1,7 @@
 package cat.gencat.agaur.hexastock.adapter.out.persistence.jpa.entity;
 
 import jakarta.persistence.*;
+import org.hibernate.annotations.BatchSize;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -15,9 +16,13 @@ public class HoldingJpaEntity {
     
     private String ticker;
 
+    // @BatchSize: when multiple Holding proxies are in the persistence context,
+    // Hibernate initialises up to 30 lots collections in a single
+    // IN-clause query instead of issuing one SELECT per holding (N+1 → ⌈N/30⌉).
     @OneToMany(cascade = ALL, orphanRemoval = true)
     @JoinColumn(name = "holding_id")
     @OrderBy("purchasedAt ASC")
+    @BatchSize(size = 30)
     private List<LotJpaEntity> lots = new ArrayList<>();
 
     protected HoldingJpaEntity() {}

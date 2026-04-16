@@ -3,6 +3,11 @@ package cat.gencat.agaur.hexastock.adapter.out.persistence.jpa.repository;
 import cat.gencat.agaur.hexastock.adapter.out.persistence.jpa.SharedMySQLContainer;
 import cat.gencat.agaur.hexastock.application.port.out.AbstractPortfolioPortContractTest;
 import cat.gencat.agaur.hexastock.application.port.out.PortfolioPort;
+import cat.gencat.agaur.hexastock.model.market.Ticker;
+import cat.gencat.agaur.hexastock.model.money.Money;
+import cat.gencat.agaur.hexastock.model.money.Price;
+import cat.gencat.agaur.hexastock.model.money.ShareQuantity;
+import cat.gencat.agaur.hexastock.model.portfolio.*;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -12,6 +17,8 @@ import org.springframework.context.annotation.Import;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
+
+import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * JPA/MySQL concrete implementation of the {@link PortfolioPort} contract tests.
@@ -53,4 +60,47 @@ class JpaPortfolioRepositoryContractTest extends AbstractPortfolioPortContractTe
     @Override @Test protected void getAllPortfolios_returnsAll()          { super.getAllPortfolios_returnsAll(); }
     @Override @Test protected void getPortfolioById_nonexistent_returnsEmpty() { super.getPortfolioById_nonexistent_returnsEmpty(); }
     @Override @Test protected void portfolioWithHoldingsAndLots_roundTrip()    { super.portfolioWithHoldingsAndLots_roundTrip(); }
+
+    // ── JPA-specific: multi-holding batch-fetch round-trip ────────────
+
+    @Test
+    @DisplayName("round-trip preserves multiple holdings with multiple lots (exercises @BatchSize)")
+    void multipleHoldingsAndLots_roundTrip() {
+        Portfolio portfolio = new Portfolio(PortfolioId.of("p-batch"), "BatchTest", Money.of(50000), NOW);
+
+        // AAPL: 2 lots
+        Holding aapl = new Holding(HoldingId.of("h-aapl"), Ticker.of("AAPL"));
+        aapl.addLotFromPersistence(new Lot(LotId.of("lot-a1"), ShareQuantity.of(10), ShareQuantity.of(10), Price.of(150), NOW));
+        aapl.addLotFromPersistence(new Lot(LotId.of("lot-a2"), ShareQuantity.of(5), ShareQuantity.of(5), Price.of(155), NOW.plusDays(1)));
+        portfolio.addHolding(aapl);
+
+        // GOOG: 2 lots
+        Holding goog = new Holding(HoldingId.of("h-goog"), Ticker.of("GOOG"));
+        goog.addLotFromPersistence(new Lot(LotId.of("lot-g1"), ShareQuantity.of(20), ShareQuantity.of(20), Price.of(180), NOW));
+        goog.addLotFromPersistence(new Lot(LotId.of("lot-g2"), ShareQuantity.of(8), ShareQuantity.of(8), Price.of(185), NOW.plusDays(2)));
+        portfolio.addHolding(goog);
+
+        // MSFT: 1 lot
+        Holding msft = new Holding(HoldingId.of("h-msft"), Ticker.of("MSFT"));
+        msft.addLotFromPersistence(new Lot(LotId.of("lot-m1"), ShareQuantity.of(15), ShareQuantity.of(15), Price.of(420), NOW));
+        portfolio.addHolding(msft);
+
+        port().createPortfolio(portfolio);
+
+        Portfolio found = port().getPortfolioById(PortfolioId.of("p-batch")).orElseThrow();
+        assertThat(found.getHoldings()).hasSize(3);
+
+        // Verify each holding's lots are fully reconstituted
+        Holding foundAapl = found.getHolding(Ticker.of("AAPL"));
+        assertThat(foundAapl.getLots()).hasSize(2);
+        assertThat(foundAapl.getTotalShares()).isEqualTo(ShareQuantity.of(15));
+
+        Holding foundGoog = found.getHolding(Ticker.of("GOOG"));
+        assertThat(foundGoog.getLots()).hasSize(2);
+        assertThat(foundGoog.getTotalShares()).isEqualTo(ShareQuantity.of(28));
+
+        Holding foundMsft = found.getHolding(Ticker.of("MSFT"));
+        assertThat(foundMsft.getLots()).hasSize(1);
+        assertThat(foundMsft.getTotalShares()).isEqualTo(ShareQuantity.of(15));
+    }
 }

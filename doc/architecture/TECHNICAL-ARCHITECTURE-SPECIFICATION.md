@@ -361,6 +361,31 @@ The `addHolding()` method on `Portfolio` is documented as "Persistence-only hook
 
 **Evidence:** [PortfolioJpaEntity.java](../../adapters-outbound-persistence-jpa/src/main/java/cat/gencat/agaur/hexastock/adapter/out/persistence/jpa/entity/PortfolioJpaEntity.java) JPA annotations; [Holding.java](../../domain/src/main/java/cat/gencat/agaur/hexastock/model/portfolio/Holding.java) `addLot()` Javadoc.
 
+### Lazy-loading optimisation with batch fetching
+
+Both `@OneToMany` associations (`Portfolio → Holdings`, `Holding → Lots`) use JPA's default lazy-loading strategy. When the `PortfolioMapper` reconstitutes the domain aggregate, it iterates the holdings collection (triggering one lazy-load query), and for each holding iterates its lots (triggering one lazy-load query per holding). Without optimisation, loading a portfolio with *H* holdings produces **2 + H** SQL queries — a classic N+1 pattern.
+
+Hibernate's `@BatchSize(size = 30)` annotation is applied to both collections. When Hibernate initialises a lazy collection, it checks whether other uninitialised collections of the same role exist in the persistence context and loads up to 30 of them in a single `IN`-clause query. This reduces the lots-loading phase from *H* individual queries to **⌈H / 30⌉** queries, keeping lazy-loading semantics (no eager fetching, no entity-graph complexity) while eliminating query amplification for typical portfolio sizes.
+
+```java
+// PortfolioJpaEntity.java
+@OneToMany(cascade = ALL, orphanRemoval = true)
+@JoinColumn(name = "portfolio_id")
+@BatchSize(size = 30)
+private Set<HoldingJpaEntity> holdings = new HashSet<>();
+
+// HoldingJpaEntity.java
+@OneToMany(cascade = ALL, orphanRemoval = true)
+@JoinColumn(name = "holding_id")
+@OrderBy("purchasedAt ASC")
+@BatchSize(size = 30)
+private List<LotJpaEntity> lots = new ArrayList<>();
+```
+
+**Design rationale:** `@BatchSize` was chosen over `JOIN FETCH` or `@EntityGraph` because the loading path passes through the mapper layer — each collection is accessed during iteration, not via a single JPQL query. Batch fetching integrates transparently with this traversal pattern and avoids the Cartesian product risk of multi-level join fetches.
+
+**Evidence:** [PortfolioJpaEntity.java](../../adapters-outbound-persistence-jpa/src/main/java/cat/gencat/agaur/hexastock/adapter/out/persistence/jpa/entity/PortfolioJpaEntity.java) `@BatchSize(size = 30)` on `holdings`; [HoldingJpaEntity.java](../../adapters-outbound-persistence-jpa/src/main/java/cat/gencat/agaur/hexastock/adapter/out/persistence/jpa/entity/HoldingJpaEntity.java) `@BatchSize(size = 30)` on `lots`.
+
 ### Concurrency control
 
 The repository uses pessimistic write locking for portfolio reads that precede updates:
