@@ -1,6 +1,6 @@
 # HexaStock — Constructive Strategy for a Pragmatic Rich Domain Model
 
-**Date:** 15 April 2026 (revised and expanded)
+**Date:** 16 April 2026 (revised — `@BatchSize` implementation reflected)
 **Author:** Architectural Strategy Review (code-grounded analysis)
 **Stack:** Java 21 · Spring Boot 3.5 · JPA/Hibernate · MySQL (configured) / PostgreSQL (target)
 **Scope:** How to keep DDD and hexagonal architecture while achieving pragmatic persistence, scalable runtime behaviour, and honest cost analysis
@@ -16,7 +16,7 @@ The analysis identifies **four categories** of findings:
 | Category | Finding |
 |---|---|
 | **Preserve unconditionally** | Domain model, FIFO sell algorithm, value objects, sealed Transaction hierarchy, hexagonal port/adapter structure, interface segregation, Caffeine cache strategy |
-| **Improve with low risk** | Move external API calls outside DB transactions; add non-locking read path; paginate transaction history; add `@BatchSize` to JPA collections |
+| **Improve with low risk** | Move external API calls outside DB transactions; add non-locking read path; paginate transaction history; ~~add `@BatchSize` to JPA collections~~ ✅ done |
 | **Evolve when evidence warrants** | CQRS-lite query services; `@Version` optimistic locking; smarter JPA save path; batch/parallel price fetching; SQL-based reporting |
 | **Redesign only if scale proves necessary** | Aggregate boundary split; event sourcing; dedicated projection tables; shared cache infrastructure |
 
@@ -215,46 +215,32 @@ Hibernate will automatically include `WHERE version = ?` in UPDATE statements an
 ✅ **Verified from code** ([PortfolioJpaEntity.java](adapters-outbound-persistence-jpa/src/main/java/cat/gencat/agaur/hexastock/adapter/out/persistence/jpa/entity/PortfolioJpaEntity.java)):
 
 ```java
+// PortfolioJpaEntity.java — @BatchSize applied ✅
 @OneToMany(cascade = ALL, orphanRemoval = true)
 @JoinColumn(name = "portfolio_id")
+@BatchSize(size = 30)
 private Set<HoldingJpaEntity> holdings = new HashSet<>();
+
+// HoldingJpaEntity.java — @BatchSize applied ✅
+@OneToMany(cascade = ALL, orphanRemoval = true)
+@JoinColumn(name = "holding_id")
+@OrderBy("purchasedAt ASC")
+@BatchSize(size = 30)
+private List<LotJpaEntity> lots = new ArrayList<>();
 ```
 
-The `@OneToMany` default fetch type is `FetchType.LAZY`. However, `PortfolioMapper.toModelEntity()` immediately iterates `jpaEntity.getHoldings()`, which triggers the lazy load. Then `HoldingMapper.toModelEntity()` iterates `holdingJpaEntity.getLots()` for each holding. This creates:
+The `@OneToMany` default fetch type is `FetchType.LAZY`. `PortfolioMapper.toModelEntity()` immediately iterates `jpaEntity.getHoldings()`, which triggers the lazy load. Then `HoldingMapper.toModelEntity()` iterates `holdingJpaEntity.getLots()` for each holding. Without `@BatchSize`, this would create:
 
 ```
 1 query: SELECT ... FROM portfolio WHERE id = ? FOR UPDATE
 1 query: SELECT ... FROM holding WHERE portfolio_id = ?   (lazy trigger)
 H queries: SELECT ... FROM lot WHERE holding_id = ?       (one per holding)
-= 2 + H total queries
+= 2 + H total queries   ← classic N+1 pattern
 ```
 
-**This is the classic N+1 pattern** applied to lots.
+✅ **Resolved.** `@BatchSize(size = 30)` was applied to both collections (16 April 2026). Hibernate now loads up to 30 uninitialised collections of the same role in a single `IN`-clause query, reducing the query count from `2 + H` to `2 + ⌈H/30⌉`. For a typical personal portfolio (10 holdings), this means 3 queries instead of 12. A multi-holding round-trip test (`multipleHoldingsAndLots_roundTrip` — 3 holdings, 5 lots) was added to `JpaPortfolioRepositoryContractTest` to verify the full aggregate reconstitution under batch fetching.
 
-**What to do:**
-
-**Option A — `@BatchSize` (simplest, immediate win):**
-
-Add `@BatchSize(size = 30)` to `HoldingJpaEntity.lots`:
-
-```java
-@OneToMany(cascade = ALL, orphanRemoval = true)
-@JoinColumn(name = "holding_id")
-@OrderBy("purchasedAt ASC")
-@BatchSize(size = 30)     // ← batches lot loading into groups
-private List<LotJpaEntity> lots = new ArrayList<>();
-```
-
-Also add `@BatchSize` to `PortfolioJpaEntity.holdings`:
-
-```java
-@OneToMany(cascade = ALL, orphanRemoval = true)
-@JoinColumn(name = "portfolio_id")
-@BatchSize(size = 30)
-private Set<HoldingJpaEntity> holdings = new HashSet<>();
-```
-
-This reduces the query count from `2 + H` to approximately `2 + ceil(H/30)`. For a typical personal portfolio (10 holdings), this means 3 queries instead of 12.
+**Remaining options for further evolution:**
 
 **Option B — join fetch query for write operations:**
 
@@ -286,7 +272,7 @@ public class PortfolioJpaEntity { ... }
 
 Then use `@EntityGraph("Portfolio.withHoldingsAndLots")` on a repository method. Useful when different use cases need different slices of the graph.
 
-**For HexaStock now:** Option A (`@BatchSize`) is the quickest win. Option B or C for the write path when more control is needed.
+**Status:** Option A (`@BatchSize`) has been applied ✅. Option B or C remain available for the write path when more control is needed.
 
 ---
 
@@ -495,13 +481,11 @@ These elements are well-designed and should remain unchanged:
 - **Expected impact:** Constant-time response regardless of transaction count. Prevents memory spikes.
 - **Difficulty:** Low
 
-#### 3.2.4 Add `@BatchSize` to JPA collections
+#### 3.2.4 ~~Add `@BatchSize` to JPA collections~~ ✅ Done (16 April 2026)
 
 - **Code areas:** `PortfolioJpaEntity.holdings`, `HoldingJpaEntity.lots`
-- **Why it helps:** Reduces N+1 query pattern from `2 + H` queries to `~3–4` queries when loading the aggregate for write operations.
-- **Change:** Add `@BatchSize(size = 30)` to both `@OneToMany` relationships.
-- **Expected impact:** ~70–80% reduction in SQL query count for typical portfolios. No code logic changes.
-- **Difficulty:** Low — annotation only
+- **What was done:** Added `@BatchSize(size = 30)` to both `@OneToMany` relationships. Added inline comments explaining the N+1 → ⌈N/30⌉ reduction. Added `multipleHoldingsAndLots_roundTrip()` test to `JpaPortfolioRepositoryContractTest` (3 holdings, 5 total lots). Updated `TECHNICAL-ARCHITECTURE-SPECIFICATION.md` §8 and `SELL-STOCK-TUTORIAL.md` §12 with query-behaviour documentation.
+- **Measured impact:** Query count for aggregate loading reduced from `2 + H` to `2 + ⌈H/30⌉` (constant 3 for portfolios with ≤30 holdings). All 46 project tests pass.
 
 #### 3.2.5 Introduce portfolio summary projection for read endpoints
 
@@ -844,15 +828,14 @@ portfolioJpaEntity.setHoldings(entity.getHoldings().stream()
 
 ### 8.3 Batch Fetching
 
-**Recommended now:** Add `@BatchSize(size = 30)` annotations:
+✅ **Applied (16 April 2026).** `@BatchSize(size = 30)` annotations are in place on both collections:
 
-- `PortfolioJpaEntity.holdings`
-- `HoldingJpaEntity.lots`
+- `PortfolioJpaEntity.holdings` — batches holdings initialisation across portfolio proxies
+- `HoldingJpaEntity.lots` — batches lots initialisation across holding proxies
 
-Or globally in `application.properties`:
-```properties
-spring.jpa.properties.hibernate.default_batch_fetch_size=30
-```
+The annotation-level approach was chosen over the global `application.properties` setting (`hibernate.default_batch_fetch_size`) to keep the optimisation explicit and co-located with the mapping it affects.
+
+A dedicated multi-holding round-trip test (`multipleHoldingsAndLots_roundTrip`) in `JpaPortfolioRepositoryContractTest` verifies that 3 holdings with 5 total lots are correctly persisted and reconstituted under batch fetching.
 
 ### 8.4 Entity Graph Opportunities
 
@@ -895,13 +878,13 @@ The current mapping pattern (domain ↔ JPA via static mapper classes) is a **se
 - Write path: aggregate-based, short transactions (API call outside TX)
 - Read path: DTO projections for list/detail, paginated transaction history
 - Locking: pessimistic on writes (existing, now with short TX), no lock on reads
-- Persistence: `@BatchSize` added, same mapper pattern
+- Persistence: `@BatchSize(size = 30)` applied ✅, same mapper pattern
 
 **Changes from current state:**
 1. Non-locking read path for `getPortfolio()` and `getAllPortfolios()`
 2. Move `fetchStockPrice()` outside the `@Transactional` block in `buyStock()` and `sellStock()`
 3. Add pagination to `getTransactions()`
-4. Add `@BatchSize(size = 30)` to JPA entity collections
+4. ~~Add `@BatchSize(size = 30)` to JPA entity collections~~ ✅ done
 5. Portfolio summary DTO projection for list/detail endpoints
 
 **Expected benefits:**
