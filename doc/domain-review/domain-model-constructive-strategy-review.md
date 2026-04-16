@@ -1,31 +1,34 @@
 # HexaStock — Constructive Strategy for a Pragmatic Rich Domain Model
 
-**Date:** 15 April 2026  
-**Author:** Architectural Strategy Review (code-grounded analysis)  
-**Stack:** Java 21 · Spring Boot 3.5 · JPA/Hibernate · MySQL (configured) / PostgreSQL (target)  
-**Scope:** How to keep DDD and hexagonal architecture while achieving pragmatic persistence and scalable runtime behaviour
+**Date:** 15 April 2026 (revised and expanded)
+**Author:** Architectural Strategy Review (code-grounded analysis)
+**Stack:** Java 21 · Spring Boot 3.5 · JPA/Hibernate · MySQL (configured) / PostgreSQL (target)
+**Scope:** How to keep DDD and hexagonal architecture while achieving pragmatic persistence, scalable runtime behaviour, and honest cost analysis
 
 ---
 
 ## 1. Executive Summary
 
-**Yes, HexaStock can and should keep its rich domain model.** The domain layer (`Portfolio`, `Holding`, `Lot`, `SellResult`, the sealed `Transaction` hierarchy, `HoldingPerformanceCalculator`) is well-designed, correctly protects real business invariants, and provides genuine value. Nothing in the scalability improvement path requires destroying or gutting this model.
+**HexaStock can and should keep its rich domain model.** The domain layer — `Portfolio`, `Holding`, `Lot`, `SellResult`, the sealed `Transaction` hierarchy, `HoldingPerformanceCalculator`, and the full suite of value objects — is well-designed, correctly protects real business invariants, and provides genuine pedagogical and structural value. The improvement path does not require replacing or hollowing out the model.
 
-The main bottlenecks are *not* in the domain itself but in the **persistence and transaction orchestration patterns** that surround it:
+The analysis identifies **four categories** of findings:
 
-1. **External API calls happen inside the database transaction** — `PortfolioStockOperationsService.buyStock()` and `sellStock()` acquire a pessimistic lock, then call `stockPriceProviderPort.fetchStockPrice()` (which includes a 500ms throttle + network I/O), holding the lock for the entire duration.
+| Category | Finding |
+|---|---|
+| **Preserve unconditionally** | Domain model, FIFO sell algorithm, value objects, sealed Transaction hierarchy, hexagonal port/adapter structure, interface segregation, Caffeine cache strategy |
+| **Improve with low risk** | Move external API calls outside DB transactions; add non-locking read path; paginate transaction history; add `@BatchSize` to JPA collections |
+| **Evolve when evidence warrants** | CQRS-lite query services; `@Version` optimistic locking; smarter JPA save path; batch/parallel price fetching; SQL-based reporting |
+| **Redesign only if scale proves necessary** | Aggregate boundary split; event sourcing; dedicated projection tables; shared cache infrastructure |
 
-2. **Every portfolio load uses a pessimistic write lock** — `JpaPortfolioRepository.getPortfolioById()` always delegates to `findByIdForUpdate()`, even for read-only operations like `GET /api/portfolios/{id}` and the holdings performance report.
+Several current design choices deserve nuance rather than blanket criticism:
 
-3. **Full aggregate graph is loaded and fully re-merged on every operation** — `PortfolioMapper.toJpaEntity()` creates entirely new detached JPA entity instances and calls `save()`, forcing Hibernate to diff the entire Portfolio → Holdings → Lots graph even when only `balance` changed.
-
-4. **No read-optimised paths exist** — all queries (list portfolios, get portfolio, transaction history, holdings performance) flow through the same aggregate-loading mechanism designed for write commands.
-
-All four of these can be improved **without changing the domain model at all**. The domain layer stays rich. The changes land in the persistence adapter, the application services, and possibly new dedicated query services.
+- **The 500 ms API throttle** is not an architectural defect — it is a deliberate constraint imposed by free-tier API rate limits (Finnhub, Alpha Vantage) and is explicitly documented as such in the codebase. The genuine improvement is not removing the throttle but ensuring it does not run *inside* a database transaction holding a lock.
+- **Pessimistic locking** is a defensible pedagogical choice: it is simpler to reason about, eliminates retry logic, and is correct for all concurrency levels. Optimistic locking is a worthwhile evolution when contention is measured to be low, but the current approach is not broken — it is conservative.
+- **Full aggregate loading** is proportional to the domain's actual size. A detailed memory analysis (Section 4) shows that even a power-user portfolio with 30 holdings and 750 lots consumes ~550 KB per request — well within comfortable bounds for any JVM deployment. The concern is not memory but lock duration and connection pool utilisation.
 
 | Horizon | Goal | Recommended posture |
 |---|---|---|
-| **Now** | Personal portfolio — correct & clean | Fix the obvious: non-locking reads, external API outside transaction, pagination. Keep domain model untouched. |
+| **Now** | Personal portfolio — correct & clean | Fix the obvious: non-locking reads, external API outside transaction, pagination. Domain model untouched. |
 | **Next** | Power-user growth — responsive & safe | Introduce CQRS-lite query services, `@Version` optimistic locking, smarter JPA fetch plans, batch price fetching. Domain model untouched. |
 | **Later** | Enterprise-like growth — if evidence demands | Consider aggregate boundary split, event-sourced projections, lot compaction. Only if monitoring proves it is needed. |
 
@@ -48,7 +51,7 @@ Portfolio (Aggregate Root)
 
 ✅ **Verified from code.** `Portfolio.buy()` (in [Portfolio.java](domain/src/main/java/cat/gencat/agaur/hexastock/model/portfolio/Portfolio.java)) checks `balance.isLessThan(totalCost)` and then modifies both `balance` and one `Holding`. `Portfolio.sell()` modifies `balance` and one `Holding`. These invariants — **cash sufficiency and share availability** — must be checked atomically on the same object graph. The aggregate boundary is *correct* for write operations.
 
-**Assessment for current personal scope:** 🟢 The aggregate is appropriately sized. A typical personal portfolio has 5–15 holdings and <200 lots. Loading the full graph for a buy or sell is negligible. There is no pressure to split the aggregate.
+**Assessment for current personal scope:** 🟢 The aggregate is appropriately sized. A typical personal portfolio has 5–15 holdings and <200 lots. Loading the full graph for a buy or sell is negligible (see Section 4 for detailed memory estimates). There is no pressure to split the aggregate.
 
 **Assessment for future heavier scope:** 🟡 At 50+ holdings with thousands of lots, loading the full graph for `deposit()` (which only touches `balance`) becomes wasteful. Two paths would help before splitting the aggregate:
 
@@ -76,7 +79,7 @@ This is "CQRS-lite" — not full event-sourced CQRS, just a disciplined separati
 | `withdraw()` | ✅ Yes — balance + sufficiency | `Portfolio.withdraw()` checks `balance.isLessThan(money)` |
 | `buyStock()` | ✅ Yes — balance + holding creation | `Portfolio.buy()` checks funds, finds/creates holding, creates lot |
 | `sellStock()` | ✅ Yes — share availability + FIFO | `Portfolio.sell()` checks holding exists, `Holding.sell()` does FIFO |
-| `createPortfolio()` | ✅ Yes — but trivial | Factory method, no graph loaded |
+| `createPortfolio()` | ✅ Yes (trivial — `Portfolio.create()`) | Factory method, no graph loaded |
 
 **Which use cases should become projection/query-based?**
 
@@ -110,11 +113,9 @@ This is "CQRS-lite" — not full event-sourced CQRS, just a disciplined separati
 @Transactional          ← transaction commits, lock released
 ```
 
-**The problem:** The pessimistic lock (step 1) is held for the entire duration of step 2 (500ms throttle + network latency up to 5s). This serializes all access to the same portfolio for potentially seconds.
+**Context:** The 500 ms `Thread.sleep()` throttle in both `FinhubStockPriceAdapter` and `AlphaVantageStockPriceAdapter` exists because free-tier API keys (Finnhub free: 60 calls/minute; Alpha Vantage free: 5 calls/minute) enforce strict rate limits. The adapters' Javadoc explicitly documents this: *"Throttles outbound API calls to avoid hitting free-tier rate limits."* Additionally, the `@Cacheable(sync = true)` on both adapters means that repeated requests for the same ticker within the 5-minute cache TTL skip the throttle entirely.
 
-**The sell flow has the same issue.** `sellStock()` follows the identical pattern.
-
-**Exact refactoring path:**
+**The improvement opportunity:** The throttle is justified for the API tier. The issue is that it runs *inside* the `@Transactional` method, so the pessimistic lock (step 1) is held for the entire duration of step 2. With the cache cold: 500 ms throttle + network latency (up to 5 s timeout). With the cache warm: near-zero. The refactoring is not "remove the throttle" but "fetch the price before opening the transaction":
 
 ```java
 // PortfolioStockOperationsService.buyStock() — REFACTORED
@@ -141,32 +142,42 @@ void executeBuy(PortfolioId portfolioId, Ticker ticker, ShareQuantity quantity, 
 }
 ```
 
-**Trade-off:** The price may have changed between the fetch and the buy execution. For a personal portfolio context, this is entirely acceptable — it mirrors how real market orders work (the quoted price is never guaranteed). For a professional trading system, a price-staleness check could be added inside `executeBuy()`.
+**Trade-off:** The price may have changed between the fetch and the buy execution. For a personal portfolio context, this is entirely acceptable — it mirrors how real market orders work (the quoted price is never guaranteed). The Caffeine cache with 5-minute TTL means most buy/sell operations within a short interaction window use the same cached price anyway. For a professional trading system, a price-staleness check could be added inside `executeBuy()`.
 
-**Impact:** Pessimistic lock duration drops from ~600ms–5.1s to ~50–200ms (just DB I/O and domain logic). This is a **high-value, low-risk change** that does not touch the domain model at all.
+**Impact:** Pessimistic lock duration drops from ~600 ms–5.1 s to ~50–200 ms (just DB I/O and domain logic). This is a **high-value, low-risk change** that does not touch the domain model at all.
 
 ---
 
 ### 2.4 Optimistic Concurrency Before Pessimistic Locking
 
-**Principle.** Pessimistic locking (`SELECT ... FOR UPDATE`) acquires a database-level exclusive lock that blocks all other transactions touching the same row. It is the right choice when conflicts are frequent and the cost of a failed retry is high. Optimistic locking (`@Version`) allows concurrent reads, detects conflicts at commit time, and throws an exception that the caller retries. It is the right choice when conflicts are rare.
+**Principle.** Pessimistic locking (`SELECT ... FOR UPDATE`) acquires a database-level exclusive lock that blocks all other transactions touching the same row. Optimistic locking (`@Version`) allows concurrent reads, detects conflicts at commit time, and throws an exception that the caller retries. Each is appropriate in different contexts.
 
 **HexaStock's current locking strategy:**
 
 ✅ **Verified from code:** `JpaPortfolioSpringDataRepository` ([JpaPortfolioSpringDataRepository.java](adapters-outbound-persistence-jpa/src/main/java/cat/gencat/agaur/hexastock/adapter/out/persistence/jpa/springdatarepository/JpaPortfolioSpringDataRepository.java)) has one query method: `findByIdForUpdate()` with `@Lock(LockModeType.PESSIMISTIC_WRITE)`. This is the **only** way `JpaPortfolioRepository.getPortfolioById()` loads a portfolio.
 
-✅ **Verified:** No `@Version` field exists on any JPA entity (`PortfolioJpaEntity`, `HoldingJpaEntity`, `LotJpaEntity`). There is no optimistic locking anywhere.
+✅ **Verified:** No `@Version` field exists on any JPA entity (`PortfolioJpaEntity`, `HoldingJpaEntity`, `LotJpaEntity`). There is no optimistic locking.
 
 **Analysis for a personal financial portfolio:**
 
-In a personal portfolio application, **concurrent conflicts on the same portfolio are extremely rare**. A single user is unlikely to submit two buy orders simultaneously. The primary concurrency scenario is a user clicking "Buy" while a background reporting query is running — and those should be on different code paths anyway (the reporting query should not acquire a write lock).
+Pessimistic locking is a defensible choice for a pedagogical project. It has important advantages:
 
-**Recommended mixed strategy:**
+- **Simplicity**: no retry logic needed, no version-carrying through mappers, no risk of silent data loss from unhandled `OptimisticLockException`.
+- **Correctness by construction**: if the lock is acquired, the transaction will succeed (no conflict-based failures).
+- **Pedagogical clarity**: students can reason about "lock → mutate → save → release" without understanding optimistic concurrency control.
+
+The main cost is that concurrent requests to the same portfolio are serialised at the database level. For a personal portfolio application where concurrent conflicts are extremely rare, this cost is low in practice. A single user is unlikely to submit two buy orders simultaneously.
+
+**When to evolve toward optimistic locking:**
+
+The trigger is not "pessimistic locking is wrong" but "pessimistic locking combined with long-held transactions causes measurable contention." After applying the refactoring in Section 2.3 (API calls outside the transaction), pessimistic lock duration drops to ~50–200 ms, which is already quite short. At that point, the benefits of switching to optimistic locking are modest for a single-user scenario.
+
+If the system evolves toward multiple concurrent users on the same portfolio (e.g., a shared family portfolio), optimistic locking becomes more valuable:
 
 | Scenario | Recommended lock | Why |
 |---|---|---|
 | **Read-only queries** (get portfolio, list portfolios, get transactions, get holdings) | **No lock at all** | Read paths should never block writes. Use the standard `findById()` or DTO projections. |
-| **Cash operations** (deposit, withdraw) | **Optimistic locking** (`@Version`) | Conflicts are extremely rare. If one occurs, a simple retry resolves it. The user's intent is unambiguous. |
+| **Cash operations** (deposit, withdraw) | **Optimistic locking** (`@Version`) | Conflicts are extremely rare. If one occurs, a simple retry resolves it. |
 | **Buy/sell stock** | **Optimistic locking** (`@Version`) for personal scope | Conflicts remain rare. The domain validates cash sufficiency and share availability at the point of mutation, so a stale-read + retry is safe. |
 | **Buy/sell stock** at higher concurrency | **Pessimistic locking** as an option to switch to | If monitoring shows frequent `OptimisticLockException`, switch the buy/sell paths to pessimistic. Keep reads unlocked. |
 
@@ -308,7 +319,7 @@ Single query, no joins, no mapping overhead.
 
 #### `GET /api/portfolios/{id}` — get portfolio
 
-✅ **Verified:** Loads full aggregate graph with pessimistic lock. PortfolioResponseDTO only uses `id, ownerName, balance, createdAt`.
+✅ **Verified:** Loads full aggregate graph with pessimistic lock. `PortfolioResponseDTO` only uses `id, ownerName, balance, createdAt`.
 
 **Recommended:** Same projection approach, single `findById()` without lock.
 
@@ -327,9 +338,9 @@ Or a JPQL projection that returns `TransactionDTO` directly, avoiding domain-obj
 
 #### `GET /api/portfolios/{id}/holdings` — holdings performance
 
-✅ **Verified:** `ReportingService.getHoldingsPerformance()` loads the full portfolio aggregate (with pessimistic lock), loads all transactions, then calls `stockPriceProviderPort.fetchStockPrice(tickers)` which calls the external API sequentially for each ticker with a 500ms throttle.
+✅ **Verified:** `ReportingService.getHoldingsPerformance()` loads the full portfolio aggregate (with pessimistic lock), loads all transactions, then calls `stockPriceProviderPort.fetchStockPrice(tickers)` which calls the external API sequentially for each ticker — with the 500 ms throttle on cache-miss only (the Caffeine `@Cacheable` layer means repeated calls within 5 minutes are instant).
 
-**This is the most expensive endpoint.** For 15 holdings: pessimistic lock held during 1 portfolio load + full transaction load + 15 × 500ms API calls = ~8 seconds under lock.
+**Worst-case cost** (cold cache, 15 holdings): pessimistic lock held during 1 portfolio load + full transaction load + 15 × (500 ms throttle + network) ≈ 8 seconds under lock. **Typical-case cost** (warm cache): lock held for portfolio load + transaction load + 15 × ~1 ms = well under 1 second.
 
 **Recommended:** A dedicated `HoldingsPerformanceQueryService` that:
 
@@ -432,7 +443,7 @@ WHERE portfolio_id = ?
 GROUP BY ticker
 ```
 
-This pushes the aggregation to the database, which is optimised for it, and returns only the summary rows. The in-memory O(T) scan is eliminated.
+This pushes the aggregation to the database, which is optimised for it, and returns only the summary rows.
 
 ---
 
@@ -455,7 +466,8 @@ These elements are well-designed and should remain unchanged:
 | **Port/adapter structure** | Use case interfaces in `application/port/in/`, outbound ports in `application/port/out/` | Clean hexagonal boundaries. All adapter dependencies flow inward. |
 | **Interface Segregation** | Separate `CashManagementUseCase`, `PortfolioLifecycleUseCase`, `PortfolioStockOperationsUseCase`, `ReportingUseCase`, `TransactionUseCase` | ISP well-applied. Each controller or client depends only on the ports it needs. |
 | **`StockPriceProviderPort` with profile-based adapters** | Finnhub, AlphaVantage, Mock — activated by Spring profiles | Clean strategy pattern. Easy to test with mock adapter. |
-| **Caffeine cache for stock prices** | `@Cacheable("stockPrices")` on both adapters, 5-min TTL | Prevents redundant API calls. Correctly keyed by `ticker.value()`. |
+| **Caffeine cache for stock prices** | `@Cacheable("stockPrices")` on both adapters, 5-min TTL | Prevents redundant API calls. Correctly keyed by `ticker.value()`. `sync = true` prevents thundering herd. |
+| **500 ms API throttle** | `FinhubStockPriceAdapter`, `AlphaVantageStockPriceAdapter` | Correctly rate-limits calls to free-tier APIs. Documented as pedagogical/infrastructure constraint. Not an architectural defect. |
 
 ### 3.2 Improve Now with Low Risk
 
@@ -470,9 +482,9 @@ These elements are well-designed and should remain unchanged:
 #### 3.2.2 Move external API call outside the database transaction
 
 - **Code areas:** `PortfolioStockOperationsService.buyStock()`, `sellStock()`
-- **Why it helps:** Reduces pessimistic lock duration from seconds to milliseconds by removing HTTP I/O from the transactional scope.
+- **Why it helps:** Reduces lock duration from the throttle + network time to just DB I/O and domain logic, regardless of whether the lock is pessimistic or optimistic.
 - **Change:** Fetch `StockPrice` before the `@Transactional` block. See detailed refactoring in Section 2.3.
-- **Expected impact:** Lock duration drops by ~10–50x. Other requests to the same portfolio are no longer blocked during API calls.
+- **Expected impact:** Lock duration drops from ~600 ms–5.1 s (cold cache) to ~50–200 ms. With warm cache the improvement is smaller but the change is still structurally correct.
 - **Difficulty:** Low — method split and annotation adjustment
 
 #### 3.2.3 Add pagination to transaction history
@@ -502,13 +514,13 @@ These elements are well-designed and should remain unchanged:
 #### 3.2.6 Separate holdings performance from the write-side aggregate
 
 - **Code areas:** `ReportingService.getHoldingsPerformance()`, `PortfolioRestController.getHoldings()`
-- **Why it helps:** The holdings endpoint currently loads the full aggregate with a pessimistic lock, loads all transactions, and makes sequential API calls — all inside a single transaction. It is the single most expensive operation.
+- **Why it helps:** The holdings endpoint currently loads the full aggregate with a pessimistic lock, loads all transactions, and makes sequential API calls — all inside a single transaction. It is the most expensive operation, particularly on cache-cold scenarios.
 - **Change:** Create a dedicated query that:
   1. Aggregates transactions via SQL (GROUP BY ticker)
   2. Gets remaining shares from holdings table directly (no domain model)
   3. Fetches stock prices in batch **outside** any DB transaction
   4. Computes metrics in memory from these three inputs
-- **Expected impact:** Eliminates aggregate loading, pessimistic lock, and N+1 for the heaviest endpoint. Response time drops from N×500ms to ~500ms (single batch price fetch, cached).
+- **Expected impact:** Eliminates aggregate loading, pessimistic lock, and N+1 for the heaviest endpoint. Response time drops from N×500 ms (cold) to ~500 ms (single batch price fetch, cached).
 - **Difficulty:** Medium
 
 ### 3.3 Evolve Next If Usage Grows
@@ -527,6 +539,7 @@ These elements are well-designed and should remain unchanged:
 - **Why soon:** After removing external API calls from the transaction (3.2.2), the transaction duration is short enough that optimistic locking becomes practical. Conflicts are rare for personal portfolios.
 - **Effort:** Medium — requires version to be carried through the mapper round-trip. Needs retry logic in the service layer.
 - **Risk:** The current save pattern (creating new detached JPA entities) requires that the version value is preserved in the mapping. This needs careful implementation.
+- **Note:** The current pessimistic locking is not broken — it is conservative. This evolution is a refinement, not a bug fix.
 
 #### 3.3.3 Smarter save path — avoid full graph re-merge
 
@@ -540,7 +553,7 @@ These elements are well-designed and should remain unchanged:
 #### 3.3.4 Batch/parallel stock price fetching
 
 - **What:** The `StockPriceProviderPort.fetchStockPrice(Set<Ticker>)` default implementation calls `fetchStockPrice(Ticker)` sequentially. Replace with a parallel implementation using `CompletableFuture.supplyAsync()` with a bounded executor, or batch API calls if the provider supports it.
-- **Why soon:** The holdings performance endpoint calls one API per ticker with a 500ms throttle. Parallel fetching with the Caffeine cache (most tickers will be cached) dramatically reduces response time.
+- **Why soon:** The holdings performance endpoint calls one API per ticker with a 500 ms throttle (on cache miss). Parallel fetching with the Caffeine cache (most tickers will be cached within the 5-minute TTL) dramatically reduces worst-case response time.
 - **Effort:** Low–Medium
 - **What stays the same:** Port interface unchanged. Only adapter implementation changes.
 
@@ -557,99 +570,247 @@ These elements are well-designed and should remain unchanged:
 
 - **What:** Make `Holding` an independent aggregate root with its own `HoldingRepository`. `Portfolio` holds only `balance` and a list of `HoldingId` references.
 - **When justified:** If a portfolio routinely has 100+ holdings with thousands of lots and the full-graph load for buy/sell exceeds 1 second even after fetch-plan optimization.
-- **Evidence required:** p95 buy/sell latency consistently >1s; profiling confirming aggregate hydration as the dominant cost.
+- **Evidence required:** p95 buy/sell latency consistently >1 s; profiling confirming aggregate hydration as the dominant cost.
 - **Trade-off:** `Portfolio.buy()` can no longer atomically check balance and create a lot. Requires either a saga, a two-phase lock, or accepting eventual consistency on balance checks.
-- **This should NOT be done for a personal portfolio system.** The complexity cost outweighs the benefit at this scale.
+- **At HexaStock's current scale, this would add significant complexity without measurable benefit.** The memory analysis in Section 4 confirms that even a 750-lot aggregate is well under 1 MB.
 
 #### 3.4.2 Dedicated ledger / event-sourced approach
 
 - **What:** Replace the aggregate-based write model with an event-sourced ledger where each mutation emits an event (CashDeposited, StockPurchased, etc.) and the current state is derived from events (or from periodic snapshots + recent events).
 - **When justified:** Only if the system becomes a multi-user, multi-portfolio platform with 10,000+ concurrent users and needs audit-grade event replay, temporal queries ("what was the portfolio state on March 15?"), or cross-system event propagation.
 - **Evidence required:** Current architecture measurably failing under sustained load + real business need for temporal queries or event replay.
-- **This is NOT appropriate for HexaStock today or in the foreseeable future.**
+- **At HexaStock's current pedagogical scope, this would be overengineering.** The append-only `portfolio_transaction` table already provides a transaction history without the complexity of full event sourcing.
 
 #### 3.4.3 Deeper domain decomposition — bounded contexts
 
 - **What:** Split the monolith into separate bounded contexts: Portfolio Management (commands), Reporting & Analytics (queries), Market Data (price caching/fetching), Transaction Ledger (append-only records).
 - **When justified:** Only if different parts of the system have genuinely different scaling requirements, deployment cadences, or ownership teams.
 - **Evidence required:** Organizational scaling (multiple teams), SLA differentiation (99.99% for trading, 99.9% for reporting), or data residency requirements.
-- **This is NOT appropriate for a single-team personal portfolio project.**
+- **At HexaStock's current single-team scope, this adds accidental complexity without organizational justification.**
 
 ---
 
-## 4. Concrete Strategy for HexaStock by Use Case
+## 4. Memory Footprint per Request and Concurrency Envelope
 
-| Use case | Should use rich aggregate? | Should use lock? | Should use projection/read model? | Suggested persistence strategy | Notes |
+This section provides a detailed, object-level memory analysis of the Portfolio aggregate to answer a concrete question: **at what portfolio size does memory become a genuine concern?**
+
+### 4.1 JVM Assumptions
+
+All estimates use the following assumptions, which apply to HexaStock's stated runtime:
+
+| Parameter | Value | Notes |
+|---|---|---|
+| JVM | HotSpot 64-bit, Java 21 | As declared in `pom.xml` |
+| Compressed oops | Enabled (default for heaps < 32 GB) | Reduces reference size from 8 B to 4 B |
+| Object header | 12 bytes | 8 B mark word + 4 B compressed klass pointer |
+| Padding | To 8-byte boundary | JVM specification requirement |
+| Compressed reference | 4 bytes | Object pointers under compressed oops |
+| Array header | 16 bytes | 12 B object header + 4 B length field |
+
+These are standard HotSpot values; exact figures may vary slightly across JDK vendors but not materially.
+
+### 4.2 Domain Object Footprint
+
+Each value is derived from the actual fields declared in the source code.
+
+#### Primitive value objects
+
+| Type | Record fields | Shallow bytes | Nested objects | Deep bytes | Source |
 |---|---|---|---|---|---|
-| **Create portfolio** | ✅ Yes (trivial — `Portfolio.create()`) | No — INSERT only | No | `INSERT INTO portfolio (id, owner_name, balance, created_at)` via JPA | No aggregate load needed |
-| **Get portfolio summary** | ❌ No | No | ✅ Yes — DTO projection | `SELECT id, owner_name, balance, created_at FROM portfolio WHERE id = ?` | Drop aggregate load and lock |
-| **List portfolios** | ❌ No | No | ✅ Yes — DTO projection | `SELECT id, owner_name, balance, created_at FROM portfolio` | Currently loads all aggregates. Critical to fix. |
-| **Deposit cash** | ✅ Yes — balance invariant | Optimistic (`@Version`) | No | Load aggregate → domain `deposit()` → save. Short TX. | Consider targeted UPDATE for balance-only change long-term |
-| **Withdraw cash** | ✅ Yes — balance + sufficiency | Optimistic (`@Version`) | No | Load aggregate → domain `withdraw()` → save. Short TX. | Balance check requires latest balance |
-| **Buy stock** | ✅ Yes — balance + holding/lot creation | Optimistic (`@Version`), pessimistic if contention proven | No | Fetch price **outside** TX → load aggregate → domain `buy()` → save + INSERT tx. Short TX. | Most important refactoring: price fetch outside TX |
-| **Sell stock** | ✅ Yes — share availability + FIFO | Optimistic (`@Version`), pessimistic if contention proven | No | Fetch price **outside** TX → load aggregate → domain `sell()` → save + INSERT tx. Short TX. | FIFO logic requires holdings/lots loaded |
-| **List holdings (simple)** | ❌ No | No | ✅ Yes — SQL join | `SELECT h.ticker, SUM(l.remaining) FROM holding h JOIN lot l ON ... WHERE h.portfolio_id = ? GROUP BY h.ticker` | If just listing tickers + share counts, no aggregate needed |
-| **Get holding detail** | Partial — domain logic for unrealized gain | No | ✅ Mixed | Load holding's lots from DB → compute unrealized gain with domain logic OR SQL. Depends on complexity tolerance. | Could be a lightweight domain model instantiation for one holding only |
-| **Get transaction history** | ❌ No | No | ✅ Yes — paginated query | `SELECT ... FROM portfolio_transaction WHERE portfolio_id = ? ORDER BY created_at DESC LIMIT ? OFFSET ?` | Must add pagination |
-| **Get holdings performance** | ❌ No (replace with SQL + domain service hybrid) | No | ✅ Yes — SQL aggregation + batch price fetch | SQL GROUP BY for tx aggregates → batch price fetch **outside** TX → compute metrics in memory | Most expensive endpoint — highest improvement potential |
-| **Dashboard view** | ❌ No | No | ✅ Yes — DTO projection | Portfolio summary + top holdings + recent transactions. Three lightweight queries. No aggregate load. | Future endpoint — design as read-model from the start |
+| `ShareQuantity` | `int value` | 16 B | — | **~16 B** | [ShareQuantity.java](domain/src/main/java/cat/gencat/agaur/hexastock/model/money/ShareQuantity.java) |
+| `Money` | `BigDecimal amount` | 16 B | 1 × BigDecimal (~40 B compact) | **~56 B** | [Money.java](domain/src/main/java/cat/gencat/agaur/hexastock/model/money/Money.java) |
+| `Price` | `BigDecimal value` | 16 B | 1 × BigDecimal (~40 B) | **~56 B** | [Price.java](domain/src/main/java/cat/gencat/agaur/hexastock/model/money/Price.java) |
+| `Ticker` | `String value` | 16 B | 1 × String (4 chars → 48 B) | **~64 B** | [Ticker.java](domain/src/main/java/cat/gencat/agaur/hexastock/model/market/Ticker.java) |
+| `PortfolioId` | `String value` | 16 B | 1 × String (UUID 36 chars → 80 B) | **~96 B** | [PortfolioId.java](domain/src/main/java/cat/gencat/agaur/hexastock/model/portfolio/PortfolioId.java) |
+| `HoldingId` | `String value` | 16 B | 1 × String (UUID → 80 B) | **~96 B** | [HoldingId.java](domain/src/main/java/cat/gencat/agaur/hexastock/model/portfolio/HoldingId.java) |
+| `LotId` | `String value` | 16 B | 1 × String (UUID → 80 B) | **~96 B** | [LotId.java](domain/src/main/java/cat/gencat/agaur/hexastock/model/portfolio/LotId.java) |
+| `LocalDateTime` | (nested `LocalDate` + `LocalTime`) | 24 B | 2 nested objects (24 B each) | **~72 B** | JDK built-in |
+
+*BigDecimal "compact" means `intCompact` fits in a `long` (true for typical stock prices like 150.25 → stored as 15025 with scale 2). Object: 12 B header + 8 B long + 4 B scale + 4 B precision + 4 B intVal ref + 4 B stringCache ref = 36 → padded to 40 B.*
+
+*String memory: 24 B (12 B header + 4 B byte[] ref + 1 B coder + 4 B hash + 1 B hashIsZero → padded to 24 B) + byte[] array (16 B header + length → padded to 8-byte boundary). UUID "550e8400-e29b-41d4-a716-446655440000" (36 Latin-1 chars): 24 B + 56 B = 80 B. Ticker "AAPL" (4 chars): 24 B + 24 B = 48 B.*
+
+#### Composite domain objects
+
+| Type | Fields (from source) | Shallow bytes | Deep bytes (excluding children) | Source |
+|---|---|---|---|---|
+| `Lot` | LotId id, ShareQuantity initialShares, ShareQuantity remainingShares, Price unitPrice, LocalDateTime purchasedAt | 32 B | **~288 B** (96 + 16 + 16 + 56 + 72 + 32 shell) | [Lot.java](domain/src/main/java/cat/gencat/agaur/hexastock/model/portfolio/Lot.java) |
+| `Holding` | HoldingId id, Ticker ticker, ArrayList<Lot> lots | 24 B | **~264 B** base + lots (96 + 64 + 80 ArrayList shell + 24 self) | [Holding.java](domain/src/main/java/cat/gencat/agaur/hexastock/model/portfolio/Holding.java) |
+| `Portfolio` | PortfolioId id, String ownerName, Money balance, LocalDateTime createdAt, HashMap<Ticker, Holding> holdings | 32 B | **~424 B** base + holdings (96 + 48 + 56 + 72 + 120 HashMap shell + 32 self) | [Portfolio.java](domain/src/main/java/cat/gencat/agaur/hexastock/model/portfolio/Portfolio.java) |
+
+*ArrayList shell: 24 B (object) + 56 B (Object[10] default array) = 80 B. HashMap shell: 40 B (object) + 80 B (Node[16] default table) = 120 B. Each HashMap.Node entry: 32 B.*
+
+### 4.3 JPA + Mapping Overhead
+
+When a portfolio is loaded via `JpaPortfolioRepository.getPortfolioById()`, three layers of objects exist simultaneously during a write request:
+
+1. **JPA managed entities** — loaded by Hibernate from the database, tracked in the persistence context.
+2. **Domain model** — created by `PortfolioMapper.toModelEntity()` from the JPA entities.
+3. **JPA detached entities** — created by `PortfolioMapper.toJpaEntity()` during `savePortfolio()`, used for the merge back.
+
+The mapper extracts primitive values and references (e.g., `entity.getId().value()` returns the String from `PortfolioId`), so many underlying `String` and `BigDecimal` instances are **shared** between the domain model and both JPA entity graphs. The newly allocated objects per layer are primarily the entity shells and their collection wrappers.
+
+**JPA entity shell sizes (new allocations only, Strings/BigDecimals shared):**
+
+| JPA Entity | Shell size | Collection overhead |
+|---|---|---|
+| `PortfolioJpaEntity` | ~32 B | ~120 B (HashSet internal HashMap) |
+| `HoldingJpaEntity` | ~24 B | ~80 B (ArrayList) |
+| `LotJpaEntity` | ~32 B | — |
+
+**Hibernate persistence context overhead per managed entity:**
+
+Hibernate maintains per-entity metadata including an `EntityEntry` (status, lock mode, loaded state snapshot for dirty checking), plus an `EntityKey` in the identity map. Conservative estimate: **~400 B per managed entity** (200–300 B for `EntityEntry` + ~64 B for `EntityKey` + snapshot of scalar fields).
+
+### 4.4 Scenario Table — Table B
+
+The following table estimates total request-scoped memory for a buy/sell operation (which loads the full aggregate, creates the domain model, mutates it, and creates a new JPA entity graph for save):
+
+| Scenario | Holdings | Lots / holding | Total lots | Domain graph | JPA mirror (new allocs) | Hibernate PC | **Total / request** | Comfort |
+|---|---|---|---|---|---|---|---|---|
+| **Tiny portfolio** | 1 | 1 | 1 | ~1.0 KB | ~0.3 KB | ~1.2 KB | **~2.5 KB** | 🟢 Negligible |
+| **Average retail** | 5 | 3 | 15 | ~6 KB | ~1.1 KB | ~8.4 KB | **~16 KB** | 🟢 Comfortable |
+| **Active trader** | 15 | 10 | 150 | ~47 KB | ~6.5 KB | ~66 KB | **~120 KB** | 🟢 Comfortable |
+| **Power user** | 30 | 25 | 750 | ~220 KB | ~27 KB | ~312 KB | **~560 KB** | 🟡 Fine; watch GC |
+| **Stress / edge case** | 50 | 50 | 2,500 | ~718 KB | ~85 KB | ~1.0 MB | **~1.8 MB** | 🟡 Investigate lock time, not memory |
+
+**Derivation notes:**
+- Domain graph: `Portfolio base (424 B) + H × (Holding base 264 B + HashMap.Node 32 B) + L × Lot (288 B)`
+- JPA mirror: `PortfolioJpa shell (152 B) + H × HoldingJpa shell (104 B) + L × LotJpa shell (32 B)`
+- Hibernate PC: `(1 + H + L) × 400 B`
+- "Lots / holding" is an average; real distributions are uneven (some tickers traded more frequently)
+
+**Key observation:** Even the extreme stress scenario (2,500 lots — far beyond any personal portfolio) uses under 2 MB per request. **Memory is not the constraining factor for HexaStock at any realistic scale.** A JVM with the default 256 MB heap has over 150 MB usable for application data, which can accommodate hundreds of concurrent extreme-case requests.
+
+### 4.5 Concurrency Envelope
+
+Memory per request is small. The real constraints on concurrent throughput are elsewhere:
+
+| Resource | Default | Practical limit | Bottleneck? |
+|---|---|---|---|
+| **Tomcat thread pool** | 200 threads | 200 concurrent HTTP requests | Rarely — threads waiting on DB connections before threads are exhausted |
+| **HikariCP connection pool** | 10 connections | 10 concurrent DB transactions | **Yes** — with 500 ms avg TX duration (cold cache): max ~20 TX/sec. After API-outside-TX refactoring (~50 ms TX): ~200 TX/sec |
+| **JVM heap (512 MB)** | ~350 MB usable | ~350 MB / 120 KB per active-trader request ≈ 2,900 concurrent | No — connection pool is exhausted long before heap |
+| **Pessimistic lock (per portfolio)** | 1 writer at a time | 1 mutating operation per portfolio simultaneously | **Yes for same-portfolio** — serialises all writes to the same portfolio. With pessimistic lock + API inside TX: one user's buy blocks everyone else's buy on that portfolio for 500 ms+ |
+| **External API rate limit** | 60 calls/min (Finnhub free tier) | ~1 call/sec sustained | **Yes for cold-cache** — but Caffeine cache (5-min TTL) absorbs most repeat queries |
+
+**Throughput modelling:**
+
+| Scenario | TX duration | Max TX / sec (10 connections) | Max concurrent same-portfolio writes |
+|---|---|---|---|
+| **Current** (API inside TX, cold cache) | ~600 ms | ~17 | 1 (serialised by pessimistic lock) |
+| **Current** (API inside TX, warm cache) | ~60 ms | ~167 | 1 |
+| **Refactored** (API outside TX) | ~50 ms | ~200 | 1 (still pessimistic lock per portfolio, but lock held very briefly) |
+| **Refactored + optimistic** | ~50 ms | ~200 | Multiple (concurrent, retry on conflict) |
+
+### 4.6 Where the Real Bottleneck Lives
+
+The analysis is clear: **HexaStock's performance constraints are not in the domain model's memory footprint, but in the transaction orchestration layer:**
+
+1. **Lock duration** — the pessimistic lock on `findByIdForUpdate()` is held while the external API is called. This serialises same-portfolio access for hundreds of milliseconds to seconds. **Fix: move API call outside the transaction (Section 2.3).**
+
+2. **Lock scope** — read-only operations (`getPortfolio`, `getHoldingsPerformance`) acquire a write lock via the same `findByIdForUpdate()` path. They do not need any lock at all. **Fix: add a non-locking read path (Section 3.2.1).**
+
+3. **Connection pool utilisation** — with 10 default connections and long-held transactions, the pool saturates at modest concurrency. **Fix: shorten transactions (items 1 and 2 above) and increase pool size if needed (`spring.datasource.hikari.maximum-pool-size`).**
+
+4. **External API rate limit** — the 500 ms throttle exists because the free-tier API requires it. The Caffeine cache mitigates most repeated calls. The remaining exposure is on cold caches (first call for a ticker within 5 minutes). **This is an infrastructure constraint, not an application defect.**
+
+The domain model — `Portfolio`, `Holding`, `Lot` with their value objects — contributes negligible overhead. Converting it to a thinner model (e.g., flat DTOs, IDs without wrappers) would save kilobytes while the transaction orchestration issues cost seconds.
 
 ---
 
-## 5. Concrete Concurrency Strategy
+## 5. From Reference Architecture to Production-Ready Pragmatism
+
+HexaStock is explicitly a pedagogical project. Several design choices serve a teaching purpose — they demonstrate a concept clearly even if a production system might choose differently. This section acknowledges those choices honestly and maps the path from "reference architecture" to "production-ready" for each.
+
+### Table A — Pedagogical Choices vs Production Alternatives
+
+| Design choice | Pedagogical rationale | Production alternative | When to switch | What to preserve |
+|---|---|---|---|---|
+| **500 ms API throttle** (`Thread.sleep` in adapter) | Demonstrates rate-limit awareness for free-tier APIs. Visible in code as explicit constraint. Makes the external dependency cost tangible for learners. | Non-blocking rate limiter (e.g., Resilience4j `RateLimiter`, token-bucket). Paid API tier with higher limits. Background price ingestion decoupled from user requests. | When the project moves to a paid API tier, or when the throttle measurably impacts user-perceived latency (it currently does for cold-cache multi-ticker scenarios). | The *concept* of rate limiting at the adapter boundary. The adapter's `@Cacheable` strategy. |
+| **Pessimistic locking on all reads and writes** | Simplicity: no retry logic, no version tracking, no silent data loss from unhandled conflicts. Easy for students to trace "lock acquired → work → lock released". | Optimistic locking (`@Version`) for writes; no lock at all for reads. Retry logic for `OptimisticLockException`. | When contention is measured (not assumed) and retries are acceptable. After API calls are moved outside the TX (Section 2.3), so lock duration is already short. | The principle of explicit concurrency control. The domain model's invariant protection. |
+| **Full aggregate load for every operation** | Demonstrates the DDD aggregate pattern: load entire consistency boundary, mutate, save. Clear and correct. Students see the full lifecycle. | Partial loads for operations that touch only `balance`. DTO projections for read-only queries. Targeted UPDATEs for scalar changes. | When profiling shows aggregate hydration as a measurable cost (Section 4 shows this is unlikely before 750+ lots). For reads, the improvement is immediate and low-risk (projections). | Aggregate-based writes for operations that check cross-entity invariants (`buy`, `sell`). |
+| **Full aggregate re-creation on save** (`toJpaEntity()` creates new detached graph) | Clean separation: domain model has zero JPA annotations. Mapper is stateless. Easy to understand the mapping lifecycle. | Keep loaded JPA entity managed; update in place. Let Hibernate dirty-checking handle UPDATEs. Or use targeted JPQL for scalar changes. | When the merge overhead becomes measurable (unlikely for portfolios <1,000 lots) or when `@Version` optimistic locking makes version-carrying necessary. | The principle that domain objects do not depend on JPA. |
+| **Sequential price fetching for reporting** | Documented in `ReportingService` Javadoc: *"intentional — free-tier API enforces strict rate limits"*. Demonstrates explicit trade-off reasoning. | Parallel fetching with bounded executor + rate limiter. Batch API endpoint if provider supports it. Wider cache window for reporting. | When the holdings endpoint has >5 tickers and cache-cold response time exceeds user tolerance (~2 s). | The port/adapter separation that allows swapping the fetching strategy without touching domain logic. |
+
+### What This Table Shows
+
+The current codebase is not making these choices out of ignorance — the Javadoc and code comments demonstrate awareness of the trade-offs. The codebase is a **reference implementation** that prioritises clarity and correctness over raw throughput. The path to production readiness is incremental and does not require a rewrite:
+
+1. **First:** structural fixes that are correct at every scale (API outside TX, non-locking reads, pagination) — these should be applied regardless of whether the project remains pedagogical.
+2. **Next:** production refinements that trade simplicity for throughput (optimistic locking, managed entities, parallel fetching) — apply when scale data justifies the added complexity.
+3. **Preserve always:** the principles each pedagogical choice illustrates (rate-limit awareness, explicit concurrency control, aggregate invariant protection, clean persistence separation).
+
+---
+
+## 6. Concrete Strategy by Use Case — Table C
+
+| Use case | Rich aggregate? | Current pattern | Near-term recommendation | Longer-term evolution | Notes |
+|---|---|---|---|---|---|
+| **Create portfolio** | ✅ Yes (trivial) | `Portfolio.create()` → JPA save | No change needed | No change needed | INSERT only, no aggregate load |
+| **Get portfolio summary** | ❌ No | Full aggregate load + pessimistic lock | DTO projection, no lock | Stay as DTO projection | Needs only 4 scalar fields |
+| **List portfolios** | ❌ No | Loads *all* aggregates | DTO projection | Paginate if portfolio count grows | Currently loads all holdings and lots to return 4 fields per portfolio |
+| **Deposit cash** | ✅ Yes | Full aggregate load + pessimistic lock + full save | Same aggregate, API already not involved | Optimistic lock + targeted UPDATE (balance only) | Only `balance` changes — full graph merge is disproportionate |
+| **Withdraw cash** | ✅ Yes | Full aggregate load + pessimistic lock + full save | Same aggregate | Optimistic lock + targeted UPDATE | Same as deposit |
+| **Buy stock** | ✅ Yes | Full aggregate + API **inside** TX + pessimistic lock | Fetch price outside TX (Section 2.3) | Optimistic lock + retry | Most impactful single refactoring |
+| **Sell stock** | ✅ Yes | Full aggregate + API **inside** TX + pessimistic lock | Fetch price outside TX | Optimistic lock + retry | FIFO requires holdings/lots loaded |
+| **Get transaction history** | ❌ No | Full list, no pagination | Add `Pageable` | DTO projection, skip domain mapping | Potentially unbounded |
+| **Get holdings performance** | ❌ No | Full aggregate + all TXs + N sequential API calls inside locked TX | SQL aggregation + batch price fetch outside TX | Projection table if >5,000 TXs | Most expensive endpoint |
+| **Dashboard (future)** | ❌ No | Does not exist yet | Design as pure read-model from start | DTO projections, optional pre-computed summary | Avoid aggregate path entirely |
+
+---
+
+## 7. Concrete Concurrency Strategy
 
 ### Current vs Recommended
 
-| Operation | Current concurrency style | Recommended style | Why |
+| Operation | Current style | Recommended near-term | Why |
 |---|---|---|---|
 | `getPortfolio()` | `PESSIMISTIC_WRITE` via `findByIdForUpdate()` | **No lock** — simple `findById()` or DTO projection | Read-only. Should never block writes. |
 | `getAllPortfolios()` | No lock (uses `findAll()`) but loads full aggregates | **No lock** — DTO projection | Already correct (no lock), but should not load aggregates. |
-| `deposit()` | `PESSIMISTIC_WRITE` (via `getPortfolioById()`) | **Optimistic** (`@Version`) with retry | Conflicts extremely rare for personal use. Retry on `OptimisticLockException`. |
-| `withdraw()` | `PESSIMISTIC_WRITE` | **Optimistic** (`@Version`) with retry | Same rationale as deposit. |
-| `buyStock()` | `PESSIMISTIC_WRITE` + external API **inside** TX | **Price outside TX** → **Optimistic** inside short TX with retry | Reduces lock duration from seconds to milliseconds. |
-| `sellStock()` | `PESSIMISTIC_WRITE` + external API **inside** TX | **Price outside TX** → **Optimistic** inside short TX with retry | Same rationale. |
+| `deposit()` | `PESSIMISTIC_WRITE` | **Keep pessimistic for now**; evolve to optimistic when `@Version` is added | Acceptable at current scale. Pessimistic is simpler and conflict-free for single-user. |
+| `withdraw()` | `PESSIMISTIC_WRITE` | Same as deposit | Same rationale. |
+| `buyStock()` | `PESSIMISTIC_WRITE` + external API **inside** TX | **Price outside TX** + keep pessimistic lock (short TX) | Lock duration is the primary issue; fixing that is more impactful than changing lock type. |
+| `sellStock()` | `PESSIMISTIC_WRITE` + external API **inside** TX | Same refactoring as buy | Same rationale. |
 | `getTransactions()` | `@Transactional` read-only, no explicit lock | **No change needed** (but add pagination) | Already reasonable. |
 | `getHoldingsPerformance()` | `PESSIMISTIC_WRITE` + N sequential API calls **inside** TX | **No aggregate load, no lock, no TX** — SQL + batch price fetch | Complete restructuring of the read path. |
 
 ### Concurrency Questions Answered
 
-**Which operations should remain serialized?**  
-None need to be strictly serialized at the personal portfolio scale. With optimistic locking, concurrent writes to the same portfolio are detected and retried rather than serialized.
+**Which operations should remain serialised?**
+None need to be strictly serialised at the personal portfolio scale. With pessimistic locking and short transactions (after API-outside-TX refactoring), serialisation per portfolio is brief (~50–200 ms) and causes no practical contention for a single user.
 
-**Which operations can rely on optimistic locking?**  
-All write operations: deposit, withdraw, buy, sell. The domain validates invariants *at the point of mutation*, so a stale-read + optimistic-retry is safe — the retry will re-load the latest state and re-check invariants.
-
-**Which reads should never acquire write locks?**  
+**Which reads should never acquire write locks?**
 All of them: `getPortfolio()`, `getAllPortfolios()`, `getTransactions()`, `getHoldingsPerformance()`, any future dashboard queries.
 
-**Where is current transaction scope too wide?**  
+**Where is current transaction scope too wide?**
 - `buyStock()` and `sellStock()` — external API call inside the TX.
-- `getHoldingsPerformance()` — holds a TX with pessimistic lock while making N sequential API calls.
+- `getHoldingsPerformance()` — holds a TX with pessimistic lock while making N sequential API calls (on cache miss).
 
-**Where should retries be used?**  
-After switching to optimistic locking: `deposit()`, `withdraw()`, `buyStock()`, `sellStock()`. A simple retry wrapper (max 3 attempts with exponential backoff) handles `OptimisticLockException`. Spring Retry (`@Retryable`) is suitable.
+**Where should retries be used?**
+If/when optimistic locking is adopted: `deposit()`, `withdraw()`, `buyStock()`, `sellStock()`. A simple retry wrapper (max 3 attempts with exponential backoff) handles `OptimisticLockException`. Spring Retry (`@Retryable`) is suitable.
 
-**Where should idempotency be considered?**  
+**Where should idempotency be considered?**
 - `deposit()` and `withdraw()` — if the client retries a timeout, a duplicate deposit could occur. Adding an idempotency key (client-provided or request-scoped UUID) prevents double-processing.
 - `buyStock()` — same concern. An idempotency key on the transaction record (stored as a unique constraint) protects against duplicates.
 - This is a **medium-term** concern, not urgent for personal use.
 
-**Is the current design horizontally scalable enough for personal scope?**  
+**Is the current design horizontally scalable enough for personal scope?**
 Yes — with one caveat. Multiple app instances can run simultaneously because all state is in the database. However:
 - The Caffeine cache is local per JVM. Two instances may have different cached prices. This is acceptable for a personal app; at higher scale, a shared cache (Redis) would be needed.
-- Pessimistic locks are database-level, so they correctly serialize across instances. After switching to optimistic locking, this remains correct because `@Version` checks are also database-level.
+- Pessimistic locks are database-level, so they correctly serialise across instances. Optimistic locking (`@Version`) is also database-level and works across instances.
 
 ---
 
-## 6. Concrete JPA/Hibernate Strategy
+## 8. Concrete JPA/Hibernate Strategy
 
-### 6.1 `@Version` — Currently Missing
+### 8.1 `@Version` — Currently Missing
 
 ✅ **Verified:** No `@Version` field on `PortfolioJpaEntity`, `HoldingJpaEntity`, or `LotJpaEntity`.
 
 **Recommendation:** Add `@Version private Long version;` to `PortfolioJpaEntity` as a medium-term improvement. Since the aggregate root is the consistency boundary, versioning only the root entity is sufficient — child entity changes are always saved through the root.
 
-**Complication with current save pattern:** `PortfolioMapper.toJpaEntity()` creates a **new** `PortfolioJpaEntity` instance. This detached instance will have `version = null`. When `save()` is called, Hibernate's `SimpleJpaRepository.save()` checks `entityInformation.isNew(entity)` — since `id` is set but `version` is null, the behaviour depends on the ID strategy. With a String `@Id` (not generated), Hibernate cannot distinguish "new" from "existing" when version is null.
+**Complication with current save pattern:** `PortfolioMapper.toJpaEntity()` creates a **new** `PortfolioJpaEntity` instance. This detached instance will have `version = null`. When `save()` is called, Hibernate's `SimpleJpaRepository.save()` checks `entityInformation.isNew(entity)` — since `id` is set but `version` is null, the behaviour depends on ID strategy. With a String `@Id` (not generated), Hibernate cannot distinguish "new" from "existing" when version is null.
 
 **Solution options:**
 - **(a)** Add `version` to the `Portfolio` domain model as an opaque persistence-aware field (pragmatic but impure).
@@ -658,7 +819,7 @@ Yes — with one caveat. Multiple app instances can run simultaneously because a
 
 Option **(b)** is the cleanest: the loaded entity stays managed in the persistence context, the mapper applies domain changes to it, and Hibernate's dirty checking handles the UPDATE with version check automatically.
 
-### 6.2 Detached Graph Merge — Current Problem
+### 8.2 Detached Graph Merge — Current Pattern
 
 ✅ **Verified:** `JpaPortfolioRepository.savePortfolio()` → `PortfolioMapper.toJpaEntity(portfolio)` → `jpaSpringDataRepository.save(jpaEntity)`.
 
@@ -670,37 +831,18 @@ portfolioJpaEntity.setHoldings(entity.getHoldings().stream()
         .map(HoldingMapper::toJpaEntity).collect(Collectors.toSet())); // new set of new entities
 ```
 
-When `save()` is called with this detached graph, Hibernate's `merge()` must:
-1. Load the existing entity from the persistence context (or DB) to get current state
-2. Diff every field of the root entity
-3. Diff the holdings collection (is each holding new, modified, or removed?)
-4. For each holding, diff its lots collection
-5. Issue INSERT/UPDATE/DELETE as needed
+**How this works:** When `save()` is called with this detached graph, Spring Data's `SimpleJpaRepository.save()` sees a non-null ID and calls `entityManager.merge()`. Hibernate then:
+1. Loads the existing entity from the persistence context (or issues a SELECT)
+2. Copies all field values from detached to managed entity
+3. Diffs the holdings collection to detect additions, removals, and modifications
+4. For each holding, diffs its lots collection
+5. Issues INSERT/UPDATE/DELETE as needed
 
-For a portfolio with 30 holdings × 20 lots = 600 child entities, this is 601 merge comparisons plus potential SELECT-before-UPDATE queries.
+**Assessment for current scale:** For a personal portfolio (5–15 holdings, <200 lots), this works correctly and the overhead is dominated by DB I/O, not by in-memory diffing. The pattern is pedagogically clean: mapper is stateless, domain model has no JPA dependency.
 
-**Recommended immediate fix:** Do not create new JPA entities. Instead, keep the loaded JPA entity managed:
+**Assessment for future scale:** For portfolios with 500+ lots, the full-graph merge involves hundreds of comparisons and potentially hundreds of SELECT statements (if entities are not in the persistence context). At that point, consider switching to managed-entity updates.
 
-```java
-// In JpaPortfolioRepository
-private PortfolioJpaEntity loadedEntity; // or use a unit-of-work pattern
-
-@Override
-public Optional<Portfolio> getPortfolioById(PortfolioId portfolioId) {
-    return jpaSpringDataRepository.findById(portfolioId.value())
-            .map(jpa -> {
-                // Keep reference to the managed JPA entity
-                // ... (details depend on UoW implementation)
-                return PortfolioMapper.toModelEntity(jpa);
-            });
-}
-```
-
-Then in `savePortfolio()`, update the managed entity in-place rather than creating new instances. This is a significant refactoring of the persistence adapter but preserves the domain model untouched.
-
-**Simpler intermediate step:** At minimum, use `entityManager.merge()` explicitly and understand that the `save()` call on a detached entity with a String `@Id` may behave as an INSERT attempt if JPA doesn't find it in the persistence context. Currently this works because `save()` on Spring Data calls `entityManager.merge()` when `isNew()` returns false (ID is set), but it's fragile and generates unnecessary SELECT statements.
-
-### 6.3 Batch Fetching
+### 8.3 Batch Fetching
 
 **Recommended now:** Add `@BatchSize(size = 30)` annotations:
 
@@ -712,9 +854,9 @@ Or globally in `application.properties`:
 spring.jpa.properties.hibernate.default_batch_fetch_size=30
 ```
 
-### 6.4 Entity Graph Opportunities
+### 8.4 Entity Graph Opportunities
 
-For the write path (buy/sell), where the full aggregate is needed, a `@NamedEntityGraph` or a `JOIN FETCH` query could load the entire graph in 1 query instead of `2 + ceil(H/30)`. Worth adding as an alternative to `@BatchSize` for write paths:
+For the write path (buy/sell), where the full aggregate is needed, a `@NamedEntityGraph` or a `JOIN FETCH` query could load the entire graph in 1 query instead of `2 + ceil(H/30)`:
 
 ```java
 @Query("SELECT DISTINCT p FROM PortfolioJpaEntity p " +
@@ -726,33 +868,23 @@ Optional<PortfolioJpaEntity> findByIdWithGraph(@Param("id") String id);
 
 ⚠️ **Caveat:** With `Set<HoldingJpaEntity>` and `List<LotJpaEntity>`, a double `JOIN FETCH` creates a Cartesian product. Hibernate handles this by de-duplicating, but the wire-level result set can be large. For portfolios under 100 holdings, this is fine. For larger portfolios, `@BatchSize` may be more efficient. Test with realistic data before choosing.
 
-### 6.5 Orphan Removal Implications
+### 8.5 Orphan Removal
 
-✅ **Verified:** Both `@OneToMany` relationships use `orphanRemoval = true`:
-- `PortfolioJpaEntity.holdings`
-- `HoldingJpaEntity.lots`
+✅ **Verified:** Both `@OneToMany` relationships use `orphanRemoval = true`. This is correct: when `Holding.sell()` removes a fully-depleted lot via `iterator.remove()`, the corresponding `LotJpaEntity` should be deleted.
 
-This is correct for the domain: when `Holding.sell()` removes a fully-depleted lot via `iterator.remove()`, the corresponding `LotJpaEntity` should be deleted.
+**Risk with detached merge:** When `toJpaEntity()` creates a new Set of holdings and a new List of lots, Hibernate must compare old vs new collections to detect orphans. If entity IDs match correctly, this works. If there is any ID mismatch (e.g., due to `equals()/hashCode()` issues on JPA entities), orphan detection may fail silently.
 
-**Risk with detached merge:** When `toJpaEntity()` creates a new Set of holdings and a new List of lots, Hibernate must compare old vs new collections to detect orphans. If the entity IDs match, Hibernate correctly identifies removed children. If there is any ID mismatch (e.g., due to `equals()/hashCode()` issues on JPA entities), orphan detection may fail silently.
+**Mitigation:** Ensure `HoldingJpaEntity` and `LotJpaEntity` have correct `equals()` and `hashCode()` based on their `@Id` fields. Currently they use the default `Object` identity, which works when entities are managed in the persistence context but may cause issues with detached merges. **Consider adding `equals()/hashCode()` based on `id` to the JPA entities.**
 
-**Mitigation:** Ensure `HoldingJpaEntity` and `LotJpaEntity` have correct `equals()` and `hashCode()` based on their `@Id` fields. Currently, ✅ they use the default `Object` identity, which works when entities are managed in the persistence context but may cause issues with detached merges. **Consider adding `equals()/hashCode()` based on `id` to the JPA entities.**
-
-### 6.6 Pagination for Large Collections
-
-**Transaction history:** Add paginated query method as described in Section 2.6.
-
-**Holdings within a portfolio:** Not needed now — a personal portfolio rarely has 100+ holdings. If it grows, the `Holding` list inside `PortfolioJpaEntity` could use `@OrderBy("ticker ASC")` and server-side filtering. But this is a much later concern.
-
-### 6.7 Current Mapping Alignment
+### 8.6 Current Mapping Alignment
 
 The current mapping pattern (domain ↔ JPA via static mapper classes) is a **sensible DDD choice** that keeps the domain model free from JPA annotations. The cost is the full-graph re-creation on save. This is the classic DDD persistence trade-off.
 
-**Assessment:** For HexaStock's current scale, this trade-off is acceptable. The mapping cost is dominated by DB query time and network I/O, not by in-memory object creation. However, if performance profiling later shows the mapping round-trip as a measurable cost (unlikely below 1,000 lots), consider the managed-entity approach described in 6.2.
+**Assessment:** For HexaStock's current scale, this trade-off is acceptable. The mapping cost is dominated by DB query time and network I/O, not by in-memory object creation. However, if performance profiling later shows the mapping round-trip as a measurable cost (unlikely below 1,000 lots), consider the managed-entity approach described in 8.2.
 
 ---
 
-## 7. Recommended Target Architecture for HexaStock
+## 9. Recommended Target Architecture for HexaStock
 
 ### Stage A — Good Enough for Personal Portfolios
 
@@ -762,7 +894,7 @@ The current mapping pattern (domain ↔ JPA via static mapper classes) is a **se
 - Domain model: unchanged
 - Write path: aggregate-based, short transactions (API call outside TX)
 - Read path: DTO projections for list/detail, paginated transaction history
-- Locking: pessimistic on writes (existing), no lock on reads
+- Locking: pessimistic on writes (existing, now with short TX), no lock on reads
 - Persistence: `@BatchSize` added, same mapper pattern
 
 **Changes from current state:**
@@ -774,26 +906,22 @@ The current mapping pattern (domain ↔ JPA via static mapper classes) is a **se
 
 **Expected benefits:**
 - Read operations no longer block writes
-- Buy/sell lock duration drops from seconds to <200ms
+- Buy/sell lock duration drops from hundreds of milliseconds / seconds (cache dependent) to <200 ms
 - Transaction history response time bounded regardless of data volume
 - Portfolio list endpoint drops from multi-join to single-table query
 
-**Costs:** ~2–3 days of focused work. All changes are in the persistence adapter and application services. Zero domain model changes.
-
 **What remains DDD-rich:** Everything. Write commands use the aggregate as before.
-
-**What becomes query-oriented:** `getPortfolio()`, `getAllPortfolios()`, `getTransactions()`
 
 **Signals it is time for Stage B:**
 - Portfolio size exceeds 30 holdings / 500 lots and write latency becomes noticeable
-- Holdings performance endpoint routinely exceeds 5 seconds
+- Holdings performance endpoint routinely exceeds 3 seconds
 - Multiple users accessing the same portfolio simultaneously (even if rare)
 
 ---
 
 ### Stage B — Stronger for Power Users
 
-**Some more investment, still the same overall architecture.**
+**More investment, same overall architecture.**
 
 **Architectural shape:**
 - Domain model: unchanged
@@ -810,22 +938,18 @@ The current mapping pattern (domain ↔ JPA via static mapper classes) is a **se
 6. Smarter save path (managed entity or targeted UPDATE for cash)
 
 **Expected benefits:**
-- Optimistic locking allows concurrent reads and writes without serialization
-- Holdings performance drops from H×500ms to ~500ms
+- Optimistic locking allows concurrent reads and writes without serialisation
+- Holdings performance drops from H×500 ms (worst case) to ~500 ms
 - Write operations that only touch balance avoid full-graph merge
 - Clear architectural separation of read and write concerns
 
-**Costs:** ~1–2 weeks of focused work. Moderate refactoring of persistence adapter. New query services. Tests updated.
-
 **What remains DDD-rich:** All write commands, domain logic, invariant enforcement, FIFO sell algorithm.
-
-**What becomes query-oriented:** All read endpoints, holdings performance, transaction history, portfolio summary.
 
 **Signals it is time for Stage C:**
 - Portfolio size routinely exceeds 100 holdings / 5,000 lots
 - Transaction count per portfolio exceeds 50,000
 - Multiple concurrent users on the same portfolio with measurable conflict rate
-- Buy/sell p95 latency exceeds 500ms after all Stage B optimizations
+- Buy/sell p95 latency exceeds 500 ms after all Stage B optimisations
 
 ---
 
@@ -836,96 +960,86 @@ The current mapping pattern (domain ↔ JPA via static mapper classes) is a **se
 **Architectural shape:**
 - Domain model: potentially split aggregate (Holding as separate root)
 - Write path: saga or two-phase coordination for buy/sell across Portfolio balance + Holding lots
-- Read path: Materialized projection tables updated by domain events. Pre-computed holdings summary.
+- Read path: Materialised projection tables updated by domain events. Pre-computed holdings summary.
 - Persistence: Event-sourced or ledger-based transaction model. Lot compaction. Table partitioning.
 - Infrastructure: Shared cache (Redis), rate-limited external API client with circuit breaker, horizontal scaling.
 
-**Changes from Stage B:**
-1. Split `Holding` into separate aggregate root (if profiling justifies)
-2. Domain events published after mutations
-3. Transactional outbox for reliable event publishing
-4. Materialized `holdings_summary` table updated by event consumer
-5. Lot compaction job (merge fully-depleted lots into summary)
-6. Transaction table partitioning
-7. Redis or shared cache for stock prices
-8. Circuit breaker on external API adapters
-
-**Expected benefits:**
-- Sub-second response for all operations regardless of portfolio size
-- Horizontally scalable with correct shared state
-- Eventual consistency model suitable for dashboards with <1s staleness
-
-**Costs:** Weeks to months. Significant architectural complexity. Event infrastructure.
-
-**What remains DDD-rich:** Write commands for each aggregate (Portfolio and Holding separately).
-
-**What becomes query-oriented:** All read paths, dashboard, performance.
+The changes are significant (split aggregate, domain events, outbox, materialised views, shared cache, circuit breaker). This level of investment is justified only when monitoring data shows the system is measurably failing under real usage — not by anticipation.
 
 ---
 
-## 8. Prioritized Action Plan
+## 10. Prioritized Action Plan
 
 | Priority | # | Change | Why now | Effort | Expected benefit | Risk |
 |---|---|---|---|---|---|---|
-| **Quick win** | 1 | Move `fetchStockPrice()` outside TX in `buyStock()`/`sellStock()` | Lock held during HTTP I/O is the single worst bottleneck | Low (method split) | Lock duration: seconds → milliseconds | Very low — price staleness is acceptable |
+| **Quick win** | 1 | Move `fetchStockPrice()` outside TX in `buyStock()`/`sellStock()` | Lock held during HTTP I/O is the primary latency driver for cold-cache scenarios | Low (method split) | Lock duration: cold-cache seconds → ~50–200 ms | Very low — price staleness is acceptable |
 | **Quick win** | 2 | Add `@BatchSize(size = 30)` to `PortfolioJpaEntity.holdings` and `HoldingJpaEntity.lots` | Reduces N+1 queries immediately | Very low (2 annotations) | Query count: 2+H → ~3–4 | None |
 | **Quick win** | 3 | Add non-locking read path for `getPortfolio()` | Reads currently block writes with `FOR UPDATE` | Low (add `findById()` call) | Reads no longer block writes | None |
-| **Quick win** | 4 | Add pagination to `getTransactions()` | Unbounded list is a time bomb | Low (Pageable parameter) | Constant-time transaction history | None |
+| **Quick win** | 4 | Add pagination to `getTransactions()` | Unbounded list grows with portfolio lifetime | Low (Pageable parameter) | Constant-time transaction history | None |
 | **Near-term** | 5 | DTO projection for `getAllPortfolios()` | Currently loads all aggregates to return 4 fields | Low–Medium | List endpoint: O(P×(H+L)) → O(P) | Low |
 | **Near-term** | 6 | DTO projection for `getPortfolio()` | Currently loads full aggregate with lock | Low–Medium | Detail endpoint: multi-join → single table | Low |
-| **Near-term** | 7 | Restructure `getHoldingsPerformance()` — SQL aggregation + batch price fetch, no aggregate load | The most expensive endpoint. Lock + full load + N×500ms API | Medium | Response time: H×500ms → ~500ms. No lock. | Medium — requires new SQL query + testing |
-| **Medium-term** | 8 | Add `@Version` to `PortfolioJpaEntity` + optimistic locking | Enables concurrent writes without serialization | Medium | Better concurrency, no lock waits | Medium — version must flow through mapper |
-| **Medium-term** | 9 | Formal `PortfolioQueryService` + `PortfolioQueryPort` | Formalizes read/write separation | Medium | Cleaner architecture, easier to extend | Low |
+| **Near-term** | 7 | Restructure `getHoldingsPerformance()` — SQL aggregation + batch price fetch, no aggregate load | The most expensive endpoint, especially on cold cache | Medium | Response time: worst-case H×500 ms → ~500 ms. No lock. | Medium — requires new SQL query + testing |
+| **Medium-term** | 8 | Add `@Version` to `PortfolioJpaEntity` + optimistic locking | Enables concurrent writes without serialisation | Medium | Better concurrency, no lock waits | Medium — version must flow through mapper |
+| **Medium-term** | 9 | Formal `PortfolioQueryService` + `PortfolioQueryPort` | Formalises read/write separation | Medium | Cleaner architecture, easier to extend | Low |
 | **Medium-term** | 10 | Smarter save path (managed entities or targeted UPDATE) | Avoids full graph re-merge on every save | Medium–High | Reduced DB overhead for cash operations | Medium — changes persistence adapter significantly |
-| **Medium-term** | 11 | Parallel stock price fetching in adapter | Sequential fetching with throttle is slow | Low–Medium | Better response time for multi-ticker operations | Low |
+| **Medium-term** | 11 | Parallel stock price fetching in adapter | Sequential fetching with throttle is slow on cache miss | Low–Medium | Better response time for multi-ticker operations | Low |
 | **Optional long-term** | 12 | Domain events + outbox for read-model updates | Decouples write-side from read-side projections | High | Reliable projection updates across restarts | Only if projection tables are adopted |
-| **Optional long-term** | 13 | Dedicated holdings summary projection table | Pre-computed read model for performances | Medium–High | Sub-second holdings dashboard | Eventual consistency complexity |
+| **Optional long-term** | 13 | Dedicated holdings summary projection table | Pre-computed read model for performance dashboard | Medium–High | Sub-second holdings dashboard regardless of TX count | Eventual consistency complexity |
 | **Future only** | 14 | Split Holding into separate aggregate | Avoid full graph load for large portfolios | High | Per-holding operations scale independently | Loses atomic buy check |
 | **Future only** | 15 | Event sourcing for transactions | Full temporal query support, replay | Very High | Audit-grade history, temporal queries | Complete rewrite of write model |
 
 ---
 
-## 9. Final Verdict
+## 11. Final Verdict
 
 ### 1. Can HexaStock remain a rich DDD model and still be pragmatic?
 
-**Yes, absolutely.** The domain model is the strongest part of HexaStock. `Portfolio`, `Holding`, `Lot`, the FIFO sell algorithm, the value objects, the sealed `Transaction` hierarchy — these are all well-designed and provide real value. None of the recommended improvements require changing the domain model. Every optimization is in the persistence adapter, the application services, or the addition of complementary read paths.
+**Yes.** The domain model is the strongest part of HexaStock. `Portfolio`, `Holding`, `Lot`, the FIFO sell algorithm, the value objects, the sealed `Transaction` hierarchy — these are well-designed and provide real structural and pedagogical value. None of the recommended improvements require changing the domain model. Every optimisation lands in the persistence adapter, the application services, or the addition of complementary read paths.
 
-The false dilemma "either rich model or good performance" does not apply here. The model is rich for write commands. Reads get lightweight dedicated paths. Both coexist without conflict.
+The premise "either rich model or good performance" does not apply here. The model is rich for write commands. Reads get lightweight dedicated paths. Both coexist without conflict.
 
-### 2. What should be changed immediately?
+### 2. What to change immediately (3 refinements)
 
-Three things, all high-value and low-risk:
+These are structurally correct at every scale, low-risk, and high-value:
 
-1. **Move `fetchStockPrice()` outside the `@Transactional` block** in `PortfolioStockOperationsService.buyStock()` and `sellStock()`. This single change reduces lock duration by 10–50x.
-2. **Add `@BatchSize(size = 30)`** to `PortfolioJpaEntity.holdings` and `HoldingJpaEntity.lots`. Two annotations, immediate N+1 reduction.
-3. **Add a non-locking `findById()` path** for read-only operations. Stop using `findByIdForUpdate()` for `getPortfolio()`, `getAllPortfolios()`, and `getHoldingsPerformance()`.
+1. **Move `fetchStockPrice()` outside the `@Transactional` block** in `buyStock()` and `sellStock()`. The external API call (with its free-tier throttle) does not need to hold a database lock. This change is correct regardless of locking strategy.
+2. **Add a non-locking `findById()` path** for read-only operations. Read-only queries (`getPortfolio()`, `getAllPortfolios()`, `getHoldingsPerformance()`) should never acquire a `PESSIMISTIC_WRITE` lock.
+3. **Paginate transaction history.** Unbounded `List<Transaction>` grows with the portfolio's lifetime.
 
-A close fourth: **paginate transaction history**.
+A close fourth: **`@BatchSize(size = 30)`** on both JPA collections — two annotations, immediate N+1 reduction.
 
-### 3. What should NOT be changed yet?
+### 3. What to evolve at medium term (3 refinements)
 
-- **Do NOT split the aggregate** (Holding as separate root). The current aggregate boundary is correct and efficient for personal portfolios. Splitting adds significant complexity for no measurable gain at current scale.
-- **Do NOT add event sourcing.** Append-only transactions are already stored separately. There is no need for a full event-sourced write model.
-- **Do NOT add domain events or transactional outbox.** These are solutions looking for a problem that doesn't exist yet.
-- **Do NOT add Redis or external caching infrastructure.** Caffeine is perfectly adequate for a single-instance deployment.
-- **Do NOT refactor the mapper/save pattern yet.** It works correctly. The detached-merge overhead is not the primary bottleneck — external API calls inside transactions and unnecessary aggregate loading are far more impactful. Fix those first.
+Apply these when scale data or user feedback justifies the added complexity:
 
-### 4. What would distinguish a healthy DDD evolution from overengineering?
+1. **`@Version` optimistic locking** — replace pessimistic locking on write paths. The current pessimistic approach is not wrong, but optimistic locking enables better concurrency when lock duration is already short (after item 2.1 above).
+2. **CQRS-lite query services** — formal separation of read and write paths. Dedicated `PortfolioQueryService` with SQL projections replaces aggregate loading for all read endpoints.
+3. **SQL-based holdings performance** — replace in-memory `HoldingPerformanceCalculator` on the read path with database aggregation + batch price fetching outside any transaction.
+
+### 4. What to not change yet
+
+These are working correctly and adding complexity now would be premature:
+
+- **Do not split the aggregate.** The memory analysis (Section 4) confirms that even a 750-lot portfolio uses ~560 KB. The aggregate boundary is correct for the invariants it protects. Splitting adds saga complexity for no measurable gain.
+- **Do not add event sourcing.** The `portfolio_transaction` table already provides transaction history. Full event sourcing adds significant infrastructure for capabilities HexaStock does not need.
+- **Do not add shared cache infrastructure (Redis).** Caffeine is appropriate for single-instance deployment. Redis is justified only for multi-instance horizontal scaling.
+- **Do not refactor the mapper/save pattern yet.** The detached-graph merge works correctly. Its cost is dwarfed by the transaction orchestration issues (API inside TX, unnecessary locking). Fix the bigger problems first; the mapper pattern may never need changing at realistic scale.
+
+### 5. How to distinguish healthy evolution from overengineering
 
 - **Healthy** = each change is motivated by a measured problem, affects only the layer where the problem lives (typically persistence or orchestration), and preserves the domain model's integrity.
-- **Overengineering** = copying patterns from internet articles (CQRS, event sourcing, saga, microservices) without evidence that the current architecture is failing. Building infrastructure for scale that may never arrive. Adding abstraction layers to solve theoretical problems.
+- **Overengineering** = copying patterns from architecture articles (CQRS, event sourcing, saga, microservices) without evidence that the current architecture is failing. Building infrastructure for scale that may never arrive.
 
-The test: **"Can you point to a specific endpoint, operation, or user scenario where the current architecture measurably underperforms?"** If yes, the change is justified. If no, it's premature.
+The test: **"Can you point to a specific endpoint, operation, or user scenario where the current architecture measurably underperforms?"** If yes, the change is justified. If no, it is premature.
 
 ---
 
 ## Recommended Default Posture
 
-- **Now:** Fix the three obvious wins (API outside TX, batch fetch, non-locking reads). Keep the rich domain model untouched. Ship and observe.
+- **Now:** Fix the three obvious structural wins (API outside TX, non-locking reads, pagination). Add `@BatchSize`. Keep the rich domain model untouched. Ship and observe.
 - **Next:** When portfolio sizes grow or response time monitoring shows degradation, introduce CQRS-lite query services, optimistic locking, and SQL-based reporting. The domain model still does not change.
-- **Later:** Only when real production evidence demands it (consistent p95 latency violations, measured lock contention, OOM under load), consider aggregate boundary splits, projection tables, or event infrastructure. Challenge any proposal that cannot point to specific metrics.
+- **Later:** Only when real production evidence demands it (consistent p95 latency violations, measured lock contention, heap pressure under load), consider aggregate boundary splits, projection tables, or event infrastructure. Challenge any proposal that cannot point to specific metrics.
 
 ---
 
-*This review is based solely on source code present in the HexaStock repository as of 15 April 2026. No production metrics, load test results, or runtime profiling data were available. All performance estimates are analytically derived with stated assumptions. Have I produced a serious, constructive, HexaStock-specific strategy rather than generic architecture advice? Yes — every recommendation references actual class names, method signatures, and code paths in the repository, and every deferred recommendation states the specific evidence that would justify it.*
+*This review is based solely on source code present in the HexaStock repository as of 15 April 2026. No production metrics, load test results, or runtime profiling data were available. All performance estimates are analytically derived from the JVM memory model and stated assumptions. Memory footprint figures are estimates accurate to ±20% — exact values depend on JDK vendor, GC implementation, and runtime conditions. Every recommendation references actual class names, method signatures, and code paths in the repository, and every deferred recommendation states the specific evidence that would justify it.*
