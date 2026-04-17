@@ -52,7 +52,7 @@ Behaviour is defined as Gherkin scenarios before any design decisions are made. 
 
 ## Ubiquitous Language
 
-Domain-Driven Design demands a single, shared vocabulary — **Ubiquitous Language** — that appears consistently across Gherkin scenarios, domain classes, diagrams, tests, REST endpoints, and package names. In HexaStock, terms like *Portfolio*, *Holding*, *Lot*, *proceeds*, *costBasis*, and *FIFO* form this vocabulary; each term means the same thing in every artifact, and terminology drift is treated as a modelling defect.
+As introduced by Eric Evans, the **Ubiquitous Language** is a rigorous, shared language deliberately cultivated by domain experts and software practitioners around a bounded context, and it must permeate every expression of the model — spoken, written, or encoded in software [Evans, 2003]. Its role is not merely terminological: it is the primary instrument through which domain understanding is made explicit, discussed, refined, and preserved. In practice, this language naturally surfaces in artefacts such as Gherkin scenarios, domain classes, tests, architectural diagrams, and REST APIs, where it must remain strictly consistent. In HexaStock, terms like *Portfolio*, *Holding*, *Lot*, *proceeds*, *costBasis*, and *FIFO* constitute this vocabulary; each term carries the same meaning wherever it appears, and any terminology drift is treated as a modelling defect.
 
 For the full treatment — including a cross-artifact traceability table, concrete examples from the sell-stock use case, and a discussion of what goes wrong without consistent naming — see the companion document **[Ubiquitous Language in HexaStock](UBIQUITOUS-LANGUAGE.md)**.
 
@@ -1285,7 +1285,7 @@ For broader acknowledgements covering the HexaStock project as a whole, see [Ack
 ### Foundational Works
 
 - Cockburn, Alistair. "Hexagonal Architecture (Ports and Adapters)." *alistair.cockburn.us*, 2005. https://alistair.cockburn.us/hexagonal-architecture/
-- Evans, Eric. *Domain-Driven Design: Tackling Complexity in the Heart of Software.* Addison-Wesley, 2003.
+- Evans, Eric. *Domain-Driven Design: Tackling Complexity in the Heart of Software.* Addison-Wesley, 2003. See especially Chapter 2, "Communication and the Use of Language," for the foundational definition of Ubiquitous Language.
 - Evans, Eric. *Domain-Driven Design Reference: Definitions and Pattern Summaries.* Dog Ear Publishing, 2014.
 - Vernon, Vaughn. *Implementing Domain-Driven Design.* Addison-Wesley, 2013.
 - Fowler, Martin. "Ubiquitous Language." *martinfowler.com*, 2006. https://martinfowler.com/bliki/UbiquitousLanguage.html
