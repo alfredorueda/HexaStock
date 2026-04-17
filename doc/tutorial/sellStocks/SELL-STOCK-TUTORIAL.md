@@ -113,6 +113,13 @@ User stories typically capture the intent of a feature at a high level, but they
 
 The Gherkin scenarios below describe what the system must do in business terms, independent of any technical design decisions.
 
+<!--
+  Link strategy: this intentionally points to the canonical GitHub markdown source rather than
+  a relative path or a GitBook-internal anchor. GitBook's slug-generation rules for headings
+  containing punctuation (em dashes, dots, IDs like "US-07") are not guaranteed to match
+  GitHub's, so a relative anchor would render unreliably under GitBook. The absolute GitHub
+  URL with the GitHub-generated fragment is stable and resolves correctly from both renderers.
+-->
 **Source of truth:** [US-07 — Sell Stocks (API Specification)](https://github.com/alfredorueda/HexaStock/blob/main/doc/stock-portfolio-api-specification.md#27-us-07--sell-stocks)
 
 > **Canonical Gherkin:** [`doc/features/sell-stocks.feature`](../../features/sell-stocks.feature) — the scenarios below are reproduced for readability; the `.feature` file is the single source referenced by `@SpecificationRef` annotations in tests.
