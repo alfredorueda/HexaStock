@@ -70,7 +70,6 @@ public class TransactionService implements TransactionUseCase {
      */
     @Override
     public List<Transaction> getTransactions(String portfolioId, Optional<String> type) {
-        List<Transaction> transactions = transactionPort.getTransactionsByPortfolioId(PortfolioId.of(portfolioId));
-        return transactions;
+        return transactionPort.getTransactionsByPortfolioId(PortfolioId.of(portfolioId));
     }
 }

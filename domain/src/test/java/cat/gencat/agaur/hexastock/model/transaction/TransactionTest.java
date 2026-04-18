@@ -59,15 +59,17 @@ class TransactionTest {
         @Test
         @DisplayName("rejects non-positive amount")
         void rejectsZeroAmount() {
+            Money zero = Money.of("0.00");
             assertThrows(IllegalArgumentException.class,
-                    () -> new DepositTransaction(TID, PID, Money.of("0.00"), NOW));
+                    () -> new DepositTransaction(TID, PID, zero, NOW));
         }
 
         @Test
         @DisplayName("rejects negative amount")
         void rejectsNegativeAmount() {
+            Money negative = Money.of("-10.00");
             assertThrows(IllegalArgumentException.class,
-                    () -> new DepositTransaction(TID, PID, Money.of("-10.00"), NOW));
+                    () -> new DepositTransaction(TID, PID, negative, NOW));
         }
     }
 
@@ -99,8 +101,9 @@ class TransactionTest {
         @Test
         @DisplayName("rejects zero amount")
         void rejectsZeroAmount() {
+            Money zero = Money.of("0.00");
             assertThrows(IllegalArgumentException.class,
-                    () -> new WithdrawalTransaction(TID, PID, Money.of("0.00"), NOW));
+                    () -> new WithdrawalTransaction(TID, PID, zero, NOW));
         }
     }
 
@@ -136,10 +139,12 @@ class TransactionTest {
         @Test
         @DisplayName("rejects zero quantity")
         void rejectsZeroQuantity() {
+            Price unitPrice = Price.of("100.00");
+            Money totalAmount = Money.of("0.00");
             assertThrows(IllegalArgumentException.class,
                     () -> new PurchaseTransaction(TID, PID, AAPL,
-                            ShareQuantity.ZERO, Price.of("100.00"),
-                            Money.of("0.00"), NOW));
+                            ShareQuantity.ZERO, unitPrice,
+                            totalAmount, NOW));
         }
     }
 
@@ -165,10 +170,12 @@ class TransactionTest {
         @Test
         @DisplayName("rejects zero quantity")
         void rejectsZeroQuantity() {
+            Price unitPrice = Price.of("100.00");
+            Money totalAmount = Money.of("0.00");
             assertThrows(IllegalArgumentException.class,
                     () -> new SaleTransaction(TID, PID, AAPL,
-                            ShareQuantity.ZERO, Price.of("100.00"),
-                            Money.of("0.00"), Money.ZERO, NOW));
+                            ShareQuantity.ZERO, unitPrice,
+                            totalAmount, Money.ZERO, NOW));
         }
     }
 

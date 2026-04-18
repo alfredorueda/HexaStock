@@ -6,7 +6,11 @@ import cat.gencat.agaur.hexastock.model.transaction.*;
 import cat.gencat.agaur.hexastock.model.market.*;
 import cat.gencat.agaur.hexastock.model.money.*;
 
-public class TransactionMapper {
+public final class TransactionMapper {
+
+    private TransactionMapper() {
+        // Utility class - prevent instantiation
+    }
 
     public static Transaction toModelEntity(TransactionJpaEntity e) {
         return switch (e.getType()) {

@@ -2,11 +2,14 @@ package cat.gencat.agaur.hexastock.adapter.out.persistence.jpa.mapper;
 
 import cat.gencat.agaur.hexastock.adapter.out.persistence.jpa.entity.LotJpaEntity;
 import cat.gencat.agaur.hexastock.model.portfolio.*;
-import cat.gencat.agaur.hexastock.model.transaction.*;
-import cat.gencat.agaur.hexastock.model.market.*;
 import cat.gencat.agaur.hexastock.model.money.*;
 
-public class LotMapper {
+public final class LotMapper {
+
+    private LotMapper() {
+        // Utility class - prevent instantiation
+    }
+
     public static Lot toModelEntity(LotJpaEntity jpaEntity) {
         return new Lot(
                 LotId.of(jpaEntity.getId()),

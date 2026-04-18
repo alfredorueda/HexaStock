@@ -144,8 +144,9 @@ class HoldingTest {
         @SpecificationRef(value = "US-07.AC-3", level = TestLevel.DOMAIN)
         void shouldThrowExceptionWhenSellingMoreSharesThanAvailable() {
             holding.buy(ShareQuantity.of(10), PRICE_100);
+            ShareQuantity excessive = ShareQuantity.of(15);
 
-            assertThrows(ConflictQuantityException.class, () -> holding.sell(ShareQuantity.of(15), PRICE_110));
+            assertThrows(ConflictQuantityException.class, () -> holding.sell(excessive, PRICE_110));
         }
 
         @Test

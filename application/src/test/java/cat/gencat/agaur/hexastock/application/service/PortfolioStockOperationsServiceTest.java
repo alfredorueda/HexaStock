@@ -85,10 +85,11 @@ class PortfolioStockOperationsServiceTest {
                 feature = "buy-stocks.feature")
         void throwsWhenPortfolioNotFound() {
             PortfolioId id = PortfolioId.of("non-existent");
+            ShareQuantity qty = ShareQuantity.of(5);
             when(portfolioPort.getPortfolioById(id)).thenReturn(Optional.empty());
 
             assertThrows(PortfolioNotFoundException.class,
-                    () -> service.buyStock(id, AAPL, ShareQuantity.of(5)));
+                    () -> service.buyStock(id, AAPL, qty));
 
             verifyNoInteractions(stockPriceProviderPort);
             verifyNoInteractions(transactionPort);
@@ -153,10 +154,11 @@ class PortfolioStockOperationsServiceTest {
         @DisplayName("should throw PortfolioNotFoundException for unknown portfolio")
         void throwsWhenPortfolioNotFound() {
             PortfolioId id = PortfolioId.of("non-existent");
+            ShareQuantity qty = ShareQuantity.of(5);
             when(portfolioPort.getPortfolioById(id)).thenReturn(Optional.empty());
 
             assertThrows(PortfolioNotFoundException.class,
-                    () -> service.sellStock(id, AAPL, ShareQuantity.of(5)));
+                    () -> service.sellStock(id, AAPL, qty));
 
             verifyNoInteractions(stockPriceProviderPort);
             verifyNoInteractions(transactionPort);

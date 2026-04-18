@@ -25,7 +25,11 @@ import java.util.stream.Collectors;
  * a clean separation between the domain and persistence layers, allowing each to evolve
  * independently while preserving the integrity of the domain model.</p>
  */
-public class PortfolioMapper {
+public final class PortfolioMapper {
+
+    private PortfolioMapper() {
+        // Utility class - prevent instantiation
+    }
 
     /**
      * Converts a PortfolioJpaEntity to a Portfolio domain object.

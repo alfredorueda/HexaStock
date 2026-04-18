@@ -1,6 +1,5 @@
 package cat.gencat.agaur.hexastock.model.portfolio;
 
-import cat.gencat.agaur.hexastock.model.money.InvalidAmountException;
 import cat.gencat.agaur.hexastock.model.money.Money;
 import cat.gencat.agaur.hexastock.model.money.Price;
 import cat.gencat.agaur.hexastock.model.money.ShareQuantity;

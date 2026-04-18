@@ -7,9 +7,6 @@ import cat.gencat.agaur.hexastock.application.port.out.PortfolioPort;
 import cat.gencat.agaur.hexastock.application.port.out.StockPriceProviderPort;
 import cat.gencat.agaur.hexastock.application.port.out.TransactionPort;
 import cat.gencat.agaur.hexastock.model.portfolio.*;
-import cat.gencat.agaur.hexastock.model.transaction.*;
-import cat.gencat.agaur.hexastock.model.market.*;
-import cat.gencat.agaur.hexastock.model.money.*;
 import cat.gencat.agaur.hexastock.model.portfolio.HoldingPerformanceCalculator;
 import jakarta.transaction.Transactional;
 

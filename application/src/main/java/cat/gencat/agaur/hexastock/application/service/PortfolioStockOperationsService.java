@@ -13,8 +13,6 @@ import cat.gencat.agaur.hexastock.model.money.InvalidQuantityException;
 import cat.gencat.agaur.hexastock.application.exception.PortfolioNotFoundException;
 import jakarta.transaction.Transactional;
 
-import java.math.BigDecimal;
-
 /**
  * PortfolioStockOperationsService implements the core use cases for stock trading operations.
  * 

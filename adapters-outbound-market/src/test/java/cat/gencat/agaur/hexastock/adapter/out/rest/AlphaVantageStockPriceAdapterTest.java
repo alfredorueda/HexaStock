@@ -18,6 +18,8 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 @DisplayName("AlphaVantageStockPriceAdapter – WireMock integration tests")
 class AlphaVantageStockPriceAdapterTest {
 
+    private static final Ticker AAPL = Ticker.of("AAPL");
+
     private AlphaVantageStockPriceAdapter adapter;
 
     @BeforeEach
@@ -61,7 +63,7 @@ class AlphaVantageStockPriceAdapterTest {
                         {"Information": "Rate limit reached"}
                         """)));
 
-        assertThatThrownBy(() -> adapter.fetchStockPrice(Ticker.of("AAPL")))
+        assertThatThrownBy(() -> adapter.fetchStockPrice(AAPL))
                 .isInstanceOf(ExternalApiException.class);
     }
 
@@ -73,7 +75,7 @@ class AlphaVantageStockPriceAdapterTest {
                         {"Global Quote": {"01. symbol": "AAPL"}}
                         """)));
 
-        assertThatThrownBy(() -> adapter.fetchStockPrice(Ticker.of("AAPL")))
+        assertThatThrownBy(() -> adapter.fetchStockPrice(AAPL))
                 .isInstanceOf(ExternalApiException.class);
     }
 
@@ -83,7 +85,7 @@ class AlphaVantageStockPriceAdapterTest {
         stubFor(get(urlPathEqualTo("/"))
                 .willReturn(serverError()));
 
-        assertThatThrownBy(() -> adapter.fetchStockPrice(Ticker.of("AAPL")))
+        assertThatThrownBy(() -> adapter.fetchStockPrice(AAPL))
                 .isInstanceOf(ExternalApiException.class);
     }
 
@@ -95,7 +97,7 @@ class AlphaVantageStockPriceAdapterTest {
                         {"Global Quote": {"05. price": "not-a-number"}}
                         """)));
 
-        assertThatThrownBy(() -> adapter.fetchStockPrice(Ticker.of("AAPL")))
+        assertThatThrownBy(() -> adapter.fetchStockPrice(AAPL))
                 .isInstanceOf(ExternalApiException.class);
     }
 }

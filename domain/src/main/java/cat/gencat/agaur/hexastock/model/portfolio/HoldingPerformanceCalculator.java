@@ -1,9 +1,7 @@
 package cat.gencat.agaur.hexastock.model.portfolio;
 
-import cat.gencat.agaur.hexastock.model.portfolio.*;
 import cat.gencat.agaur.hexastock.model.transaction.*;
 import cat.gencat.agaur.hexastock.model.market.*;
-import cat.gencat.agaur.hexastock.model.money.*;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;

@@ -87,8 +87,9 @@ class LotTest {
         @DisplayName("Should throw exception when reducing by more than remaining")
         void shouldThrowExceptionWhenReducingByMoreThanRemaining() {
             Lot lot = Lot.create(ShareQuantity.of(10), VALID_PRICE);
+            ShareQuantity excessive = ShareQuantity.of(15);
 
-            assertThrows(ConflictQuantityException.class, () -> lot.reduce(ShareQuantity.of(15)));
+            assertThrows(ConflictQuantityException.class, () -> lot.reduce(excessive));
         }
 
         @Test
@@ -96,8 +97,9 @@ class LotTest {
         void shouldThrowExceptionWhenReducingDepletedLot() {
             Lot lot = Lot.create(ShareQuantity.of(10), VALID_PRICE);
             lot.reduce(ShareQuantity.of(10));
+            ShareQuantity one = ShareQuantity.of(1);
 
-            assertThrows(ConflictQuantityException.class, () -> lot.reduce(ShareQuantity.of(1)));
+            assertThrows(ConflictQuantityException.class, () -> lot.reduce(one));
         }
 
         @Test

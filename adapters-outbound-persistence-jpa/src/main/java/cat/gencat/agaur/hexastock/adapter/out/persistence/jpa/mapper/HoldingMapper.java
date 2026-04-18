@@ -5,9 +5,15 @@ import cat.gencat.agaur.hexastock.model.portfolio.Holding;
 import cat.gencat.agaur.hexastock.model.portfolio.HoldingId;
 import cat.gencat.agaur.hexastock.model.market.Ticker;
 
+import java.util.ArrayList;
 import java.util.stream.Collectors;
 
-public class HoldingMapper {
+public final class HoldingMapper {
+
+    private HoldingMapper() {
+        // Utility class - prevent instantiation
+    }
+
     public static Holding toModelEntity(HoldingJpaEntity jpaEntity) {
         Holding holding = new Holding(HoldingId.of(jpaEntity.getId()), Ticker.of(jpaEntity.getTicker()));
         for (var lotJpaEntity : jpaEntity.getLots()) {
@@ -18,7 +24,8 @@ public class HoldingMapper {
 
     public static HoldingJpaEntity toJpaEntity(Holding entity) {
         HoldingJpaEntity holdingJpaEntity = new HoldingJpaEntity(entity.getId().value(), entity.getTicker().value());
-        holdingJpaEntity.setLots(entity.getLots().stream().map(LotMapper::toJpaEntity).collect(Collectors.toList()));
+        // Mutable list because Hibernate may augment/replace it when managing the persistent collection.
+        holdingJpaEntity.setLots(entity.getLots().stream().map(LotMapper::toJpaEntity).collect(Collectors.toCollection(ArrayList::new)));
         return holdingJpaEntity;
     }
 }

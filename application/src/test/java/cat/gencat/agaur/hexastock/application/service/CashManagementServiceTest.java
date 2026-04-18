@@ -76,10 +76,11 @@ class CashManagementServiceTest {
                 feature = "deposit-funds.feature")
         void throwsWhenPortfolioNotFound() {
             PortfolioId id = PortfolioId.of("non-existent");
+            Money amount = Money.of("100.00");
             when(portfolioPort.getPortfolioById(id)).thenReturn(Optional.empty());
 
             assertThrows(PortfolioNotFoundException.class,
-                    () -> service.deposit(id, Money.of("100.00")));
+                    () -> service.deposit(id, amount));
 
             verifyNoInteractions(transactionPort);
         }
@@ -133,10 +134,11 @@ class CashManagementServiceTest {
                 feature = "withdraw-funds.feature")
         void throwsWhenPortfolioNotFound() {
             PortfolioId id = PortfolioId.of("non-existent");
+            Money amount = Money.of("100.00");
             when(portfolioPort.getPortfolioById(id)).thenReturn(Optional.empty());
 
             assertThrows(PortfolioNotFoundException.class,
-                    () -> service.withdraw(id, Money.of("100.00")));
+                    () -> service.withdraw(id, amount));
 
             verifyNoInteractions(transactionPort);
         }

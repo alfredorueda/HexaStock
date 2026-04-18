@@ -18,6 +18,8 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 @DisplayName("FinhubStockPriceAdapter – WireMock integration tests")
 class FinhubStockPriceAdapterTest {
 
+    private static final Ticker AAPL = Ticker.of("AAPL");
+
     private FinhubStockPriceAdapter adapter;
 
     @BeforeEach
@@ -52,7 +54,7 @@ class FinhubStockPriceAdapterTest {
                         {"d":2.5,"dp":1.44}
                         """)));
 
-        assertThatThrownBy(() -> adapter.fetchStockPrice(Ticker.of("AAPL")))
+        assertThatThrownBy(() -> adapter.fetchStockPrice(AAPL))
                 .isInstanceOf(ExternalApiException.class);
     }
 
@@ -62,7 +64,7 @@ class FinhubStockPriceAdapterTest {
         stubFor(get(urlPathEqualTo("/quote"))
                 .willReturn(serverError()));
 
-        assertThatThrownBy(() -> adapter.fetchStockPrice(Ticker.of("AAPL")))
+        assertThatThrownBy(() -> adapter.fetchStockPrice(AAPL))
                 .isInstanceOf(ExternalApiException.class);
     }
 
@@ -72,7 +74,7 @@ class FinhubStockPriceAdapterTest {
         stubFor(get(urlPathEqualTo("/quote"))
                 .willReturn(okJson("null")));
 
-        assertThatThrownBy(() -> adapter.fetchStockPrice(Ticker.of("AAPL")))
+        assertThatThrownBy(() -> adapter.fetchStockPrice(AAPL))
                 .isInstanceOf(ExternalApiException.class);
     }
 }

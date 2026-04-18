@@ -2,7 +2,6 @@ package cat.gencat.agaur.hexastock.model.portfolio;
 
 import cat.gencat.agaur.hexastock.SpecificationRef;
 import cat.gencat.agaur.hexastock.TestLevel;
-import cat.gencat.agaur.hexastock.model.portfolio.*;
 import cat.gencat.agaur.hexastock.model.transaction.*;
 import cat.gencat.agaur.hexastock.model.market.*;
 import cat.gencat.agaur.hexastock.model.money.*;
@@ -512,11 +511,12 @@ class HoldingPerformanceCalculatorTest {
             var prices = Map.of(AAPL, livePrice(AAPL, "60.00"));
 
             var result = calculator.getHoldingsPerformance(portfolio, txs, prices);
+            HoldingPerformance extra = new HoldingPerformance("X", BigDecimal.ZERO,
+                    BigDecimal.ZERO, BigDecimal.ZERO, BigDecimal.ZERO,
+                    BigDecimal.ZERO, BigDecimal.ZERO);
 
             assertThrows(UnsupportedOperationException.class,
-                    () -> result.add(new HoldingPerformance("X", BigDecimal.ZERO,
-                            BigDecimal.ZERO, BigDecimal.ZERO, BigDecimal.ZERO,
-                            BigDecimal.ZERO, BigDecimal.ZERO)));
+                    () -> result.add(extra));
         }
     }
 

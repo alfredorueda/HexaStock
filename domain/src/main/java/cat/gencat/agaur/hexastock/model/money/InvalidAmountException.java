@@ -1,7 +1,5 @@
 package cat.gencat.agaur.hexastock.model.money;
 
-import cat.gencat.agaur.hexastock.model.DomainException;
-
 /**
  * InvalidAmountException indicates that a financial operation was attempted with an invalid monetary amount.
  * 

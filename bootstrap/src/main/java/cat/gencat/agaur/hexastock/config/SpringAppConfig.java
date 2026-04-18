@@ -6,7 +6,6 @@ import cat.gencat.agaur.hexastock.application.port.out.StockPriceProviderPort;
 import cat.gencat.agaur.hexastock.application.port.out.TransactionPort;
 import cat.gencat.agaur.hexastock.application.service.*;
 import cat.gencat.agaur.hexastock.model.portfolio.HoldingPerformanceCalculator;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.EnableCaching;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -21,14 +20,17 @@ import org.springframework.context.annotation.Configuration;
 @EnableCaching
 public class SpringAppConfig {
 
-  @Autowired
-  TransactionPort transactionPort;
+  private final TransactionPort transactionPort;
+  private final StockPriceProviderPort stockPriceProviderPort;
+  private final PortfolioPort portfolioPort;
 
-  @Autowired
-  StockPriceProviderPort stockPriceProviderPort;
-
-  @Autowired
-  PortfolioPort portfolioPort;
+  public SpringAppConfig(TransactionPort transactionPort,
+                         StockPriceProviderPort stockPriceProviderPort,
+                         PortfolioPort portfolioPort) {
+    this.transactionPort = transactionPort;
+    this.stockPriceProviderPort = stockPriceProviderPort;
+    this.portfolioPort = portfolioPort;
+  }
 
   @Bean
   HoldingPerformanceCalculator holdingPerformanceCalculator() {

@@ -1,7 +1,5 @@
 package cat.gencat.agaur.hexastock.model.money;
 
-import cat.gencat.agaur.hexastock.model.DomainException;
-
 /**
  * InvalidQuantityException indicates that a stock operation was attempted with an invalid quantity of shares.
  * 

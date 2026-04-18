@@ -170,8 +170,8 @@ class PortfolioRestControllerTest {
                     .andExpect(status().isOk());
 
             verify(cashManagementUseCase).deposit(
-                    eq(PortfolioId.of(PORTFOLIO_ID)),
-                    eq(Money.of(new BigDecimal("500.00"))));
+                    PortfolioId.of(PORTFOLIO_ID),
+                    Money.of(new BigDecimal("500.00")));
         }
 
         @Test
@@ -207,8 +207,8 @@ class PortfolioRestControllerTest {
                     .andExpect(status().isOk());
 
             verify(cashManagementUseCase).withdraw(
-                    eq(PortfolioId.of(PORTFOLIO_ID)),
-                    eq(Money.of(new BigDecimal("200.00"))));
+                    PortfolioId.of(PORTFOLIO_ID),
+                    Money.of(new BigDecimal("200.00")));
         }
 
         @Test
@@ -244,9 +244,9 @@ class PortfolioRestControllerTest {
                     .andExpect(status().isOk());
 
             verify(portfolioStockOperationsUseCase).buyStock(
-                    eq(PortfolioId.of(PORTFOLIO_ID)),
-                    eq(Ticker.of("AAPL")),
-                    eq(ShareQuantity.positive(10)));
+                    PortfolioId.of(PORTFOLIO_ID),
+                    Ticker.of("AAPL"),
+                    ShareQuantity.positive(10));
         }
 
         @Test
@@ -350,7 +350,7 @@ class PortfolioRestControllerTest {
         @Test
         @DisplayName("passes type filter parameter to use case")
         void passesTypeFilter() throws Exception {
-            when(transactionUseCase.getTransactions(eq(PORTFOLIO_ID), eq(Optional.of("DEPOSIT"))))
+            when(transactionUseCase.getTransactions(PORTFOLIO_ID, Optional.of("DEPOSIT")))
                     .thenReturn(List.of());
 
             mockMvc.perform(get("/api/portfolios/{id}/transactions", PORTFOLIO_ID)
