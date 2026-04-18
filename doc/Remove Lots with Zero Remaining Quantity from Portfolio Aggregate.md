@@ -89,4 +89,13 @@ This decision:
 - Preserves aggregate efficiency and scalability.
 - Maintains a clean separation between **current state** (Portfolio) and **historical state** (Transaction).
 
+---
+
+## 8. References
+
+- Evans, Eric. *Domain-Driven Design: Tackling Complexity in the Heart of Software.* Addison-Wesley, 2003.
+- Nilsson, Jimmy. *Applying Domain-Driven Design and Patterns: With Examples in C# and .NET.* Addison-Wesley, 2006.
+- Vernon, Vaughn. *Implementing Domain-Driven Design.* Addison-Wesley, 2013. (See especially ch. 10 on Aggregate design rules.)
+
+
 > **Key takeaway**: The Portfolio aggregate should reflect only active positions; historical reconstruction is delegated to the Transaction aggregate, ensuring both domain purity and operational performance.

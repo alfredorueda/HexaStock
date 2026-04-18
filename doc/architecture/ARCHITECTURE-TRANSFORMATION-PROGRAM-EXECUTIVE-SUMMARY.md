@@ -38,7 +38,7 @@ Organizations that master architectural discipline gain:
 * Faster onboarding of engineers
 * Greater resilience under continuous change
 
-As documented by Netflix Engineering, isolating core business logic from infrastructure is not a stylistic choice.
+As documented in the Netflix Technology Blog \u2014 specifically the article [*Ready for Changes with Hexagonal Architecture*](https://netflixtechblog.com/ready-for-changes-with-hexagonal-architecture-b315ec967749) \u2014 and echoed in *Building Evolutionary Architectures* [Ford, Parsons & Kua, 2017], isolating core business logic from infrastructure is not a stylistic choice.
 It is a structural strategy for adaptability at scale.
 
 Architecture is not documentation.

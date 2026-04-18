@@ -6,14 +6,14 @@
 
 ## 1. Introduction
 
-HexaStock is a stock portfolio management system built with **Domain-Driven Design (DDD)**. This tutorial focuses on one specific use case — **selling stocks from a portfolio** — to teach you how domain models enforce business rules.
+HexaStock is a stock portfolio management system designed and implemented with **Domain-Driven Design (DDD)** [Evans, 2003; Vernon, 2013]. This companion tutorial focuses on one use case — **selling stocks from a portfolio** — to illustrate how a rich domain model enforces business rules.
 
-You will learn how:
-- Business behaviour is specified before any code is written
-- Aggregates, entities, and value objects collaborate to implement that behaviour
-- The domain model protects its own consistency (invariants) without relying on any external technology
+You will study how:
+- Observable behaviour is specified before any production code is written [North, 2006].
+- Aggregates, entities, and value objects collaborate to realise that behaviour.
+- The domain model enforces its own consistency (invariants) without depending on any external technology.
 
-Everything in this tutorial runs **without a database, without a web server, and without any framework**. The domain model is pure Java.
+Everything in this tutorial runs **without a database, without a web server, and without any framework**. The domain model is plain Java.
 
 ---
 
@@ -273,9 +273,9 @@ The sequence below traces how the sell operation flows through the **domain mode
 
 ---
 
-## 9. Why Application Services Orchestrate and Aggregates Protect Invariants
+## 9. Why Application Services Orchestrate and Aggregates Enforce Invariants
 
-This is the **most important concept** in Domain-Driven Design.
+This section addresses a central concern of tactical DDD: the allocation of responsibility between application services (orchestrators) and aggregates (invariant enforcers) [Evans, 2003, chs. 4 and 6; Vernon, 2013, ch. 14].
 
 ### A) Roles Explained with Real Code
 
@@ -406,9 +406,9 @@ This tutorial intentionally omits everything outside the domain model. If you wa
 
 - **Aggregates protect invariants** — all state changes to `Holding` and `Lot` pass through the `Portfolio` root. The portfolio can never enter an inconsistent state.
 - **Application services orchestrate** — they coordinate use cases without containing business logic. The service calls `portfolio.sell(...)` and saves the result; it does not implement FIFO.
-- **Value Objects eliminate primitive obsession** — types like `Money`, `Price`, `ShareQuantity`, `Ticker`, and `PortfolioId` enforce constraints at construction time and make the ubiquitous language explicit.
-- **Business rules live in the domain** — FIFO logic belongs in `Holding.sell()`, not in a service or adapter.
-- **Domain exceptions speak business language** — `ConflictQuantityException` ("Not enough shares to sell") is a business rule violation, not a technical error.
+- **Value Objects eliminate primitive obsession** — types like `Money`, `Price`, `ShareQuantity`, `Ticker`, and `PortfolioId` enforce constraints at construction time and encode the ubiquitous language in the type system [Evans, 2003, ch. 5; Fowler, 2018].
+- **Business rules live in the domain** — FIFO logic belongs in `Holding.sell()`, not in a service or adapter [Fowler, 2003].
+- **Domain exceptions carry business semantics** — `ConflictQuantityException` ("Not enough shares to sell") names a business rule violation rather than a technical error.
 
 ### Testing the Domain
 
@@ -485,3 +485,14 @@ The following exercises are designed to deepen your understanding of the domain 
 ---
 
 > **📖 Ready for the full picture?** This tutorial covered only the domain model. To see how it connects to REST controllers, persistence, transactions, error handling, and integration tests, read the [full tutorial](https://github.com/alfredorueda/HexaStock/blob/main/doc/tutorial/sellStocks/SELL-STOCK-TUTORIAL.md).
+
+---
+
+## References
+
+- Evans, Eric. *Domain-Driven Design: Tackling Complexity in the Heart of Software.* Addison-Wesley, 2003.
+- Fowler, Martin. "AnemicDomainModel." *martinfowler.com*, 2003. https://martinfowler.com/bliki/AnemicDomainModel.html
+- Fowler, Martin. *Refactoring: Improving the Design of Existing Code.* 2nd ed., Addison-Wesley, 2018. (Primitive Obsession code smell.)
+- North, Dan. "Introducing BDD." *Better Software*, March 2006. https://dannorth.net/introducing-bdd/
+- Vernon, Vaughn. *Implementing Domain-Driven Design.* Addison-Wesley, 2013.
+

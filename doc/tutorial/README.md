@@ -126,9 +126,15 @@ This repository includes additional tutorials that complement the traceability a
 
 This traceability architecture ensures that every functional requirement is:
 
-1. **Specified** in the functional specification document
-2. **Described** in Gherkin scenarios with stable identifiers
-3. **Tested** at the appropriate level (domain and/or integration)
-4. **Linked** via `@SpecificationRef` annotations
+1. **Specified** in the functional specification document.
+2. **Described** in Gherkin scenarios with stable identifiers [North, 2006].
+3. **Verified** at the appropriate level (domain and/or integration).
+4. **Linked** via `@SpecificationRef` annotations.
 
-The result is a professional, auditable traceability chain suitable for software engineering teaching, architecture demonstrations, and production-quality documentation.
+The resulting chain is auditable: each acceptance criterion maps to one or more executable tests, and each test declares, through its annotation, which criterion it verifies. This makes requirements coverage inspectable by static analysis and makes the impact of a specification change visible in the test layer without any external tooling.
+
+## References
+
+- North, Dan. \"Introducing BDD.\" *Better Software*, March 2006. https://dannorth.net/introducing-bdd/
+- OpenAPI Initiative. *OpenAPI Specification, Version 3.0.3.* 2021. https://spec.openapis.org/oas/v3.0.3
+

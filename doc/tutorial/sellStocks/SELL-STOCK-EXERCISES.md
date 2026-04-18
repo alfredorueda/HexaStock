@@ -393,3 +393,14 @@ Add a small "provider comparison" markdown note:
 **End of Exercises**
 
 Work through these exercises in order. Each builds on concepts from earlier exercises. Discussing solutions with peers and colleagues deepens understanding of Hexagonal Architecture and Domain-Driven Design.
+
+---
+
+## References
+
+- Cockburn, Alistair. \"Hexagonal Architecture.\" 2005. https://alistair.cockburn.us/hexagonal-architecture/
+- Evans, Eric. *Domain-Driven Design: Tackling Complexity in the Heart of Software.* Addison-Wesley, 2003.
+- Fowler, Martin. \"AnemicDomainModel.\" *martinfowler.com*, 2003. https://martinfowler.com/bliki/AnemicDomainModel.html
+- Haerder, Theo, and Andreas Reuter. \"Principles of Transaction-Oriented Database Recovery.\" *ACM Computing Surveys*, vol. 15, no. 4, 1983, pp. 287\u2013317.
+- Vernon, Vaughn. *Implementing Domain-Driven Design.* Addison-Wesley, 2013.
+

@@ -8,23 +8,23 @@
 
 ## About This Tutorial
 
-This tutorial traces a single use case — **selling stocks** — through every architectural layer of HexaStock, a stock portfolio management system built with Java 21, Spring Boot 3, Domain-Driven Design (DDD), and Hexagonal Architecture. By following one request end to end — from Gherkin specification to REST controller, through application service orchestration, into the aggregate root's FIFO lot-consumption algorithm, and back as a structured financial result — the reader sees how these engineering disciplines work together as applied practice, not abstract principles.
+This tutorial traces a single use case — **selling stocks** — through every architectural layer of HexaStock, a stock portfolio management system built with Java 21, Spring Boot 3, Domain-Driven Design (DDD) [Evans, 2003; Vernon, 2013], and the Hexagonal Architecture style (Ports and Adapters) [Cockburn, 2005]. By following one request end to end — from a Gherkin specification [North, 2006] to a REST controller, through application-service orchestration, into the aggregate root's FIFO lot-consumption algorithm, and back as a structured financial result — the reader observes how these engineering disciplines compose in a concrete codebase rather than as abstract principles.
 
-**Intended audience:** Software engineers, architects, and technical leads with working knowledge of Java and Spring Boot who want to see DDD and Hexagonal Architecture applied in a realistic codebase.
+**Intended audience:** Software engineers, architects, and technical leads with working knowledge of Java and Spring Boot who wish to study DDD and Hexagonal Architecture applied to a non-trivial codebase.
 
 **What you will learn**
 
-- One end-to-end use case — selling stocks — traced through every layer, from REST controller to persistence and back.
-- How the aggregate root `Portfolio` protects business invariants while the application service orchestrates without making business decisions.
-- How value objects such as `Money`, `ShareQuantity`, and `Ticker` eliminate primitive obsession and encode ubiquitous language in the type system.
-- How Gherkin → `@SpecificationRef` → JUnit → production code creates a traceable specification chain.
-- Hexagonal architecture proven swappable in practice: replacing a live price provider with `FixedPriceStockPriceAdapter` in tests requires zero changes to domain or application code.
+- One end-to-end use case — selling stocks — traced through every layer, from the REST adapter to the persistence adapter and back.
+- How the aggregate root `Portfolio` enforces business invariants while the application service orchestrates without making business decisions, following the consistency-boundary rule for aggregates [Evans, 2003, ch. 6; Vernon, 2013, ch. 10].
+- How value objects such as `Money`, `ShareQuantity`, and `Ticker` avoid primitive obsession [Fowler, 2018] and encode the ubiquitous language in the type system.
+- How the chain Gherkin → `@SpecificationRef` → JUnit → production code yields requirements traceability that is executable, not merely documentary.
+- How the hexagonal boundary supports adapter substitution in practice: replacing the live price provider with `FixedPriceStockPriceAdapter` in tests requires no changes to domain or application code, exercising the dependency inversion principle [Martin, 1996; Martin, 2017].
 
 ---
 
 ## HexaStock in Brief
 
-HexaStock is a stock portfolio management platform supporting 10 use cases — portfolio creation, fund management, stock trading with automatic FIFO lot accounting, holdings performance tracking, and transaction history. It is structured as a Maven multi-module project where module boundaries codify the dependency rule at build time:
+HexaStock is a stock portfolio management platform supporting ten use cases — portfolio creation, cash management, stock trading with automatic FIFO lot accounting, holdings performance reporting, and transaction history. It is structured as a Maven multi-module project in which module boundaries encode the dependency rule at build time:
 
 ```
 HexaStock (parent pom)
@@ -36,47 +36,47 @@ HexaStock (parent pom)
 └── bootstrap/                           → Spring Boot entry point, composition root, runtime wiring
 ```
 
-The domain model has zero framework dependencies. All communication with infrastructure passes through port interfaces. Dependencies point inward — adapters depend on ports, never the reverse. Maven module boundaries codify the dependency rule at build time because `domain/pom.xml` does not declare any infrastructure dependencies (Spring, JPA, etc.). The adapter modules depend on ports, and ports are defined in the application module. Any attempt to add a direct dependency from the domain to an outbound adapter module would fail unless that dependency were explicitly declared. For the full project background — detailed module descriptions, domain package layout, architectural identity, and the rationale behind the multi-module structure — see **[HexaStock — Project Overview](HEXASTOCK-PROJECT-OVERVIEW.md)**.
+The domain module declares no infrastructure dependencies. All communication with infrastructure passes through port interfaces declared in the application module, and all dependencies point inward: adapter modules depend on the application module, which in turn depends on the domain module. This arrangement operationalises the dependency rule articulated in Clean Architecture [Martin, 2017, ch. 22] and the isolation principle of the Hexagonal style [Cockburn, 2005]. Because `domain/pom.xml` declares no Spring or persistence dependencies, any attempt to introduce a direct reference from the domain to an adapter would fail at build time unless the dependency were explicitly added — a structural safeguard that Maven enforces before ArchUnit fitness tests run (see Section 5). For module descriptions, domain package layout, architectural identity, and the rationale behind the multi-module structure, see **[HexaStock — Project Overview](HEXASTOCK-PROJECT-OVERVIEW.md)**.
 
 ---
 
 ## Specification-First Engineering
 
-HexaStock follows a disciplined engineering sequence rooted in **Behaviour-Driven Development (BDD)** and **specification-driven design**:
+HexaStock follows an engineering sequence grounded in **Behaviour-Driven Development (BDD)** [North, 2006] and **specification-driven design**:
 
-> **Specification → Contract → Tests → Implementation → Refactor Safely**
+> **Specification → Contract → Tests → Implementation → Refactor under test**
 
-Behaviour is defined as Gherkin scenarios before any design decisions are made. The REST API is specified contract-first using OpenAPI 3.0. Tests are linked to specifications through `@SpecificationRef` annotations, creating a traceable chain from business requirements to running code. For how this specification chain also enables AI-assisted development, see **[Specification-Driven Development with AI](../specificationDrivenAI/SPECIFICATION-DRIVEN-DEVELOPMENT-WITH-AI.md)**.
+Observable behaviour is expressed as Gherkin scenarios before design decisions are committed. The REST API is specified contract-first using the OpenAPI Specification [OpenAPI Initiative, 2021]. Tests are linked to specifications through `@SpecificationRef` annotations, producing a traceable chain from acceptance criteria to executable proof. For how this chain also supports AI-assisted development, see **[Specification-Driven Development with AI](../specificationDrivenAI/SPECIFICATION-DRIVEN-DEVELOPMENT-WITH-AI.md)**.
 
 ---
 
 ## Ubiquitous Language
 
-As introduced by Eric Evans, the **Ubiquitous Language** is a rigorous, shared language deliberately cultivated by domain experts and software practitioners around a bounded context, and it must permeate every expression of the model — spoken, written, or encoded in software [Evans, 2003]. Its role is not merely terminological: it is the primary instrument through which domain understanding is made explicit, discussed, refined, and preserved. In practice, this language naturally surfaces in artefacts such as Gherkin scenarios, domain classes, tests, architectural diagrams, and REST APIs, where it must remain strictly consistent. In HexaStock, terms like *Portfolio*, *Holding*, *Lot*, *proceeds*, *costBasis*, and *FIFO* constitute this vocabulary; each term carries the same meaning wherever it appears, and any terminology drift is treated as a modelling defect.
+The **ubiquitous language** is a rigorous, shared vocabulary deliberately cultivated by domain experts and software practitioners within a bounded context; it must permeate every expression of the model — spoken, written, or encoded in software [Evans, 2003, ch. 2]. Its role is not merely terminological: it is the primary instrument through which domain understanding is made explicit, discussed, refined, and preserved [Fowler, 2006]. In practice, the language surfaces across Gherkin scenarios, domain classes, tests, architectural diagrams, and REST resources, where it must remain strictly consistent. In HexaStock, terms such as *Portfolio*, *Holding*, *Lot*, *proceeds*, *cost basis*, and *FIFO* constitute this vocabulary; each term carries a single meaning wherever it appears, and any terminology drift is treated as a modelling defect.
 
-For the full treatment — including a cross-artifact traceability table, concrete examples from the sell-stock use case, and a discussion of what goes wrong without consistent naming — see the companion document **[Ubiquitous Language in HexaStock](UBIQUITOUS-LANGUAGE.md)**.
+For the full treatment — including a cross-artifact traceability table, concrete examples drawn from the sell-stock use case, and a discussion of the failure modes that arise in its absence — see the companion document **[Ubiquitous Language in HexaStock](UBIQUITOUS-LANGUAGE.md)**.
 
 ---
 
-## 1. Architecture Overview (Hexagonal / Ports & Adapters)
+## 1. Architecture Overview (Hexagonal / Ports and Adapters)
 
-Before tracing the sell-stock flow through code, this section details the layers, ports, and adapters that form HexaStock's hexagonal architecture — the structural vocabulary the rest of the tutorial relies on.
+Before tracing the sell-stock flow through code, this section introduces the layers, ports, and adapters that constitute HexaStock's hexagonal architecture [Cockburn, 2005] — the structural vocabulary on which the remainder of the tutorial relies.
 
 ### Core Architectural Layers
 
-**Application Core** — The heart of the system, completely isolated from external technologies:
-- **Domain Layer:** Contains pure business logic (entities, value objects, domain services). This is where business rules like FIFO accounting, invariant protection, and portfolio consistency are enforced. Examples: `Portfolio`, `Holding`, `Lot`, `Ticker`, `Money`, `Price`, `ShareQuantity`, `PortfolioId`, `HoldingId`, `LotId`.
-- **Application Layer:** Orchestrates use cases by coordinating domain objects and ports. Application services are thin coordinators with no business logic—they retrieve data, delegate decisions to the domain, and persist results. Examples: `PortfolioStockOperationsService`.
+**Application Core** — the part of the system isolated from external technologies:
+- **Domain Layer.** Contains pure business logic (entities, value objects, domain services). This is where rules such as FIFO lot accounting, invariant enforcement, and portfolio consistency are expressed. Examples: `Portfolio`, `Holding`, `Lot`, `Ticker`, `Money`, `Price`, `ShareQuantity`, `PortfolioId`, `HoldingId`, `LotId`.
+- **Application Layer.** Orchestrates use cases by coordinating domain objects and ports. Application services are thin coordinators: they retrieve data through outbound ports, delegate decisions to the domain model, and persist the result. They do not implement business rules [Evans, 2003, ch. 4; Vernon, 2013, ch. 14]. Example: `PortfolioStockOperationsService`.
 
-**Ports** — Interfaces that define contracts between the core and the outside world:
-- **Inbound Ports (Primary/Driving):** Define what the application can do. These are use case interfaces implemented by application services. Examples: `PortfolioStockOperationsUseCase`.
-- **Outbound Ports (Secondary/Driven):** Define what the application needs from external systems. The core depends on these abstractions, not on concrete implementations. Examples: `PortfolioPort`, `StockPriceProviderPort`, `TransactionPort`.
+**Ports** — interfaces that define contracts between the core and the outside world [Cockburn, 2005]:
+- **Inbound (primary/driving) ports.** Declare what the application can do; implemented by application services. Example: `PortfolioStockOperationsUseCase`.
+- **Outbound (secondary/driven) ports.** Declare what the application requires from external systems. The core depends on these abstractions rather than on concrete implementations. Examples: `PortfolioPort`, `StockPriceProviderPort`, `TransactionPort`.
 
-**Adapters** — Concrete implementations that connect the core to the real world:
-- **Inbound Adapters (Driving):** Receive requests from users or external systems and translate them into domain operations. Examples: `PortfolioRestController` (HTTP/REST), potential CLI or messaging adapters.
-- **Outbound Adapters (Driven):** Implement outbound ports to interact with databases, external APIs, or other infrastructure. Examples: JPA repositories for persistence, Finnhub/AlphaVantage clients for stock prices.
+**Adapters** — concrete implementations that connect the core to the surrounding environment:
+- **Inbound (driving) adapters.** Translate external requests into invocations of inbound ports. Example: `PortfolioRestController` (HTTP/REST).
+- **Outbound (driven) adapters.** Implement outbound ports to interact with databases, external APIs, or other infrastructure. Examples: JPA repository adapters for persistence; Finnhub/AlphaVantage clients for stock prices.
 
-**Dependency Direction:** All dependencies point **inward** toward the domain. Adapters depend on ports, ports are defined by the core, and the domain has zero dependencies on infrastructure. This is **Dependency Inversion** in action.
+**Dependency direction.** All source-code dependencies point **inward**, toward the domain. Adapters depend on ports; ports are declared by the application core; the domain has no compile-time dependency on infrastructure. This is the **Dependency Inversion Principle** in operational form [Martin, 1996; Martin, 2017, ch. 11].
 
 The following diagram shows HexaStock's hexagonal architecture for the sell-stock use case, mapping each Maven module to its architectural role:
 
@@ -95,23 +95,23 @@ The sell stock use case flows through these architectural layers:
 - **Outbound Ports** → `PortfolioPort` (persistence abstraction), `StockPriceProviderPort` (external price data), `TransactionPort` (audit log)
 - **Secondary (Driven) Adapters** → JPA repositories (`PortfolioJpaAdapter`), external API clients (`FinnhubStockPriceAdapter`, `AlphaVantageStockPriceAdapter`), transaction repositories
 
-Sections 9–15 trace a real HTTP request flowing through these layers, showing how each component fulfils its architectural role while maintaining strict separation of concerns.
+Sections 9–15 trace an HTTP request flowing through these layers, showing how each component discharges its architectural responsibility while preserving separation of concerns.
 
 ---
 
 ## 2. Purpose and Scope
 
-The sell-stock use case provides the unifying thread that ties every engineering phase together — from Gherkin specification through domain modelling, hexagonal structure, persistence mapping, error handling, and integration testing. The tutorial follows one request end to end, showing how BDD specifications, DDD aggregates, hexagonal ports and adapters, value objects, FIFO accounting, and a four-level testing strategy work together as applied engineering, not abstract principles.
+The sell-stock use case serves as the unifying thread of this tutorial, connecting Gherkin specification, domain modelling, hexagonal structure, persistence mapping, error handling, and integration testing. A single request is followed end to end in order to show how BDD specifications [North, 2006], DDD aggregates [Evans, 2003; Vernon, 2013], hexagonal ports and adapters [Cockburn, 2005], value objects, FIFO accounting, and a layered testing strategy [Cohn, 2009; Meszaros, 2007] compose as applied engineering rather than as isolated principles.
 
 ---
 
 ## 3. Functional Specification (Behaviour)
 
-Before designing the domain model or writing implementation code, we start by defining the **observable behaviour** of the sell use case.
+Before designing the domain model or writing implementation code, we first specify the **observable behaviour** of the sell use case.
 
-User stories typically capture the intent of a feature at a high level, but they are often too ambiguous to serve as executable specifications. Behavior-driven scenarios written in formats such as Gherkin describe concrete system behaviour through explicit inputs, actions, and expected outcomes. Because of this precision, automated tests can often be derived directly from Gherkin scenarios. For this reason, this tutorial uses Gherkin scenarios as the primary functional specification of the sell operation.
+User stories typically capture the intent of a feature at a high level but are often too ambiguous to serve as executable specifications. Behaviour-driven scenarios written in Gherkin describe concrete system behaviour in terms of explicit inputs, actions, and expected outcomes, which allows automated tests to be derived from them with minimal interpretation [North, 2006]. The Gherkin scenarios below therefore serve as the primary functional specification of the sell operation.
 
-The Gherkin scenarios below describe what the system must do in business terms, independent of any technical design decisions.
+They describe what the system must do in business terms, independently of any technical design decisions.
 
 <!--
   Link strategy: this intentionally points to the canonical GitHub markdown source rather than
@@ -195,12 +195,12 @@ Feature: Sell Stocks with FIFO Lot Consumption
 
 ## 4. Executable Specification (JUnit)
 
-The Gherkin scenarios above describe observable behaviour at the **Portfolio level** — the aggregate root in our DDD model. Because this scenario describes observable behaviour at the `Portfolio` level, the most appropriate primary executable specification validates it through `Portfolio.sell(...)`, while a complementary `Holding` test verifies the internal FIFO algorithm in isolation. This is a deliberate DDD design choice: business behaviour is exposed by the aggregate root, and tests should reflect that boundary.
+The Gherkin scenarios above describe observable behaviour at the **Portfolio level** — the aggregate root in the domain model [Evans, 2003, ch. 6]. Because the scenario expresses a Portfolio-level outcome (a balance update that must remain consistent with a sequence of lot consumptions), the primary executable specification is expressed through `Portfolio.sell(...)`; a complementary test on `Holding` verifies the internal FIFO algorithm in isolation. This separation reflects a deliberate DDD decision: external behaviour is exposed by the aggregate root, and tests are placed at the abstraction level that matches the invariant under verification.
 
-HexaStock validates this behaviour at **two complementary levels**:
+HexaStock therefore validates the behaviour at **two complementary levels**:
 
-1. **Aggregate-level behaviour verification** — a `Portfolio` test that exercises the complete sell operation through the aggregate root, verifying financial results, balance updates, and FIFO lot consumption as a single consistent unit.
-2. **Focused algorithm verification** — a `Holding` test that verifies the internal FIFO lot-consumption algorithm in isolation, independent of portfolio-level concerns like cash balance.
+1. **Aggregate-level behaviour verification** — a `Portfolio` test that exercises the complete sell operation through the aggregate root and asserts financial results, balance update, and FIFO lot consumption as a single consistent unit.
+2. **Focused algorithm verification** — a `Holding` test that verifies the internal FIFO lot-consumption algorithm in isolation, independently of portfolio-level concerns such as cash balance.
 
 ### Primary: Aggregate Root Test (`Portfolio`)
 
@@ -548,12 +548,12 @@ public SellResult sell(ShareQuantity quantity, Price sellPrice) {
 ```
 
 The Holding:
-- Protects the invariant: "You cannot sell more shares than you own" (using `ShareQuantity.isGreaterThanOrEqual()`)
-- Calculates proceeds upfront using `Price.multiply(ShareQuantity)` → returns `Money`
-- Implements FIFO across multiple lots using an `Iterator` for safe in-place removal
-- Delegates cost basis calculation to each `Lot` via `lot.calculateCostBasis(take)`
-- Removes depleted lots inline via `iterator.remove()` to keep the aggregate lean
-- Creates the result via `SellResult.of(proceeds, costBasis)` which auto-calculates profit
+- Enforces the invariant *"a holding cannot sell more shares than it owns"* via `getTotalShares().isLessThan(quantity)`, raising `ConflictQuantityException` when violated.
+- Computes proceeds up front using `Price.multiply(ShareQuantity)`, which returns a `Money`.
+- Implements FIFO across multiple lots with an `Iterator` to allow safe in-place removal of depleted lots.
+- Delegates cost-basis computation to each `Lot` via `lot.calculateCostBasis(take)`.
+- Removes depleted lots inline through `iterator.remove()`, keeping the aggregate's internal state minimal.
+- Produces the outcome via `SellResult.of(proceeds, costBasis)`, which derives `profit` from its inputs.
 
 **File:** `model.Lot`
 
@@ -609,7 +609,7 @@ HTTP 200 OK
 
 ## 10. Orchestration vs. Invariants
 
-This is the **most important concept** in DDD and Hexagonal Architecture.
+This section addresses a central design concern in DDD and Hexagonal Architecture: the allocation of responsibility between application services (orchestrators) and aggregates (invariant enforcers) [Evans, 2003, chs. 4 and 6; Vernon, 2013, ch. 14].
 
 ### A) Roles Explained with Real Code
 
@@ -749,44 +749,46 @@ public class PortfolioStockOperationsService
 
 ### Why Transactions Matter for Stock Selling
 
-Selling stocks involves multiple database writes — updating the portfolio balance, reducing lot quantities via FIFO, and recording an audit transaction. These must **all succeed or all fail together**; partial updates would corrupt the portfolio state. The `@Transactional` annotation (from `jakarta.transaction`, managed by Spring at runtime) ensures ACID guarantees:
+A single sell operation produces multiple persistent state changes: the portfolio's cash balance is updated, one or more lots are reduced (and possibly removed) under FIFO, and an audit `Transaction` record is written. These changes form a single unit of work in Fowler's sense [Fowler, 2002] and must either commit atomically or be rolled back as a whole; partial persistence would leave the portfolio in an inconsistent state.
 
-1. **Atomicity:** All database operations succeed or fail together
-2. **Consistency:** If the transaction record fails to save, the portfolio changes are rolled back
-3. **Isolation:** Concurrent transactions see a consistent view of the data at their isolation level (typically READ_COMMITTED). Note that `@Transactional` alone does not serialize concurrent access — preventing race conditions on the same portfolio requires additional mechanisms such as pessimistic locking (see below)
-4. **Durability:** Once committed, the sale is permanent
+HexaStock uses `jakarta.transaction.Transactional` (the Jakarta EE annotation), which Spring recognises and processes through its `TransactionInterceptor` around each annotated method. When a service method is invoked, a JPA-backed transaction is started; if the method returns normally, the transaction commits, and if an unchecked exception escapes, the transaction is rolled back [Spring Framework Reference, § "Declarative transaction management"; Bauer, King & Gregory, 2015]. The ACID properties [Haerder & Reuter, 1983; Gray & Reuter, 1993] are delivered by the underlying database under this demarcation, as follows:
 
-**Key separation of concerns:** The domain enforces **business consistency** (invariants, validations via Value Objects), while infrastructure enforces **technical consistency** (ACID properties, transaction boundaries).
+1. **Atomicity.** All writes performed inside the transaction either commit together or are rolled back together. If saving the audit `Transaction` fails, the portfolio's balance and lot updates are rolled back as well.
+2. **Consistency.** All declared database integrity constraints (primary keys, foreign keys, non-null constraints, unique indexes) must hold when the transaction commits. Domain invariants — for example, "a lot's remaining shares must never be negative" — are enforced by the aggregate itself before any persistence occurs; the database then protects its own integrity constraints at commit time.
+3. **Isolation.** Concurrent transactions observe one another's effects only according to the configured isolation level. HexaStock runs on MySQL 8 with InnoDB, whose default isolation level is `REPEATABLE READ` [MySQL Reference Manual, § "Transaction Isolation Levels"]. `@Transactional` alone does **not** serialise concurrent access to the same aggregate: under `REPEATABLE READ`, the lost-update anomaly can still occur for read-modify-write flows of the kind performed during a sale. Preventing it requires explicit locking — pessimistic or optimistic (see below).
+4. **Durability.** Once the transaction commits, its effects survive system failure.
+
+**Separation of concerns.** Business consistency (aggregate invariants, value-object validation) is enforced by the domain model; technical consistency (ACID, transaction boundaries, isolation) is enforced by infrastructure under application-service demarcation. The domain model remains agnostic of the transaction manager.
 
 ### Concurrency Risks in Financial Operations
 
-When concurrent requests target the same portfolio, several problems can arise without proper synchronization:
+When concurrent requests target the same portfolio, the following anomalies are possible in the absence of adequate concurrency control [Gray & Reuter, 1993; Berenson et al., 1995]:
 
-**Lost Update Problem:**
-- Request 1 reads balance = `Money.of(1000)`
-- Request 2 reads balance = `Money.of(1000)` (stale)
-- Request 1 sells stock, adds proceeds → balance = `Money.of(1500)`, commits
-- Request 2 sells stock, adds proceeds → calculates `Money.of(1300)` based on stale read, commits
-- **Result:** Final balance is $1300, but should be $1800.
+**Lost update.**
+- Request 1 reads `balance = Money.of(1000)`.
+- Request 2 reads `balance = Money.of(1000)` (stale).
+- Request 1 sells stock, adds proceeds → `Money.of(1500)`, commits.
+- Request 2 sells stock and computes its new balance from its stale read → `Money.of(1300)`, commits.
+- Observed final balance is 1300, when it should be 1800.
 
-**Double-Spending:**
-- Both requests read `ShareQuantity.of(10)` available
-- Request 1 sells 10 shares and commits
-- Request 2 attempts to sell 10 shares, but only `ShareQuantity.ZERO` remain
+**Double-spending of inventory.**
+- Both requests read `ShareQuantity.of(10)` as available.
+- Request 1 sells 10 shares and commits.
+- Request 2 attempts to sell 10 shares when in fact `ShareQuantity.ZERO` remains.
 
-**FIFO Corruption:**
-- Two concurrent sells attempt to reduce the same lot simultaneously
-- Without serialization, lot `ShareQuantity` values could become negative
+**Lot inconsistency under FIFO.**
+- Two concurrent sales attempt to reduce the same lot without serialisation.
+- Intermediate states can violate the invariant that a lot's remaining quantity is non-negative.
 
 ### How HexaStock Handles Concurrency
 
-HexaStock uses **database-level transaction isolation** combined with explicit locking:
+HexaStock relies on the database transaction manager complemented by explicit locking:
 
-- `@Transactional` establishes the boundary at the application service level
-- Database isolation (typically READ_COMMITTED) prevents dirty reads but does not prevent lost updates or non-repeatable reads. For financial operations like stock selling, stronger mechanisms such as pessimistic locking (`SELECT FOR UPDATE`) or optimistic locking with version fields are required to avoid race conditions
-- For high-contention scenarios, **pessimistic locking** via `@Lock(LockModeType.PESSIMISTIC_WRITE)` serializes access to specific portfolio rows
+- `@Transactional` establishes the unit-of-work boundary at the application-service level.
+- MySQL InnoDB's default `REPEATABLE READ` prevents non-repeatable reads of the same row within a transaction but does not prevent lost updates in read-modify-write sequences across transactions. For financial operations such as stock selling, an additional mechanism is therefore required: **pessimistic locking** (`SELECT ... FOR UPDATE`, exposed through JPA as `@Lock(LockModeType.PESSIMISTIC_WRITE)`) or **optimistic locking** (version fields and `OptimisticLockException`-based retry).
+- HexaStock serialises access to a specific portfolio row for the duration of the transaction using pessimistic locking on the portfolio lookup performed at the start of the use case. The rationale, trade-offs, and empirical race-condition reproduction are documented in the companion study cited below.
 
-The transaction boundary is placed at the **application service** — not the domain model — because transaction management is an infrastructure concern and domain objects should remain technology-agnostic.
+The transaction boundary is placed at the **application service** — not inside the domain model — because transaction demarcation is an infrastructure concern, and domain objects must remain technology-agnostic [Evans, 2003, ch. 4; Vernon, 2013, ch. 14].
 
 ---
 
@@ -885,14 +887,14 @@ private Set<HoldingJpaEntity> holdings = new HashSet<>();
 private List<LotJpaEntity> lots = new ArrayList<>();
 ```
 
-When Hibernate initialises a lazy collection annotated with `@BatchSize`, it looks for other uninitialised collections of the same role in the persistence context and loads up to 30 of them in a single `IN`-clause query. This means:
+When Hibernate initialises a lazy collection annotated with `@BatchSize`, it looks for other uninitialised collections of the same role in the persistence context and loads up to the batch size in a single `IN`-clause query [Hibernate ORM User Guide, § "Batch fetching"]. This yields:
 
-- **Without `@BatchSize`:** 1 query per holding's lots = *H* queries
-- **With `@BatchSize(size = 30)`:** ⌈*H* / 30⌉ queries for all holdings' lots
+- **Without `@BatchSize`:** one query per holding's lots, i.e. *H* queries.
+- **With `@BatchSize(size = 30)`:** ⌈*H* / 30⌉ queries for all holdings' lots.
 
-For any portfolio with up to 30 holdings, the lots are loaded in a **single query** instead of *H* separate queries. The total query count drops from **2 + H** to a constant **3** (portfolio + holdings + one batched lots query).
+For any portfolio with up to 30 holdings, all lots are loaded in a **single query** instead of *H* separate queries, and the total query count is reduced from **2 + H** to a constant **3** (portfolio + holdings + one batched query for lots).
 
-> **💡 Why not `JOIN FETCH`?** A `JOIN FETCH` on two levels (portfolio → holdings → lots) would produce a Cartesian product in the SQL result set: every combination of holding × lot appears as a row. For a portfolio with 10 holdings averaging 5 lots each, the result set would contain 50 rows instead of 10 + 50. `@BatchSize` avoids this by keeping the queries separate but batching them efficiently. It also requires no changes to the JPQL query or the mapper traversal logic — it works transparently with the existing lazy-loading pattern.
+> **Why not `JOIN FETCH`?** A two-level `JOIN FETCH` (portfolio → holdings → lots) produces a Cartesian product in the SQL result set: every combination of holding × lot yields a row. For a portfolio with 10 holdings averaging 5 lots each, the result set would contain 50 rows rather than 10 + 50, and Hibernate would need to deduplicate in memory. `@BatchSize` avoids the Cartesian product by issuing separate but batched queries, and requires no changes to the JPQL query or the mapper traversal logic [Hibernate ORM User Guide, § "Fetching strategies"].
 
 ### Repositories
 
@@ -982,7 +984,7 @@ HTTP 400 Bad Request
 
 ### Error 3: Selling More Than Owned
 
-**Trigger:** Trying to sell 100 shares when you only own 10
+**Trigger:** Attempting to sell 100 shares when only 10 are owned
 
 **Exception:** `ConflictQuantityException` (domain exception)
 
@@ -990,7 +992,7 @@ HTTP 400 Bad Request
 
 ```java
 // In Holding.sell()
-if (!getTotalShares().isGreaterThanOrEqual(quantity)) {
+if (getTotalShares().isLessThan(quantity)) {
     throw new ConflictQuantityException(
             "Not enough shares to sell. Available: " + getTotalShares().value()
                     + ", Requested: " + quantity.value());
@@ -1043,15 +1045,15 @@ Production systems would typically add resilience patterns such as retries with 
 
 ## 14. Key Takeaways
 
-### What the Sell Use Case Proved About the Architecture
+### What the Sell Use Case Showed About the Architecture
 
-- **One use case exposed every layer.** A single `POST /api/portfolios/{id}/sales` request exercised the REST adapter, inbound port, application service, aggregate root, two entities, five value objects, three outbound ports, JPA persistence, and global error handling — all verifiable through the end-to-end trace.
-- **The hexagon kept its promise.** Swapping `MockFinhubStockPriceAdapter` for `FixedPriceStockPriceAdapter` in tests required zero changes to domain or application code. Dependency inversion is not just theory here — it is a testable, demonstrable property.
-- **Aggregate root enforcement prevented a real class of bugs.** The anti-pattern in Section 10B showed how direct service manipulation of lots produces FIFO duplication, balance inconsistency, and invariant violation. The aggregate root boundary is the reason that one-line `portfolio.sell(ticker, quantity, price)` call is both correct and complete.
-- **FIFO accounting lived entirely in `Holding.sell()`** — not in the service, not in the controller, not in the persistence layer. The companion **[Rich vs Anemic Domain Model study](../richVsAnemicDomainModel/RICH_VS_ANEMIC_DOMAIN_MODEL_TUTORIAL.md)** shows what happens when this logic migrates to the service layer.
-- **Value Objects created the ubiquitous language in code.** `Money`, `Price`, `ShareQuantity`, and `Ticker` did not just prevent primitive-obsession bugs — they made the domain's vocabulary compile-time-enforced. The Gherkin scenario says "proceeds = 1800.00" and the test asserts `assertEquals(Money.of("1800.00"), result.proceeds())`; every term is the same in both artifacts.
-- **The specification chain held end to end.** Gherkin → `@SpecificationRef` → JUnit → domain code created a traceable chain from business requirement to executable proof. The `costBasis` values in the integration tests are the mathematical proof of FIFO order.
-- **Domain exceptions spoke business language across the boundary.** `ConflictQuantityException` originated in `Holding.sell()`, propagated through the application service, and was translated by `ExceptionHandlingAdvice` into HTTP 409 with an RFC 7807 problem body — no framework-specific exception handling in the domain.
+- **One use case exercised every layer.** A single `POST /api/portfolios/{id}/sales` request traversed the REST adapter, the inbound port, the application service, the aggregate root, two entities, several value objects, three outbound ports, the JPA persistence adapter, and the global error-handling layer, each of which was verifiable through the end-to-end trace.
+- **The hexagonal boundary supported adapter substitution.** Replacing `MockFinhubStockPriceAdapter` with `FixedPriceStockPriceAdapter` in tests required no changes to domain or application code. Dependency inversion is expressed here as a structural property of the codebase, verifiable both by the ArchUnit fitness tests and by the substitution itself [Martin, 1996; Martin, 2017].
+- **Aggregate-root enforcement eliminated a concrete class of defects.** The anti-pattern in Section 10 B demonstrated how direct manipulation of internal lots from the service layer would duplicate the FIFO algorithm, risk balance inconsistency, and expose invariant violations. Concentrating state transitions behind `portfolio.sell(ticker, quantity, price)` is what makes that single call both complete and correct [Evans, 2003, ch. 6; Vernon, 2013, ch. 10].
+- **FIFO accounting remained in `Holding.sell()`** — not in the service, not in the controller, not in the persistence adapter. The companion **[Rich vs Anemic Domain Model study](../richVsAnemicDomainModel/RICH_VS_ANEMIC_DOMAIN_MODEL_TUTORIAL.md)** shows the failure modes that appear when such logic migrates to the service layer [Fowler, 2003].
+- **Value objects encoded the ubiquitous language in the type system.** `Money`, `Price`, `ShareQuantity`, and `Ticker` not only prevent a family of primitive-related defects [Fowler, 2018]; they make the domain vocabulary compile-time-checked. The Gherkin scenario states *"proceeds = 1800.00"* and the test asserts `assertEquals(Money.of("1800.00"), result.proceeds())`; the term is identical in both artefacts.
+- **The specification chain remained intact end to end.** Gherkin → `@SpecificationRef` → JUnit → domain code forms a traceable chain from acceptance criterion to executable proof. The `costBasis` values asserted in the integration tests constitute the mathematical proof that the FIFO order is preserved.
+- **Domain exceptions carried business semantics across the boundary.** `ConflictQuantityException` originates in `Holding.sell()`, propagates through the application service unchanged, and is translated by `ExceptionHandlingAdvice` into HTTP 409 with an RFC 7807 problem body [Nottingham & Wilde, 2016] — without any framework-specific exception handling in the domain.
 
 ---
 
@@ -1291,18 +1293,36 @@ For broader acknowledgements covering the HexaStock project as a whole, see [Ack
 
 ### Foundational Works
 
+- Berenson, H., Bernstein, P. A., Gray, J., Melton, J., O’Neil, E., and O’Neil, P. "A Critique of ANSI SQL Isolation Levels." *Proceedings of the 1995 ACM SIGMOD International Conference on Management of Data*, 1995.
 - Cockburn, Alistair. "Hexagonal Architecture (Ports and Adapters)." *alistair.cockburn.us*, 2005. https://alistair.cockburn.us/hexagonal-architecture/
-- Evans, Eric. *Domain-Driven Design: Tackling Complexity in the Heart of Software.* Addison-Wesley, 2003. See especially Chapter 2, "Communication and the Use of Language," for the foundational definition of Ubiquitous Language.
+- Cohn, Mike. *Succeeding with Agile: Software Development Using Scrum.* Addison-Wesley, 2009. (Source of the test-pyramid model.)
+- Evans, Eric. *Domain-Driven Design: Tackling Complexity in the Heart of Software.* Addison-Wesley, 2003.
 - Evans, Eric. *Domain-Driven Design Reference: Definitions and Pattern Summaries.* Dog Ear Publishing, 2014.
-- Vernon, Vaughn. *Implementing Domain-Driven Design.* Addison-Wesley, 2013.
+- Fowler, Martin. *Patterns of Enterprise Application Architecture.* Addison-Wesley, 2002. (Unit of Work, Repository, Domain Model, Data Mapper.)
+- Fowler, Martin. "AnemicDomainModel." *martinfowler.com*, 2003. https://martinfowler.com/bliki/AnemicDomainModel.html
 - Fowler, Martin. "Ubiquitous Language." *martinfowler.com*, 2006. https://martinfowler.com/bliki/UbiquitousLanguage.html
+- Fowler, Martin. *Refactoring: Improving the Design of Existing Code.* 2nd ed., Addison-Wesley, 2018. (Primitive Obsession code smell.)
+- Gray, Jim and Reuter, Andreas. *Transaction Processing: Concepts and Techniques.* Morgan Kaufmann, 1993.
+- Haerder, Theo and Reuter, Andreas. "Principles of Transaction-Oriented Database Recovery." *ACM Computing Surveys*, 15(4):287–317, December 1983. (Original statement of the ACID properties.)
 - Hombergs, Tom. *Get Your Hands Dirty on Clean Architecture.* Packt Publishing, 2019. Reference implementation: [BuckPal](https://github.com/thombergs/buckpal).
 - Graça, Herberto. "DDD, Hexagonal, Onion, Clean, CQRS, … How I Put It All Together." *herbertograca.com*, 2017. https://herbertograca.com/2017/11/16/explicit-architecture-01-ddd-hexagonal-onion-clean-cqrs-how-i-put-it-all-together/
+- Martin, Robert C. "The Dependency Inversion Principle." *C++ Report*, 8(6), May 1996.
+- Martin, Robert C. *Clean Architecture: A Craftsman's Guide to Software Structure and Design.* Prentice Hall, 2017.
+- Meszaros, Gerard. *xUnit Test Patterns: Refactoring Test Code.* Addison-Wesley, 2007.
+- North, Dan. "Introducing BDD." *Better Software*, March 2006. https://dannorth.net/introducing-bdd/
+- Vernon, Vaughn. *Implementing Domain-Driven Design.* Addison-Wesley, 2013.
+
+### Framework and Platform References
+
+- Bauer, Christian, King, Gavin, and Gregory, Gary. *Java Persistence with Hibernate.* 2nd ed., Manning, 2015.
+- *Hibernate ORM User Guide.* Red Hat. https://docs.jboss.org/hibernate/orm/current/userguide/html_single/Hibernate_User_Guide.html (cited for batch fetching and fetching strategies).
+- *MySQL 8.0 Reference Manual.* Oracle. https://dev.mysql.com/doc/refman/8.0/en/innodb-transaction-isolation-levels.html (cited for InnoDB transaction isolation levels).
+- *Spring Framework Reference Documentation — Data Access.* Pivotal/VMware. https://docs.spring.io/spring-framework/reference/data-access/transaction.html (cited for declarative transaction management).
 
 ### Standards and Specifications
 
 - Nottingham, M. and Wilde, E. "Problem Details for HTTP APIs." RFC 7807, IETF, March 2016. https://www.rfc-editor.org/rfc/rfc7807
-- OpenAPI Initiative. *OpenAPI Specification, Version 3.0.* https://spec.openapis.org/oas/v3.0.3
+- OpenAPI Initiative. *OpenAPI Specification, Version 3.0.3.* 2021. https://spec.openapis.org/oas/v3.0.3
 
 ### Project References
 

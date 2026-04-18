@@ -738,6 +738,18 @@ Domain tests have zero infrastructure dependencies — they run without Docker, 
 
 ## 14. References
 
+### Foundational Works
+
+- Beck, Kent. *Test-Driven Development: By Example.* Addison-Wesley, 2003.
+- Cockburn, Alistair. \"Hexagonal Architecture.\" 2005. https://alistair.cockburn.us/hexagonal-architecture/
+- Cohn, Mike. *Succeeding with Agile: Software Development Using Scrum.* Addison-Wesley, 2009. (The test pyramid.)
+- Evans, Eric. *Domain-Driven Design: Tackling Complexity in the Heart of Software.* Addison-Wesley, 2003.
+- Fowler, Martin. \"TestPyramid.\" *martinfowler.com*, 2012. https://martinfowler.com/bliki/TestPyramid.html
+- Fowler, Martin. \"TestDouble.\" *martinfowler.com*, 2006. https://martinfowler.com/bliki/TestDouble.html
+- Meszaros, Gerard. *xUnit Test Patterns: Refactoring Test Code.* Addison-Wesley, 2007.
+- North, Dan. \"Introducing BDD.\" *Better Software*, March 2006. https://dannorth.net/introducing-bdd/
+- Vernon, Vaughn. *Implementing Domain-Driven Design.* Addison-Wesley, 2013.
+
 ### Testing Framework Documentation
 
 - **JUnit 5:** https://junit.org/junit5/docs/current/user-guide/

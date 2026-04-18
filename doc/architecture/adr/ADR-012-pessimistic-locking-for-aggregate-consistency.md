@@ -27,7 +27,7 @@ The `JpaPortfolioRepository.findById()` method for read-only access (e.g. `getPo
 - **Optimistic locking (`@Version`):** Uses a version column to detect conflicts. Rejected because financial operations must not fail silently: a "buy" that was accepted by the user should not be retried due to a version conflict. Documented in `doc/tutorial/CONCURRENCY-PESSIMISTIC-LOCKING.md`.
 - **Application-level lock (e.g. `ReentrantLock`):** Would not work across multiple application instances. Standard alternative.
 - **Database-level advisory locks:** More flexible but database-specific and harder to manage within JPA. Standard alternative.
-- **No explicit locking (rely on transaction isolation):** Default `READ_COMMITTED` isolation does not prevent lost updates. `SERIALIZABLE` isolation would prevent them but with high contention. Standard alternative.
+- **No explicit locking (rely on transaction isolation):** MySQL/InnoDB's default isolation is `REPEATABLE READ`, which prevents non-repeatable reads but does not by itself prevent the lost-update pattern of *read \u2192 decide \u2192 write* across concurrent transactions. Raising to `SERIALIZABLE` would prevent lost updates but impose higher contention and is SQL-standard semantics that InnoDB implements via next-key locking on reads; this is effectively equivalent to using `SELECT ... FOR UPDATE` on the critical read, but global to all reads. Standard alternative [Berenson et al., 1995; MySQL 8 Reference Manual, \u00a7\u00a7 Transaction Isolation Levels and Locking Reads].
 
 ## Consequences
 

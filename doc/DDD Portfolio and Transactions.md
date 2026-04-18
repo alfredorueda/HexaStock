@@ -904,4 +904,16 @@ Use this checklist to determine if the default (Option B) should be replaced:
 - [ ] You're building a **microservice architecture** with multiple consumers → Consider Option C (Events)
 - [ ] You're building a **prototype** with < 50 transactions per portfolio → Option A is fine temporarily
 - [ ] You need **sub-millisecond reads** on transaction history → Consider a denormalized read model (CQRS lite)
+
+---
+
+## 19. References
+
+- Evans, Eric. *Domain-Driven Design: Tackling Complexity in the Heart of Software.* Addison-Wesley, 2003.
+- Fowler, Martin. \"CQRS.\" *martinfowler.com*, 2011. https://martinfowler.com/bliki/CQRS.html
+- Fowler, Martin. *Patterns of Enterprise Application Architecture.* Addison-Wesley, 2002.
+- Nilsson, Jimmy. *Applying Domain-Driven Design and Patterns: With Examples in C# and .NET.* Addison-Wesley, 2006.
+- Vernon, Vaughn. *Implementing Domain-Driven Design.* Addison-Wesley, 2013. (Ch. 10 on Aggregates, ch. 14 on Application Services, ch. 4 on CQRS.)
+- Young, Greg. \"CQRS Documents.\" 2010. https://cqrs.files.wordpress.com/2010/11/cqrs_documents.pdf
+
 - [ ] **Regulatory requirements** demand an immutable audit log separate from operational data → Option C with append-only event store

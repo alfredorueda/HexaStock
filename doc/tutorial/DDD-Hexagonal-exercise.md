@@ -304,5 +304,16 @@ This optional infrastructure extension reinforces the core learning objective of
 
 Each type of change is intentionally confined to its proper architectural layer.
 
-By working through both challenges, you will gain deep, practical understanding of how **Domain-Driven Design** and **Hexagonal Architecture** work together to create systems that are resilient to change—whether that change comes from evolving business requirements or from evolving technical infrastructure.
+By working through both challenges, you will gain deep, practical understanding of how **Domain-Driven Design** [Evans, 2003; Vernon, 2013] and **Hexagonal Architecture** [Cockburn, 2005; Martin, 2017] work together to produce systems that are resilient to change \u2014 whether that change originates from evolving business requirements or from evolving technical infrastructure.
+
+---
+
+## References
+
+- Cockburn, Alistair. \"Hexagonal Architecture.\" 2005. https://alistair.cockburn.us/hexagonal-architecture/
+- Evans, Eric. *Domain-Driven Design: Tackling Complexity in the Heart of Software.* Addison-Wesley, 2003.
+- Gamma, Erich, Richard Helm, Ralph Johnson, and John Vlissides. *Design Patterns: Elements of Reusable Object-Oriented Software.* Addison-Wesley, 1994. (Strategy pattern.)
+- Martin, Robert C. *Clean Architecture: A Craftsman's Guide to Software Structure and Design.* Prentice Hall, 2017.
+- Vernon, Vaughn. *Implementing Domain-Driven Design.* Addison-Wesley, 2013.
+
 

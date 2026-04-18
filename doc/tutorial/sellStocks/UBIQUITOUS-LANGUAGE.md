@@ -6,11 +6,11 @@
 
 ## The Concept
 
-Domain-Driven Design is not primarily about technical patterns. It is about aligning software with the business reality it serves. At the centre of this alignment stands **Ubiquitous Language** — the single, shared vocabulary that the development team and domain experts use to describe the model, and that the model, in turn, makes explicit in code.
+Domain-Driven Design is not primarily concerned with technical patterns. It is concerned with aligning software with the business reality it serves [Evans, 2003; Vernon, 2013]. At the centre of that alignment stands the **ubiquitous language** — the shared vocabulary that the development team and domain experts use to describe the model, and that the model, in turn, makes explicit in code.
 
-Eric Evans introduced Ubiquitous Language as a foundational DDD practice: within a bounded context, the same terms should appear in conversation, documentation, diagrams, and source code. A change in the language is a change in the model, and a change in the model is a change in the language — they co-evolve. Vaughn Vernon reinforces that tactical design should embody domain concepts explicitly and consistently, keeping the software focused on the business domain rather than drifting toward purely technical abstractions. Martin Fowler describes Ubiquitous Language as a common, rigorous language shared between developers and domain experts, whose purpose is to remove ambiguity and keep the model grounded in testable conversation.
+Eric Evans introduced the ubiquitous language as a foundational DDD practice: within a bounded context, the same terms must appear in conversation, documentation, diagrams, and source code [Evans, 2003, ch. 2]. A change in the language is a change in the model, and a change in the model is a change in the language; the two co-evolve. Vaughn Vernon reinforces this by arguing that tactical design should embody domain concepts explicitly and consistently, so that software stays focused on business meaning rather than drifting toward purely technical abstractions [Vernon, 2013, ch. 1]. Martin Fowler describes the ubiquitous language as a rigorous shared language between developers and domain experts, whose purpose is to remove ambiguity and keep the model grounded in testable conversation [Fowler, 2006].
 
-This is not naming polish. When the same concept is called one thing in a Gherkin scenario, another in a class diagram, and a third in the Java source, the result is not merely confusing — it is a modelling flaw. Inconsistent terminology erodes traceability, slows onboarding, introduces subtle bugs where people believe they are discussing the same thing but are not, and quietly decouples the software from the business it is supposed to represent.
+This is not a matter of cosmetic naming. When the same concept is called one thing in a Gherkin scenario, another in a class diagram, and a third in Java source, the outcome is a modelling defect. Inconsistent terminology erodes traceability, slows onboarding, introduces subtle defects where participants believe they are discussing the same idea but in fact are not, and silently decouples the software from the business it is supposed to represent.
 
 ## Why It Matters in a Pedagogical Project
 
@@ -66,4 +66,11 @@ These are not hypothetical risks. They are common degradation patterns in codeba
 
 Ubiquitous Language is not frozen at the start of a project. As the team's understanding of the domain deepens — through conversations with domain experts, through collaborative modelling sessions, or through the discovery that a term is ambiguous — the language changes, and the model changes with it. Renaming a class, splitting a concept, or introducing a new term is not rework. It is model refinement, and it should be treated with the same rigour as any other design improvement.
 
-Inside a bounded context, each important term should have one precise meaning. But that meaning may evolve, and the codebase should evolve with it. A healthy Ubiquitous Language is not one that never changes — it is one that changes deliberately, coherently, and across all artifacts at once.
+Inside a bounded context, each important term should carry a single, precise meaning, but that meaning may evolve; the codebase should evolve with it. A healthy ubiquitous language is not one that never changes — it is one that changes deliberately, coherently, and across all artifacts at once [Evans, 2003, ch. 2; Vernon, 2013, ch. 1].
+
+## References
+
+- Evans, Eric. *Domain-Driven Design: Tackling Complexity in the Heart of Software.* Addison-Wesley, 2003. (See chapter 2 on Ubiquitous Language.)
+- Fowler, Martin. "Ubiquitous Language." *martinfowler.com*, 2006. https://martinfowler.com/bliki/UbiquitousLanguage.html
+- Vernon, Vaughn. *Implementing Domain-Driven Design.* Addison-Wesley, 2013. (See chapter 1 on language and context.)
+

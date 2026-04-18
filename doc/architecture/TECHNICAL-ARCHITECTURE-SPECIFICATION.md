@@ -725,3 +725,17 @@ Key repository artefacts used as evidence:
 - [README.md](../../README.md) - Project overview and setup
 - [CONTRIBUTING.md](../../CONTRIBUTING.md) - Contribution guidelines and architectural principles
 - [CI_SETUP.md](../../CI_SETUP.md) - CI/CD setup instructions
+
+---
+
+## References
+
+- Cockburn, Alistair. \"Hexagonal Architecture.\" 2005. https://alistair.cockburn.us/hexagonal-architecture/
+- Evans, Eric. *Domain-Driven Design: Tackling Complexity in the Heart of Software.* Addison-Wesley, 2003.
+- Ford, Neal, Rebecca Parsons, and Patrick Kua. *Building Evolutionary Architectures: Support Constant Change.* O'Reilly, 2017. (Architectural fitness functions.)
+- Martin, Robert C. *Clean Architecture: A Craftsman's Guide to Software Structure and Design.* Prentice Hall, 2017.
+- Nygard, Michael T. *Release It! Design and Deploy Production-Ready Software.* 2nd ed., Pragmatic Bookshelf, 2018.
+- OpenAPI Initiative. *OpenAPI Specification, Version 3.0.3.* 2021. https://spec.openapis.org/oas/v3.0.3
+- RFC 7807. *Problem Details for HTTP APIs.* IETF, 2016. https://datatracker.ietf.org/doc/html/rfc7807
+- Vernon, Vaughn. *Implementing Domain-Driven Design.* Addison-Wesley, 2013.
+

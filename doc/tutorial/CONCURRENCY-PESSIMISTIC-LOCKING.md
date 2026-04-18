@@ -6,11 +6,11 @@
 
 ### Purpose
 
-Concurrent financial operations — such as two simultaneous withdrawals on the same portfolio — require correct concurrency control to prevent data corruption. Without it, race conditions can produce lost updates, negative balances, and inconsistent state.
+Concurrent financial operations — for example, two simultaneous withdrawals from the same portfolio — require explicit concurrency control to preserve correctness. Without it, race conditions give rise to lost updates, negative balances, and inconsistent aggregate state [Gray & Reuter, 1993; Berenson et al., 1995].
 
-This tutorial uses **pessimistic locking** (`SELECT ... FOR UPDATE`) as the teaching vehicle because it makes serialization explicit and observable: you can see exactly when a transaction blocks and when it proceeds. This makes concurrency bugs — and their solutions — deterministic and easy to demonstrate in tests.
+This tutorial uses **pessimistic locking** (`SELECT ... FOR UPDATE`) as the teaching vehicle because it makes serialisation explicit and observable: the point at which a transaction blocks and the point at which it proceeds are directly visible. This makes concurrency defects — and their remedies — deterministic and straightforward to reproduce in tests.
 
-**Pessimistic locking is not the only valid strategy.** Optimistic locking (version-based conflict detection with application-level retries) is a first-class alternative that is often preferable in production when contention is low and retries are acceptable. This tutorial covers both strategies and their trade-offs.
+**Pessimistic locking is not the only valid strategy.** Optimistic locking (version-based conflict detection with application-level retry) is a first-class alternative, and in production workloads with low contention it is frequently preferable. Both strategies are covered here, together with the trade-offs that guide the selection.
 
 You will see:
 
@@ -167,12 +167,14 @@ git restore src/main/java/cat/gencat/agaur/hexastock/adapter/out/persistence/jpa
 
 When a transaction executes `SELECT ... FOR UPDATE`:
 
-1. The database engine (MySQL in this case) places an **exclusive lock** on the selected row(s).
-2. Other transactions attempting to acquire the same lock will **block** at the database level.
-3. The lock is held until the owning transaction commits or rolls back.
-4. Once released, the next waiting transaction can acquire the lock and proceed.
+1. The database engine places an **exclusive (write) lock** on each selected row.
+2. Other transactions attempting to acquire a conflicting lock on the same row **block** at the database layer until the lock is released or a lock-wait timeout occurs.
+3. The lock is held for the remainder of the transaction (commit or rollback).
+4. On release, the next waiting transaction acquires the lock and proceeds.
 
-This is a **database-level guarantee**, not a Java-level construct. The lock is enforced by the MySQL server, not by JDBC or Hibernate.
+This is a **database-level guarantee**, not a JVM or JDBC construct. The lock is enforced by the DBMS.
+
+**A note on MySQL InnoDB semantics.** HexaStock runs on MySQL 8 with InnoDB. The default transaction isolation level in InnoDB is `REPEATABLE READ` [MySQL Reference Manual, § "Transaction Isolation Levels"]. Under `REPEATABLE READ`, plain (non-locking) `SELECT` statements take consistent snapshots and do not prevent a concurrent transaction from modifying the same row; the lost-update anomaly is therefore still possible for read-modify-write sequences. A locking read — `SELECT ... FOR UPDATE`, emitted by `@Lock(LockModeType.PESSIMISTIC_WRITE)` — bypasses the snapshot and takes a next-key write lock on the current committed row, which is what HexaStock relies on to serialise access to a specific portfolio [MySQL Reference Manual, § "Locking Reads"].
 
 ### What Happens to Concurrent Transactions
 
@@ -215,9 +217,9 @@ The `@Lock(LockModeType.PESSIMISTIC_WRITE)` annotation tells Hibernate to:
 - If the transaction is never committed, the lock is never released (except on timeout).
 - This is why `@Transactional` is critical for pessimistic locking to work correctly.
 
-### Jakarta `@Transactional` (managed by Spring at runtime)
+### Jakarta `@Transactional` Processed by Spring
 
-The `@Transactional` annotation (from `jakarta.transaction`) on the use case service method defines the transaction boundary. Spring's transaction infrastructure recognises this standard Jakarta annotation at runtime:
+The `@Transactional` annotation (from `jakarta.transaction`) on the application-service method defines the transaction boundary. Spring's transaction infrastructure recognises this standard Jakarta annotation and invokes its `TransactionInterceptor` around each annotated method [Spring Framework Reference, § "Declarative transaction management"]:
 
 ```java
 @Transactional
@@ -591,12 +593,31 @@ This tutorial used **pessimistic locking** as the teaching vehicle because `SELE
 - **Pessimistic locking** prevents conflicts upfront. It is a strong fit when contention is frequent, retries are expensive, or serialization must be guaranteed before processing.
 - **Optimistic locking** detects conflicts at write time. It is a strong fit when contention is rare, retries are cheap, and throughput or scalability is a priority.
 
-Professional engineering requires understanding both mechanisms - how they work, when each is appropriate, and what trade-offs they carry. The selection criteria (contention profile, retry cost, transaction duration, deployment topology, deadlock tolerance) are discussed in detail in the "Choosing Between Pessimistic and Optimistic Locking" section above.
+Professional engineering practice requires competence in both mechanisms — how each operates, when each is appropriate, and which trade-offs each carries. The selection criteria (contention profile, retry cost, transaction duration, deployment topology, deadlock tolerance) are discussed in detail under "Choosing Between Pessimistic and Optimistic Locking" above.
 
 **Experiment with confidence:**
 
-1. Run tests with locking enabled → tests pass, balance correct.
-2. Remove the lock temporarily → tests fail, balance corrupted.
-3. Revert the change → tests pass again.
+1. Run the tests with locking enabled — tests pass, balance consistent.
+2. Remove the lock temporarily — tests fail, balance corrupted.
+3. Revert the change — tests pass again.
+
+---
+
+## References
+
+### Foundational Works
+
+- Berenson, H., Bernstein, P. A., Gray, J., Melton, J., O’Neil, E., and O’Neil, P. "A Critique of ANSI SQL Isolation Levels." *Proceedings of the 1995 ACM SIGMOD International Conference on Management of Data*, 1995.
+- Gray, Jim and Reuter, Andreas. *Transaction Processing: Concepts and Techniques.* Morgan Kaufmann, 1993.
+- Haerder, Theo and Reuter, Andreas. "Principles of Transaction-Oriented Database Recovery." *ACM Computing Surveys*, 15(4):287–317, December 1983.
+
+### Framework and Platform References
+
+- Bauer, Christian, King, Gavin, and Gregory, Gary. *Java Persistence with Hibernate.* 2nd ed., Manning, 2015.
+- *Hibernate ORM User Guide*, § "Locking." Red Hat. https://docs.jboss.org/hibernate/orm/current/userguide/html_single/Hibernate_User_Guide.html
+- *Jakarta Persistence (JPA) Specification*, § "Lock Modes." https://jakarta.ee/specifications/persistence/
+- *MySQL 8.0 Reference Manual*, §§ "Transaction Isolation Levels" and "Locking Reads." Oracle. https://dev.mysql.com/doc/refman/8.0/en/innodb-transaction-isolation-levels.html and https://dev.mysql.com/doc/refman/8.0/en/innodb-locking-reads.html
+- *Spring Framework Reference Documentation — Data Access*, § "Declarative transaction management." https://docs.spring.io/spring-framework/reference/data-access/transaction.html
+- *JEP 444: Virtual Threads.* OpenJDK, Java 21. https://openjdk.org/jeps/444
 
 This hands-on experience demonstrates the concurrency problem that both pessimistic and optimistic locking strategies exist to solve.

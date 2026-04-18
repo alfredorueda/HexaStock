@@ -1545,3 +1545,16 @@ immediately," the correct response is: yes — and the infrastructure that makes
 possible adds further rules, state transitions, and invariants that would make the
 case for a Rich Domain Model even stronger.
 
+---
+
+## References
+
+- Cockburn, Alistair. "Hexagonal Architecture." 2005. https://alistair.cockburn.us/hexagonal-architecture/
+- Evans, Eric. *Domain-Driven Design: Tackling Complexity in the Heart of Software.* Addison-Wesley, 2003.
+- Fowler, Martin. "AnemicDomainModel." *martinfowler.com*, 2003. https://martinfowler.com/bliki/AnemicDomainModel.html
+- Fowler, Martin. *Patterns of Enterprise Application Architecture.* Addison-Wesley, 2002. (Domain Model, Transaction Script, Service Layer.)
+- Martin, Robert C. *Clean Architecture: A Craftsman's Guide to Software Structure and Design.* Prentice Hall, 2017.
+- Vernon, Vaughn. *Implementing Domain-Driven Design.* Addison-Wesley, 2013.
+- U.S. Securities and Exchange Commission. "Shortening the Securities Transaction Settlement Cycle." Release No. 34-96930, 2023. https://www.sec.gov/rules/final/2023/34-96930.pdf (context on T+1/T+2 settlement conventions).
+
+

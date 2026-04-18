@@ -14,9 +14,9 @@ HexaStock is a stock portfolio management platform. The system enables investors
 
 HexaStock is structured according to two complementary architectural disciplines.
 
-**Domain-Driven Design** provides the modeling methodology. The system's core concepts — `Portfolio`, `Holding`, `Lot`, and `Transaction` — are modeled as aggregates, entities, and value objects that encapsulate business rules and protect invariants. Application services orchestrate use cases; controllers and adapters translate at the boundaries.
+**Domain-Driven Design** provides the modelling methodology [Evans, 2003; Vernon, 2013]. The core concepts — `Portfolio`, `Holding`, `Lot`, and `Transaction` — are modelled as aggregates, entities, and value objects that encapsulate business rules and enforce invariants. Application services orchestrate use cases; controllers and adapters translate at the boundaries.
 
-**Hexagonal Architecture** (Ports and Adapters) provides the structural organization. The domain model has no dependencies on frameworks, databases, or HTTP. It communicates with the outside world exclusively through port interfaces, which are implemented by adapters in the infrastructure layer. All dependencies point inward toward the domain.
+**Hexagonal Architecture** (Ports and Adapters) provides the structural organisation [Cockburn, 2005]. The domain model has no dependencies on frameworks, databases, or HTTP. It communicates with the outside world exclusively through port interfaces, which are implemented by adapters in the infrastructure layer. All dependencies point inward toward the domain, in the sense of the dependency rule [Martin, 2017, ch. 22].
 
 ---
 
@@ -64,15 +64,24 @@ cat.gencat.agaur.hexastock.model
 
 Hexagonal Architecture does not mandate a single filesystem layout. Organizing by feature, by bounded context, or by a combination of both would be equally valid — and often preferable in larger systems with multiple bounded contexts. HexaStock uses module-level separation because its primary audiences — engineers, architects, and teams adopting hexagonal design — benefit most from seeing architectural boundaries enforced physically.
 
-When each layer is a separate Maven module, the compiler itself prevents illegal dependencies: the `domain` module *cannot* import a Spring annotation, and an adapter *cannot* bypass an application port to reach another adapter. This transforms the hexagonal dependency rule from a convention that requires discipline into a constraint that the build enforces automatically. ArchUnit fitness tests (see [Testing Strategy](SELL-STOCK-TUTORIAL.md#5-testing-strategy-overview) in the main tutorial) provide a second enforcement layer: they scan compiled classes across all modules and catch dependency violations — such as a domain class importing a Spring type via a transitive path — that module boundaries alone cannot detect. The result is a codebase where the architecture is not just documented — it is structurally guaranteed at both build time and test time.
+When each layer is a separate Maven module, the compiler prevents illegal dependencies: the `domain` module *cannot* import a Spring annotation, and an adapter *cannot* bypass an application port to reach another adapter. This transforms the hexagonal dependency rule from a convention that depends on reviewer discipline into a constraint that the build enforces automatically. ArchUnit fitness tests (see [Testing Strategy](SELL-STOCK-TUTORIAL.md#5-testing-strategy-overview) in the main tutorial) provide a second enforcement layer: they scan compiled classes across all modules and detect dependency violations — for example, a domain class reaching a Spring type via a transitive path — that module boundaries alone cannot detect. The result is a codebase in which the architecture is not merely documented but structurally enforced at both build time and test time.
 
-These Maven modules do not represent separate bounded contexts. They are architectural partitions inside the same bounded context, used to make dependency rules explicit and enforceable at build time.
+These Maven modules do not represent separate bounded contexts. They are architectural partitions inside the same bounded context, used to make the dependency rule explicit and enforceable at build time.
 
 ---
 
 ## Conventions
 
-Code listings throughout the HexaStock documentation are drawn from the actual repository source. Architecture and sequence diagrams are maintained as Mermaid (`.mmd`) or PlantUML (`.puml`) source files under `doc/tutorial/*/diagrams/` and rendered as SVG images. Gherkin scenarios are maintained as canonical `.feature` files under `doc/features/`. All financial calculations use `BigDecimal` with scale 2 and `RoundingMode.HALF_UP`.
+Code listings throughout the HexaStock documentation are drawn from the repository source. Architecture and sequence diagrams are maintained as Mermaid (`.mmd`) or PlantUML (`.puml`) source files under `doc/tutorial/*/diagrams/` and rendered as SVG images. Gherkin scenarios are maintained as canonical `.feature` files under `doc/features/`. All monetary computations use `BigDecimal` with scale 2 and `RoundingMode.HALF_UP`.
+
+---
+
+## References
+
+- Cockburn, Alistair. "Hexagonal Architecture (Ports and Adapters)." *alistair.cockburn.us*, 2005. https://alistair.cockburn.us/hexagonal-architecture/
+- Evans, Eric. *Domain-Driven Design: Tackling Complexity in the Heart of Software.* Addison-Wesley, 2003.
+- Martin, Robert C. *Clean Architecture: A Craftsman's Guide to Software Structure and Design.* Prentice Hall, 2017.
+- Vernon, Vaughn. *Implementing Domain-Driven Design.* Addison-Wesley, 2013.
 
 ---
 

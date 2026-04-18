@@ -390,13 +390,13 @@ The controller wraps the domain result in a DTO (which extracts `BigDecimal` val
 
 ## Why This Satisfies Dependency Inversion
 
-The **Dependency Inversion Principle** states:
+The **Dependency Inversion Principle** [Martin, 1996; Martin, 2017, ch. 11] states:
 
 > **High-level modules should not depend on low-level modules. Both should depend on abstractions.**
 >
 > **Abstractions should not depend on details. Details should depend on abstractions.**
 
-Let's analyze how the HexaStock stock selling implementation satisfies this principle:
+Let us analyse how the HexaStock stock selling implementation satisfies this principle.
 
 ### 1. The Application Service is a High-Level Module
 
@@ -770,4 +770,15 @@ This architecture enables the system to evolve independently in three dimensions
 - **Infrastructure** can change without affecting domain logic
 - **New capabilities** can be added without modifying existing components
 
-The Dependency Inversion Principle, combined with Hexagonal Architecture, creates a system where business logic is protected from technological change and technical decisions can be deferred or reversed with minimal cost.
+The Dependency Inversion Principle [Martin, 1996; Martin, 2017], combined with Hexagonal Architecture [Cockburn, 2005], creates a system in which business logic is insulated from technological change and infrastructure decisions can be deferred or reversed at low cost.
+
+---
+
+## References
+
+- Cockburn, Alistair. "Hexagonal Architecture." 2005. https://alistair.cockburn.us/hexagonal-architecture/
+- Evans, Eric. *Domain-Driven Design: Tackling Complexity in the Heart of Software.* Addison-Wesley, 2003.
+- Martin, Robert C. "The Dependency Inversion Principle." *C++ Report*, vol. 8, no. 6, 1996, pp. 61–66. (Original statement of DIP.)
+- Martin, Robert C. *Clean Architecture: A Craftsman's Guide to Software Structure and Design.* Prentice Hall, 2017. (Chs. 11 and 22.)
+- Vernon, Vaughn. *Implementing Domain-Driven Design.* Addison-Wesley, 2013.
+

@@ -25,11 +25,11 @@ Use Spring Boot 3.5.0 (with Spring Framework 6.x) as the application framework. 
 - Spring profiles enable swappable adapters (`jpa`, `finhub`, `mockfinhub`).
 - `@SpringBootTest` with Testcontainers provides comprehensive integration testing.
 - `spring-boot-starter-*` modules simplify dependency management.
+- The application layer has no compile-time coupling to Spring. Transactional demarcation uses the standard Jakarta `@Transactional` annotation; Spring's transaction infrastructure recognises it at runtime.
 
 **Negative:**
-- The application layer has no compile-time coupling to Spring. Transactional demarcation uses the standard Jakarta `@Transactional` annotation; Spring recognises it at runtime.
 - Contributors must understand Spring Boot conventions (profiles, auto-configuration, component scanning).
-- Runtime startup is slower than compile-time frameworks (acceptable for the project's context).
+- Runtime startup is slower than compile-time frameworks such as Quarkus or Micronaut (acceptable for this project's context).
 
 ## Repository evidence
 

@@ -1248,18 +1248,15 @@ Business logic is protected. Technical concerns are isolated in adapters. New re
 
 ---
 
-## Further Reading
+## References
 
-- **Martin Fowler — CQRS** (2011): [https://martinfowler.com/bliki/CQRS.html](https://martinfowler.com/bliki/CQRS.html)
-  Fowler's concise articulation of the pattern, its benefits, and its risks. Essential reading for understanding when CQRS is—and is not—appropriate.
-
-- **Greg Young — CQRS Documents** (2010): Greg Young originated the term CQRS, extending Bertrand Meyer's Command-Query Separation (CQS) principle from the method level to the architectural level. His writings and presentations provide the foundational rationale for separating write and read models in complex domains.
-
-- **Martin Fowler — Command Query Separation**: [https://martinfowler.com/bliki/CommandQuerySeparation.html](https://martinfowler.com/bliki/CommandQuerySeparation.html)
-  The predecessor principle by Bertrand Meyer, which states that a method should either change state or return a result, but not both. CQRS elevates this idea to the level of system architecture.
-
-- **StockAlarm — How to Set Stock Price Alerts**: [https://pro.stockalarm.io/blog/how-to-set-stock-price-alerts](https://pro.stockalarm.io/blog/how-to-set-stock-price-alerts)
-  Practical best practices for designing stock alert systems. The progressive extensions in Levels 2–5 of this tutorial are obtained from the concepts presented in this article.
+- Fowler, Martin. "CQRS." *martinfowler.com*, 2011. https://martinfowler.com/bliki/CQRS.html
+- Fowler, Martin. "CommandQuerySeparation." *martinfowler.com*, 2005. https://martinfowler.com/bliki/CommandQuerySeparation.html
+- Meyer, Bertrand. *Object-Oriented Software Construction.* 2nd ed., Prentice Hall, 1997. (The Command–Query Separation principle.)
+- Young, Greg. "CQRS Documents." 2010. https://cqrs.files.wordpress.com/2010/11/cqrs_documents.pdf
+- Vernon, Vaughn. *Implementing Domain-Driven Design.* Addison-Wesley, 2013. (Ch. 4 on CQRS.)
+- Evans, Eric. *Domain-Driven Design: Tackling Complexity in the Heart of Software.* Addison-Wesley, 2003.
+- StockAlarm. "How to Set Stock Price Alerts." https://pro.stockalarm.io/blog/how-to-set-stock-price-alerts (source of the progressive alert-design best practices in Levels 2–5, as contributed by Lluna de Gea).
 
 ---
 

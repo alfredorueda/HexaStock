@@ -561,9 +561,10 @@ There is no universally correct choice. The decision depends on measurable chara
 
 **External references:**
 
-- Vlad Mihalcea, *High-Performance Java Persistence* — covers JPA query projections, DTO mapping, and the cost of entity hydration
-- Brian Goetz, *Java Concurrency in Practice* — explains `ForkJoinPool` semantics and why shared pools are problematic
-- Martin Fowler, *CQRS* — https://martinfowler.com/bliki/CQRS.html
-- Greg Young, *CQRS and Event Sourcing* — foundational material on read model separation
-- Oracle, *BigDecimal JavaDoc (Java 21)* — https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/math/BigDecimal.html
+- Fowler, Martin. "CQRS." *martinfowler.com*, 2011. https://martinfowler.com/bliki/CQRS.html
+- Goetz, Brian, et al. *Java Concurrency in Practice.* Addison-Wesley, 2006. (Shared pool semantics of `ForkJoinPool`.)
+- Mihalcea, Vlad. *High-Performance Java Persistence.* 2nd ed., self-published, 2020. (JPA query projections, DTO mapping, entity hydration cost.)
+- Oracle. *BigDecimal JavaDoc (Java 21).* https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/math/BigDecimal.html
+- Vernon, Vaughn. *Implementing Domain-Driven Design.* Addison-Wesley, 2013. (Ch. 4 on architecture and CQRS.)
+- Young, Greg. "CQRS Documents." 2010. https://cqrs.files.wordpress.com/2010/11/cqrs_documents.pdf
 

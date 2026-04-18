@@ -8,11 +8,11 @@
 
 ### Domain-Driven Design and Hexagonal Architecture in a Financial Domain
 
-This repository is accompanied by a comprehensive technical book that serves as the primary long-form reference for the project. It traces the full architectural and domain journey behind HexaStock — from strategic design decisions and aggregate boundaries to persistence trade-offs and testing strategies.
+This repository is accompanied by a technical book that serves as the long-form reference for the project. The book traces the architectural and domain reasoning behind HexaStock — from strategic design decisions and aggregate boundaries to persistence trade-offs and testing strategies — following the conceptual frameworks of Domain-Driven Design [Evans, 2003; Vernon, 2013] and the Hexagonal Architecture style [Cockburn, 2005].
 
-The financial domain was chosen deliberately: it surfaces real modelling tensions — FIFO lot accounting, settlement mechanics, concurrent portfolio mutations — without being artificially contrived. The result is a case study where every design choice has a concrete, defensible reason grounded in actual business semantics.
+The financial domain is not incidental. It surfaces modelling tensions that are difficult to contrive artificially: FIFO lot accounting, settlement mechanics, and concurrent mutation of a shared portfolio under transactional guarantees. The resulting case study grounds every design decision in concrete business semantics rather than textbook abstractions.
 
-The book and the repository are designed to complement each other. The codebase provides the working implementation; the book provides the _why_ — the reasoning, the alternatives considered, and the architectural principles that shaped each decision. Together, they offer a complete learning path for engineers and architects working with DDD and Hexagonal Architecture in non-trivial domains.
+The book and the repository are complementary. The codebase provides the executable implementation; the book documents the reasoning, the alternatives considered, and the architectural principles that shaped each decision. Taken together, they offer a study path for engineers and architects applying DDD and Hexagonal Architecture to non-trivial domains.
 
 **[➜ Explore the full book](https://alfredo-rueda-unsain.gitbook.io/alfredo-rueda-unsain-docs)**
 
@@ -20,7 +20,7 @@ The book and the repository are designed to complement each other. The codebase 
 
 # HexaStock
 
-HexaStock is a project that teaches Domain-Driven Design and Hexagonal Architecture through a realistic financial portfolio domain. Built for engineering students and workshop participants, it provides a complete, testable system with real business rules, multiple interchangeable adapters, and clear architectural boundaries.
+HexaStock is an instructional project that illustrates Domain-Driven Design and Hexagonal Architecture through a realistic financial-portfolio domain. Developed for software engineering students and workshop participants, it provides a complete, testable system with non-trivial business rules, multiple interchangeable adapters, and explicit architectural boundaries enforced at both module and fitness-test levels.
 
 ## Core Documentation
 
@@ -41,25 +41,25 @@ The functional reference for the entire system:
 
 > **[doc/tutorial/sellStocks/SELL-STOCK-TUTORIAL.md](doc/tutorial/sellStocks/SELL-STOCK-TUTORIAL.md)**
 
-The sell stock use case is the architectural reference of the project. It concentrates the highest density of domain logic and best illustrates DDD and Hexagonal Architecture in practice. The tutorial covers:
+The sell-stock use case is the tutorial reference of the project. It concentrates the highest density of domain logic in the system and therefore provides the most complete illustration of DDD and Hexagonal Architecture in practice. The tutorial covers:
 
-- Full execution trace: REST adapter → application service → domain model → persistence
-- Aggregate boundary protection (`Portfolio` as aggregate root enforcing invariants)
-- FIFO accounting logic implemented entirely in the domain layer
-- Orchestration by application services vs. rule enforcement by the aggregate
-- Hands-on exercises for training sessions and self-guided study
+- Full execution trace: REST adapter → application service → domain model → persistence adapter.
+- Aggregate boundary enforcement (`Portfolio` as aggregate root enforcing invariants) [Evans, 2003, ch. 6].
+- FIFO lot-accounting logic implemented entirely inside the domain layer.
+- Orchestration by application services versus rule enforcement by the aggregate.
+- Exercises for training sessions and self-directed study.
 
 ### Rich vs Anemic Domain Model (Architectural Deep Dive)
 
 > **[doc/tutorial/richVsAnemicDomainModel/RICH_VS_ANEMIC_DOMAIN_MODEL_TUTORIAL.md](doc/tutorial/richVsAnemicDomainModel/RICH_VS_ANEMIC_DOMAIN_MODEL_TUTORIAL.md)**
 
-A side-by-side architectural comparison of the two fundamental approaches to domain modelling. Using HexaStock's own sell-stock use case, it shows how business rules migrate between layers depending on the chosen model. The tutorial covers:
+A side-by-side architectural comparison of the two common approaches to domain modelling [Fowler, 2003]. Using the sell-stock use case, the tutorial shows how business rules migrate between layers depending on the chosen model. It covers:
 
-- Rich domain model: invariants enforced inside the aggregate, FIFO logic in `Holding.sell()`
-- Anemic domain model: entities reduced to data carriers, business rules pushed to application services
-- Seven PlantUML diagrams (class, sequence, and architecture) contrasting both approaches
-- Concrete consequences for testability, encapsulation, and aggregate boundary protection
-- When an anemic model can be a pragmatic choice and when it becomes a liability
+- Rich domain model: invariants enforced inside the aggregate; FIFO logic resident in `Holding.sell()`.
+- Anemic domain model: entities reduced to data carriers; business rules displaced to application services.
+- Seven PlantUML diagrams (class, sequence, and architecture) contrasting the two approaches.
+- Consequences for testability, encapsulation, and aggregate boundary enforcement.
+- Conditions under which an anemic model remains a pragmatic choice, and conditions under which it becomes a liability.
 
 ### Documentation Map
 
