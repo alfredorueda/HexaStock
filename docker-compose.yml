@@ -18,3 +18,17 @@ services:
       timeout: 2s
       retries: 60
 
+  # MongoDB service for the 'mongodb' Spring profile (see ADR-016).
+  # Start with: docker compose up mongodb
+  # Run the app with: SPRING_PROFILES_ACTIVE=mongodb
+  mongodb:
+    image: mongo:7.0
+    mem_limit: 512m
+    ports:
+      - "27017:27017"
+    healthcheck:
+      test: ["CMD", "mongosh", "--quiet", "--eval", "db.runCommand({ ping: 1 }).ok"]
+      interval: 5s
+      timeout: 2s
+      retries: 60
+

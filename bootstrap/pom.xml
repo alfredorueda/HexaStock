@@ -33,6 +33,10 @@
         </dependency>
         <dependency>
             <groupId>cat.gencat.agaur</groupId>
+            <artifactId>hexastock-adapters-outbound-persistence-mongodb</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>cat.gencat.agaur</groupId>
             <artifactId>hexastock-adapters-outbound-market</artifactId>
         </dependency>
 
