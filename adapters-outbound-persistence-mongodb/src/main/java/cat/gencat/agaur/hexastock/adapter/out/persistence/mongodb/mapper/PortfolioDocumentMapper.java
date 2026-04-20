@@ -76,11 +76,11 @@ public final class PortfolioDocumentMapper {
 
     private static Lot toDomain(LotDocument ld) {
         return new Lot(
-                LotId.of(ld.getId()),
-                ShareQuantity.of(ld.getInitialStocks()),
-                ShareQuantity.of(ld.getRemaining()),
-                Price.of(ld.getUnitPrice()),
-                ld.getPurchasedAt()
+                LotId.of(ld.id()),
+                ShareQuantity.of(ld.initialStocks()),
+                ShareQuantity.of(ld.remaining()),
+                Price.of(ld.unitPrice()),
+                ld.purchasedAt()
         );
     }
 

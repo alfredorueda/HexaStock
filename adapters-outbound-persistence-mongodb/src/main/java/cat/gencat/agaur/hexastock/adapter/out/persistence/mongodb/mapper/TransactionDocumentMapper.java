@@ -22,48 +22,47 @@ public final class TransactionDocumentMapper {
     private TransactionDocumentMapper() { }
 
     public static Transaction toDomain(TransactionDocument d) {
-        return switch (d.getType()) {
+        return switch (d.type()) {
             case DEPOSIT -> new DepositTransaction(
-                    TransactionId.of(d.getId()),
-                    PortfolioId.of(d.getPortfolioId()),
-                    Money.of(d.getTotalAmount()),
-                    d.getCreatedAt());
+                    TransactionId.of(d.id()),
+                    PortfolioId.of(d.portfolioId()),
+                    Money.of(d.totalAmount()),
+                    d.createdAt());
             case WITHDRAWAL -> new WithdrawalTransaction(
-                    TransactionId.of(d.getId()),
-                    PortfolioId.of(d.getPortfolioId()),
-                    Money.of(d.getTotalAmount()),
-                    d.getCreatedAt());
+                    TransactionId.of(d.id()),
+                    PortfolioId.of(d.portfolioId()),
+                    Money.of(d.totalAmount()),
+                    d.createdAt());
             case PURCHASE -> new PurchaseTransaction(
-                    TransactionId.of(d.getId()),
-                    PortfolioId.of(d.getPortfolioId()),
-                    Ticker.of(d.getTicker()),
-                    ShareQuantity.of(d.getQuantity()),
-                    Price.of(d.getUnitPrice()),
-                    Money.of(d.getTotalAmount()),
-                    d.getCreatedAt());
+                    TransactionId.of(d.id()),
+                    PortfolioId.of(d.portfolioId()),
+                    Ticker.of(d.ticker()),
+                    ShareQuantity.of(d.quantity()),
+                    Price.of(d.unitPrice()),
+                    Money.of(d.totalAmount()),
+                    d.createdAt());
             case SALE -> new SaleTransaction(
-                    TransactionId.of(d.getId()),
-                    PortfolioId.of(d.getPortfolioId()),
-                    Ticker.of(d.getTicker()),
-                    ShareQuantity.of(d.getQuantity()),
-                    Price.of(d.getUnitPrice()),
-                    Money.of(d.getTotalAmount()),
-                    Money.of(d.getProfit()),
-                    d.getCreatedAt());
+                    TransactionId.of(d.id()),
+                    PortfolioId.of(d.portfolioId()),
+                    Ticker.of(d.ticker()),
+                    ShareQuantity.of(d.quantity()),
+                    Price.of(d.unitPrice()),
+                    Money.of(d.totalAmount()),
+                    Money.of(d.profit()),
+                    d.createdAt());
         };
     }
 
     public static TransactionDocument toDocument(Transaction t) {
-        return TransactionDocument.builder()
-                .id(t.id().value())
-                .portfolioId(t.portfolioId().value())
-                .type(t.type())
-                .ticker(t.ticker() != null ? t.ticker().value() : null)
-                .quantity(t.quantity().value())
-                .unitPrice(t.unitPrice() != null ? t.unitPrice().value() : null)
-                .totalAmount(t.totalAmount().amount())
-                .profit(t.profit().amount())
-                .createdAt(t.createdAt())
-                .build();
+        return new TransactionDocument(
+                t.id().value(),
+                t.portfolioId().value(),
+                t.type(),
+                t.ticker() != null ? t.ticker().value() : null,
+                t.quantity().value(),
+                t.unitPrice() != null ? t.unitPrice().value() : null,
+                t.totalAmount().amount(),
+                t.profit().amount(),
+                t.createdAt());
     }
 }

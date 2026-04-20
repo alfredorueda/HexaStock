@@ -8,29 +8,17 @@ import java.time.LocalDateTime;
  *
  * <p>Holds the raw scalar state of a single purchase lot. Adapter-local; never
  * leaks into domain or application layers.</p>
+ *
+ * <p>Modelled as a Java 21 {@code record} so that Spring Data MongoDB's mapping
+ * layer reconstructs instances via the canonical constructor and component
+ * accessors. Using a record also collapses the field/constructor/getter
+ * boilerplate that would otherwise mirror the JPA {@code LotJpaEntity}
+ * (flagged by Sonar as duplicated code).</p>
  */
-public class LotDocument {
-
-    private String id;
-    private int initialStocks;
-    private int remaining;
-    private BigDecimal unitPrice;
-    private LocalDateTime purchasedAt;
-
-    protected LotDocument() { /* for MongoDB mapper */ }
-
-    public LotDocument(String id, int initialStocks, int remaining,
-                       BigDecimal unitPrice, LocalDateTime purchasedAt) {
-        this.id = id;
-        this.initialStocks = initialStocks;
-        this.remaining = remaining;
-        this.unitPrice = unitPrice;
-        this.purchasedAt = purchasedAt;
-    }
-
-    public String getId() { return id; }
-    public int getInitialStocks() { return initialStocks; }
-    public int getRemaining() { return remaining; }
-    public BigDecimal getUnitPrice() { return unitPrice; }
-    public LocalDateTime getPurchasedAt() { return purchasedAt; }
+public record LotDocument(
+        String id,
+        int initialStocks,
+        int remaining,
+        BigDecimal unitPrice,
+        LocalDateTime purchasedAt) {
 }
