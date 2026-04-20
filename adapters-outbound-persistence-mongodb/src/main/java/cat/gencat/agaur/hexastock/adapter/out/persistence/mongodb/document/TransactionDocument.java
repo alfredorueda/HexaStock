@@ -16,79 +16,15 @@ import java.time.LocalDateTime;
 @CompoundIndexes({
         @CompoundIndex(name = "idx_tx_portfolio_createdAt", def = "{'portfolioId': 1, 'createdAt': 1}")
 })
-public class TransactionDocument {
-
-    @Id
-    private String id;
-
-    @Indexed
-    private String portfolioId;
-
-    private TransactionType type;
-    private String ticker;
-    private int quantity;
-
-    @Field(targetType = FieldType.DECIMAL128)
-    private BigDecimal unitPrice;
-
-    @Field(targetType = FieldType.DECIMAL128)
-    private BigDecimal totalAmount;
-
-    @Field(targetType = FieldType.DECIMAL128)
-    private BigDecimal profit;
-
-    private LocalDateTime createdAt;
-
-    protected TransactionDocument() {
-    }
-
-    public TransactionDocument(String id, String portfolioId, TransactionType type, String ticker,
-                               int quantity, BigDecimal unitPrice, BigDecimal totalAmount,
-                               BigDecimal profit, LocalDateTime createdAt) {
-        this.id = id;
-        this.portfolioId = portfolioId;
-        this.type = type;
-        this.ticker = ticker;
-        this.quantity = quantity;
-        this.unitPrice = unitPrice;
-        this.totalAmount = totalAmount;
-        this.profit = profit;
-        this.createdAt = createdAt;
-    }
-
-    public String getId() {
-        return id;
-    }
-
-    public String getPortfolioId() {
-        return portfolioId;
-    }
-
-    public TransactionType getType() {
-        return type;
-    }
-
-    public String getTicker() {
-        return ticker;
-    }
-
-    public int getQuantity() {
-        return quantity;
-    }
-
-    public BigDecimal getUnitPrice() {
-        return unitPrice;
-    }
-
-    public BigDecimal getTotalAmount() {
-        return totalAmount;
-    }
-
-    public BigDecimal getProfit() {
-        return profit;
-    }
-
-    public LocalDateTime getCreatedAt() {
-        return createdAt;
-    }
+public record TransactionDocument(
+        @Id String id,
+        @Indexed String portfolioId,
+        TransactionType type,
+        String ticker,
+        int quantity,
+        @Field(targetType = FieldType.DECIMAL128) BigDecimal unitPrice,
+        @Field(targetType = FieldType.DECIMAL128) BigDecimal totalAmount,
+        @Field(targetType = FieldType.DECIMAL128) BigDecimal profit,
+        LocalDateTime createdAt
+) {
 }

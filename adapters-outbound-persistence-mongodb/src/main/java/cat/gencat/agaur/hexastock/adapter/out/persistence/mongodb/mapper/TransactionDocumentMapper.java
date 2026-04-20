@@ -19,37 +19,37 @@ public final class TransactionDocumentMapper {
     }
 
     public static Transaction toModelEntity(TransactionDocument doc) {
-        return switch (doc.getType()) {
+        return switch (doc.type()) {
             case DEPOSIT -> new DepositTransaction(
-                    TransactionId.of(doc.getId()),
-                    PortfolioId.of(doc.getPortfolioId()),
-                    Money.of(doc.getTotalAmount()),
-                    doc.getCreatedAt());
+                    TransactionId.of(doc.id()),
+                    PortfolioId.of(doc.portfolioId()),
+                    Money.of(doc.totalAmount()),
+                    doc.createdAt());
 
             case WITHDRAWAL -> new WithdrawalTransaction(
-                    TransactionId.of(doc.getId()),
-                    PortfolioId.of(doc.getPortfolioId()),
-                    Money.of(doc.getTotalAmount()),
-                    doc.getCreatedAt());
+                    TransactionId.of(doc.id()),
+                    PortfolioId.of(doc.portfolioId()),
+                    Money.of(doc.totalAmount()),
+                    doc.createdAt());
 
             case PURCHASE -> new PurchaseTransaction(
-                    TransactionId.of(doc.getId()),
-                    PortfolioId.of(doc.getPortfolioId()),
-                    Ticker.of(doc.getTicker()),
-                    ShareQuantity.of(doc.getQuantity()),
-                    Price.of(doc.getUnitPrice()),
-                    Money.of(doc.getTotalAmount()),
-                    doc.getCreatedAt());
+                    TransactionId.of(doc.id()),
+                    PortfolioId.of(doc.portfolioId()),
+                    Ticker.of(doc.ticker()),
+                    ShareQuantity.of(doc.quantity()),
+                    Price.of(doc.unitPrice()),
+                    Money.of(doc.totalAmount()),
+                    doc.createdAt());
 
             case SALE -> new SaleTransaction(
-                    TransactionId.of(doc.getId()),
-                    PortfolioId.of(doc.getPortfolioId()),
-                    Ticker.of(doc.getTicker()),
-                    ShareQuantity.of(doc.getQuantity()),
-                    Price.of(doc.getUnitPrice()),
-                    Money.of(doc.getTotalAmount()),
-                    Money.of(doc.getProfit()),
-                    doc.getCreatedAt());
+                    TransactionId.of(doc.id()),
+                    PortfolioId.of(doc.portfolioId()),
+                    Ticker.of(doc.ticker()),
+                    ShareQuantity.of(doc.quantity()),
+                    Price.of(doc.unitPrice()),
+                    Money.of(doc.totalAmount()),
+                    Money.of(doc.profit()),
+                    doc.createdAt());
         };
     }
 
