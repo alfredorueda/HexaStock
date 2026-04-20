@@ -100,9 +100,9 @@ cd HexaStock
 
 ### 2. Run the application locally
 
-To run the full application with real stock prices you need three things: the database, your API keys, and the Spring Boot profiles.
+To run the full application with real stock prices you need three things: the databases, your API keys, and the Spring Boot profiles.
 
-**Start MySQL:**
+**Start local databases (MySQL + MongoDB):**
 
 ```bash
 docker-compose up -d
@@ -123,6 +123,8 @@ Free-tier keys: [finnhub.io](https://finnhub.io/) · [alphavantage.co](https://w
 source .env
 ./mvnw install -DskipTests -q
 ./mvnw spring-boot:run -pl bootstrap -Dspring-boot.run.profiles=jpa,finhub
+# or:
+# ./mvnw spring-boot:run -pl bootstrap -Dspring-boot.run.profiles=mongodb,finhub
 ```
 
 The first command compiles and installs all modules into your local Maven repository (only needed once, or after code changes). The second starts the app.
@@ -150,12 +152,13 @@ The application requires two Spring profiles to start:
 
 | Category | Profile | Description |
 |----------|---------|-------------|
-| Persistence (mandatory) | `jpa` | JPA/Hibernate with MySQL |
+| Persistence (choose one) | `jpa` | JPA/Hibernate with MySQL |
+| | `mongodb` | Spring Data MongoDB |
 | Stock price provider (choose one) | `finhub` | Finnhub real-time API |
 | | `alphaVantage` | Alpha Vantage API |
 | | `mockfinhub` | Random prices — no API key needed (used by tests) |
 
-Valid combinations: `jpa,finhub` · `jpa,alphaVantage` · `jpa,mockfinhub`
+Valid combinations: `jpa,finhub` · `jpa,alphaVantage` · `jpa,mockfinhub` · `mongodb,finhub` · `mongodb,alphaVantage` · `mongodb,mockfinhub`
 
 **From IntelliJ IDEA:** open *Run > Edit Configurations*, set the *Active profiles* field (e.g. `jpa,finhub`) and add environment variables from your `.env` file.
 
@@ -167,6 +170,7 @@ API keys are read from **environment variables** so that real secrets are never 
 |----------|---------|-------------|
 | `FINNHUB_API_KEY` | [Finnhub](https://finnhub.io/) stock price API | Running with profile `finhub` |
 | `ALPHA_VANTAGE_API_KEY` | [Alpha Vantage](https://www.alphavantage.co/) stock price API | Running with profile `alphaVantage` |
+| `SPRING_DATA_MONGODB_URI` | MongoDB connection URI | Running with profile `mongodb` |
 
 > **Tests do not require real API keys.** The test suite uses the `mockfinhub` profile with TestContainers, so `./mvnw clean test` works out of the box without any `.env` file.
 
