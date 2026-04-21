@@ -1,5 +1,6 @@
 package cat.gencat.agaur.hexastock.application.service;
 
+import cat.gencat.agaur.hexastock.application.annotation.RetryOnWriteConflict;
 import cat.gencat.agaur.hexastock.application.port.in.PortfolioStockOperationsUseCase;
 import cat.gencat.agaur.hexastock.application.port.out.PortfolioPort;
 import cat.gencat.agaur.hexastock.application.port.out.StockPriceProviderPort;
@@ -89,6 +90,7 @@ public class PortfolioStockOperationsService implements PortfolioStockOperations
      * @throws cat.gencat.agaur.hexastock.model.portfolio.InsufficientFundsException if there are insufficient funds for the purchase
      */
     @Override
+    @RetryOnWriteConflict
     public void buyStock(PortfolioId portfolioId, Ticker ticker, ShareQuantity quantity) {
         Portfolio portfolio = portfolioPort.getPortfolioById(portfolioId)
                 .orElseThrow(() -> new PortfolioNotFoundException(portfolioId.value()));
@@ -130,6 +132,7 @@ public class PortfolioStockOperationsService implements PortfolioStockOperations
      * @throws ConflictQuantityException if trying to sell more shares than owned
      */
     @Override
+    @RetryOnWriteConflict
     public SellResult sellStock(PortfolioId portfolioId, Ticker ticker, ShareQuantity quantity) {
         Portfolio portfolio = portfolioPort.getPortfolioById(portfolioId)
                 .orElseThrow(() -> new PortfolioNotFoundException(portfolioId.value()));

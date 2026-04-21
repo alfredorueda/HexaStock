@@ -31,12 +31,17 @@ public final class PortfolioDocumentMapper {
     }
 
     public static PortfolioDocument toDocument(Portfolio entity) {
+        return toDocument(entity, null);
+    }
+
+    public static PortfolioDocument toDocument(Portfolio entity, Long version) {
         return new PortfolioDocument(
                 entity.getId().value(),
                 entity.getOwnerName(),
                 entity.getBalance().amount(),
                 entity.getCreatedAt(),
-                entity.getHoldings().stream().map(HoldingDocumentMapper::toDocument).toList()
+                entity.getHoldings().stream().map(HoldingDocumentMapper::toDocument).toList(),
+                version
         );
     }
 }
