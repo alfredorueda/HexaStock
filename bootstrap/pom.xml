@@ -33,6 +33,10 @@
         </dependency>
         <dependency>
             <groupId>cat.gencat.agaur</groupId>
+            <artifactId>hexastock-adapters-outbound-persistence-mongodb</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>cat.gencat.agaur</groupId>
             <artifactId>hexastock-adapters-outbound-market</artifactId>
         </dependency>
 
@@ -40,6 +44,14 @@
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-aop</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.retry</groupId>
+            <artifactId>spring-retry</artifactId>
         </dependency>
         <dependency>
             <groupId>org.springframework.boot</groupId>
@@ -67,6 +79,11 @@
         <dependency>
             <groupId>org.testcontainers</groupId>
             <artifactId>junit-jupiter</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.testcontainers</groupId>
+            <artifactId>mongodb</artifactId>
             <scope>test</scope>
         </dependency>
         <dependency>

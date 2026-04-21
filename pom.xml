@@ -44,6 +44,7 @@
         <module>application</module>
         <module>adapters-inbound-rest</module>
         <module>adapters-outbound-persistence-jpa</module>
+        <module>adapters-outbound-persistence-mongodb</module>
         <module>adapters-outbound-market</module>
         <module>bootstrap</module>
     </modules>
@@ -89,6 +90,11 @@
             <dependency>
                 <groupId>cat.gencat.agaur</groupId>
                 <artifactId>hexastock-adapters-outbound-persistence-jpa</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>cat.gencat.agaur</groupId>
+                <artifactId>hexastock-adapters-outbound-persistence-mongodb</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>

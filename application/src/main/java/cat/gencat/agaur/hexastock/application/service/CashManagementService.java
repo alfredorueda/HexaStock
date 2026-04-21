@@ -1,5 +1,6 @@
 package cat.gencat.agaur.hexastock.application.service;
 
+import cat.gencat.agaur.hexastock.application.annotation.RetryOnWriteConflict;
 import cat.gencat.agaur.hexastock.application.port.in.CashManagementUseCase;
 import cat.gencat.agaur.hexastock.application.exception.PortfolioNotFoundException;
 import cat.gencat.agaur.hexastock.application.port.out.PortfolioPort;
@@ -37,6 +38,7 @@ public class CashManagementService implements CashManagementUseCase {
     }
 
     @Override
+    @RetryOnWriteConflict
     public void deposit(PortfolioId portfolioId, Money amount) {
         Portfolio portfolio = getPortfolio(portfolioId);
         portfolio.deposit(amount);
@@ -47,6 +49,7 @@ public class CashManagementService implements CashManagementUseCase {
     }
 
     @Override
+    @RetryOnWriteConflict
     public void withdraw(PortfolioId portfolioId, Money amount) {
         Portfolio portfolio = getPortfolio(portfolioId);
         portfolio.withdraw(amount);

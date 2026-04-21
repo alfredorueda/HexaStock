@@ -18,3 +18,14 @@ services:
       timeout: 2s
       retries: 60
 
+  mongo:
+    image: mongo:7.0
+    mem_limit: 512m
+    ports:
+      - "27017:27017"
+    command: ["mongod", "--replSet", "rs0", "--bind_ip_all"]
+    healthcheck:
+      test: ["CMD-SHELL", "mongosh --quiet --eval \"try { rs.status().ok } catch (e) { rs.initiate({_id:'rs0',members:[{_id:0,host:'localhost:27017'}]}); 1 }\" | grep 1"]
+      interval: 5s
+      timeout: 5s
+      retries: 60
