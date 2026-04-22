@@ -615,49 +615,113 @@ This record is a **read-side projection** — a flat, denormalized view of data 
 
 #### Step 4 — Notify
 
-Putting it all together, the Market Sentinel use case:
+Putting it all together, the Market Sentinel use case is a **plain Java application service** living inside the hexagonal core. It implements an inbound port (`MarketSentinelUseCase`) and depends only on outbound ports — it does **not** depend on Spring:
 
 ```java
-@Service
-public class MarketSentinelService {
+public class MarketSentinelService implements MarketSentinelUseCase {
 
     private final WatchlistQueryPort queryPort;
     private final StockPriceProviderPort stockPriceProviderPort;
     private final NotificationPort notificationPort;
 
+    public MarketSentinelService(
+            WatchlistQueryPort queryPort,
+            StockPriceProviderPort stockPriceProviderPort,
+            NotificationPort notificationPort) {
+        this.queryPort = queryPort;
+        this.stockPriceProviderPort = stockPriceProviderPort;
+        this.notificationPort = notificationPort;
+    }
+
+    @Override
     public void detectBuySignals() {
         Set<Ticker> tickers = queryPort.findDistinctTickersInActiveWatchlists();
+        if (tickers.isEmpty()) {
+            return;
+        }
 
         Map<Ticker, StockPrice> prices = stockPriceProviderPort.fetchStockPrice(tickers);
 
-        for (Ticker ticker : tickers) {
-            StockPrice stockPrice = prices.get(ticker);
+        // Iterate only over tickers we actually got a price for: the price provider may
+        // legitimately omit unknown or temporarily unavailable symbols. Iterating over
+        // entrySet() makes the null-safety guarantee local and explicit.
+        prices.forEach((ticker, stockPrice) -> {
             Money currentPrice = stockPrice.price().toMoney();
 
             queryPort.findTriggeredAlerts(ticker, currentPrice)
-                .forEach(view ->
-                    notificationPort.notifyBuySignal(
-                        new BuySignal(
-                            view.ownerName(),
-                            view.listName(),
-                            ticker,
-                            view.thresholdPrice(),
-                            stockPrice
-                        )
-                    )
-                );
+                .forEach(view -> notificationPort.notifyBuySignal(
+                        BuySignal.from(view, stockPrice)));
+        });
+    }
+}
+```
+
+> **Architectural note — no Spring annotations in the application core.**
+>
+> The class above is a plain Java class. **Application services in the hexagonal core must not depend on Spring annotations** (`@Service`, `@Component`, `@Autowired`, …). Framework wiring belongs to the **bootstrap / configuration** module, not to the core. In HexaStock this is enforced by [ADR-007 (domain module zero framework dependencies)](../../architecture/adr/ADR-007-domain-module-zero-framework-dependencies.md) and codified for application services by [ADR-015 (explicit bean wiring via `@Configuration`)](../../architecture/adr/ADR-015-explicit-bean-wiring-via-configuration.md): each application service is published as a `@Bean` from a `SpringAppConfig`-style class, e.g.
+>
+> ```java
+> @Bean
+> MarketSentinelUseCase marketSentinelService(
+>         WatchlistQueryPort queryPort,
+>         StockPriceProviderPort stockPriceProviderPort,
+>         NotificationPort notificationPort) {
+>     return new MarketSentinelService(queryPort, stockPriceProviderPort, notificationPort);
+> }
+> ```
+>
+> The benefits are concrete: the core compiles and tests without Spring on the classpath, swapping the DI container is a one-file change, and the dependency arrow always points *from* infrastructure *into* the core — never the other way round.
+
+> **API design note — prefer a static factory over `new`.**
+>
+> Notice `BuySignal.from(view, stockPrice)` instead of an inline `new BuySignal(...)` with five arguments. **Static factory methods hide construction details and centralize validation**: the call site reads as a verb (“build a buy signal *from* a triggered view + a price”), the field-mapping logic lives in one place, and any future invariant (e.g. asserting the price's `Ticker` matches the view's, or rejecting a non-positive `currentPrice`) is enforced once, in the factory, rather than scattered across every call site. The corresponding factory on the domain VO is shown next to the `BuySignal` definition below.
+
+```java
+public record BuySignal(
+        String ownerName,
+        String listName,
+        Ticker ticker,
+        Money thresholdPrice,
+        StockPrice currentPrice) {
+
+    public BuySignal {
+        Objects.requireNonNull(ownerName,     "ownerName is required");
+        Objects.requireNonNull(listName,      "listName is required");
+        Objects.requireNonNull(ticker,        "ticker is required");
+        Objects.requireNonNull(thresholdPrice,"thresholdPrice is required");
+        Objects.requireNonNull(currentPrice,  "currentPrice is required");
+    }
+
+    /**
+     * Build a {@code BuySignal} from a triggered-alert projection and the
+     * current observed price. The factory ensures that the alert view and the
+     * price refer to the same ticker — a defensive check the caller would
+     * otherwise have to repeat.
+     */
+    public static BuySignal from(TriggeredAlertView view, StockPrice currentPrice) {
+        if (!view.ticker().equals(currentPrice.ticker())) {
+            throw new IllegalArgumentException(
+                "Ticker mismatch: alert view %s vs price %s"
+                    .formatted(view.ticker(), currentPrice.ticker()));
         }
+        return new BuySignal(
+            view.ownerName(),
+            view.listName(),
+            view.ticker(),
+            view.thresholdPrice(),
+            currentPrice);
     }
 }
 ```
 
 **Design Notes:**
 
-- `StockPrice` contains a `Price` value object, a `Ticker`, and a timestamp (`Instant`)
-- `Price.toMoney()` converts the per-share price to a `Money` value for type-safe comparison
-- The richer `StockPrice` object allows better logging and future evolution
-- The notification includes both the threshold and current price for context
-- With multiple alerts per ticker, the same user may receive multiple notifications for the same stock in the same detection cycle (e.g., "AAPL triggered at $150 threshold" and "AAPL triggered at $140 threshold"). This is correct behavior — each alert represents a distinct signal.
+- The service is **framework-agnostic**: no `@Service`, no `@Autowired`, constructor injection only. Spring discovers it via an `@Bean` method in the bootstrap module (ADR-015).
+- The service depends on its inbound port (`MarketSentinelUseCase`) so the scheduler can be tested against an interface, not a concrete class.
+- `prices.forEach((ticker, stockPrice) -> …)` instead of iterating tickers and calling `prices.get(ticker)` removes a hidden `NullPointerException` path: if the provider has no quote for a ticker, that ticker is silently skipped *for this cycle only* — the next scheduled run will retry.
+- `StockPrice` carries a `Price` value object, a `Ticker`, and a timestamp (`Instant`); `Price.toMoney()` converts the per-share price to a `Money` for type-safe comparison.
+- The notification carries both the threshold and current price so the adapter has full context for logging, email rendering, etc.
+- With multiple alerts per ticker, the same user may receive multiple notifications for the same stock in the same detection cycle (e.g., “AAPL triggered at $150 threshold” and “AAPL triggered at $140 threshold”). This is correct — each alert is a distinct signal.
 
 ### Duplicate Prevention
 
@@ -833,17 +897,21 @@ void shouldNotifyMultipleTimesWhenMultipleAlertsTriggered() {
 
 #### 5. Scheduler Stays Thin
 
-The `@Scheduled` component should be a thin wrapper:
+The `@Scheduled` component is a thin **driving adapter** that depends on the inbound port (the use case), not on the concrete service — the core stays Spring-free:
 
 ```java
 @Component
 public class MarketSentinelScheduler {
 
-    private final MarketSentinelService marketSentinelService;
+    private final MarketSentinelUseCase marketSentinelUseCase;
+
+    public MarketSentinelScheduler(MarketSentinelUseCase marketSentinelUseCase) {
+        this.marketSentinelUseCase = marketSentinelUseCase;
+    }
 
     @Scheduled(fixedRateString = "${market.sentinel.interval:60000}")
     public void runDetection() {
-        marketSentinelService.detectBuySignals();
+        marketSentinelUseCase.detectBuySignals();
     }
 }
 ```
