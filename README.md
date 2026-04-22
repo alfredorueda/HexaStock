@@ -68,7 +68,7 @@ HexaStock is a Maven multi-module project. Each module corresponds to a layer of
 
 ### Persistence adapters
 
-The two persistence adapters implement the same outbound ports (`PortfolioPort`, `TransactionPort`) defined in the `application` module, so the domain and application layers are unaware of which technology is in use. Selection is performed exclusively through Spring profiles via `@Profile("jpa")` and `@Profile("mongodb")` on the adapter beans, and the inactive stack's Spring Boot auto-configuration is symmetrically excluded by the corresponding profile properties file. The two adapters use different concurrency strategies — pessimistic locking in JPA, optimistic locking with retry in MongoDB — reflecting the natural idioms of each store; see the [MongoDB adapter concurrency note](doc/mongodb-adapter-optimistic-write-and-retry.md) for details.
+The two persistence adapters implement the same outbound ports (`PortfolioPort`, `TransactionPort`) defined in the `application` module, so the domain and application layers are unaware of which technology is in use.
 
 ## Prerequisites
 
