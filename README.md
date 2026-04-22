@@ -77,6 +77,25 @@ A side-by-side architectural comparison of the two common approaches to domain m
 | [DDD Hexagonal Exercise](doc/tutorial/DDD-Hexagonal-exercise.md) | Guided exercise on hexagonal patterns |
 | [Holdings Performance at Scale](doc/tutorial/portfolioReporting/HOLDINGS-PERFORMANCE-AT-SCALE.md) | Reporting and performance considerations |
 | [Watchlists: Market Sentinel](doc/tutorial/watchlists/WATCHLISTS-MARKET-SENTINEL.md) | Watchlist feature design and tutorial |
+| [MongoDB Adapter: Optimistic Write & Retry](doc/mongodb-adapter-optimistic-write-and-retry.md) | Concurrency strategy of the MongoDB persistence adapter |
+
+## Project Structure
+
+HexaStock is a Maven multi-module project. Each module corresponds to a layer of the hexagonal architecture, so the dependency rule (adapters depend on the application core, never the reverse) is enforced at build time.
+
+| Module | Role |
+|--------|------|
+| [`domain`](domain) | Pure domain model: aggregates (`Portfolio`, `Holding`, `Lot`), value objects, domain services and exceptions. No framework dependencies. |
+| [`application`](application) | Application services and ports. Inbound ports (`PortfolioLifecycleUseCase`, `CashManagementUseCase`, `PortfolioStockOperationsUseCase`, `TransactionUseCase`, `ReportingUseCase`, `GetStockPriceUseCase`) and outbound ports (`PortfolioPort`, `TransactionPort`, `StockPriceProviderPort`). |
+| [`adapters-inbound-rest`](adapters-inbound-rest) | Inbound REST adapter: Spring MVC controllers, DTOs and global error handling. |
+| [`adapters-outbound-persistence-jpa`](adapters-outbound-persistence-jpa) | Outbound persistence adapter implementing `PortfolioPort` and `TransactionPort` with Spring Data JPA over MySQL. Active under the `jpa` profile. |
+| [`adapters-outbound-persistence-mongodb`](adapters-outbound-persistence-mongodb) | Outbound persistence adapter implementing the same ports with Spring Data MongoDB. Active under the `mongodb` profile. Provides its own `MongoTransactionManager` and requires a MongoDB replica set for multi-document transactions. |
+| [`adapters-outbound-market`](adapters-outbound-market) | Outbound adapter implementing `StockPriceProviderPort` against external market data providers (Finnhub, Alpha Vantage) with a mock variant for tests. |
+| [`bootstrap`](bootstrap) | Spring Boot composition root (`HexaStockApplication`), profile-specific configuration (`application-jpa.properties`, `application-mongodb.properties`), cross-cutting concerns and end-to-end integration tests. |
+
+### Persistence adapters
+
+The two persistence adapters implement the same outbound ports (`PortfolioPort`, `TransactionPort`) defined in the `application` module, so the domain and application layers are unaware of which technology is in use. Selection is performed exclusively through Spring profiles via `@Profile("jpa")` and `@Profile("mongodb")` on the adapter beans, and the inactive stack's Spring Boot auto-configuration is symmetrically excluded by the corresponding profile properties file. The two adapters use different concurrency strategies — pessimistic locking in JPA, optimistic locking with retry in MongoDB — reflecting the natural idioms of each store; see the [MongoDB adapter concurrency note](doc/mongodb-adapter-optimistic-write-and-retry.md) for details.
 
 ## Prerequisites
 
@@ -152,8 +171,8 @@ The application requires two Spring profiles to start:
 
 | Category | Profile | Description |
 |----------|---------|-------------|
-| Persistence (choose one) | `jpa` | JPA/Hibernate with MySQL |
-| | `mongodb` | Spring Data MongoDB |
+| Persistence (choose one) | `jpa` | Spring Data JPA / Hibernate over MySQL; pessimistic locking. |
+| | `mongodb` | Spring Data MongoDB; optimistic locking with retry. Requires a replica set (the bundled `docker-compose.yml` configures `rs0`). |
 | Stock price provider (choose one) | `finhub` | Finnhub real-time API |
 | | `alphaVantage` | Alpha Vantage API |
 | | `mockfinhub` | Random prices — no API key needed (used by tests) |
