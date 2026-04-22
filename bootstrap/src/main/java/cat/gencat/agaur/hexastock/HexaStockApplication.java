@@ -2,6 +2,7 @@ package cat.gencat.agaur.hexastock;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.scheduling.annotation.EnableScheduling;
 
 /**
  * Main Spring Boot application class for the HexaStock financial portfolio management system.
@@ -13,6 +14,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
  * @see org.springframework.boot.autoconfigure.SpringBootApplication
  */
 @SpringBootApplication(scanBasePackages = "cat.gencat.agaur.hexastock")
+@EnableScheduling
 public class HexaStockApplication {
 
     public static void main(String[] args) {

@@ -29,6 +29,10 @@
         </dependency>
         <dependency>
             <groupId>cat.gencat.agaur</groupId>
+            <artifactId>hexastock-adapters-inbound-telegram</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>cat.gencat.agaur</groupId>
             <artifactId>hexastock-adapters-outbound-persistence-jpa</artifactId>
         </dependency>
         <dependency>
@@ -38,6 +42,10 @@
         <dependency>
             <groupId>cat.gencat.agaur</groupId>
             <artifactId>hexastock-adapters-outbound-market</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>cat.gencat.agaur</groupId>
+            <artifactId>hexastock-adapters-outbound-notification</artifactId>
         </dependency>
 
         <!-- Spring Boot -->
