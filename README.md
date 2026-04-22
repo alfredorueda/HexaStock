@@ -22,21 +22,6 @@ The book and the repository are complementary. The codebase provides the executa
 
 HexaStock is an instructional project that illustrates Domain-Driven Design and Hexagonal Architecture through a realistic financial-portfolio domain. Developed for software engineering students and workshop participants, it provides a complete, testable system with non-trivial business rules, multiple interchangeable adapters, and explicit architectural boundaries enforced at both module and fitness-test levels.
 
-## Core Documentation
-
-Three documents form the backbone of HexaStock's documentation.
-
-### Stock Portfolio API Specification
-
-> **[doc/stock-portfolio-api-specification.md](doc/stock-portfolio-api-specification.md)**
-
-The functional reference for the entire system:
-
-- User stories covering portfolio creation, deposits, withdrawals, buying/selling stocks, holdings, transactions, and stock price queries
-- Global error handling following RFC 7807 Problem Details
-- Domain model overview with PlantUML diagrams
-- HTTP request/response examples for every endpoint
-
 ### Sell Stock Deep Dive (Reference Use Case)
 
 > **[doc/tutorial/sellStocks/SELL-STOCK-TUTORIAL.md](doc/tutorial/sellStocks/SELL-STOCK-TUTORIAL.md)**
@@ -48,18 +33,6 @@ The sell-stock use case is the tutorial reference of the project. It concentrate
 - FIFO lot-accounting logic implemented entirely inside the domain layer.
 - Orchestration by application services versus rule enforcement by the aggregate.
 - Exercises for training sessions and self-directed study.
-
-### Rich vs Anemic Domain Model (Architectural Deep Dive)
-
-> **[doc/tutorial/richVsAnemicDomainModel/RICH_VS_ANEMIC_DOMAIN_MODEL_TUTORIAL.md](doc/tutorial/richVsAnemicDomainModel/RICH_VS_ANEMIC_DOMAIN_MODEL_TUTORIAL.md)**
-
-A side-by-side architectural comparison of the two common approaches to domain modelling [Fowler, 2003]. Using the sell-stock use case, the tutorial shows how business rules migrate between layers depending on the chosen model. It covers:
-
-- Rich domain model: invariants enforced inside the aggregate; FIFO logic resident in `Holding.sell()`.
-- Anemic domain model: entities reduced to data carriers; business rules displaced to application services.
-- Seven PlantUML diagrams (class, sequence, and architecture) contrasting the two approaches.
-- Consequences for testability, encapsulation, and aggregate boundary enforcement.
-- Conditions under which an anemic model remains a pragmatic choice, and conditions under which it becomes a liability.
 
 ### Documentation Map
 
