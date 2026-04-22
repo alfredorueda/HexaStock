@@ -15,6 +15,8 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
 
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
+
 @DataMongoTest
 @Import({MongoWatchlistRepository.class, MongoWatchlistQueryRepository.class})
 @ActiveProfiles("mongodb")
@@ -50,7 +52,16 @@ class MongoWatchlistQueryRepositoryContractTest extends AbstractWatchlistQueryPo
         return queryRepository;
     }
 
-    @Override @Test protected void distinctTickers_activeOnly() { super.distinctTickers_activeOnly(); }
-    @Override @Test protected void triggeredAlerts_filterByThreshold() { super.triggeredAlerts_filterByThreshold(); }
+    @Test
+    @Override
+    protected void distinctTickers_activeOnly() {
+        assertDoesNotThrow(super::distinctTickers_activeOnly);
+    }
+
+    @Test
+    @Override
+    protected void triggeredAlerts_filterByThreshold() {
+        assertDoesNotThrow(super::triggeredAlerts_filterByThreshold);
+    }
 }
 

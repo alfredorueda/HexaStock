@@ -19,44 +19,44 @@ public class TelegramCommandHandler {
     public String handle(TelegramCommand command, String ownerName, String chatId) {
         try {
             return switch (command) {
-                case TelegramCommand.CreateWatchlist c -> {
-                    Watchlist created = watchlistUseCase.createWatchlist(ownerName, c.listName(), chatId);
+                case TelegramCommand.CreateWatchlist(String listName) -> {
+                    Watchlist created = watchlistUseCase.createWatchlist(ownerName, listName, chatId);
                     yield "Watchlist creada: id=" + created.getId().value() + " name=" + created.getListName();
                 }
-                case TelegramCommand.DeleteWatchlist c -> {
-                    watchlistUseCase.deleteWatchlist(WatchlistId.of(c.watchlistId()));
-                    yield "Watchlist borrada: id=" + c.watchlistId();
+                case TelegramCommand.DeleteWatchlist(String watchlistId) -> {
+                    watchlistUseCase.deleteWatchlist(WatchlistId.of(watchlistId));
+                    yield "Watchlist borrada: id=" + watchlistId;
                 }
-                case TelegramCommand.ActivateWatchlist c -> {
-                    watchlistUseCase.activate(WatchlistId.of(c.watchlistId()));
-                    yield "Watchlist activada: id=" + c.watchlistId();
+                case TelegramCommand.ActivateWatchlist(String watchlistId) -> {
+                    watchlistUseCase.activate(WatchlistId.of(watchlistId));
+                    yield "Watchlist activada: id=" + watchlistId;
                 }
-                case TelegramCommand.DeactivateWatchlist c -> {
-                    watchlistUseCase.deactivate(WatchlistId.of(c.watchlistId()));
-                    yield "Watchlist desactivada: id=" + c.watchlistId();
+                case TelegramCommand.DeactivateWatchlist(String watchlistId) -> {
+                    watchlistUseCase.deactivate(WatchlistId.of(watchlistId));
+                    yield "Watchlist desactivada: id=" + watchlistId;
                 }
-                case TelegramCommand.AddAlert c -> {
+                case TelegramCommand.AddAlert(String watchlistId, String ticker, String thresholdPrice) -> {
                     Watchlist wl = watchlistUseCase.addAlertEntry(
-                            WatchlistId.of(c.watchlistId()),
-                            Ticker.of(c.ticker()),
-                            Money.of(c.thresholdPrice())
+                            WatchlistId.of(watchlistId),
+                            Ticker.of(ticker),
+                            Money.of(thresholdPrice)
                     );
                     yield "Alerta añadida. Total alertas: " + wl.getAlerts().size();
                 }
-                case TelegramCommand.RemoveAlert c -> {
+                case TelegramCommand.RemoveAlert(String watchlistId, String ticker, String thresholdPrice) -> {
                     Watchlist wl = watchlistUseCase.removeAlertEntry(
-                            WatchlistId.of(c.watchlistId()),
-                            Ticker.of(c.ticker()),
-                            Money.of(c.thresholdPrice())
+                            WatchlistId.of(watchlistId),
+                            Ticker.of(ticker),
+                            Money.of(thresholdPrice)
                     );
                     yield "Alerta eliminada. Total alertas: " + wl.getAlerts().size();
                 }
-                case TelegramCommand.RemoveAllAlerts c -> {
+                case TelegramCommand.RemoveAllAlerts(String watchlistId, String ticker) -> {
                     Watchlist wl = watchlistUseCase.removeAllAlertsForTicker(
-                            WatchlistId.of(c.watchlistId()),
-                            Ticker.of(c.ticker())
+                            WatchlistId.of(watchlistId),
+                            Ticker.of(ticker)
                     );
-                    yield "Alertas eliminadas para " + c.ticker() + ". Total alertas: " + wl.getAlerts().size();
+                    yield "Alertas eliminadas para " + ticker + ". Total alertas: " + wl.getAlerts().size();
                 }
             };
         } catch (WatchlistNotFoundException ex) {

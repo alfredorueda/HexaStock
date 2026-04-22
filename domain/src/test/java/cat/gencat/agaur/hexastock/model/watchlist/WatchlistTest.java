@@ -32,15 +32,15 @@ class WatchlistTest {
         @Test
         @SpecificationRef(value = "US-WL-01.AC-2", level = TestLevel.DOMAIN, feature = "watchlists-create.feature")
         void shouldRejectBlankOwnerName() {
-            assertThrows(IllegalArgumentException.class, () ->
-                    Watchlist.create(WatchlistId.generate(), "", "Tech", "123456"));
+            WatchlistId id = WatchlistId.generate();
+            assertThrows(IllegalArgumentException.class, () -> Watchlist.create(id, "", "Tech", "123456"));
         }
 
         @Test
         @SpecificationRef(value = "US-WL-01.AC-3", level = TestLevel.DOMAIN, feature = "watchlists-create.feature")
         void shouldRejectBlankListName() {
-            assertThrows(IllegalArgumentException.class, () ->
-                    Watchlist.create(WatchlistId.generate(), "alice", "", "123456"));
+            WatchlistId id = WatchlistId.generate();
+            assertThrows(IllegalArgumentException.class, () -> Watchlist.create(id, "alice", "", "123456"));
         }
     }
 
@@ -65,8 +65,9 @@ class WatchlistTest {
         void shouldRejectNonPositiveThresholdPrice() {
             Watchlist watchlist = Watchlist.create(WatchlistId.generate(), "alice", "Tech", "123456");
 
-            assertThrows(IllegalArgumentException.class, () ->
-                    watchlist.addAlert(Ticker.of("AAPL"), Money.of("0.00")));
+            Ticker ticker = Ticker.of("AAPL");
+            Money threshold = Money.of("0.00");
+            assertThrows(IllegalArgumentException.class, () -> watchlist.addAlert(ticker, threshold));
         }
 
         @Test
@@ -76,8 +77,9 @@ class WatchlistTest {
 
             watchlist.addAlert(Ticker.of("AAPL"), Money.of("150.00"));
 
-            assertThrows(DuplicateAlertException.class, () ->
-                    watchlist.addAlert(Ticker.of("AAPL"), Money.of("150.00")));
+            Ticker ticker = Ticker.of("AAPL");
+            Money threshold = Money.of("150.00");
+            assertThrows(DuplicateAlertException.class, () -> watchlist.addAlert(ticker, threshold));
         }
 
         @Test

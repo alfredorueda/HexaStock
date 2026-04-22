@@ -14,6 +14,8 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
 
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
+
 @DataMongoTest
 @Import(MongoWatchlistRepository.class)
 @ActiveProfiles("mongodb")
@@ -41,8 +43,22 @@ class MongoWatchlistRepositoryContractTest extends AbstractWatchlistPortContract
         return repository;
     }
 
-    @Override @Test protected void createAndGetById_roundTrip() { super.createAndGetById_roundTrip(); }
-    @Override @Test protected void saveWatchlist_persistsAlerts() { super.saveWatchlist_persistsAlerts(); }
-    @Override @Test protected void deleteWatchlist_removes() { super.deleteWatchlist_removes(); }
+    @Test
+    @Override
+    protected void createAndGetById_roundTrip() {
+        assertDoesNotThrow(super::createAndGetById_roundTrip);
+    }
+
+    @Test
+    @Override
+    protected void saveWatchlist_persistsAlerts() {
+        assertDoesNotThrow(super::saveWatchlist_persistsAlerts);
+    }
+
+    @Test
+    @Override
+    protected void deleteWatchlist_removes() {
+        assertDoesNotThrow(super::deleteWatchlist_removes);
+    }
 }
 

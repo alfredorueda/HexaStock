@@ -13,6 +13,8 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
 
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
+
 @DataJpaTest
 @Import({JpaWatchlistRepository.class, JpaWatchlistQueryRepository.class})
 @ActiveProfiles("jpa")
@@ -42,7 +44,16 @@ class JpaWatchlistQueryRepositoryContractTest extends AbstractWatchlistQueryPort
         return watchlistQueryRepository;
     }
 
-    @Override @Test protected void distinctTickers_activeOnly() { super.distinctTickers_activeOnly(); }
-    @Override @Test protected void triggeredAlerts_filterByThreshold() { super.triggeredAlerts_filterByThreshold(); }
+    @Test
+    @Override
+    protected void distinctTickers_activeOnly() {
+        assertDoesNotThrow(super::distinctTickers_activeOnly);
+    }
+
+    @Test
+    @Override
+    protected void triggeredAlerts_filterByThreshold() {
+        assertDoesNotThrow(super::triggeredAlerts_filterByThreshold);
+    }
 }
 

@@ -25,6 +25,8 @@ import static org.springframework.data.mongodb.core.aggregation.Aggregation.*;
 @Profile("mongodb")
 public class MongoWatchlistQueryRepository implements WatchlistQueryPort {
 
+    private static final String ALERTS_TICKER = "alerts.ticker";
+
     private final MongoTemplate mongoTemplate;
 
     public MongoWatchlistQueryRepository(MongoTemplate mongoTemplate) {
@@ -37,13 +39,13 @@ public class MongoWatchlistQueryRepository implements WatchlistQueryPort {
         Aggregation agg = newAggregation(
                 match(Criteria.where("active").is(true)),
                 unwindAlerts,
-                group("alerts.ticker")
+                group(ALERTS_TICKER)
         );
         AggregationResults<DistinctTickerRow> res =
                 mongoTemplate.aggregate(agg, "watchlists", DistinctTickerRow.class);
 
         return res.getMappedResults().stream()
-                .map(r -> Ticker.of(r.id))
+                .map(r -> Ticker.of(r.id()))
                 .collect(Collectors.toSet());
     }
 
@@ -54,13 +56,13 @@ public class MongoWatchlistQueryRepository implements WatchlistQueryPort {
         Aggregation agg = newAggregation(
                 match(Criteria.where("active").is(true)),
                 unwind("alerts"),
-                match(Criteria.where("alerts.ticker").is(ticker.value())
+                match(Criteria.where(ALERTS_TICKER).is(ticker.value())
                         .and("alerts.thresholdPrice").gte(price128)),
                 project()
                         .and("ownerName").as("ownerName")
                         .and("listName").as("listName")
                         .and("telegramChatId").as("telegramChatId")
-                        .and("alerts.ticker").as("ticker")
+                        .and(ALERTS_TICKER).as("ticker")
                         .and("alerts.thresholdPrice").as("thresholdPrice")
         );
 
@@ -69,25 +71,23 @@ public class MongoWatchlistQueryRepository implements WatchlistQueryPort {
 
         return res.getMappedResults().stream()
                 .map(r -> new TriggeredAlertView(
-                        r.ownerName,
-                        r.listName,
-                        r.telegramChatId,
-                        Ticker.of(r.ticker),
-                        Money.of(r.thresholdPrice)
+                        r.ownerName(),
+                        r.listName(),
+                        r.telegramChatId(),
+                        Ticker.of(r.ticker()),
+                        Money.of(r.thresholdPrice())
                 ))
                 .toList();
     }
 
-    static class DistinctTickerRow {
-        public String id;
-    }
+    record DistinctTickerRow(String id) {}
 
-    static class TriggeredAlertRow {
-        public String ownerName;
-        public String listName;
-        public String telegramChatId;
-        public String ticker;
-        public BigDecimal thresholdPrice;
-    }
+    record TriggeredAlertRow(
+            String ownerName,
+            String listName,
+            String telegramChatId,
+            String ticker,
+            BigDecimal thresholdPrice
+    ) {}
 }
 
