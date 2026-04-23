@@ -39,7 +39,7 @@ public final class WatchlistDocumentMapper {
                 model.getOwnerName(),
                 model.getListName(),
                 model.isActive(),
-                model.getTelegramChatId(),
+                model.getUserNotificationId(),
                 alerts
         );
     }

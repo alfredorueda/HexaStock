@@ -1,6 +1,7 @@
 package cat.gencat.agaur.hexastock.adapter.out.notification;
 
 import cat.gencat.agaur.hexastock.application.port.out.BuySignal;
+import cat.gencat.agaur.hexastock.application.port.out.TriggeredAlertView;
 import cat.gencat.agaur.hexastock.model.ExternalApiException;
 import cat.gencat.agaur.hexastock.model.market.StockPrice;
 import cat.gencat.agaur.hexastock.model.market.Ticker;
@@ -39,14 +40,9 @@ class TelegramNotificationAdapterTest {
                         {"ok":true,"result":{"message_id":1}}
                         """)));
 
-        BuySignal signal = BuySignal.from(
-                "alice",
-                "Tech",
-                "123456",
-                Ticker.of("AAPL"),
-                Money.of("150.00"),
-                new StockPrice(Ticker.of("AAPL"), Price.of("140.00"), Instant.now())
-        );
+        StockPrice price = new StockPrice(Ticker.of("AAPL"), Price.of("140.00"), Instant.now());
+        TriggeredAlertView view = new TriggeredAlertView("alice", "Tech", "123456", Ticker.of("AAPL"), Money.of("150.00"));
+        BuySignal signal = BuySignal.from(view, price);
 
         adapter.notifyBuySignal(signal);
 
@@ -58,14 +54,9 @@ class TelegramNotificationAdapterTest {
         stubFor(post(urlPathEqualTo("/bottest-token/sendMessage"))
                 .willReturn(serverError()));
 
-        BuySignal signal = BuySignal.from(
-                "alice",
-                "Tech",
-                "123456",
-                Ticker.of("AAPL"),
-                Money.of("150.00"),
-                new StockPrice(Ticker.of("AAPL"), Price.of("140.00"), Instant.now())
-        );
+        StockPrice price = new StockPrice(Ticker.of("AAPL"), Price.of("140.00"), Instant.now());
+        TriggeredAlertView view = new TriggeredAlertView("alice", "Tech", "123456", Ticker.of("AAPL"), Money.of("150.00"));
+        BuySignal signal = BuySignal.from(view, price);
 
         assertThatThrownBy(() -> adapter.notifyBuySignal(signal))
                 .isInstanceOf(ExternalApiException.class);

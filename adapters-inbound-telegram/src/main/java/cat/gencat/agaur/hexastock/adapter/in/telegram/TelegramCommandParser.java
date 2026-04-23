@@ -1,6 +1,7 @@
 package cat.gencat.agaur.hexastock.adapter.in.telegram;
 
 import java.util.Optional;
+import java.util.function.BiFunction;
 
 public final class TelegramCommandParser {
 
@@ -80,11 +81,6 @@ public final class TelegramCommandParser {
     @FunctionalInterface
     interface TriFunction<A, B, C, R> {
         R apply(A a, B b, C c);
-    }
-
-    @FunctionalInterface
-    interface BiFunction<A, B, R> {
-        R apply(A a, B b);
     }
 }
 

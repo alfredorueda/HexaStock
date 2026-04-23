@@ -61,7 +61,7 @@ public class MongoWatchlistQueryRepository implements WatchlistQueryPort {
                 project()
                         .and("ownerName").as("ownerName")
                         .and("listName").as("listName")
-                        .and("telegramChatId").as("telegramChatId")
+                        .and("userNotificationId").as("userNotificationId")
                         .and(ALERTS_TICKER).as("ticker")
                         .and("alerts.thresholdPrice").as("thresholdPrice")
         );

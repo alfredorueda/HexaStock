@@ -26,7 +26,7 @@ public abstract class AbstractWatchlistPortContractTest {
         assertThat(found.getId()).isEqualTo(WatchlistId.of("wl-1"));
         assertThat(found.getOwnerName()).isEqualTo("alice");
         assertThat(found.getListName()).isEqualTo("Tech");
-        assertThat(found.getTelegramChatId()).isEqualTo("123456");
+        assertThat(found.getUserNotificationId()).isEqualTo("123456");
         assertThat(found.isActive()).isTrue();
         assertThat(found.getAlerts()).isEmpty();
     }

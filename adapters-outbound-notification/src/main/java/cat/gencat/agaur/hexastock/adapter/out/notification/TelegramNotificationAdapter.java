@@ -28,8 +28,8 @@ public class TelegramNotificationAdapter implements NotificationPort {
         if (botToken == null || botToken.isBlank()) {
             throw new IllegalStateException("telegram.bot.token must be configured");
         }
-        if (signal.telegramChatId() == null || signal.telegramChatId().isBlank()) {
-            throw new IllegalArgumentException("telegramChatId is required to send Telegram notification");
+        if (signal.userNotificationId() == null || signal.userNotificationId().isBlank()) {
+            throw new IllegalArgumentException("userNotificationId is required to send Telegram notification");
         }
 
         String url = telegramApiBaseUrl + "/bot" + botToken + "/sendMessage";
@@ -40,7 +40,7 @@ public class TelegramNotificationAdapter implements NotificationPort {
                     .uri(url)
                     .contentType(MediaType.APPLICATION_JSON)
                     .body(Map.of(
-                            "chat_id", signal.telegramChatId(),
+                            "chat_id", signal.userNotificationId(),
                             "text", text
                     ))
                     .retrieve()

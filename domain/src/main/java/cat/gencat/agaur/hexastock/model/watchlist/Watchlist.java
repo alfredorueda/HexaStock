@@ -4,7 +4,6 @@ import cat.gencat.agaur.hexastock.model.market.Ticker;
 import cat.gencat.agaur.hexastock.model.money.Money;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 
@@ -15,11 +14,11 @@ public class Watchlist {
 
     private final WatchlistId id;
     private final String ownerName;
-    private final String telegramChatId;
+    private final String userNotificationId; // Is needed to send notifications to the user.
 
-    private String listName;
+    private final String listName;
     private boolean active;
-    private final List<AlertEntry> alerts;
+    private final List<AlertEntry> alerts = new ArrayList<>();
 
     private Watchlist(WatchlistId id,
                       String ownerName,
@@ -28,23 +27,14 @@ public class Watchlist {
                       String telegramChatId,
                       List<AlertEntry> alerts) {
         this.id = Objects.requireNonNull(id, "id must not be null");
-        this.ownerName = Objects.requireNonNull(ownerName, "ownerName must not be null");
-        this.listName = Objects.requireNonNull(listName, "listName must not be null");
-        this.telegramChatId = Objects.requireNonNull(telegramChatId, "telegramChatId must not be null");
+        this.ownerName = requireNonBlank(ownerName, "ownerName must not be blank");
+        this.listName = requireNonBlank(listName, "listName must not be blank");
+        this.userNotificationId = requireNonBlank(telegramChatId, "telegramChatId must not be blank");
         this.active = active;
-        this.alerts = new ArrayList<>(alerts);
+        this.alerts.addAll(List.copyOf(Objects.requireNonNull(alerts, "alerts must not be null")));
     }
 
     public static Watchlist create(WatchlistId id, String ownerName, String listName, String telegramChatId) {
-        if (ownerName == null || ownerName.isBlank()) {
-            throw new IllegalArgumentException("Owner name must not be blank");
-        }
-        if (listName == null || listName.isBlank()) {
-            throw new IllegalArgumentException("List name must not be blank");
-        }
-        if (telegramChatId == null || telegramChatId.isBlank()) {
-            throw new IllegalArgumentException("Telegram chat id must not be blank");
-        }
         return new Watchlist(id, ownerName, listName, true, telegramChatId, List.of());
     }
 
@@ -87,8 +77,8 @@ public class Watchlist {
         return ownerName;
     }
 
-    public String getTelegramChatId() {
-        return telegramChatId;
+    public String getUserNotificationId() {
+        return userNotificationId;
     }
 
     public String getListName() {
@@ -100,13 +90,20 @@ public class Watchlist {
     }
 
     public List<AlertEntry> getAlerts() {
-        return Collections.unmodifiableList(alerts);
+        return List.copyOf(alerts);
     }
 
     public List<AlertEntry> getAlertsForTicker(Ticker ticker) {
         return alerts.stream()
                 .filter(a -> a.ticker().equals(ticker))
                 .toList();
+    }
+
+    private static String requireNonBlank(String value, String message) {
+        if (value == null || value.isBlank()) {
+            throw new IllegalArgumentException(message);
+        }
+        return value;
     }
 }
 

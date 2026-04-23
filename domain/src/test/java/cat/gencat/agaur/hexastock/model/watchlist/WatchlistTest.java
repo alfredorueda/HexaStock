@@ -26,7 +26,7 @@ class WatchlistTest {
             assertEquals("alice", watchlist.getOwnerName());
             assertEquals("Tech", watchlist.getListName());
             assertTrue(watchlist.getAlerts().isEmpty());
-            assertEquals("123456", watchlist.getTelegramChatId());
+            assertEquals("123456", watchlist.getUserNotificationId());
         }
 
         @Test

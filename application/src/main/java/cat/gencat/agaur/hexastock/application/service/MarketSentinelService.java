@@ -35,25 +35,14 @@ public class MarketSentinelService implements MarketSentinelUseCase {
 
         Map<Ticker, StockPrice> prices = stockPriceProviderPort.fetchStockPrice(tickers);
 
-        for (Ticker ticker : tickers) {
-            StockPrice stockPrice = prices.get(ticker);
-            if (stockPrice == null) {
-                continue;
-            }
+        prices.forEach((ticker, stockPrice) -> {
             Money currentPrice = stockPrice.price().toMoney();
 
             queryPort.findTriggeredAlerts(ticker, currentPrice)
                     .forEach(view -> notificationPort.notifyBuySignal(
-                            BuySignal.from(
-                                    view.ownerName(),
-                                    view.listName(),
-                                    view.telegramChatId(),
-                                    ticker,
-                                    view.thresholdPrice(),
-                                    stockPrice
-                            )
+                            BuySignal.from(view, stockPrice)
                     ));
-        }
+        });
     }
 }
 

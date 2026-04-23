@@ -36,7 +36,7 @@ public final class WatchlistMapper {
                 model.getOwnerName(),
                 model.getListName(),
                 model.isActive(),
-                model.getTelegramChatId()
+                model.getUserNotificationId()
         );
         List<AlertEntryJpaEntity> alerts = model.getAlerts().stream()
                 .map(WatchlistMapper::toJpaAlertEntry)

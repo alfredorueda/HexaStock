@@ -29,7 +29,7 @@ public final class WatchlistDTOs {
                     w.getOwnerName(),
                     w.getListName(),
                     w.isActive(),
-                    w.getTelegramChatId(),
+                    w.getUserNotificationId(),
                     w.getAlerts().stream().map(AlertEntryResponseDTO::from).toList()
             );
         }

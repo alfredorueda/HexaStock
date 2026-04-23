@@ -10,13 +10,15 @@ import cat.gencat.agaur.hexastock.model.watchlist.WatchlistId;
 
 import jakarta.transaction.Transactional;
 
+import java.util.Objects;
+
 @Transactional
 public class WatchlistService implements WatchlistUseCase {
 
     private final WatchlistPort watchlistPort;
 
     public WatchlistService(WatchlistPort watchlistPort) {
-        this.watchlistPort = watchlistPort;
+        this.watchlistPort = Objects.requireNonNull(watchlistPort, "watchlistPort must not be null");
     }
 
     @Override
