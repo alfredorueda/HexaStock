@@ -9,7 +9,7 @@ import cat.gencat.agaur.hexastock.model.money.Money;
 public record TriggeredAlertView(
         String ownerName,
         String listName,
-        String telegramChatId,
+        String userNotificationId,
         Ticker ticker,
         Money thresholdPrice
 ) {}

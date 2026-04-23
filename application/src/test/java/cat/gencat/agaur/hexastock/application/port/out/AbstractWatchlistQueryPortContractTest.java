@@ -51,7 +51,7 @@ public abstract class AbstractWatchlistQueryPortContractTest {
 
         assertThat(triggered).hasSize(1);
         assertThat(triggered.getFirst().thresholdPrice()).isEqualTo(Money.of("150.00"));
-        assertThat(triggered.getFirst().telegramChatId()).isEqualTo("123456");
+        assertThat(triggered.getFirst().userNotificationId()).isEqualTo("123456");
     }
 }
 

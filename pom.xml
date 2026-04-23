@@ -36,7 +36,7 @@
         <springdoc-openapi.version>2.8.5</springdoc-openapi.version>
         <mysql-connector.version>8.2.0</mysql-connector.version>
         <rest-assured.version>5.4.0</rest-assured.version>
-        <jacoco.version>0.8.10</jacoco.version>
+        <jacoco.version>0.8.14</jacoco.version>
     </properties>
 
     <modules>

@@ -25,7 +25,7 @@ public class WatchlistJpaEntity {
 
     private boolean active;
 
-    private String telegramChatId;
+    private String userNotificationId;
 
     @OneToMany(cascade = ALL, orphanRemoval = true)
     @JoinColumn(name = "watchlist_id")
@@ -34,12 +34,12 @@ public class WatchlistJpaEntity {
 
     protected WatchlistJpaEntity() {}
 
-    public WatchlistJpaEntity(String id, String ownerName, String listName, boolean active, String telegramChatId) {
+    public WatchlistJpaEntity(String id, String ownerName, String listName, boolean active, String userNotificationId) {
         this.id = id;
         this.ownerName = ownerName;
         this.listName = listName;
         this.active = active;
-        this.telegramChatId = telegramChatId;
+        this.userNotificationId = userNotificationId;
     }
 
     public String getId() {
@@ -58,8 +58,8 @@ public class WatchlistJpaEntity {
         return active;
     }
 
-    public String getTelegramChatId() {
-        return telegramChatId;
+    public String getuserNotificationId() {
+        return userNotificationId;
     }
 
     public List<AlertEntryJpaEntity> getAlerts() {

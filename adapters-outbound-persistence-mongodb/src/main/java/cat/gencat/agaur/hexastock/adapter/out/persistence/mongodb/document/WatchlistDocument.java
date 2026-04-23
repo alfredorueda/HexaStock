@@ -19,7 +19,7 @@ public class WatchlistDocument {
 
     private boolean active;
 
-    private String telegramChatId;
+    private String userNotificationId;
 
     private List<AlertEntryDocument> alerts = new ArrayList<>();
 
@@ -32,13 +32,13 @@ public class WatchlistDocument {
                              String ownerName,
                              String listName,
                              boolean active,
-                             String telegramChatId,
+                             String userNotificationId,
                              List<AlertEntryDocument> alerts) {
         this.id = id;
         this.ownerName = ownerName;
         this.listName = listName;
         this.active = active;
-        this.telegramChatId = telegramChatId;
+        this.userNotificationId = userNotificationId;
         this.alerts = alerts;
     }
 
@@ -58,8 +58,8 @@ public class WatchlistDocument {
         return active;
     }
 
-    public String getTelegramChatId() {
-        return telegramChatId;
+    public String getUserNotificationId() {
+        return userNotificationId;
     }
 
     public List<AlertEntryDocument> getAlerts() {

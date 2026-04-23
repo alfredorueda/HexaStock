@@ -37,7 +37,7 @@ public record BuySignal(
         return new BuySignal(
                 view.ownerName(),
                 view.listName(),
-                view.telegramChatId(),
+                view.userNotificationId(),
                 view.ticker(),
                 view.thresholdPrice(),
                 currentPrice

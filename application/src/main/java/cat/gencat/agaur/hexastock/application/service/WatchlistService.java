@@ -22,8 +22,8 @@ public class WatchlistService implements WatchlistUseCase {
     }
 
     @Override
-    public Watchlist createWatchlist(String ownerName, String listName, String telegramChatId) {
-        Watchlist watchlist = Watchlist.create(WatchlistId.generate(), ownerName, listName, telegramChatId);
+    public Watchlist createWatchlist(String ownerName, String listName, String userNotificationId) {
+        Watchlist watchlist = Watchlist.create(WatchlistId.generate(), ownerName, listName, userNotificationId);
         watchlistPort.createWatchlist(watchlist);
         return watchlist;
     }

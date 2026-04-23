@@ -11,7 +11,7 @@ public final class WatchlistDTOs {
 
     private WatchlistDTOs() {}
 
-    public record CreateWatchlistRequestDTO(String ownerName, String listName, String telegramChatId) {}
+    public record CreateWatchlistRequestDTO(String ownerName, String listName, String userNotificationId) {}
 
     public record AlertEntryRequestDTO(String ticker, String thresholdPrice) {}
 
@@ -20,7 +20,7 @@ public final class WatchlistDTOs {
             String ownerName,
             String listName,
             boolean active,
-            String telegramChatId,
+            String userNotificationId,
             List<AlertEntryResponseDTO> alerts
     ) {
         public static WatchlistResponseDTO from(Watchlist w) {

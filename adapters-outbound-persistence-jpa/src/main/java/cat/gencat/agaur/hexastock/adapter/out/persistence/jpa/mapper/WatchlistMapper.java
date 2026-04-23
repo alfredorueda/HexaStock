@@ -19,7 +19,7 @@ public final class WatchlistMapper {
                 WatchlistId.of(jpa.getId()),
                 jpa.getOwnerName(),
                 jpa.getListName(),
-                jpa.getTelegramChatId()
+                jpa.getuserNotificationId()
         );
         if (!jpa.isActive()) {
             model.deactivate();

@@ -7,7 +7,7 @@ import cat.gencat.agaur.hexastock.model.watchlist.WatchlistId;
 
 public interface WatchlistUseCase {
 
-    Watchlist createWatchlist(String ownerName, String listName, String telegramChatId);
+    Watchlist createWatchlist(String ownerName, String listName, String userNotificationId);
 
     void deleteWatchlist(WatchlistId watchlistId);
 

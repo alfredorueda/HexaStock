@@ -41,7 +41,7 @@ public class JpaWatchlistQueryRepository implements WatchlistQueryPort {
         return new TriggeredAlertView(
                 row.getOwnerName(),
                 row.getListName(),
-                row.getTelegramChatId(),
+                row.getuserNotificationId(),
                 Ticker.of(row.getTicker()),
                 Money.of(row.getThresholdPrice())
         );

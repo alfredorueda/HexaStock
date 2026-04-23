@@ -35,7 +35,7 @@ Feature: Create Watchlist (US-WL-01)
   So that I can define price alerts and monitor them
 
   Scenario: Creating a new watchlist with valid fields
-    When I POST /api/watchlists with {"ownerName":"alice","listName":"Tech","telegramChatId":"123456"}
+    When I POST /api/watchlists with {"ownerName":"alice","listName":"Tech","userNotificationId":"123456"}
     Then I receive 201 Created
     And the response contains a Location header pointing to /api/watchlists/{id}
     And the response body contains:
@@ -43,14 +43,14 @@ Feature: Create Watchlist (US-WL-01)
       | ownerName      | alice   |
       | listName       | Tech    |
       | active         | true    |
-      | telegramChatId | 123456  |
+      | userNotificationId | 123456  |
     And the watchlist contains no alerts
 
   Scenario: Creating a watchlist with blank owner name
-    When I POST /api/watchlists with {"ownerName":"","listName":"Tech","telegramChatId":"123456"}
+    When I POST /api/watchlists with {"ownerName":"","listName":"Tech","userNotificationId":"123456"}
     Then I receive 400 Bad Request
 
   Scenario: Creating a watchlist with blank list name
-    When I POST /api/watchlists with {"ownerName":"alice","listName":"","telegramChatId":"123456"}
+    When I POST /api/watchlists with {"ownerName":"alice","listName":"","userNotificationId":"123456"}
     Then I receive 400 Bad Request
 

@@ -24,18 +24,18 @@ public class Watchlist {
                       String ownerName,
                       String listName,
                       boolean active,
-                      String telegramChatId,
+                      String userNotificationId,
                       List<AlertEntry> alerts) {
         this.id = Objects.requireNonNull(id, "id must not be null");
         this.ownerName = requireNonBlank(ownerName, "ownerName must not be blank");
         this.listName = requireNonBlank(listName, "listName must not be blank");
-        this.userNotificationId = requireNonBlank(telegramChatId, "telegramChatId must not be blank");
+        this.userNotificationId = requireNonBlank(userNotificationId, "userNotificationId must not be blank");
         this.active = active;
         this.alerts.addAll(List.copyOf(Objects.requireNonNull(alerts, "alerts must not be null")));
     }
 
-    public static Watchlist create(WatchlistId id, String ownerName, String listName, String telegramChatId) {
-        return new Watchlist(id, ownerName, listName, true, telegramChatId, List.of());
+    public static Watchlist create(WatchlistId id, String ownerName, String listName, String userNotificationId) {
+        return new Watchlist(id, ownerName, listName, true, userNotificationId, List.of());
     }
 
     public void addAlert(Ticker ticker, Money thresholdPrice) {

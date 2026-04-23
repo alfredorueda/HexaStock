@@ -19,7 +19,7 @@ public final class WatchlistDocumentMapper {
                 WatchlistId.of(doc.getId()),
                 doc.getOwnerName(),
                 doc.getListName(),
-                doc.getTelegramChatId()
+                doc.getUserNotificationId()
         );
         if (!doc.isActive()) {
             model.deactivate();

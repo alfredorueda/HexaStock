@@ -73,7 +73,7 @@ public class MongoWatchlistQueryRepository implements WatchlistQueryPort {
                 .map(r -> new TriggeredAlertView(
                         r.ownerName(),
                         r.listName(),
-                        r.telegramChatId(),
+                        r.userNotificationId(),
                         Ticker.of(r.ticker()),
                         Money.of(r.thresholdPrice())
                 ))
@@ -85,7 +85,7 @@ public class MongoWatchlistQueryRepository implements WatchlistQueryPort {
     record TriggeredAlertRow(
             String ownerName,
             String listName,
-            String telegramChatId,
+            String userNotificationId,
             String ticker,
             BigDecimal thresholdPrice
     ) {}

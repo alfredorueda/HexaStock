@@ -14,7 +14,7 @@ public interface JpaWatchlistQuerySpringDataRepository extends JpaRepository<Ale
     interface TriggeredAlertRow {
         String getOwnerName();
         String getListName();
-        String getTelegramChatId();
+        String getuserNotificationId();
         String getTicker();
         BigDecimal getThresholdPrice();
     }
@@ -30,7 +30,7 @@ public interface JpaWatchlistQuerySpringDataRepository extends JpaRepository<Ale
     @Query("""
             select w.ownerName as ownerName,
                    w.listName as listName,
-                   w.telegramChatId as telegramChatId,
+                   w.userNotificationId as userNotificationId,
                    e.ticker as ticker,
                    e.thresholdPrice as thresholdPrice
             from AlertEntryJpaEntity e

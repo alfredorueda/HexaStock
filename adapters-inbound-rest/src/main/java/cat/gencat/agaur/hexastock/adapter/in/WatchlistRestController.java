@@ -26,7 +26,7 @@ public class WatchlistRestController {
         Watchlist created = watchlistUseCase.createWatchlist(
                 request.ownerName(),
                 request.listName(),
-                request.telegramChatId()
+                request.userNotificationId()
         );
         URI location = ServletUriComponentsBuilder
                 .fromCurrentRequest()
