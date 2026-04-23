@@ -1,9 +1,12 @@
 package cat.gencat.agaur.hexastock.config;
 
 import cat.gencat.agaur.hexastock.application.port.in.*;
+import cat.gencat.agaur.hexastock.application.port.out.NotificationPort;
 import cat.gencat.agaur.hexastock.application.port.out.PortfolioPort;
 import cat.gencat.agaur.hexastock.application.port.out.StockPriceProviderPort;
 import cat.gencat.agaur.hexastock.application.port.out.TransactionPort;
+import cat.gencat.agaur.hexastock.application.port.out.WatchlistPort;
+import cat.gencat.agaur.hexastock.application.port.out.WatchlistQueryPort;
 import cat.gencat.agaur.hexastock.application.service.*;
 import cat.gencat.agaur.hexastock.model.portfolio.HoldingPerformanceCalculator;
 import org.springframework.cache.annotation.EnableCaching;
@@ -23,13 +26,19 @@ public class SpringAppConfig {
   private final TransactionPort transactionPort;
   private final StockPriceProviderPort stockPriceProviderPort;
   private final PortfolioPort portfolioPort;
+  private final WatchlistPort watchlistPort;
+  private final WatchlistQueryPort watchlistQueryPort;
 
   public SpringAppConfig(TransactionPort transactionPort,
                          StockPriceProviderPort stockPriceProviderPort,
-                         PortfolioPort portfolioPort) {
+                         PortfolioPort portfolioPort,
+                         WatchlistPort watchlistPort,
+                         WatchlistQueryPort watchlistQueryPort) {
     this.transactionPort = transactionPort;
     this.stockPriceProviderPort = stockPriceProviderPort;
     this.portfolioPort = portfolioPort;
+    this.watchlistPort = watchlistPort;
+    this.watchlistQueryPort = watchlistQueryPort;
   }
 
   @Bean
@@ -65,5 +74,15 @@ public class SpringAppConfig {
   @Bean
   TransactionUseCase getTransactionUseCase() {
     return new TransactionService(transactionPort);
+  }
+
+  @Bean
+  WatchlistUseCase getWatchlistUseCase() {
+    return new WatchlistService(watchlistPort);
+  }
+
+  @Bean
+  MarketSentinelUseCase getMarketSentinelService(NotificationPort notificationPort) {
+    return new MarketSentinelService(watchlistQueryPort, stockPriceProviderPort, notificationPort);
   }
 }

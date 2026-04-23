@@ -36,13 +36,15 @@
         <springdoc-openapi.version>2.8.5</springdoc-openapi.version>
         <mysql-connector.version>8.2.0</mysql-connector.version>
         <rest-assured.version>5.4.0</rest-assured.version>
-        <jacoco.version>0.8.10</jacoco.version>
+        <jacoco.version>0.8.14</jacoco.version>
     </properties>
 
     <modules>
         <module>domain</module>
         <module>application</module>
         <module>adapters-inbound-rest</module>
+        <module>adapters-inbound-telegram</module>
+        <module>adapters-outbound-notification</module>
         <module>adapters-outbound-persistence-jpa</module>
         <module>adapters-outbound-persistence-mongodb</module>
         <module>adapters-outbound-market</module>
@@ -89,6 +91,11 @@
             </dependency>
             <dependency>
                 <groupId>cat.gencat.agaur</groupId>
+                <artifactId>hexastock-adapters-inbound-telegram</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>cat.gencat.agaur</groupId>
                 <artifactId>hexastock-adapters-outbound-persistence-jpa</artifactId>
                 <version>${project.version}</version>
             </dependency>
@@ -100,6 +107,11 @@
             <dependency>
                 <groupId>cat.gencat.agaur</groupId>
                 <artifactId>hexastock-adapters-outbound-market</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>cat.gencat.agaur</groupId>
+                <artifactId>hexastock-adapters-outbound-notification</artifactId>
                 <version>${project.version}</version>
             </dependency>
         </dependencies>
