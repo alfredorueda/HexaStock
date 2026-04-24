@@ -107,32 +107,39 @@ This document is **read-only inventory**. It does not move any code. It is the i
 
 ---
 
-## 3. Watchlists / Market Sentinel *(promoted, partial — Phase 5 hardened)*
+## 3. Watchlists / Market Sentinel *(promoted, full extraction — completed on `feature/modulith-watchlists-extraction`)*
 
-**Promoted package**: `cat.gencat.agaur.hexastock.watchlists` (publisher side only — currently only `WatchlistAlertTriggeredEvent`).
+**Promoted package**: `cat.gencat.agaur.hexastock.watchlists` (full module — aggregate, ports, services, REST + JPA + Mongo adapters, plus the published `WatchlistAlertTriggeredEvent`).
 
-**Phase 5 verification (this branch)**:
+### Extraction outcome
 
-- The `Watchlist` aggregate (`domain/.../model/watchlist/Watchlist.java`) is channel-agnostic. The class javadoc explicitly documents that notification routing concerns (Telegram chat ids, emails, phone numbers) are NOT modeled here.
+| Maven module | New package |
+|---|---|
+| `domain` | `watchlists.model.watchlist` (Watchlist, WatchlistId, AlertEntry, AlertNotFoundException, DuplicateAlertException) |
+| `application` | `watchlists.application.port.in` (WatchlistUseCase, MarketSentinelUseCase), `watchlists.application.port.out` (WatchlistPort, WatchlistQueryPort, TriggeredAlertView), `watchlists.application.service` (WatchlistService, MarketSentinelService), and the published event `watchlists.WatchlistAlertTriggeredEvent` |
+| `adapters-inbound-rest` | `watchlists.adapter.in.*` (WatchlistRestController, WatchlistDTOs) |
+| `adapters-outbound-persistence-jpa` | `watchlists.adapter.out.persistence.jpa.*` (entities, mapper, repositories, spring-data repositories, contract tests) |
+| `adapters-outbound-persistence-mongodb` | `watchlists.adapter.out.persistence.mongodb.*` (documents, mapper, repositories, spring-data repository, contract tests) |
+
+The Telegram inbound adapter (`adapters-inbound-telegram`) lives in its own Modulith module and consumes `watchlists.application.port.in.WatchlistUseCase` from outside; it is not part of the `watchlists` package tree.
+
+### Cross-cutting infrastructure (intentionally NOT moved)
+
+- `application.port.out.DomainEventPublisher` — generic event-publishing port shared by every BC. Stays in the legacy `application.port.out` namespace as a platform abstraction.
+
+### Modulith verification (still green after the move)
+
+- The `Watchlist` aggregate is channel-agnostic. Its class javadoc documents that notification routing concerns (Telegram chat ids, emails, phone numbers) are NOT modeled here.
 - The published event `WatchlistAlertTriggeredEvent` carries only business data (`watchlistId`, `userId`, `ticker`, `alertType`, `threshold`, `currentPrice`, `occurredOn`, `message`). No transport identifiers.
-- The Modulith verification test asserts:
-  - `watchlists` has zero outgoing cross-module dependencies (`watchlistsHasNoOutgoingModuleDependencies`).
-  - `notifications` only depends on `watchlists` for the published event type (`notificationsOnlyDependsOnWatchlists`).
+- `watchlistsHasNoOutgoingModuleDependencies` asserts watchlists' only cross-module dependency is `marketdata` (the `Ticker` value object embedded in the published event).
+- `notificationsOnlyDependsOnWatchlists` asserts notifications' cross-module dependencies are exactly `{watchlists, marketdata}`.
 
-### Pending classes (move target: same `watchlists` package, future phase)
+### Final dependency graph (with watchlists fully extracted)
 
-| Maven module | Current package | Classes |
-|---|---|---|
-| `domain` | `model.watchlist` | `Watchlist`, `WatchlistId`, `AlertEntry`, `AlertNotFoundException`, `DuplicateAlertException` |
-| `application` | `application.port.in` | `WatchlistUseCase`, `MarketSentinelUseCase` |
-| `application` | `application.port.out` | `WatchlistPort`, `WatchlistQueryPort`, `TriggeredAlertView` |
-| `application` | `application.service` | `WatchlistService`, `MarketSentinelService` |
-| `adapters-inbound-rest` | `adapter.in.controller` | watchlist-related controllers + DTOs |
-| `adapters-inbound-telegram` | (entire module) | Telegram bot inbound handler that creates watchlists |
-| `adapters-outbound-persistence-jpa` | `adapter.out.persistence.jpa.*` | watchlist entity / mapper / repository / port adapter |
-| `adapters-outbound-persistence-mongodb` | `adapter.out.persistence.mongodb.*` | Mongo equivalents |
-
-These will be moved into `watchlists.adapter.in.*` / `watchlists.adapter.out.*` subpackages of their respective Maven modules in a future phase. Phase 5 does not move them.
+- `marketdata` — leaf, zero outgoing dependencies.
+- `portfolios` — depends on `marketdata` (via `MarketDataPort` and the `Ticker` / `StockPrice` value objects).
+- `watchlists` — depends on `marketdata::model` (`Ticker` carried in `WatchlistAlertTriggeredEvent`).
+- `notifications` — depends on `watchlists` (consumes `WatchlistAlertTriggeredEvent`) and on `marketdata::model` (`Ticker` rendering inside outbound notification messages).
 
 ---
 

@@ -20,10 +20,12 @@
  * Modulith still detects this package as the {@code watchlists} module by virtue of
  * its top-level package position under {@code cat.gencat.agaur.hexastock}.</p>
  *
- * <p>The Watchlist aggregate itself, its ports, and its use case services still live
- * under the legacy {@code model.watchlist}, {@code application.port.*}, and
- * {@code application.service} packages and remain there until a future phase of the
- * Spring Modulith refactoring extracts them into this module.</p>
+ * <p>The Watchlist aggregate, its primary/secondary ports, its use case services,
+ * and its REST + JPA + MongoDB adapters all live under this module's subpackages
+ * ({@code watchlists.model.watchlist}, {@code watchlists.application.port.*},
+ * {@code watchlists.application.service}, {@code watchlists.adapter.in.*},
+ * {@code watchlists.adapter.out.persistence.*}). The full extraction landed on
+ * branch {@code feature/modulith-watchlists-extraction}.</p>
  *
  * <p>Allowed Modulith dependency: {@code marketdata} — the {@code Ticker} value
  * object travels inside {@code WatchlistAlertTriggeredEvent} as part of the
