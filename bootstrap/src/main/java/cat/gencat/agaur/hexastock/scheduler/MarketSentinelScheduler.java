@@ -1,6 +1,6 @@
 package cat.gencat.agaur.hexastock.scheduler;
 
-import cat.gencat.agaur.hexastock.application.port.in.MarketSentinelUseCase;
+import cat.gencat.agaur.hexastock.watchlists.application.port.in.MarketSentinelUseCase;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 

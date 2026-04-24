@@ -3,7 +3,7 @@ package cat.gencat.agaur.hexastock.adapter.in.telegram.web;
 import cat.gencat.agaur.hexastock.adapter.in.telegram.TelegramBotClient;
 import cat.gencat.agaur.hexastock.adapter.in.telegram.TelegramCommandHandler;
 import cat.gencat.agaur.hexastock.adapter.in.telegram.TelegramCommandParser;
-import cat.gencat.agaur.hexastock.application.port.in.WatchlistUseCase;
+import cat.gencat.agaur.hexastock.watchlists.application.port.in.WatchlistUseCase;
 import org.springframework.context.annotation.Profile;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;

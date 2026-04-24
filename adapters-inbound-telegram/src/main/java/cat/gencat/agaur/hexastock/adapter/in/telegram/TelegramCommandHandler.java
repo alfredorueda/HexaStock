@@ -1,12 +1,12 @@
 package cat.gencat.agaur.hexastock.adapter.in.telegram;
 
 import cat.gencat.agaur.hexastock.application.exception.WatchlistNotFoundException;
-import cat.gencat.agaur.hexastock.application.port.in.WatchlistUseCase;
+import cat.gencat.agaur.hexastock.watchlists.application.port.in.WatchlistUseCase;
 import cat.gencat.agaur.hexastock.marketdata.model.market.Ticker;
 import cat.gencat.agaur.hexastock.model.money.Money;
-import cat.gencat.agaur.hexastock.model.watchlist.DuplicateAlertException;
-import cat.gencat.agaur.hexastock.model.watchlist.Watchlist;
-import cat.gencat.agaur.hexastock.model.watchlist.WatchlistId;
+import cat.gencat.agaur.hexastock.watchlists.model.watchlist.DuplicateAlertException;
+import cat.gencat.agaur.hexastock.watchlists.model.watchlist.Watchlist;
+import cat.gencat.agaur.hexastock.watchlists.model.watchlist.WatchlistId;
 
 public class TelegramCommandHandler {
 
