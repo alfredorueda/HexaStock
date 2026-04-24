@@ -59,9 +59,9 @@ public class MongoWatchlistQueryRepository implements WatchlistQueryPort {
                 match(Criteria.where(ALERTS_TICKER).is(ticker.value())
                         .and("alerts.thresholdPrice").gte(price128)),
                 project()
+                        .and("_id").as("watchlistId")
                         .and("ownerName").as("ownerName")
                         .and("listName").as("listName")
-                        .and("userNotificationId").as("userNotificationId")
                         .and(ALERTS_TICKER).as("ticker")
                         .and("alerts.thresholdPrice").as("thresholdPrice")
         );
@@ -71,9 +71,9 @@ public class MongoWatchlistQueryRepository implements WatchlistQueryPort {
 
         return res.getMappedResults().stream()
                 .map(r -> new TriggeredAlertView(
+                        r.watchlistId(),
                         r.ownerName(),
                         r.listName(),
-                        r.userNotificationId(),
                         Ticker.of(r.ticker()),
                         Money.of(r.thresholdPrice())
                 ))
@@ -83,11 +83,10 @@ public class MongoWatchlistQueryRepository implements WatchlistQueryPort {
     record DistinctTickerRow(String id) {}
 
     record TriggeredAlertRow(
+            String watchlistId,
             String ownerName,
             String listName,
-            String userNotificationId,
             String ticker,
             BigDecimal thresholdPrice
     ) {}
 }
-

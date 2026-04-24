@@ -12,6 +12,15 @@ import java.util.List;
 
 import static jakarta.persistence.CascadeType.ALL;
 
+/**
+ * JPA entity for the {@code watchlist} aggregate.
+ *
+ * <p><b>Schema migration note:</b> the previous version of this entity carried a
+ * {@code user_notification_id} column (a Telegram chat id). After the introduction of
+ * the Spring Modulith Notifications module, that column is no longer mapped here.
+ * For an existing schema the column can be safely dropped (or left orphan); see
+ * {@code doc/architecture/SPRING-MODULITH-NOTIFICATIONS-POC.md}.</p>
+ */
 @Entity
 @Table(name = "watchlist")
 public class WatchlistJpaEntity {
@@ -25,8 +34,6 @@ public class WatchlistJpaEntity {
 
     private boolean active;
 
-    private String userNotificationId;
-
     @OneToMany(cascade = ALL, orphanRemoval = true)
     @JoinColumn(name = "watchlist_id")
     @BatchSize(size = 50)
@@ -34,12 +41,11 @@ public class WatchlistJpaEntity {
 
     protected WatchlistJpaEntity() {}
 
-    public WatchlistJpaEntity(String id, String ownerName, String listName, boolean active, String userNotificationId) {
+    public WatchlistJpaEntity(String id, String ownerName, String listName, boolean active) {
         this.id = id;
         this.ownerName = ownerName;
         this.listName = listName;
         this.active = active;
-        this.userNotificationId = userNotificationId;
     }
 
     public String getId() {
@@ -58,10 +64,6 @@ public class WatchlistJpaEntity {
         return active;
     }
 
-    public String getuserNotificationId() {
-        return userNotificationId;
-    }
-
     public List<AlertEntryJpaEntity> getAlerts() {
         return alerts;
     }
@@ -70,4 +72,3 @@ public class WatchlistJpaEntity {
         this.alerts = alerts;
     }
 }
-

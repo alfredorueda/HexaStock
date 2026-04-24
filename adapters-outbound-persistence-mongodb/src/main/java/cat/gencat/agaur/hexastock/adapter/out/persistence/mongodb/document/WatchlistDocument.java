@@ -7,6 +7,15 @@ import org.springframework.data.mongodb.core.mapping.Document;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * MongoDB document for the {@code watchlists} collection.
+ *
+ * <p><b>Schema migration note:</b> the previous version carried a
+ * {@code userNotificationId} field (Telegram chat id). After the introduction of the
+ * Spring Modulith Notifications module, the field is no longer mapped here.
+ * Existing documents may still contain it; MongoDB happily ignores unmapped fields,
+ * so no destructive migration is required for the POC.</p>
+ */
 @Document(collection = "watchlists")
 public class WatchlistDocument {
 
@@ -19,8 +28,6 @@ public class WatchlistDocument {
 
     private boolean active;
 
-    private String userNotificationId;
-
     private List<AlertEntryDocument> alerts = new ArrayList<>();
 
     @Version
@@ -32,13 +39,11 @@ public class WatchlistDocument {
                              String ownerName,
                              String listName,
                              boolean active,
-                             String userNotificationId,
                              List<AlertEntryDocument> alerts) {
         this.id = id;
         this.ownerName = ownerName;
         this.listName = listName;
         this.active = active;
-        this.userNotificationId = userNotificationId;
         this.alerts = alerts;
     }
 
@@ -58,10 +63,6 @@ public class WatchlistDocument {
         return active;
     }
 
-    public String getUserNotificationId() {
-        return userNotificationId;
-    }
-
     public List<AlertEntryDocument> getAlerts() {
         return alerts;
     }
@@ -70,4 +71,3 @@ public class WatchlistDocument {
         return version;
     }
 }
-

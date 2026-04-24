@@ -15,19 +15,16 @@ public final class WatchlistDocumentMapper {
     private WatchlistDocumentMapper() {}
 
     public static Watchlist toModelEntity(WatchlistDocument doc) {
-        Watchlist model = Watchlist.create(
+        List<AlertEntry> alerts = doc.getAlerts().stream()
+                .map(e -> new AlertEntry(Ticker.of(e.getTicker()), Money.of(e.getThresholdPrice())))
+                .toList();
+        return Watchlist.rehydrate(
                 WatchlistId.of(doc.getId()),
                 doc.getOwnerName(),
                 doc.getListName(),
-                doc.getUserNotificationId()
+                doc.isActive(),
+                alerts
         );
-        if (!doc.isActive()) {
-            model.deactivate();
-        }
-        for (AlertEntryDocument entry : doc.getAlerts()) {
-            model.addAlert(Ticker.of(entry.getTicker()), Money.of(entry.getThresholdPrice()));
-        }
-        return model;
     }
 
     public static WatchlistDocument toDocument(Watchlist model) {
@@ -39,7 +36,6 @@ public final class WatchlistDocumentMapper {
                 model.getOwnerName(),
                 model.getListName(),
                 model.isActive(),
-                model.getUserNotificationId(),
                 alerts
         );
     }
@@ -48,4 +44,3 @@ public final class WatchlistDocumentMapper {
         return new AlertEntryDocument(entry.ticker().value(), entry.thresholdPrice().amount());
     }
 }
-

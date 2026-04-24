@@ -39,12 +39,11 @@ public class JpaWatchlistQueryRepository implements WatchlistQueryPort {
 
     private TriggeredAlertView mapRow(JpaWatchlistQuerySpringDataRepository.TriggeredAlertRow row) {
         return new TriggeredAlertView(
+                row.getWatchlistId(),
                 row.getOwnerName(),
                 row.getListName(),
-                row.getuserNotificationId(),
                 Ticker.of(row.getTicker()),
                 Money.of(row.getThresholdPrice())
         );
     }
 }
-

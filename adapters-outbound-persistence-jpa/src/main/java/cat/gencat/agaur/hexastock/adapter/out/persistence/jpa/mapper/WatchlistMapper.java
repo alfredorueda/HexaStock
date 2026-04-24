@@ -15,19 +15,16 @@ public final class WatchlistMapper {
     private WatchlistMapper() {}
 
     public static Watchlist toModelEntity(WatchlistJpaEntity jpa) {
-        Watchlist model = Watchlist.create(
+        List<AlertEntry> alerts = jpa.getAlerts().stream()
+                .map(e -> new AlertEntry(Ticker.of(e.getTicker()), Money.of(e.getThresholdPrice())))
+                .toList();
+        return Watchlist.rehydrate(
                 WatchlistId.of(jpa.getId()),
                 jpa.getOwnerName(),
                 jpa.getListName(),
-                jpa.getuserNotificationId()
+                jpa.isActive(),
+                alerts
         );
-        if (!jpa.isActive()) {
-            model.deactivate();
-        }
-        for (AlertEntryJpaEntity entry : jpa.getAlerts()) {
-            model.addAlert(Ticker.of(entry.getTicker()), Money.of(entry.getThresholdPrice()));
-        }
-        return model;
     }
 
     public static WatchlistJpaEntity toJpaEntity(Watchlist model) {
@@ -35,8 +32,7 @@ public final class WatchlistMapper {
                 model.getId().value(),
                 model.getOwnerName(),
                 model.getListName(),
-                model.isActive(),
-                model.getUserNotificationId()
+                model.isActive()
         );
         List<AlertEntryJpaEntity> alerts = model.getAlerts().stream()
                 .map(WatchlistMapper::toJpaAlertEntry)
@@ -49,4 +45,3 @@ public final class WatchlistMapper {
         return new AlertEntryJpaEntity(entry.ticker().value(), entry.thresholdPrice().amount());
     }
 }
-

@@ -12,9 +12,9 @@ import java.util.Set;
 public interface JpaWatchlistQuerySpringDataRepository extends JpaRepository<AlertEntryJpaEntity, Long> {
 
     interface TriggeredAlertRow {
+        String getWatchlistId();
         String getOwnerName();
         String getListName();
-        String getuserNotificationId();
         String getTicker();
         BigDecimal getThresholdPrice();
     }
@@ -28,9 +28,9 @@ public interface JpaWatchlistQuerySpringDataRepository extends JpaRepository<Ale
     Set<String> findDistinctTickersInActiveWatchlists();
 
     @Query("""
-            select w.ownerName as ownerName,
+            select w.id as watchlistId,
+                   w.ownerName as ownerName,
                    w.listName as listName,
-                   w.userNotificationId as userNotificationId,
                    e.ticker as ticker,
                    e.thresholdPrice as thresholdPrice
             from AlertEntryJpaEntity e
