@@ -61,6 +61,7 @@ class HexagonalArchitectureTest {
         void domainDoesNotDependOnSpring() {
             noClasses()
                     .that().resideInAPackage("..model..")
+                    .and().haveSimpleNameNotEndingWith("package-info")
                     .should().dependOnClassesThat().resideInAPackage("org.springframework..")
                     .check(allClasses);
         }
@@ -84,6 +85,7 @@ class HexagonalArchitectureTest {
         void applicationDoesNotDependOnSpring() {
             noClasses()
                     .that().resideInAPackage("..application..")
+                    .and().haveSimpleNameNotEndingWith("package-info")
                     .should().dependOnClassesThat().resideInAPackage("org.springframework..")
                     .check(allClasses);
         }

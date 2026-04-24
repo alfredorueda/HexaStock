@@ -24,5 +24,13 @@
  * under the legacy {@code model.watchlist}, {@code application.port.*}, and
  * {@code application.service} packages and remain there until a future phase of the
  * Spring Modulith refactoring extracts them into this module.</p>
+ *
+ * <p>Allowed Modulith dependency: {@code marketdata} — the {@code Ticker} value
+ * object travels inside {@code WatchlistAlertTriggeredEvent} as part of the
+ * published event payload. The {@code @ApplicationModule} annotation lives in
+ * the {@code bootstrap} module's mirror package
+ * ({@link cat.gencat.agaur.hexastock.watchlists}) to keep the {@code application}
+ * Maven module Spring-free per ADR-007. See
+ * {@link cat.gencat.agaur.hexastock.notifications} for an analogous arrangement.</p>
  */
 package cat.gencat.agaur.hexastock.watchlists;

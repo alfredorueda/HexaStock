@@ -12,13 +12,18 @@
  * <p>This module is the only one allowed to know about notification channels. The
  * Watchlists module remains channel-agnostic and depends on nothing.</p>
  *
- * <p>Allowed Modulith dependency: {@code watchlists} (for the published event type only).
- * Channel-specific adapters live under the internal {@code adapter.telegram} and
+ * <p>Allowed Modulith dependencies:</p>
+ * <ul>
+ *   <li>{@code watchlists} — for the published {@code WatchlistAlertTriggeredEvent} type.</li>
+ *   <li>{@code marketdata} — for the {@code Ticker} value object carried inside the event
+ *       payload and rendered into outbound notification messages.</li>
+ * </ul>
+ * <p>Channel-specific adapters live under the internal {@code adapter.telegram} and
  * {@code adapter.logging} subpackages, which are not exported as a named interface
  * and therefore not consumable by any other module.</p>
  */
 @org.springframework.modulith.ApplicationModule(
         displayName = "Notifications",
-        allowedDependencies = {"watchlists"}
+        allowedDependencies = {"watchlists", "marketdata::model"}
 )
 package cat.gencat.agaur.hexastock.notifications;

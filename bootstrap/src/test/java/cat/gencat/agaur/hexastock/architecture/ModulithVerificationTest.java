@@ -55,7 +55,8 @@ class ModulithVerificationTest {
     private static final String[] MODULE_PACKAGES = {
             "cat.gencat.agaur.hexastock.watchlists",
             "cat.gencat.agaur.hexastock.notifications",
-            "cat.gencat.agaur.hexastock.portfolios"
+            "cat.gencat.agaur.hexastock.portfolios",
+            "cat.gencat.agaur.hexastock.marketdata"
     };
 
     /**
@@ -85,7 +86,7 @@ class ModulithVerificationTest {
         MODULES.forEach(module -> System.out.println("Detected module: " + module.getName()));
         assertThat(MODULES.stream().map(ApplicationModule::getName))
                 .as("Modulith should detect exactly the promoted modules")
-                .containsExactlyInAnyOrder("watchlists", "notifications", "portfolios");
+                .containsExactlyInAnyOrder("watchlists", "notifications", "portfolios", "marketdata");
     }
 
     @Test
@@ -104,35 +105,58 @@ class ModulithVerificationTest {
     }
 
     @Test
-    @DisplayName("notifications module's only cross-module dependency is on 'watchlists'")
+    @DisplayName("notifications module's cross-module dependencies are limited to 'watchlists' and 'marketdata'")
     void notificationsOnlyDependsOnWatchlists() {
         ApplicationModule notifications = MODULES.getModuleByName("notifications").orElseThrow();
         assertThat(notifications.getDependencies(MODULES).stream()
                 .map(dep -> dep.getTargetModule().getName())
-                .filter(name -> !name.equals("notifications")))
+                .filter(name -> !name.equals("notifications"))
+                .distinct())
                 .as("cross-module dependencies of notifications")
-                .containsOnly("watchlists");
+                .containsExactlyInAnyOrder("watchlists", "marketdata");
     }
 
     @Test
-    @DisplayName("watchlists module is a pure publisher (no outgoing cross-module dependencies)")
+    @DisplayName("watchlists module only depends on 'marketdata' (Ticker carried in published event)")
     void watchlistsHasNoOutgoingModuleDependencies() {
         ApplicationModule watchlists = MODULES.getModuleByName("watchlists").orElseThrow();
         assertThat(watchlists.getDependencies(MODULES).stream()
                 .map(dep -> dep.getTargetModule().getName())
-                .filter(name -> !name.equals("watchlists")))
-                .as("watchlists must not depend on any other promoted module")
-                .isEmpty();
+                .filter(name -> !name.equals("watchlists"))
+                .distinct())
+                .as("watchlists may only depend on marketdata")
+                .containsOnly("marketdata");
     }
 
     @Test
-    @DisplayName("portfolios module has no outgoing dependencies on other promoted modules")
-    void portfoliosHasNoOutgoingModuleDependencies() {
+    @DisplayName("portfolios module's only cross-module dependency is on 'marketdata'")
+    void portfoliosOnlyDependsOnMarketData() {
         ApplicationModule portfolios = MODULES.getModuleByName("portfolios").orElseThrow();
         assertThat(portfolios.getDependencies(MODULES).stream()
                 .map(dep -> dep.getTargetModule().getName())
-                .filter(name -> !name.equals("portfolios")))
+                .filter(name -> !name.equals("portfolios"))
+                .distinct())
                 .as("portfolios must not depend on watchlists or notifications")
+                .containsOnly("marketdata");
+    }
+
+    @Test
+    @DisplayName("marketdata module is rooted under the expected package")
+    void marketdataModuleIsRootedCorrectly() {
+        ApplicationModule marketdata = MODULES.getModuleByName("marketdata").orElseThrow();
+        assertThat(marketdata.getBasePackage().getName())
+                .as("marketdata module base package")
+                .endsWith("marketdata");
+    }
+
+    @Test
+    @DisplayName("marketdata module is a leaf (no outgoing cross-module dependencies)")
+    void marketdataHasNoOutgoingModuleDependencies() {
+        ApplicationModule marketdata = MODULES.getModuleByName("marketdata").orElseThrow();
+        assertThat(marketdata.getDependencies(MODULES).stream()
+                .map(dep -> dep.getTargetModule().getName())
+                .filter(name -> !name.equals("marketdata")))
+                .as("marketdata must not depend on any other promoted module")
                 .isEmpty();
     }
 

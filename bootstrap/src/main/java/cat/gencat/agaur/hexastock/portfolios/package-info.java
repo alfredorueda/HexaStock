@@ -34,16 +34,16 @@
  *
  * <h2>Allowed cross-module dependencies</h2>
  * <p>Portfolios does not depend on {@code watchlists} or {@code notifications}.
- * It does call the Market Data outbound port
- * ({@code application.port.out.MarketDataPort}) for stock pricing,
- * but Market Data has not been promoted to a Modulith module yet (see
- * {@code MODULITH-BOUNDED-CONTEXT-INVENTORY.md §2}); that dependency is
- * therefore not visible to {@code MODULES.verify()} at this stage. When
- * Market Data is promoted, this annotation will be amended to
- * {@code allowedDependencies = {"marketdata"}}.</p>
+ * It does depend on {@code marketdata} through the
+ * {@code MarketDataPort} secondary port (used by
+ * {@code PortfolioStockOperationsService} and {@code ReportingService} to
+ * fetch current stock prices) and through the {@code Ticker} /
+ * {@code StockPrice} value objects. That dependency is declared
+ * explicitly via {@code allowedDependencies = {"marketdata"}} so
+ * Spring Modulith's {@code MODULES.verify()} can enforce the boundary.</p>
  */
 @org.springframework.modulith.ApplicationModule(
         displayName = "Portfolio Management",
-        allowedDependencies = {}
+        allowedDependencies = {"marketdata::model", "marketdata::port-out"}
 )
 package cat.gencat.agaur.hexastock.portfolios;
