@@ -3,7 +3,7 @@ package cat.gencat.agaur.hexastock.portfolios.adapter.out.persistence.mongodb.ma
 import cat.gencat.agaur.hexastock.portfolios.adapter.out.persistence.mongodb.document.HoldingDocument;
 import cat.gencat.agaur.hexastock.portfolios.adapter.out.persistence.mongodb.document.LotDocument;
 import cat.gencat.agaur.hexastock.portfolios.adapter.out.persistence.mongodb.document.PortfolioDocument;
-import cat.gencat.agaur.hexastock.model.market.Ticker;
+import cat.gencat.agaur.hexastock.marketdata.model.market.Ticker;
 import cat.gencat.agaur.hexastock.model.money.Money;
 import cat.gencat.agaur.hexastock.model.money.Price;
 import cat.gencat.agaur.hexastock.model.money.ShareQuantity;

@@ -3,11 +3,11 @@ package cat.gencat.agaur.hexastock.portfolios.application.service;
 import cat.gencat.agaur.hexastock.SpecificationRef;
 import cat.gencat.agaur.hexastock.TestLevel;
 import cat.gencat.agaur.hexastock.portfolios.application.port.out.PortfolioPort;
-import cat.gencat.agaur.hexastock.application.port.out.StockPriceProviderPort;
+import cat.gencat.agaur.hexastock.marketdata.application.port.out.MarketDataPort;
 import cat.gencat.agaur.hexastock.portfolios.application.port.out.TransactionPort;
 import cat.gencat.agaur.hexastock.portfolios.model.portfolio.*;
 import cat.gencat.agaur.hexastock.portfolios.model.transaction.*;
-import cat.gencat.agaur.hexastock.model.market.*;
+import cat.gencat.agaur.hexastock.marketdata.model.market.*;
 import cat.gencat.agaur.hexastock.model.money.*;
 import cat.gencat.agaur.hexastock.portfolios.application.exception.PortfolioNotFoundException;
 import cat.gencat.agaur.hexastock.portfolios.model.portfolio.HoldingPerformanceCalculator;
@@ -24,7 +24,7 @@ import static org.mockito.Mockito.*;
  * Unit tests for {@link ReportingService}.
  *
  * <p>This is an <strong>application-layer</strong> test: the three outgoing ports
- * ({@link PortfolioPort}, {@link TransactionPort}, {@link StockPriceProviderPort})
+ * ({@link PortfolioPort}, {@link TransactionPort}, {@link MarketDataPort})
  * are mocked so that no I/O takes place.  The real
  * {@link HoldingPerformanceCalculator} is used because it is a pure domain
  * service with no side effects — using the real implementation gives higher
@@ -36,7 +36,7 @@ class ReportingServiceTest {
     // ── Mocks for the three outgoing ports ──────────────────────────────
     private PortfolioPort portfolioPort;
     private TransactionPort transactionPort;
-    private StockPriceProviderPort stockPriceProviderPort;
+    private MarketDataPort stockPriceProviderPort;
 
     // ── Real domain service (no I/O, safe to use directly) ──────────────
     private HoldingPerformanceCalculator calculator;
@@ -50,7 +50,7 @@ class ReportingServiceTest {
     void setUp() {
         portfolioPort = mock(PortfolioPort.class);
         transactionPort = mock(TransactionPort.class);
-        stockPriceProviderPort = mock(StockPriceProviderPort.class);
+        stockPriceProviderPort = mock(MarketDataPort.class);
         calculator = new HoldingPerformanceCalculator();
 
         reportingService = new ReportingService(

@@ -3,7 +3,7 @@ package cat.gencat.agaur.hexastock.portfolios.adapter.out.persistence.jpa.mapper
 import cat.gencat.agaur.hexastock.portfolios.adapter.out.persistence.jpa.entity.TransactionJpaEntity;
 import cat.gencat.agaur.hexastock.portfolios.model.portfolio.*;
 import cat.gencat.agaur.hexastock.portfolios.model.transaction.*;
-import cat.gencat.agaur.hexastock.model.market.*;
+import cat.gencat.agaur.hexastock.marketdata.model.market.*;
 import cat.gencat.agaur.hexastock.model.money.*;
 
 public final class TransactionMapper {

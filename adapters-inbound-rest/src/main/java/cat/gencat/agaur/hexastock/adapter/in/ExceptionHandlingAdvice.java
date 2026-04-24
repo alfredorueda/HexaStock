@@ -7,7 +7,7 @@ import cat.gencat.agaur.hexastock.portfolios.application.exception.PortfolioNotF
 import cat.gencat.agaur.hexastock.portfolios.model.portfolio.HoldingNotFoundException;
 import cat.gencat.agaur.hexastock.model.ExternalApiException;
 import cat.gencat.agaur.hexastock.portfolios.model.portfolio.InsufficientFundsException;
-import cat.gencat.agaur.hexastock.model.market.InvalidTickerException;
+import cat.gencat.agaur.hexastock.marketdata.model.market.InvalidTickerException;
 import cat.gencat.agaur.hexastock.application.exception.WatchlistNotFoundException;
 import cat.gencat.agaur.hexastock.model.watchlist.DuplicateAlertException;
 import cat.gencat.agaur.hexastock.model.watchlist.AlertNotFoundException;

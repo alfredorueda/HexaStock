@@ -1,12 +1,14 @@
 package cat.gencat.agaur.hexastock.config;
 
 import cat.gencat.agaur.hexastock.application.port.in.*;
+import cat.gencat.agaur.hexastock.marketdata.application.port.in.*;
+import cat.gencat.agaur.hexastock.marketdata.application.service.*;
 import cat.gencat.agaur.hexastock.portfolios.application.port.in.*;
 import cat.gencat.agaur.hexastock.portfolios.application.port.out.*;
 import cat.gencat.agaur.hexastock.portfolios.application.service.*;
 import cat.gencat.agaur.hexastock.application.port.out.DomainEventPublisher;
 import cat.gencat.agaur.hexastock.portfolios.application.port.out.PortfolioPort;
-import cat.gencat.agaur.hexastock.application.port.out.StockPriceProviderPort;
+import cat.gencat.agaur.hexastock.marketdata.application.port.out.MarketDataPort;
 import cat.gencat.agaur.hexastock.portfolios.application.port.out.TransactionPort;
 import cat.gencat.agaur.hexastock.application.port.out.WatchlistPort;
 import cat.gencat.agaur.hexastock.application.port.out.WatchlistQueryPort;
@@ -28,13 +30,13 @@ import org.springframework.context.annotation.Configuration;
 public class SpringAppConfig {
 
   private final TransactionPort transactionPort;
-  private final StockPriceProviderPort stockPriceProviderPort;
+  private final MarketDataPort stockPriceProviderPort;
   private final PortfolioPort portfolioPort;
   private final WatchlistPort watchlistPort;
   private final WatchlistQueryPort watchlistQueryPort;
 
   public SpringAppConfig(TransactionPort transactionPort,
-                         StockPriceProviderPort stockPriceProviderPort,
+                         MarketDataPort stockPriceProviderPort,
                          PortfolioPort portfolioPort,
                          WatchlistPort watchlistPort,
                          WatchlistQueryPort watchlistQueryPort) {

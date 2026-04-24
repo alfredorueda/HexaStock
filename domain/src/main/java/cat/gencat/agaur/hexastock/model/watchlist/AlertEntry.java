@@ -1,6 +1,6 @@
 package cat.gencat.agaur.hexastock.model.watchlist;
 
-import cat.gencat.agaur.hexastock.model.market.Ticker;
+import cat.gencat.agaur.hexastock.marketdata.model.market.Ticker;
 import cat.gencat.agaur.hexastock.model.money.Money;
 
 import java.util.Objects;

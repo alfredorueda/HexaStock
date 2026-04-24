@@ -1,7 +1,7 @@
 package cat.gencat.agaur.hexastock.notifications;
 
 import cat.gencat.agaur.hexastock.application.port.out.DomainEventPublisher;
-import cat.gencat.agaur.hexastock.model.market.Ticker;
+import cat.gencat.agaur.hexastock.marketdata.model.market.Ticker;
 import cat.gencat.agaur.hexastock.model.money.Money;
 import cat.gencat.agaur.hexastock.notifications.adapter.logging.LoggingNotificationSenderAdapter;
 import cat.gencat.agaur.hexastock.watchlists.WatchlistAlertTriggeredEvent;

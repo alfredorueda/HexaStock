@@ -3,7 +3,7 @@ package cat.gencat.agaur.hexastock.portfolios.model.portfolio;
 import cat.gencat.agaur.hexastock.SpecificationRef;
 import cat.gencat.agaur.hexastock.TestLevel;
 import cat.gencat.agaur.hexastock.portfolios.model.transaction.*;
-import cat.gencat.agaur.hexastock.model.market.*;
+import cat.gencat.agaur.hexastock.marketdata.model.market.*;
 import cat.gencat.agaur.hexastock.model.money.*;
 import org.junit.jupiter.api.*;
 import org.junit.jupiter.params.ParameterizedTest;

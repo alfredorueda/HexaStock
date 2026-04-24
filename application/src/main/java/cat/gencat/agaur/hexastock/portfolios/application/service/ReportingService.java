@@ -4,7 +4,7 @@ import cat.gencat.agaur.hexastock.portfolios.model.portfolio.HoldingPerformance;
 import cat.gencat.agaur.hexastock.portfolios.application.exception.PortfolioNotFoundException;
 import cat.gencat.agaur.hexastock.portfolios.application.port.in.ReportingUseCase;
 import cat.gencat.agaur.hexastock.portfolios.application.port.out.PortfolioPort;
-import cat.gencat.agaur.hexastock.application.port.out.StockPriceProviderPort;
+import cat.gencat.agaur.hexastock.marketdata.application.port.out.MarketDataPort;
 import cat.gencat.agaur.hexastock.portfolios.application.port.out.TransactionPort;
 import cat.gencat.agaur.hexastock.portfolios.model.portfolio.*;
 import cat.gencat.agaur.hexastock.portfolios.model.portfolio.HoldingPerformanceCalculator;
@@ -23,7 +23,7 @@ import java.util.stream.Collectors;
  *
  * <h2>Current design — sequential price fetching</h2>
  * <p>Stock prices are fetched sequentially via the default implementation of
- * {@link StockPriceProviderPort#fetchStockPrice(java.util.Set)}, which iterates
+ * {@link MarketDataPort#fetchStockPrice(java.util.Set)}, which iterates
  * the ticker set and calls the single-ticker method one by one.  This is
  * intentional: the free-tier API (Finnhub) enforces strict rate limits, and
  * parallel calls would quickly trigger HTTP 429 responses.</p>
@@ -57,12 +57,12 @@ import java.util.stream.Collectors;
 public class ReportingService implements ReportingUseCase {
 
     private final TransactionPort transactionPort;
-    private final StockPriceProviderPort stockPriceProviderPort;
+    private final MarketDataPort stockPriceProviderPort;
     private final PortfolioPort portfolioPort;
     private final HoldingPerformanceCalculator holdingPerformanceCalculator;
 
     public ReportingService(TransactionPort transactionPort,
-                            StockPriceProviderPort stockPriceProviderPort,
+                            MarketDataPort stockPriceProviderPort,
                             PortfolioPort portfolioPort,
                             HoldingPerformanceCalculator holdingPerformanceCalculator) {
         this.transactionPort = transactionPort;

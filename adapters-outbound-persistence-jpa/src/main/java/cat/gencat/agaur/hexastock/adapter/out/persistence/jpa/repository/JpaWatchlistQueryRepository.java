@@ -3,7 +3,7 @@ package cat.gencat.agaur.hexastock.adapter.out.persistence.jpa.repository;
 import cat.gencat.agaur.hexastock.adapter.out.persistence.jpa.springdatarepository.JpaWatchlistQuerySpringDataRepository;
 import cat.gencat.agaur.hexastock.application.port.out.TriggeredAlertView;
 import cat.gencat.agaur.hexastock.application.port.out.WatchlistQueryPort;
-import cat.gencat.agaur.hexastock.model.market.Ticker;
+import cat.gencat.agaur.hexastock.marketdata.model.market.Ticker;
 import cat.gencat.agaur.hexastock.model.money.Money;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;

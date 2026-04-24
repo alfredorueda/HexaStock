@@ -2,7 +2,7 @@ package cat.gencat.agaur.hexastock.adapter.out.persistence.mongodb.mapper;
 
 import cat.gencat.agaur.hexastock.adapter.out.persistence.mongodb.document.AlertEntryDocument;
 import cat.gencat.agaur.hexastock.adapter.out.persistence.mongodb.document.WatchlistDocument;
-import cat.gencat.agaur.hexastock.model.market.Ticker;
+import cat.gencat.agaur.hexastock.marketdata.model.market.Ticker;
 import cat.gencat.agaur.hexastock.model.money.Money;
 import cat.gencat.agaur.hexastock.model.watchlist.AlertEntry;
 import cat.gencat.agaur.hexastock.model.watchlist.Watchlist;

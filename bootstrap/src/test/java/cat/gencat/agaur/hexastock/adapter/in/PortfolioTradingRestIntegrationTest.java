@@ -2,10 +2,10 @@ package cat.gencat.agaur.hexastock.adapter.in;
 
 import cat.gencat.agaur.hexastock.SpecificationRef;
 import cat.gencat.agaur.hexastock.TestLevel;
-import cat.gencat.agaur.hexastock.application.port.out.StockPriceProviderPort;
+import cat.gencat.agaur.hexastock.marketdata.application.port.out.MarketDataPort;
 import cat.gencat.agaur.hexastock.model.money.Price;
-import cat.gencat.agaur.hexastock.model.market.StockPrice;
-import cat.gencat.agaur.hexastock.model.market.Ticker;
+import cat.gencat.agaur.hexastock.marketdata.model.market.StockPrice;
+import cat.gencat.agaur.hexastock.marketdata.model.market.Ticker;
 import io.restassured.RestAssured;
 import io.restassured.config.JsonConfig;
 import io.restassured.http.ContentType;
@@ -303,7 +303,7 @@ class PortfolioTradingRestIntegrationTest extends AbstractPortfolioRestIntegrati
      * By injecting a deterministic adapter, integration tests can verify exact financial
      * outcomes (proceeds, costBasis, profit) matching the Gherkin specification.</p>
      */
-    static class FixedPriceStockPriceAdapter implements StockPriceProviderPort {
+    static class FixedPriceStockPriceAdapter implements MarketDataPort {
 
         private final ConcurrentLinkedQueue<Price> priceQueue = new ConcurrentLinkedQueue<>();
         private final Price fallbackPrice;

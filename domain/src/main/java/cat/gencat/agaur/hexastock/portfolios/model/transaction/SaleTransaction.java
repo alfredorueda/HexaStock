@@ -1,6 +1,6 @@
 package cat.gencat.agaur.hexastock.portfolios.model.transaction;
 
-import cat.gencat.agaur.hexastock.model.market.Ticker;
+import cat.gencat.agaur.hexastock.marketdata.model.market.Ticker;
 import cat.gencat.agaur.hexastock.portfolios.model.portfolio.PortfolioId;
 import cat.gencat.agaur.hexastock.model.money.*;
 

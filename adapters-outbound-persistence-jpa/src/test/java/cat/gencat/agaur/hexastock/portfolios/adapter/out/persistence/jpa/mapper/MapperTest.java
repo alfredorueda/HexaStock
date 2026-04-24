@@ -3,7 +3,7 @@ package cat.gencat.agaur.hexastock.portfolios.adapter.out.persistence.jpa.mapper
 import cat.gencat.agaur.hexastock.portfolios.adapter.out.persistence.jpa.entity.HoldingJpaEntity;
 import cat.gencat.agaur.hexastock.portfolios.adapter.out.persistence.jpa.entity.LotJpaEntity;
 import cat.gencat.agaur.hexastock.portfolios.adapter.out.persistence.jpa.entity.PortfolioJpaEntity;
-import cat.gencat.agaur.hexastock.model.market.Ticker;
+import cat.gencat.agaur.hexastock.marketdata.model.market.Ticker;
 import cat.gencat.agaur.hexastock.model.money.Money;
 import cat.gencat.agaur.hexastock.model.money.Price;
 import cat.gencat.agaur.hexastock.model.money.ShareQuantity;

@@ -3,7 +3,7 @@ package cat.gencat.agaur.hexastock.application.service;
 import cat.gencat.agaur.hexastock.application.exception.WatchlistNotFoundException;
 import cat.gencat.agaur.hexastock.application.port.in.WatchlistUseCase;
 import cat.gencat.agaur.hexastock.application.port.out.WatchlistPort;
-import cat.gencat.agaur.hexastock.model.market.Ticker;
+import cat.gencat.agaur.hexastock.marketdata.model.market.Ticker;
 import cat.gencat.agaur.hexastock.model.money.Money;
 import cat.gencat.agaur.hexastock.model.watchlist.Watchlist;
 import cat.gencat.agaur.hexastock.model.watchlist.WatchlistId;

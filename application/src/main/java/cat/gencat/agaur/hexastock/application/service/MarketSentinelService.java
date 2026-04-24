@@ -2,11 +2,11 @@ package cat.gencat.agaur.hexastock.application.service;
 
 import cat.gencat.agaur.hexastock.application.port.in.MarketSentinelUseCase;
 import cat.gencat.agaur.hexastock.application.port.out.DomainEventPublisher;
-import cat.gencat.agaur.hexastock.application.port.out.StockPriceProviderPort;
+import cat.gencat.agaur.hexastock.marketdata.application.port.out.MarketDataPort;
 import cat.gencat.agaur.hexastock.application.port.out.TriggeredAlertView;
 import cat.gencat.agaur.hexastock.application.port.out.WatchlistQueryPort;
-import cat.gencat.agaur.hexastock.model.market.StockPrice;
-import cat.gencat.agaur.hexastock.model.market.Ticker;
+import cat.gencat.agaur.hexastock.marketdata.model.market.StockPrice;
+import cat.gencat.agaur.hexastock.marketdata.model.market.Ticker;
 import cat.gencat.agaur.hexastock.model.money.Money;
 import cat.gencat.agaur.hexastock.watchlists.WatchlistAlertTriggeredEvent;
 import cat.gencat.agaur.hexastock.watchlists.WatchlistAlertTriggeredEvent.AlertType;
@@ -27,18 +27,18 @@ import java.util.Set;
 public class MarketSentinelService implements MarketSentinelUseCase {
 
     private final WatchlistQueryPort queryPort;
-    private final StockPriceProviderPort stockPriceProviderPort;
+    private final MarketDataPort stockPriceProviderPort;
     private final DomainEventPublisher eventPublisher;
     private final Clock clock;
 
     public MarketSentinelService(WatchlistQueryPort queryPort,
-                                 StockPriceProviderPort stockPriceProviderPort,
+                                 MarketDataPort stockPriceProviderPort,
                                  DomainEventPublisher eventPublisher) {
         this(queryPort, stockPriceProviderPort, eventPublisher, Clock.systemUTC());
     }
 
     public MarketSentinelService(WatchlistQueryPort queryPort,
-                                 StockPriceProviderPort stockPriceProviderPort,
+                                 MarketDataPort stockPriceProviderPort,
                                  DomainEventPublisher eventPublisher,
                                  Clock clock) {
         this.queryPort = Objects.requireNonNull(queryPort, "queryPort must not be null");

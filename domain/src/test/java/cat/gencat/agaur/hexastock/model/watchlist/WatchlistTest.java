@@ -2,7 +2,7 @@ package cat.gencat.agaur.hexastock.model.watchlist;
 
 import cat.gencat.agaur.hexastock.SpecificationRef;
 import cat.gencat.agaur.hexastock.TestLevel;
-import cat.gencat.agaur.hexastock.model.market.Ticker;
+import cat.gencat.agaur.hexastock.marketdata.model.market.Ticker;
 import cat.gencat.agaur.hexastock.model.money.Money;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;

@@ -4,11 +4,11 @@ import cat.gencat.agaur.hexastock.SpecificationRef;
 import cat.gencat.agaur.hexastock.TestLevel;
 import cat.gencat.agaur.hexastock.application.port.in.MarketSentinelUseCase;
 import cat.gencat.agaur.hexastock.application.port.out.DomainEventPublisher;
-import cat.gencat.agaur.hexastock.application.port.out.StockPriceProviderPort;
+import cat.gencat.agaur.hexastock.marketdata.application.port.out.MarketDataPort;
 import cat.gencat.agaur.hexastock.application.port.out.TriggeredAlertView;
 import cat.gencat.agaur.hexastock.application.port.out.WatchlistQueryPort;
-import cat.gencat.agaur.hexastock.model.market.StockPrice;
-import cat.gencat.agaur.hexastock.model.market.Ticker;
+import cat.gencat.agaur.hexastock.marketdata.model.market.StockPrice;
+import cat.gencat.agaur.hexastock.marketdata.model.market.Ticker;
 import cat.gencat.agaur.hexastock.model.money.Money;
 import cat.gencat.agaur.hexastock.model.money.Price;
 import cat.gencat.agaur.hexastock.watchlists.WatchlistAlertTriggeredEvent;
@@ -34,14 +34,14 @@ class MarketSentinelServiceTest {
     private static final Instant FIXED = Instant.parse("2026-01-15T10:00:00Z");
 
     private WatchlistQueryPort queryPort;
-    private StockPriceProviderPort stockPriceProviderPort;
+    private MarketDataPort stockPriceProviderPort;
     private DomainEventPublisher eventPublisher;
     private MarketSentinelUseCase service;
 
     @BeforeEach
     void setUp() {
         queryPort = mock(WatchlistQueryPort.class);
-        stockPriceProviderPort = mock(StockPriceProviderPort.class);
+        stockPriceProviderPort = mock(MarketDataPort.class);
         eventPublisher = mock(DomainEventPublisher.class);
         service = new MarketSentinelService(
                 queryPort,

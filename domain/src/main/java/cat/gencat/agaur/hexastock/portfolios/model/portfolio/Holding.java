@@ -1,7 +1,7 @@
 package cat.gencat.agaur.hexastock.portfolios.model.portfolio;
 
 import cat.gencat.agaur.hexastock.model.money.*;
-import cat.gencat.agaur.hexastock.model.market.Ticker;
+import cat.gencat.agaur.hexastock.marketdata.model.market.Ticker;
 
 
 import java.util.*;

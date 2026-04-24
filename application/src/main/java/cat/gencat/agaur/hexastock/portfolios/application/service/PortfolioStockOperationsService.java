@@ -3,11 +3,11 @@ package cat.gencat.agaur.hexastock.portfolios.application.service;
 import cat.gencat.agaur.hexastock.application.annotation.RetryOnWriteConflict;
 import cat.gencat.agaur.hexastock.portfolios.application.port.in.PortfolioStockOperationsUseCase;
 import cat.gencat.agaur.hexastock.portfolios.application.port.out.PortfolioPort;
-import cat.gencat.agaur.hexastock.application.port.out.StockPriceProviderPort;
+import cat.gencat.agaur.hexastock.marketdata.application.port.out.MarketDataPort;
 import cat.gencat.agaur.hexastock.portfolios.application.port.out.TransactionPort;
 import cat.gencat.agaur.hexastock.portfolios.model.portfolio.*;
 import cat.gencat.agaur.hexastock.portfolios.model.transaction.*;
-import cat.gencat.agaur.hexastock.model.market.*;
+import cat.gencat.agaur.hexastock.marketdata.model.market.*;
 import cat.gencat.agaur.hexastock.model.money.*;
 import cat.gencat.agaur.hexastock.portfolios.model.portfolio.ConflictQuantityException;
 import cat.gencat.agaur.hexastock.model.money.InvalidQuantityException;
@@ -20,7 +20,7 @@ import jakarta.transaction.Transactional;
  * <p>In hexagonal architecture terms, this is an <strong>application service</strong> that:
  * <ul>
  *   <li>Implements a primary port ({@link PortfolioStockOperationsUseCase}) to be used by driving adapters</li>
- *   <li>Uses secondary ports ({@link PortfolioPort}, {@link TransactionPort}, and {@link StockPriceProviderPort}) 
+ *   <li>Uses secondary ports ({@link PortfolioPort}, {@link TransactionPort}, and {@link MarketDataPort}) 
  *       to communicate with driven adapters</li>
  * </ul>
  * </p>
@@ -54,7 +54,7 @@ public class PortfolioStockOperationsService implements PortfolioStockOperations
     /**
      * The secondary port used to retrieve current stock prices.
      */
-    private final StockPriceProviderPort stockPriceProviderPort;
+    private final MarketDataPort stockPriceProviderPort;
 
     /**
      * Constructs a new PortfolioStockOperationsService with the required secondary ports.
@@ -63,7 +63,7 @@ public class PortfolioStockOperationsService implements PortfolioStockOperations
      * @param stockPriceProviderPort The port for retrieving stock prices
      * @param transactionPort The port for transaction recording operations
      */
-    public PortfolioStockOperationsService(PortfolioPort portfolioPort, StockPriceProviderPort stockPriceProviderPort, TransactionPort transactionPort) {
+    public PortfolioStockOperationsService(PortfolioPort portfolioPort, MarketDataPort stockPriceProviderPort, TransactionPort transactionPort) {
         this.portfolioPort = portfolioPort;
         this.stockPriceProviderPort = stockPriceProviderPort;
         this.transactionPort = transactionPort;

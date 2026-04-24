@@ -4,10 +4,10 @@ import cat.gencat.agaur.hexastock.SpecificationRef;
 import cat.gencat.agaur.hexastock.TestLevel;
 import cat.gencat.agaur.hexastock.portfolios.application.exception.PortfolioNotFoundException;
 import cat.gencat.agaur.hexastock.portfolios.application.port.out.PortfolioPort;
-import cat.gencat.agaur.hexastock.application.port.out.StockPriceProviderPort;
+import cat.gencat.agaur.hexastock.marketdata.application.port.out.MarketDataPort;
 import cat.gencat.agaur.hexastock.portfolios.application.port.out.TransactionPort;
-import cat.gencat.agaur.hexastock.model.market.StockPrice;
-import cat.gencat.agaur.hexastock.model.market.Ticker;
+import cat.gencat.agaur.hexastock.marketdata.model.market.StockPrice;
+import cat.gencat.agaur.hexastock.marketdata.model.market.Ticker;
 import cat.gencat.agaur.hexastock.model.money.Money;
 import cat.gencat.agaur.hexastock.model.money.Price;
 import cat.gencat.agaur.hexastock.model.money.ShareQuantity;
@@ -26,7 +26,7 @@ import static org.mockito.Mockito.*;
 /**
  * Unit tests for {@link PortfolioStockOperationsService}.
  *
- * <p>The three outgoing ports ({@link PortfolioPort}, {@link StockPriceProviderPort},
+ * <p>The three outgoing ports ({@link PortfolioPort}, {@link MarketDataPort},
  * and {@link TransactionPort}) are mocked so no I/O takes place. Tests verify
  * correct orchestration: fetch portfolio, fetch price, execute domain operation,
  * persist, record transaction.</p>
@@ -35,7 +35,7 @@ import static org.mockito.Mockito.*;
 class PortfolioStockOperationsServiceTest {
 
     private PortfolioPort portfolioPort;
-    private StockPriceProviderPort stockPriceProviderPort;
+    private MarketDataPort stockPriceProviderPort;
     private TransactionPort transactionPort;
     private PortfolioStockOperationsService service;
 
@@ -44,7 +44,7 @@ class PortfolioStockOperationsServiceTest {
     @BeforeEach
     void setUp() {
         portfolioPort = mock(PortfolioPort.class);
-        stockPriceProviderPort = mock(StockPriceProviderPort.class);
+        stockPriceProviderPort = mock(MarketDataPort.class);
         transactionPort = mock(TransactionPort.class);
         service = new PortfolioStockOperationsService(
                 portfolioPort, stockPriceProviderPort, transactionPort);

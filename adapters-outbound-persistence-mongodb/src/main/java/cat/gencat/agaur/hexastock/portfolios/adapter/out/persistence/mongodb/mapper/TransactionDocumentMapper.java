@@ -1,7 +1,7 @@
 package cat.gencat.agaur.hexastock.portfolios.adapter.out.persistence.mongodb.mapper;
 
 import cat.gencat.agaur.hexastock.portfolios.adapter.out.persistence.mongodb.document.TransactionDocument;
-import cat.gencat.agaur.hexastock.model.market.Ticker;
+import cat.gencat.agaur.hexastock.marketdata.model.market.Ticker;
 import cat.gencat.agaur.hexastock.model.money.Money;
 import cat.gencat.agaur.hexastock.model.money.Price;
 import cat.gencat.agaur.hexastock.model.money.ShareQuantity;

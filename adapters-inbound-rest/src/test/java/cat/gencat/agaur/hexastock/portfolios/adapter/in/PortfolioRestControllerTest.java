@@ -5,7 +5,7 @@ import cat.gencat.agaur.hexastock.TestLevel;
 import cat.gencat.agaur.hexastock.portfolios.application.exception.PortfolioNotFoundException;
 import cat.gencat.agaur.hexastock.application.port.in.*;
 import cat.gencat.agaur.hexastock.portfolios.application.port.in.*;
-import cat.gencat.agaur.hexastock.model.market.Ticker;
+import cat.gencat.agaur.hexastock.marketdata.model.market.Ticker;
 import cat.gencat.agaur.hexastock.model.money.Money;
 import cat.gencat.agaur.hexastock.model.money.ShareQuantity;
 import cat.gencat.agaur.hexastock.portfolios.model.portfolio.*;
