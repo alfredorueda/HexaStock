@@ -25,8 +25,7 @@ public class WatchlistRestController {
     public ResponseEntity<WatchlistResponseDTO> create(@RequestBody CreateWatchlistRequestDTO request) {
         Watchlist created = watchlistUseCase.createWatchlist(
                 request.ownerName(),
-                request.listName(),
-                request.userNotificationId()
+                request.listName()
         );
         URI location = ServletUriComponentsBuilder
                 .fromCurrentRequest()

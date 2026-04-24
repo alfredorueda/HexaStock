@@ -11,7 +11,7 @@ public final class WatchlistDTOs {
 
     private WatchlistDTOs() {}
 
-    public record CreateWatchlistRequestDTO(String ownerName, String listName, String userNotificationId) {}
+    public record CreateWatchlistRequestDTO(String ownerName, String listName) {}
 
     public record AlertEntryRequestDTO(String ticker, String thresholdPrice) {}
 
@@ -20,7 +20,6 @@ public final class WatchlistDTOs {
             String ownerName,
             String listName,
             boolean active,
-            String userNotificationId,
             List<AlertEntryResponseDTO> alerts
     ) {
         public static WatchlistResponseDTO from(Watchlist w) {
@@ -29,7 +28,6 @@ public final class WatchlistDTOs {
                     w.getOwnerName(),
                     w.getListName(),
                     w.isActive(),
-                    w.getUserNotificationId(),
                     w.getAlerts().stream().map(AlertEntryResponseDTO::from).toList()
             );
         }

@@ -17,10 +17,14 @@ public class TelegramCommandHandler {
     }
 
     public String handle(TelegramCommand command, String ownerName, String chatId) {
+        // chatId is intentionally not propagated into the Watchlist domain anymore.
+        // Notification routing is now owned by the Notifications module, which resolves
+        // the recipient from the business userId (== ownerName). The Telegram chat id is
+        // only used by the webhook controller to send back the bot reply.
         try {
             return switch (command) {
                 case TelegramCommand.CreateWatchlist(String listName) -> {
-                    Watchlist created = watchlistUseCase.createWatchlist(ownerName, listName, chatId);
+                    Watchlist created = watchlistUseCase.createWatchlist(ownerName, listName);
                     yield "Watchlist creada: id=" + created.getId().value() + " name=" + created.getListName();
                 }
                 case TelegramCommand.DeleteWatchlist(String watchlistId) -> {
