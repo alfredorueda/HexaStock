@@ -60,7 +60,7 @@ This document is **read-only inventory**. It does not move any code. It is the i
 
 ### What Portfolio depends on
 
-- **Reads** stock prices via `StockPriceProviderPort` (Market Data BC). After Phase 4 this becomes `MarketDataPort`.
+- **Reads** stock prices via `MarketDataPort` (Market Data BC, exposed as the `marketdata::port-out` named interface).
 - **Publishes** no Modulith events yet. Future evolution (out of scope for this POC) could publish `MoneyDeposited`, `StockBought`, `StockSold` events consumed by Reporting.
 
 ### Constraints when extracting (Phase 3)
@@ -71,59 +71,39 @@ This document is **read-only inventory**. It does not move any code. It is the i
 
 ---
 
-## 2. Market Data *(pending — Phase 4)*
+## 2. Market Data *(promoted, full extraction — completed on `feature/modulith-marketdata-extraction`)*
 
-**Move target package**: `cat.gencat.agaur.hexastock.marketdata`
+**Final package**: `cat.gencat.agaur.hexastock.marketdata`
 
-**Why a Modulith module**: Market Data is a clearly delimited supporting capability. Its only responsibility is to convert a `Ticker` into a `StockPrice`, hiding the volatility of upstream providers (Finnhub, AlphaVantage, mock). Both Portfolio Management (for buy/sell pricing and reporting) and Watchlists / Market Sentinel (for threshold polling) depend on it via a single outbound port. Promoting it to a Modulith module makes that single dependency direction explicit and lets the Caffeine cache and provider switching live behind a stable named interface.
+**Status**: Promoted to a Spring Modulith application module. `StockPriceProviderPort` was renamed to `MarketDataPort` in the same PR. All five layers moved under `marketdata.*`. Three `@NamedInterface` declarations expose the cross-module API surface (`marketdata::model`, `marketdata::port-in`, `marketdata::port-out`). `MODULES.verify()` enforces the boundary.
 
-### Domain (Maven module: `domain`)
+### Extraction outcome
 
-| Current package | Classes |
+| Layer | Final package |
 |---|---|
-| `model.market` | `StockPrice`, `Ticker`, `InvalidTickerException` |
+| Domain | `marketdata.model.market` (`Ticker`, `StockPrice`, `InvalidTickerException`) — exposed as `marketdata::model` named interface |
+| Application — primary port | `marketdata.application.port.in.GetStockPriceUseCase` — exposed as `marketdata::port-in` |
+| Application — secondary port | `marketdata.application.port.out.MarketDataPort` (renamed from `StockPriceProviderPort`) — exposed as `marketdata::port-out` |
+| Application — service | `marketdata.application.service.GetStockPriceService` |
+| Inbound REST | `marketdata.adapter.in.{StockRestController,StockPriceDTO}` |
+| Outbound REST | `marketdata.adapter.out.rest.{Finhub,AlphaVantage,MockFinhub}StockPriceAdapter` |
 
-### Application (Maven module: `application`)
+### Cross-cutting infrastructure (intentionally NOT moved)
 
-| Current package | Classes |
-|---|---|
-| `application.port.in` | `GetStockPriceUseCase` |
-| `application.port.out` | `StockPriceProviderPort` (rename to `MarketDataPort` deferred to Phase 4 PR) |
-| `application.service` | `GetStockPriceService` |
+- Caffeine cache configuration in `bootstrap` (`@EnableCaching`, `CacheManager` bean) — remains a generic infrastructure concern.
+- Spring profiles `finnhub`, `alphavantage`, `mockfinhub` — profile activation logic stays in `bootstrap`.
 
-### Adapters (Maven module: `adapters-outbound-market`)
+### Final dependency graph
 
-| Current package | Classes |
-|---|---|
-| `adapter.out.rest` | `FinhubStockPriceAdapter`, `AlphaVantageStockPriceAdapter`, `MockFinhubStockPriceAdapter` |
+- **Market Data dependencies (outgoing)**: none — leaf module.
+- **Consumers**:
+  - `portfolios` declares `allowedDependencies = {"marketdata::model", "marketdata::port-out"}` (`PortfolioStockOperationsService`, `ReportingService`, REST/persistence mappers).
+  - `watchlists` declares `allowedDependencies = {"marketdata::model"}` (`WatchlistAlertTriggeredEvent` carries a `Ticker`).
+  - `notifications` declares `allowedDependencies = {"watchlists", "marketdata::model"}` (renders `Ticker` into outbound messages).
 
-### Inbound (Maven module: `adapters-inbound-rest`)
+### Note on `MarketDataPort` exposure
 
-| Current package | Classes |
-|---|---|
-| `adapter.in.controller` | `StockPriceController` (and DTOs) |
-
-### Cross-cutting infrastructure
-
-- Caffeine cache configuration in `bootstrap` (Spring `@EnableCaching` + `CacheManager` bean) — will remain in `platform/` because it is a generic infrastructure concern.
-- Spring profiles: `finnhub`, `alphavantage`, `mockfinhub` — profile activation logic stays in `bootstrap`.
-
-### What Market Data depends on
-
-- Nothing internal to HexaStock. Pure outbound to external HTTP APIs (or to a fake when `mockfinhub` is active).
-
-### What depends on Market Data (current consumers)
-
-- `application.service.MarketSentinelService` (Watchlists / Market Sentinel BC) — calls `StockPriceProviderPort.fetchStockPrice(Set<Ticker>)`.
-- `application.service.PortfolioStockOperationsService` and `ReportingService` (Portfolio Management BC) — call `StockPriceProviderPort.fetchStockPrice(Ticker)`.
-- The `WatchlistAlertTriggeredEvent` published by Watchlists also imports `model.market.Ticker`. After Phase 4, this means `watchlists` will have a documented Modulith dependency on `marketdata::events` (or on `shared::market` if `Ticker` is promoted to a shared kernel).
-
-### Constraints when extracting (Phase 4)
-
-- Adapters under `adapters-outbound-market` must remain isolated — they are the only place where Finnhub / AlphaVantage SDK or HTTP code may live.
-- Existing WireMock-based adapter tests must keep passing without changes.
-- The Caffeine caching annotation-based wiring (`@Cacheable` on `GetStockPriceService` or on the port adapters) must be preserved verbatim during the move.
-- A renaming of `StockPriceProviderPort` to `MarketDataPort` is recommended but optional and reversible; if performed, all call sites in `application.service.MarketSentinelService`, `PortfolioStockOperationsService`, and `ReportingService` must be updated in the same PR.
+`MarketDataPort` is a *secondary* port, normally an internal concern. It is exposed as a named interface because Portfolio services inject it directly for batch price lookups (`fetchStockPrice(Set<Ticker>)`). A future refactor may promote that batch operation to a primary use case and remove this named interface.
 
 ---
 
