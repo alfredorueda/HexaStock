@@ -1,17 +1,17 @@
-package cat.gencat.agaur.hexastock.application.service;
+package cat.gencat.agaur.hexastock.portfolios.application.service;
 
 import cat.gencat.agaur.hexastock.application.annotation.RetryOnWriteConflict;
-import cat.gencat.agaur.hexastock.application.port.in.PortfolioStockOperationsUseCase;
-import cat.gencat.agaur.hexastock.application.port.out.PortfolioPort;
+import cat.gencat.agaur.hexastock.portfolios.application.port.in.PortfolioStockOperationsUseCase;
+import cat.gencat.agaur.hexastock.portfolios.application.port.out.PortfolioPort;
 import cat.gencat.agaur.hexastock.application.port.out.StockPriceProviderPort;
-import cat.gencat.agaur.hexastock.application.port.out.TransactionPort;
+import cat.gencat.agaur.hexastock.portfolios.application.port.out.TransactionPort;
 import cat.gencat.agaur.hexastock.portfolios.model.portfolio.*;
 import cat.gencat.agaur.hexastock.portfolios.model.transaction.*;
 import cat.gencat.agaur.hexastock.model.market.*;
 import cat.gencat.agaur.hexastock.model.money.*;
 import cat.gencat.agaur.hexastock.portfolios.model.portfolio.ConflictQuantityException;
 import cat.gencat.agaur.hexastock.model.money.InvalidQuantityException;
-import cat.gencat.agaur.hexastock.application.exception.PortfolioNotFoundException;
+import cat.gencat.agaur.hexastock.portfolios.application.exception.PortfolioNotFoundException;
 import jakarta.transaction.Transactional;
 
 /**

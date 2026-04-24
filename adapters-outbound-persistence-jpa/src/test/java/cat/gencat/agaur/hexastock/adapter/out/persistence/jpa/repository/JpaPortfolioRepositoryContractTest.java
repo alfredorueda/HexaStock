@@ -1,8 +1,8 @@
 package cat.gencat.agaur.hexastock.adapter.out.persistence.jpa.repository;
 
 import cat.gencat.agaur.hexastock.adapter.out.persistence.jpa.SharedMySQLContainer;
-import cat.gencat.agaur.hexastock.application.port.out.AbstractPortfolioPortContractTest;
-import cat.gencat.agaur.hexastock.application.port.out.PortfolioPort;
+import cat.gencat.agaur.hexastock.portfolios.application.port.out.AbstractPortfolioPortContractTest;
+import cat.gencat.agaur.hexastock.portfolios.application.port.out.PortfolioPort;
 import cat.gencat.agaur.hexastock.model.market.Ticker;
 import cat.gencat.agaur.hexastock.model.money.Money;
 import cat.gencat.agaur.hexastock.model.money.Price;

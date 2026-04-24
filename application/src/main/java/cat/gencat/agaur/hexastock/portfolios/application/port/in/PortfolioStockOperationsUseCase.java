@@ -1,4 +1,4 @@
-package cat.gencat.agaur.hexastock.application.port.in;
+package cat.gencat.agaur.hexastock.portfolios.application.port.in;
 
 import cat.gencat.agaur.hexastock.portfolios.model.portfolio.PortfolioId;
 import cat.gencat.agaur.hexastock.portfolios.model.portfolio.SellResult;
@@ -6,7 +6,7 @@ import cat.gencat.agaur.hexastock.model.money.ShareQuantity;
 import cat.gencat.agaur.hexastock.model.market.Ticker;
 import cat.gencat.agaur.hexastock.portfolios.model.portfolio.ConflictQuantityException;
 import cat.gencat.agaur.hexastock.model.money.InvalidQuantityException;
-import cat.gencat.agaur.hexastock.application.exception.PortfolioNotFoundException;
+import cat.gencat.agaur.hexastock.portfolios.application.exception.PortfolioNotFoundException;
 
 /**
  * PortfolioStockOperationsUseCase defines the primary port for stock trading operations.

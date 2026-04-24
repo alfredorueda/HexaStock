@@ -1,11 +1,11 @@
 package cat.gencat.agaur.hexastock.adapter.in;
 
 import cat.gencat.agaur.hexastock.adapter.in.webmodel.*;
-import cat.gencat.agaur.hexastock.application.port.in.CashManagementUseCase;
-import cat.gencat.agaur.hexastock.application.port.in.PortfolioLifecycleUseCase;
-import cat.gencat.agaur.hexastock.application.port.in.PortfolioStockOperationsUseCase;
-import cat.gencat.agaur.hexastock.application.port.in.ReportingUseCase;
-import cat.gencat.agaur.hexastock.application.port.in.TransactionUseCase;
+import cat.gencat.agaur.hexastock.portfolios.application.port.in.CashManagementUseCase;
+import cat.gencat.agaur.hexastock.portfolios.application.port.in.PortfolioLifecycleUseCase;
+import cat.gencat.agaur.hexastock.portfolios.application.port.in.PortfolioStockOperationsUseCase;
+import cat.gencat.agaur.hexastock.portfolios.application.port.in.ReportingUseCase;
+import cat.gencat.agaur.hexastock.portfolios.application.port.in.TransactionUseCase;
 import cat.gencat.agaur.hexastock.portfolios.model.portfolio.*;
 import cat.gencat.agaur.hexastock.portfolios.model.transaction.*;
 import cat.gencat.agaur.hexastock.model.market.*;
@@ -13,7 +13,7 @@ import cat.gencat.agaur.hexastock.model.money.*;
 import cat.gencat.agaur.hexastock.portfolios.model.portfolio.ConflictQuantityException;
 import cat.gencat.agaur.hexastock.model.money.InvalidAmountException;
 import cat.gencat.agaur.hexastock.model.money.InvalidQuantityException;
-import cat.gencat.agaur.hexastock.application.exception.PortfolioNotFoundException;
+import cat.gencat.agaur.hexastock.portfolios.application.exception.PortfolioNotFoundException;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;

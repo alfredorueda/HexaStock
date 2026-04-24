@@ -1,9 +1,9 @@
-package cat.gencat.agaur.hexastock.application.port.in;
+package cat.gencat.agaur.hexastock.portfolios.application.port.in;
 
 import cat.gencat.agaur.hexastock.model.money.Money;
 import cat.gencat.agaur.hexastock.portfolios.model.portfolio.PortfolioId;
 import cat.gencat.agaur.hexastock.model.money.InvalidAmountException;
-import cat.gencat.agaur.hexastock.application.exception.PortfolioNotFoundException;
+import cat.gencat.agaur.hexastock.portfolios.application.exception.PortfolioNotFoundException;
 
 /**
  * Primary port for cash management operations: depositing and withdrawing funds.

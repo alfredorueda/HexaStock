@@ -1,8 +1,8 @@
 package cat.gencat.agaur.hexastock.config;
 
 import cat.gencat.agaur.hexastock.adapter.out.persistence.mongodb.repository.MongoPortfolioRepository;
-import cat.gencat.agaur.hexastock.application.port.in.CashManagementUseCase;
-import cat.gencat.agaur.hexastock.application.port.in.PortfolioLifecycleUseCase;
+import cat.gencat.agaur.hexastock.portfolios.application.port.in.CashManagementUseCase;
+import cat.gencat.agaur.hexastock.portfolios.application.port.in.PortfolioLifecycleUseCase;
 import cat.gencat.agaur.hexastock.model.money.Money;
 import cat.gencat.agaur.hexastock.portfolios.model.portfolio.Portfolio;
 import cat.gencat.agaur.hexastock.portfolios.model.portfolio.PortfolioId;

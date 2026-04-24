@@ -1,4 +1,4 @@
-package cat.gencat.agaur.hexastock.application.port.out;
+package cat.gencat.agaur.hexastock.portfolios.application.port.out;
 
 import cat.gencat.agaur.hexastock.SpecificationRef;
 import cat.gencat.agaur.hexastock.TestLevel;

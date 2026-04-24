@@ -3,7 +3,7 @@ package cat.gencat.agaur.hexastock.adapter.in;
 import cat.gencat.agaur.hexastock.portfolios.model.portfolio.ConflictQuantityException;
 import cat.gencat.agaur.hexastock.model.money.InvalidAmountException;
 import cat.gencat.agaur.hexastock.model.money.InvalidQuantityException;
-import cat.gencat.agaur.hexastock.application.exception.PortfolioNotFoundException;
+import cat.gencat.agaur.hexastock.portfolios.application.exception.PortfolioNotFoundException;
 import cat.gencat.agaur.hexastock.portfolios.model.portfolio.HoldingNotFoundException;
 import cat.gencat.agaur.hexastock.model.ExternalApiException;
 import cat.gencat.agaur.hexastock.portfolios.model.portfolio.InsufficientFundsException;

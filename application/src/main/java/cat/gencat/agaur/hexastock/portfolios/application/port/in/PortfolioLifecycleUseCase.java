@@ -1,8 +1,8 @@
-package cat.gencat.agaur.hexastock.application.port.in;
+package cat.gencat.agaur.hexastock.portfolios.application.port.in;
 
 import cat.gencat.agaur.hexastock.portfolios.model.portfolio.Portfolio;
 import cat.gencat.agaur.hexastock.portfolios.model.portfolio.PortfolioId;
-import cat.gencat.agaur.hexastock.application.exception.PortfolioNotFoundException;
+import cat.gencat.agaur.hexastock.portfolios.application.exception.PortfolioNotFoundException;
 import java.util.List;
 
 /**

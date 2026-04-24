@@ -1,11 +1,11 @@
-package cat.gencat.agaur.hexastock.application.service;
+package cat.gencat.agaur.hexastock.portfolios.application.service;
 
 import cat.gencat.agaur.hexastock.SpecificationRef;
 import cat.gencat.agaur.hexastock.TestLevel;
-import cat.gencat.agaur.hexastock.application.exception.PortfolioNotFoundException;
-import cat.gencat.agaur.hexastock.application.port.out.PortfolioPort;
+import cat.gencat.agaur.hexastock.portfolios.application.exception.PortfolioNotFoundException;
+import cat.gencat.agaur.hexastock.portfolios.application.port.out.PortfolioPort;
 import cat.gencat.agaur.hexastock.application.port.out.StockPriceProviderPort;
-import cat.gencat.agaur.hexastock.application.port.out.TransactionPort;
+import cat.gencat.agaur.hexastock.portfolios.application.port.out.TransactionPort;
 import cat.gencat.agaur.hexastock.model.market.StockPrice;
 import cat.gencat.agaur.hexastock.model.market.Ticker;
 import cat.gencat.agaur.hexastock.model.money.Money;

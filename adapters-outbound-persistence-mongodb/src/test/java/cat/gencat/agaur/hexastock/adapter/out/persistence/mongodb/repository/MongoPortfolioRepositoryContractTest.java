@@ -2,8 +2,8 @@ package cat.gencat.agaur.hexastock.adapter.out.persistence.mongodb.repository;
 
 import cat.gencat.agaur.hexastock.adapter.out.persistence.mongodb.SharedMongoDBContainer;
 import cat.gencat.agaur.hexastock.adapter.out.persistence.mongodb.springdatarepository.MongoPortfolioSpringDataRepository;
-import cat.gencat.agaur.hexastock.application.port.out.AbstractPortfolioPortContractTest;
-import cat.gencat.agaur.hexastock.application.port.out.PortfolioPort;
+import cat.gencat.agaur.hexastock.portfolios.application.port.out.AbstractPortfolioPortContractTest;
+import cat.gencat.agaur.hexastock.portfolios.application.port.out.PortfolioPort;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;

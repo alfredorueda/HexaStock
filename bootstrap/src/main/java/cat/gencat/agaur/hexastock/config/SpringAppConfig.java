@@ -1,13 +1,17 @@
 package cat.gencat.agaur.hexastock.config;
 
 import cat.gencat.agaur.hexastock.application.port.in.*;
+import cat.gencat.agaur.hexastock.portfolios.application.port.in.*;
+import cat.gencat.agaur.hexastock.portfolios.application.port.out.*;
+import cat.gencat.agaur.hexastock.portfolios.application.service.*;
 import cat.gencat.agaur.hexastock.application.port.out.DomainEventPublisher;
-import cat.gencat.agaur.hexastock.application.port.out.PortfolioPort;
+import cat.gencat.agaur.hexastock.portfolios.application.port.out.PortfolioPort;
 import cat.gencat.agaur.hexastock.application.port.out.StockPriceProviderPort;
-import cat.gencat.agaur.hexastock.application.port.out.TransactionPort;
+import cat.gencat.agaur.hexastock.portfolios.application.port.out.TransactionPort;
 import cat.gencat.agaur.hexastock.application.port.out.WatchlistPort;
 import cat.gencat.agaur.hexastock.application.port.out.WatchlistQueryPort;
 import cat.gencat.agaur.hexastock.application.service.*;
+import cat.gencat.agaur.hexastock.portfolios.application.service.*;
 import cat.gencat.agaur.hexastock.portfolios.model.portfolio.HoldingPerformanceCalculator;
 import org.springframework.cache.annotation.EnableCaching;
 import org.springframework.context.annotation.Bean;

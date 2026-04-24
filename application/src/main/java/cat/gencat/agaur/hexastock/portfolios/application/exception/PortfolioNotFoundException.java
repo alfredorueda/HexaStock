@@ -1,4 +1,4 @@
-package cat.gencat.agaur.hexastock.application.exception;
+package cat.gencat.agaur.hexastock.portfolios.application.exception;
 
 /**
  * PortfolioNotFoundException indicates that a requested portfolio could not be found.

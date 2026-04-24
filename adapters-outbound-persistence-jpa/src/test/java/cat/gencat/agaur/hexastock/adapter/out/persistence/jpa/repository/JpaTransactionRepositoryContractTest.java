@@ -1,8 +1,8 @@
 package cat.gencat.agaur.hexastock.adapter.out.persistence.jpa.repository;
 
 import cat.gencat.agaur.hexastock.adapter.out.persistence.jpa.SharedMySQLContainer;
-import cat.gencat.agaur.hexastock.application.port.out.AbstractTransactionPortContractTest;
-import cat.gencat.agaur.hexastock.application.port.out.TransactionPort;
+import cat.gencat.agaur.hexastock.portfolios.application.port.out.AbstractTransactionPortContractTest;
+import cat.gencat.agaur.hexastock.portfolios.application.port.out.TransactionPort;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;

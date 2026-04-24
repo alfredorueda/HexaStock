@@ -1,4 +1,4 @@
-package cat.gencat.agaur.hexastock.application.port.in;
+package cat.gencat.agaur.hexastock.portfolios.application.port.in;
 
 import cat.gencat.agaur.hexastock.portfolios.model.portfolio.HoldingPerformance;
 
