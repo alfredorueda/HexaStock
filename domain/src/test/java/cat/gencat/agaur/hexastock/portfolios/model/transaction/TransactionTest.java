@@ -1,8 +1,8 @@
-package cat.gencat.agaur.hexastock.model.transaction;
+package cat.gencat.agaur.hexastock.portfolios.model.transaction;
 
 import cat.gencat.agaur.hexastock.model.market.Ticker;
 import cat.gencat.agaur.hexastock.model.money.*;
-import cat.gencat.agaur.hexastock.model.portfolio.PortfolioId;
+import cat.gencat.agaur.hexastock.portfolios.model.portfolio.PortfolioId;
 import org.junit.jupiter.api.*;
 
 import java.time.LocalDateTime;

@@ -5,8 +5,8 @@ import cat.gencat.agaur.hexastock.adapter.out.persistence.mongodb.config.MongoPe
 import cat.gencat.agaur.hexastock.adapter.out.persistence.mongodb.springdatarepository.MongoPortfolioSpringDataRepository;
 import com.mongodb.MongoException;
 import cat.gencat.agaur.hexastock.model.money.Money;
-import cat.gencat.agaur.hexastock.model.portfolio.Portfolio;
-import cat.gencat.agaur.hexastock.model.portfolio.PortfolioId;
+import cat.gencat.agaur.hexastock.portfolios.model.portfolio.Portfolio;
+import cat.gencat.agaur.hexastock.portfolios.model.portfolio.PortfolioId;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;

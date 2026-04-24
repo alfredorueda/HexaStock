@@ -6,7 +6,7 @@ import cat.gencat.agaur.hexastock.model.market.Ticker;
 import cat.gencat.agaur.hexastock.model.money.Money;
 import cat.gencat.agaur.hexastock.model.money.Price;
 import cat.gencat.agaur.hexastock.model.money.ShareQuantity;
-import cat.gencat.agaur.hexastock.model.portfolio.*;
+import cat.gencat.agaur.hexastock.portfolios.model.portfolio.*;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 

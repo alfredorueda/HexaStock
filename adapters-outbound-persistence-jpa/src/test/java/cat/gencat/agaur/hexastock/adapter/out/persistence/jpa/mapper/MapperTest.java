@@ -7,7 +7,7 @@ import cat.gencat.agaur.hexastock.model.market.Ticker;
 import cat.gencat.agaur.hexastock.model.money.Money;
 import cat.gencat.agaur.hexastock.model.money.Price;
 import cat.gencat.agaur.hexastock.model.money.ShareQuantity;
-import cat.gencat.agaur.hexastock.model.portfolio.*;
+import cat.gencat.agaur.hexastock.portfolios.model.portfolio.*;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -156,14 +156,14 @@ class MapperTest {
         @Test
         @DisplayName("deposit round-trip through mapper preserves all fields")
         void depositRoundTrip() {
-            var deposit = new cat.gencat.agaur.hexastock.model.transaction.DepositTransaction(
-                    cat.gencat.agaur.hexastock.model.transaction.TransactionId.of("tx-d"),
+            var deposit = new cat.gencat.agaur.hexastock.portfolios.model.transaction.DepositTransaction(
+                    cat.gencat.agaur.hexastock.portfolios.model.transaction.TransactionId.of("tx-d"),
                     PortfolioId.of("p-1"), Money.of(500), NOW);
 
             var jpa = TransactionMapper.toJpaEntity(deposit);
             var back = TransactionMapper.toModelEntity(jpa);
 
-            assertThat(back.type()).isEqualTo(cat.gencat.agaur.hexastock.model.transaction.TransactionType.DEPOSIT);
+            assertThat(back.type()).isEqualTo(cat.gencat.agaur.hexastock.portfolios.model.transaction.TransactionType.DEPOSIT);
             assertThat(back.totalAmount()).isEqualTo(Money.of(500));
             assertThat(back.id().value()).isEqualTo("tx-d");
         }
@@ -171,15 +171,15 @@ class MapperTest {
         @Test
         @DisplayName("purchase round-trip through mapper preserves stock fields")
         void purchaseRoundTrip() {
-            var purchase = new cat.gencat.agaur.hexastock.model.transaction.PurchaseTransaction(
-                    cat.gencat.agaur.hexastock.model.transaction.TransactionId.of("tx-p"),
+            var purchase = new cat.gencat.agaur.hexastock.portfolios.model.transaction.PurchaseTransaction(
+                    cat.gencat.agaur.hexastock.portfolios.model.transaction.TransactionId.of("tx-p"),
                     PortfolioId.of("p-1"), Ticker.of("AAPL"),
                     ShareQuantity.positive(10), Price.of(150), Money.of(1500), NOW);
 
             var jpa = TransactionMapper.toJpaEntity(purchase);
             var back = TransactionMapper.toModelEntity(jpa);
 
-            assertThat(back.type()).isEqualTo(cat.gencat.agaur.hexastock.model.transaction.TransactionType.PURCHASE);
+            assertThat(back.type()).isEqualTo(cat.gencat.agaur.hexastock.portfolios.model.transaction.TransactionType.PURCHASE);
             assertThat(back.ticker()).isEqualTo(Ticker.of("AAPL"));
             assertThat(back.quantity().value()).isEqualTo(10);
             assertThat(back.unitPrice()).isEqualTo(Price.of(150));
@@ -188,8 +188,8 @@ class MapperTest {
         @Test
         @DisplayName("sale round-trip through mapper preserves profit field")
         void saleRoundTrip() {
-            var sale = new cat.gencat.agaur.hexastock.model.transaction.SaleTransaction(
-                    cat.gencat.agaur.hexastock.model.transaction.TransactionId.of("tx-s"),
+            var sale = new cat.gencat.agaur.hexastock.portfolios.model.transaction.SaleTransaction(
+                    cat.gencat.agaur.hexastock.portfolios.model.transaction.TransactionId.of("tx-s"),
                     PortfolioId.of("p-1"), Ticker.of("MSFT"),
                     ShareQuantity.positive(5), Price.of(300),
                     Money.of(1500), Money.of(250), NOW);
@@ -197,7 +197,7 @@ class MapperTest {
             var jpa = TransactionMapper.toJpaEntity(sale);
             var back = TransactionMapper.toModelEntity(jpa);
 
-            assertThat(back.type()).isEqualTo(cat.gencat.agaur.hexastock.model.transaction.TransactionType.SALE);
+            assertThat(back.type()).isEqualTo(cat.gencat.agaur.hexastock.portfolios.model.transaction.TransactionType.SALE);
             assertThat(back.profit()).isEqualTo(Money.of(250));
         }
     }

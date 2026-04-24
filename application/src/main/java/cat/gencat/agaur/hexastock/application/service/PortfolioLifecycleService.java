@@ -3,8 +3,8 @@ package cat.gencat.agaur.hexastock.application.service;
 import cat.gencat.agaur.hexastock.application.port.in.PortfolioLifecycleUseCase;
 import cat.gencat.agaur.hexastock.application.exception.PortfolioNotFoundException;
 import cat.gencat.agaur.hexastock.application.port.out.PortfolioPort;
-import cat.gencat.agaur.hexastock.model.portfolio.Portfolio;
-import cat.gencat.agaur.hexastock.model.portfolio.PortfolioId;
+import cat.gencat.agaur.hexastock.portfolios.model.portfolio.Portfolio;
+import cat.gencat.agaur.hexastock.portfolios.model.portfolio.PortfolioId;
 import jakarta.transaction.Transactional;
 import java.util.List;
 

@@ -6,9 +6,9 @@ import cat.gencat.agaur.hexastock.application.exception.PortfolioNotFoundExcepti
 import cat.gencat.agaur.hexastock.application.port.out.PortfolioPort;
 import cat.gencat.agaur.hexastock.application.port.out.TransactionPort;
 import cat.gencat.agaur.hexastock.model.money.Money;
-import cat.gencat.agaur.hexastock.model.portfolio.Portfolio;
-import cat.gencat.agaur.hexastock.model.portfolio.PortfolioId;
-import cat.gencat.agaur.hexastock.model.transaction.Transaction;
+import cat.gencat.agaur.hexastock.portfolios.model.portfolio.Portfolio;
+import cat.gencat.agaur.hexastock.portfolios.model.portfolio.PortfolioId;
+import cat.gencat.agaur.hexastock.portfolios.model.transaction.Transaction;
 import org.junit.jupiter.api.*;
 import org.mockito.ArgumentCaptor;
 

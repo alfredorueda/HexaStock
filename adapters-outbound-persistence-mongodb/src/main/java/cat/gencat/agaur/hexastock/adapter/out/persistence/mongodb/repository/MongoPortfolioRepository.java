@@ -4,8 +4,8 @@ import cat.gencat.agaur.hexastock.adapter.out.persistence.mongodb.document.Portf
 import cat.gencat.agaur.hexastock.adapter.out.persistence.mongodb.mapper.PortfolioDocumentMapper;
 import cat.gencat.agaur.hexastock.adapter.out.persistence.mongodb.springdatarepository.MongoPortfolioSpringDataRepository;
 import cat.gencat.agaur.hexastock.application.port.out.PortfolioPort;
-import cat.gencat.agaur.hexastock.model.portfolio.Portfolio;
-import cat.gencat.agaur.hexastock.model.portfolio.PortfolioId;
+import cat.gencat.agaur.hexastock.portfolios.model.portfolio.Portfolio;
+import cat.gencat.agaur.hexastock.portfolios.model.portfolio.PortfolioId;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.support.TransactionSynchronization;

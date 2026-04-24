@@ -5,11 +5,11 @@ import cat.gencat.agaur.hexastock.application.port.in.PortfolioStockOperationsUs
 import cat.gencat.agaur.hexastock.application.port.out.PortfolioPort;
 import cat.gencat.agaur.hexastock.application.port.out.StockPriceProviderPort;
 import cat.gencat.agaur.hexastock.application.port.out.TransactionPort;
-import cat.gencat.agaur.hexastock.model.portfolio.*;
-import cat.gencat.agaur.hexastock.model.transaction.*;
+import cat.gencat.agaur.hexastock.portfolios.model.portfolio.*;
+import cat.gencat.agaur.hexastock.portfolios.model.transaction.*;
 import cat.gencat.agaur.hexastock.model.market.*;
 import cat.gencat.agaur.hexastock.model.money.*;
-import cat.gencat.agaur.hexastock.model.portfolio.ConflictQuantityException;
+import cat.gencat.agaur.hexastock.portfolios.model.portfolio.ConflictQuantityException;
 import cat.gencat.agaur.hexastock.model.money.InvalidQuantityException;
 import cat.gencat.agaur.hexastock.application.exception.PortfolioNotFoundException;
 import jakarta.transaction.Transactional;
@@ -87,7 +87,7 @@ public class PortfolioStockOperationsService implements PortfolioStockOperations
      * @param quantity The number of shares to buy
      * @throws PortfolioNotFoundException if the portfolio is not found
      * @throws InvalidQuantityException if the quantity is not positive
-     * @throws cat.gencat.agaur.hexastock.model.portfolio.InsufficientFundsException if there are insufficient funds for the purchase
+     * @throws cat.gencat.agaur.hexastock.portfolios.model.portfolio.InsufficientFundsException if there are insufficient funds for the purchase
      */
     @Override
     @RetryOnWriteConflict

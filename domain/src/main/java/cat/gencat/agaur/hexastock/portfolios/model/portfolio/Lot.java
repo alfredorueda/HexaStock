@@ -1,4 +1,4 @@
-package cat.gencat.agaur.hexastock.model.portfolio;
+package cat.gencat.agaur.hexastock.portfolios.model.portfolio;
 
 import cat.gencat.agaur.hexastock.model.money.Money;
 import cat.gencat.agaur.hexastock.model.money.Price;

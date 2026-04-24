@@ -1,7 +1,7 @@
 package cat.gencat.agaur.hexastock.application.port.out;
 
-import cat.gencat.agaur.hexastock.model.portfolio.PortfolioId;
-import cat.gencat.agaur.hexastock.model.transaction.Transaction;
+import cat.gencat.agaur.hexastock.portfolios.model.portfolio.PortfolioId;
+import cat.gencat.agaur.hexastock.portfolios.model.transaction.Transaction;
 
 import java.util.List;
 

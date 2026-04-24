@@ -1,46 +1,47 @@
-package cat.gencat.agaur.hexastock.model.transaction;
+package cat.gencat.agaur.hexastock.portfolios.model.transaction;
 
 import cat.gencat.agaur.hexastock.model.market.Ticker;
-import cat.gencat.agaur.hexastock.model.portfolio.PortfolioId;
+import cat.gencat.agaur.hexastock.portfolios.model.portfolio.PortfolioId;
 import cat.gencat.agaur.hexastock.model.money.*;
 
 import java.time.LocalDateTime;
 import java.util.Objects;
 
 /**
- * A stock purchase — shares bought at a given unit price.
+ * A stock sale — shares sold at a given unit price, with recorded profit.
  *
- * <p>Contains the ticker, quantity, unit price, and computed total cost.
- * The total cost is always {@code unitPrice × quantity}; the constructor
- * receives it as a parameter for flexibility in reconstitution from persistence,
- * but the factory method computes it automatically.</p>
+ * <p>Contains the ticker, quantity, unit price, total proceeds, and the
+ * realised profit (proceeds minus cost basis). This is the only transaction
+ * subtype that carries a profit field.</p>
  */
-public record PurchaseTransaction(
+public record SaleTransaction(
         TransactionId id,
         PortfolioId portfolioId,
         Ticker ticker,
         ShareQuantity quantity,
         Price unitPrice,
         Money totalAmount,
+        Money profit,
         LocalDateTime createdAt
 ) implements Transaction {
 
-    public PurchaseTransaction {
+    public SaleTransaction {
         Objects.requireNonNull(id, "Transaction id must not be null");
         Objects.requireNonNull(portfolioId, "Portfolio id must not be null");
-        Objects.requireNonNull(ticker, "Ticker must not be null for a purchase");
+        Objects.requireNonNull(ticker, "Ticker must not be null for a sale");
         Objects.requireNonNull(quantity, "Quantity must not be null");
-        Objects.requireNonNull(unitPrice, "Unit price must not be null for a purchase");
+        Objects.requireNonNull(unitPrice, "Unit price must not be null for a sale");
         Objects.requireNonNull(totalAmount, "Total amount must not be null");
+        Objects.requireNonNull(profit, "Profit must not be null for a sale");
         Objects.requireNonNull(createdAt, "Created at must not be null");
         if (!quantity.isPositive()) {
-            throw new IllegalArgumentException("Purchase quantity must be positive");
+            throw new IllegalArgumentException("Sale quantity must be positive");
         }
     }
 
     @Override
     public TransactionType type() {
-        return TransactionType.PURCHASE;
+        return TransactionType.SALE;
     }
 
     @Override
@@ -51,4 +52,7 @@ public record PurchaseTransaction(
 
     @Override
     public Price unitPrice() { return unitPrice; }
+
+    @Override
+    public Money profit() { return profit; }
 }

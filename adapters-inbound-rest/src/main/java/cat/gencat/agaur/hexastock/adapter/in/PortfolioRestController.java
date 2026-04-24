@@ -6,11 +6,11 @@ import cat.gencat.agaur.hexastock.application.port.in.PortfolioLifecycleUseCase;
 import cat.gencat.agaur.hexastock.application.port.in.PortfolioStockOperationsUseCase;
 import cat.gencat.agaur.hexastock.application.port.in.ReportingUseCase;
 import cat.gencat.agaur.hexastock.application.port.in.TransactionUseCase;
-import cat.gencat.agaur.hexastock.model.portfolio.*;
-import cat.gencat.agaur.hexastock.model.transaction.*;
+import cat.gencat.agaur.hexastock.portfolios.model.portfolio.*;
+import cat.gencat.agaur.hexastock.portfolios.model.transaction.*;
 import cat.gencat.agaur.hexastock.model.market.*;
 import cat.gencat.agaur.hexastock.model.money.*;
-import cat.gencat.agaur.hexastock.model.portfolio.ConflictQuantityException;
+import cat.gencat.agaur.hexastock.portfolios.model.portfolio.ConflictQuantityException;
 import cat.gencat.agaur.hexastock.model.money.InvalidAmountException;
 import cat.gencat.agaur.hexastock.model.money.InvalidQuantityException;
 import cat.gencat.agaur.hexastock.application.exception.PortfolioNotFoundException;
@@ -141,7 +141,7 @@ public class PortfolioRestController {
      * @param request DTO containing the deposit amount
      * @return HTTP 200 OK with no content
      * @throws PortfolioNotFoundException if the portfolio is not found
-     * @throws cat.gencat.agaur.hexastock.model.portfolio.InsufficientFundsException if the deposit amount is not positive
+     * @throws cat.gencat.agaur.hexastock.portfolios.model.portfolio.InsufficientFundsException if the deposit amount is not positive
      */
     @PostMapping("/{id}/deposits")
     public ResponseEntity<Void> deposit(@PathVariable String id, @RequestBody DepositRequestDTO request) {
@@ -159,7 +159,7 @@ public class PortfolioRestController {
      * @return HTTP 200 OK with no content
      * @throws PortfolioNotFoundException if the portfolio is not found
      * @throws InvalidAmountException if the withdrawal amount is not positive
-     * @throws cat.gencat.agaur.hexastock.model.portfolio.InsufficientFundsException if there are insufficient funds
+     * @throws cat.gencat.agaur.hexastock.portfolios.model.portfolio.InsufficientFundsException if there are insufficient funds
      */
     @PostMapping("/{id}/withdrawals")
     public ResponseEntity<Void> withdraw(@PathVariable String id, @RequestBody WithdrawalRequestDTO request) {
@@ -185,7 +185,7 @@ public class PortfolioRestController {
      * @return HTTP 200 OK with no content
      * @throws PortfolioNotFoundException if the portfolio is not found
      * @throws InvalidQuantityException if the quantity is not positive
-     * @throws cat.gencat.agaur.hexastock.model.portfolio.InsufficientFundsException if there are insufficient funds
+     * @throws cat.gencat.agaur.hexastock.portfolios.model.portfolio.InsufficientFundsException if there are insufficient funds
      */
     @PostMapping("/{id}/purchases")
     public ResponseEntity<Void> buyStock(@PathVariable String id, @RequestBody PurchaseDTO request) {

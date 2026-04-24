@@ -8,7 +8,7 @@ import cat.gencat.agaur.hexastock.application.port.out.TransactionPort;
 import cat.gencat.agaur.hexastock.application.port.out.WatchlistPort;
 import cat.gencat.agaur.hexastock.application.port.out.WatchlistQueryPort;
 import cat.gencat.agaur.hexastock.application.service.*;
-import cat.gencat.agaur.hexastock.model.portfolio.HoldingPerformanceCalculator;
+import cat.gencat.agaur.hexastock.portfolios.model.portfolio.HoldingPerformanceCalculator;
 import org.springframework.cache.annotation.EnableCaching;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;

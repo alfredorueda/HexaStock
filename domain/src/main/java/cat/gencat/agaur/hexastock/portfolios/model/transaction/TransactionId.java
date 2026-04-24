@@ -1,4 +1,4 @@
-package cat.gencat.agaur.hexastock.model.transaction;
+package cat.gencat.agaur.hexastock.portfolios.model.transaction;
 
 import java.util.Objects;
 import java.util.UUID;

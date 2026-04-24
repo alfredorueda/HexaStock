@@ -1,6 +1,6 @@
 package cat.gencat.agaur.hexastock.application.port.in;
 
-import cat.gencat.agaur.hexastock.model.portfolio.HoldingPerformance;
+import cat.gencat.agaur.hexastock.portfolios.model.portfolio.HoldingPerformance;
 
 import java.util.List;
 

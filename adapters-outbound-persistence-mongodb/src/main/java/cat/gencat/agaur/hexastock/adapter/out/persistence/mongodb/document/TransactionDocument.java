@@ -1,6 +1,6 @@
 package cat.gencat.agaur.hexastock.adapter.out.persistence.mongodb.document;
 
-import cat.gencat.agaur.hexastock.model.transaction.TransactionType;
+import cat.gencat.agaur.hexastock.portfolios.model.transaction.TransactionType;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.index.CompoundIndex;
 import org.springframework.data.mongodb.core.index.CompoundIndexes;

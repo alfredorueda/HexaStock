@@ -1,6 +1,6 @@
-package cat.gencat.agaur.hexastock.model.portfolio;
+package cat.gencat.agaur.hexastock.portfolios.model.portfolio;
 
-import cat.gencat.agaur.hexastock.model.transaction.*;
+import cat.gencat.agaur.hexastock.portfolios.model.transaction.*;
 import cat.gencat.agaur.hexastock.model.market.*;
 
 import java.math.BigDecimal;

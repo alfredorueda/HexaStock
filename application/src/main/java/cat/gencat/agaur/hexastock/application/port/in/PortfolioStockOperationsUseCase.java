@@ -1,10 +1,10 @@
 package cat.gencat.agaur.hexastock.application.port.in;
 
-import cat.gencat.agaur.hexastock.model.portfolio.PortfolioId;
-import cat.gencat.agaur.hexastock.model.portfolio.SellResult;
+import cat.gencat.agaur.hexastock.portfolios.model.portfolio.PortfolioId;
+import cat.gencat.agaur.hexastock.portfolios.model.portfolio.SellResult;
 import cat.gencat.agaur.hexastock.model.money.ShareQuantity;
 import cat.gencat.agaur.hexastock.model.market.Ticker;
-import cat.gencat.agaur.hexastock.model.portfolio.ConflictQuantityException;
+import cat.gencat.agaur.hexastock.portfolios.model.portfolio.ConflictQuantityException;
 import cat.gencat.agaur.hexastock.model.money.InvalidQuantityException;
 import cat.gencat.agaur.hexastock.application.exception.PortfolioNotFoundException;
 
@@ -50,7 +50,7 @@ public interface PortfolioStockOperationsUseCase {
      * @param quantity The number of shares to buy
      * @throws PortfolioNotFoundException if the portfolio is not found
      * @throws InvalidQuantityException if the quantity is not positive
-     * @throws cat.gencat.agaur.hexastock.model.portfolio.InsufficientFundsException if there are insufficient funds for the purchase
+     * @throws cat.gencat.agaur.hexastock.portfolios.model.portfolio.InsufficientFundsException if there are insufficient funds for the purchase
      */
     void buyStock(PortfolioId portfolioId, Ticker ticker, ShareQuantity quantity);
     

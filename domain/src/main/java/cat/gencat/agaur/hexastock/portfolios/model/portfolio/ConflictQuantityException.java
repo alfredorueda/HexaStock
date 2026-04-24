@@ -1,4 +1,4 @@
-package cat.gencat.agaur.hexastock.model.portfolio;
+package cat.gencat.agaur.hexastock.portfolios.model.portfolio;
 
 /**
  * ConflictQuantityException indicates that a stock operation was attempted with a quantity

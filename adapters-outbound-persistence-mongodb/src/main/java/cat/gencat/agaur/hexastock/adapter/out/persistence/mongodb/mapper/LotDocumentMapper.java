@@ -3,8 +3,8 @@ package cat.gencat.agaur.hexastock.adapter.out.persistence.mongodb.mapper;
 import cat.gencat.agaur.hexastock.adapter.out.persistence.mongodb.document.LotDocument;
 import cat.gencat.agaur.hexastock.model.money.Price;
 import cat.gencat.agaur.hexastock.model.money.ShareQuantity;
-import cat.gencat.agaur.hexastock.model.portfolio.Lot;
-import cat.gencat.agaur.hexastock.model.portfolio.LotId;
+import cat.gencat.agaur.hexastock.portfolios.model.portfolio.Lot;
+import cat.gencat.agaur.hexastock.portfolios.model.portfolio.LotId;
 
 public final class LotDocumentMapper {
 

@@ -1,6 +1,6 @@
 package cat.gencat.agaur.hexastock.adapter.in.webmodel;
 
-import cat.gencat.agaur.hexastock.model.transaction.*;
+import cat.gencat.agaur.hexastock.portfolios.model.transaction.*;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
