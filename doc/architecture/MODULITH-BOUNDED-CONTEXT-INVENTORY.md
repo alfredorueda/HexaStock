@@ -16,11 +16,18 @@ This document is **read-only inventory**. It does not move any code. It is the i
 
 ---
 
-## 1. Portfolio Management *(pending — Phase 3)*
+## 1. Portfolio Management *(promoted, full extraction — completed on `feature/modulith-portfolio-extraction`)*
 
-**Move target package**: `cat.gencat.agaur.hexastock.portfolios`
+**Promoted package**: `cat.gencat.agaur.hexastock.portfolios`
 
 **Why a single Modulith module rather than three**: the Portfolio aggregate, its FIFO Trading orchestration, and the append-only Transaction ledger are mutually inseparable in the current model. Splitting them now would either duplicate the FIFO invariants across modules or force synchronous cross-module calls. They are recorded here as one Bounded Context for the Modulith refactoring; the DDD discussion of whether Trading or Transactions could ever become independent BCs is documented in `doc/architecture/DDD-HEXAGONAL-ONION-CLEAN-COMPARATIVE-STUDY.md` and is out of scope for the Modulith POC.
+
+**Extraction status (this branch)**:
+
+- All 5 layers (domain, application, REST adapter, JPA adapter, Mongo adapter) moved from their legacy packages into `cat.gencat.agaur.hexastock.portfolios.*` over five small commits, each ending in a green `./mvnw clean test`.
+- `bootstrap/.../portfolios/package-info.java` declares `@ApplicationModule(displayName = "Portfolio Management", allowedDependencies = {})`.
+- `MODULE_PACKAGES` in `ModulithVerificationTest` now contains `portfolios`. New tests assert it is detected and has no outgoing dependencies on other promoted modules.
+- Test infrastructure classes `TestWebApplication`, `TestJpaApplication`, and `TestMongoApplication` were hoisted to `cat.gencat.agaur.hexastock` (the common parent) and made `public` so `@SpringBootConfiguration` auto-discovery still works for tests living under both legacy and `portfolios.*` package roots.
 
 ### Domain (Maven module: `domain`)
 
