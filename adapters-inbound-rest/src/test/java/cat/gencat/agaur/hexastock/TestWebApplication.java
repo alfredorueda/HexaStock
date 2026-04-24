@@ -1,4 +1,4 @@
-package cat.gencat.agaur.hexastock.adapter.in;
+package cat.gencat.agaur.hexastock;
 
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
@@ -7,5 +7,5 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
  * in the adapters-inbound-rest module.
  */
 @SpringBootApplication
-class TestWebApplication {
+public class TestWebApplication {
 }

@@ -1,4 +1,4 @@
-package cat.gencat.agaur.hexastock.adapter.in.webmodel;
+package cat.gencat.agaur.hexastock.portfolios.adapter.in.webmodel;
 
 /**
  * CreatePortfolioDTO is a Data Transfer Object for portfolio creation requests in the REST API.

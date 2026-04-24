@@ -1,6 +1,6 @@
-package cat.gencat.agaur.hexastock.adapter.in;
+package cat.gencat.agaur.hexastock.portfolios.adapter.in;
 
-import cat.gencat.agaur.hexastock.adapter.in.webmodel.*;
+import cat.gencat.agaur.hexastock.portfolios.adapter.in.webmodel.*;
 import cat.gencat.agaur.hexastock.portfolios.application.port.in.CashManagementUseCase;
 import cat.gencat.agaur.hexastock.portfolios.application.port.in.PortfolioLifecycleUseCase;
 import cat.gencat.agaur.hexastock.portfolios.application.port.in.PortfolioStockOperationsUseCase;

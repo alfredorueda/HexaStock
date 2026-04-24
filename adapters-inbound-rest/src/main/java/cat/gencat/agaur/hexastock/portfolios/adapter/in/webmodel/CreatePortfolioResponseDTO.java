@@ -1,4 +1,4 @@
-package cat.gencat.agaur.hexastock.adapter.in.webmodel;
+package cat.gencat.agaur.hexastock.portfolios.adapter.in.webmodel;
 
 import cat.gencat.agaur.hexastock.portfolios.model.portfolio.Portfolio;
 
