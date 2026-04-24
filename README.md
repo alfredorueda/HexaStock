@@ -51,6 +51,9 @@ The sell-stock use case is the tutorial reference of the project. It concentrate
 | [Holdings Performance at Scale](doc/tutorial/portfolioReporting/HOLDINGS-PERFORMANCE-AT-SCALE.md) | Reporting and performance considerations |
 | [Watchlists: Market Sentinel](doc/tutorial/watchlists/WATCHLISTS-MARKET-SENTINEL.md) | Watchlist feature design and tutorial |
 | [MongoDB Adapter: Optimistic Write & Retry](doc/mongodb-adapter-optimistic-write-and-retry.md) | Concurrency strategy of the MongoDB persistence adapter |
+| [Spring Modulith Notifications POC](doc/architecture/SPRING-MODULITH-NOTIFICATIONS-POC.md) | Experimental in-process event-driven boundary between Watchlists and Notifications (modular monolith, no Kafka) |
+| [Spring Modulith Global Refactoring Plan](doc/architecture/SPRING-MODULITH-GLOBAL-REFACTORING-PLAN.md) | Phased plan for evolving HexaStock toward Spring Modulith while preserving DDD, hexagonal, and Maven multi-module discipline |
+| [Modulith Bounded Context Inventory](doc/architecture/MODULITH-BOUNDED-CONTEXT-INVENTORY.md) | Living catalogue of which legacy classes will eventually move into each Modulith application module |
 
 ## Project Structure
 
