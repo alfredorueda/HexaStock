@@ -19,14 +19,13 @@ public abstract class AbstractWatchlistPortContractTest {
     @SpecificationRef(value = "US-WL-01.AC-1", level = TestLevel.INTEGRATION, feature = "watchlists-create.feature")
     @DisplayName("create and retrieve watchlist preserves scalar fields")
     protected void createAndGetById_roundTrip() {
-        Watchlist watchlist = Watchlist.create(WatchlistId.of("wl-1"), "alice", "Tech", "123456");
+        Watchlist watchlist = Watchlist.create(WatchlistId.of("wl-1"), "alice", "Tech");
         port().createWatchlist(watchlist);
 
         Watchlist found = port().getWatchlistById(WatchlistId.of("wl-1")).orElseThrow();
         assertThat(found.getId()).isEqualTo(WatchlistId.of("wl-1"));
         assertThat(found.getOwnerName()).isEqualTo("alice");
         assertThat(found.getListName()).isEqualTo("Tech");
-        assertThat(found.getUserNotificationId()).isEqualTo("123456");
         assertThat(found.isActive()).isTrue();
         assertThat(found.getAlerts()).isEmpty();
     }
@@ -35,7 +34,7 @@ public abstract class AbstractWatchlistPortContractTest {
     @SpecificationRef(value = "US-WL-02.AC-4", level = TestLevel.INTEGRATION, feature = "watchlists-alerts.feature")
     @DisplayName("saveWatchlist persists multiple alerts for same ticker")
     protected void saveWatchlist_persistsAlerts() {
-        Watchlist watchlist = Watchlist.create(WatchlistId.of("wl-2"), "alice", "Tech", "123456");
+        Watchlist watchlist = Watchlist.create(WatchlistId.of("wl-2"), "alice", "Tech");
         watchlist.addAlert(Ticker.of("AAPL"), Money.of("150.00"));
         watchlist.addAlert(Ticker.of("AAPL"), Money.of("140.00"));
         port().createWatchlist(watchlist);
@@ -47,7 +46,7 @@ public abstract class AbstractWatchlistPortContractTest {
     @Test
     @DisplayName("deleteWatchlist removes it")
     protected void deleteWatchlist_removes() {
-        Watchlist watchlist = Watchlist.create(WatchlistId.of("wl-3"), "alice", "Tech", "123456");
+        Watchlist watchlist = Watchlist.create(WatchlistId.of("wl-3"), "alice", "Tech");
         port().createWatchlist(watchlist);
 
         port().deleteWatchlist(WatchlistId.of("wl-3"));
@@ -55,4 +54,3 @@ public abstract class AbstractWatchlistPortContractTest {
         assertThat(port().getWatchlistById(WatchlistId.of("wl-3"))).isEmpty();
     }
 }
-

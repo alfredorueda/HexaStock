@@ -25,7 +25,7 @@ class WatchlistServiceTest {
         WatchlistPort port = mock(WatchlistPort.class);
         WatchlistService service = new WatchlistService(port);
 
-        Watchlist created = service.createWatchlist("alice", "Tech", "123456");
+        Watchlist created = service.createWatchlist("alice", "Tech");
 
         assertNotNull(created.getId());
         assertTrue(created.isActive());
@@ -39,7 +39,7 @@ class WatchlistServiceTest {
         WatchlistService service = new WatchlistService(port);
 
         WatchlistId id = WatchlistId.of("wl-1");
-        Watchlist existing = Watchlist.create(id, "alice", "Tech", "123456");
+        Watchlist existing = Watchlist.create(id, "alice", "Tech");
         when(port.getWatchlistById(id)).thenReturn(Optional.of(existing));
 
         Watchlist updated = service.addAlertEntry(id, Ticker.of("AAPL"), Money.of("150.00"));
@@ -60,4 +60,3 @@ class WatchlistServiceTest {
                 service.activate(id));
     }
 }
-

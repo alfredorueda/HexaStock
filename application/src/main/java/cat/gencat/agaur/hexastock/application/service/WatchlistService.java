@@ -22,8 +22,8 @@ public class WatchlistService implements WatchlistUseCase {
     }
 
     @Override
-    public Watchlist createWatchlist(String ownerName, String listName, String userNotificationId) {
-        Watchlist watchlist = Watchlist.create(WatchlistId.generate(), ownerName, listName, userNotificationId);
+    public Watchlist createWatchlist(String ownerName, String listName) {
+        Watchlist watchlist = Watchlist.create(WatchlistId.generate(), ownerName, listName);
         watchlistPort.createWatchlist(watchlist);
         return watchlist;
     }
@@ -81,4 +81,3 @@ public class WatchlistService implements WatchlistUseCase {
                 .orElseThrow(() -> new WatchlistNotFoundException(watchlistId.value()));
     }
 }
-
