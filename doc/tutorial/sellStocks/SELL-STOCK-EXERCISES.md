@@ -6,6 +6,8 @@
 
 The following exercises form a progressive path designed to deepen understanding of Hexagonal Architecture and Domain-Driven Design through hands-on work with the HexaStock codebase. They are intended for self-directed practice — instructors may assign them selectively depending on context and level.
 
+> **See also.** For an instructor-led, training-oriented refactor that introduces a domain event into the Sell Stocks use case — using the existing Watchlist / Market Sentinel flow as the reference demo — see [SELL-STOCK-DOMAIN-EVENTS-EXERCISE.md](SELL-STOCK-DOMAIN-EVENTS-EXERCISE.md).
+
 ---
 
 ## Exercise 1: Trace the Buy Flow

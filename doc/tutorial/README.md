@@ -31,6 +31,7 @@ The Sell Stocks tutorials provide a deeper walkthrough:
 
 - [Sell Stock Tutorial](sellStocks/SELL-STOCK-TUTORIAL.md) — end-to-end tutorial covering the hexagonal architecture layers
 - [Sell Stock Domain Tutorial](sellStocks/SELL-STOCK-DOMAIN-TUTORIAL.md) — focused tutorial on the domain model and FIFO logic
+- [Sell Stock Domain Events Exercise](sellStocks/SELL-STOCK-DOMAIN-EVENTS-EXERCISE.md) — instructor-led training exercise: refactor the Sell Stocks use case with a domain event, using the existing Watchlist / Market Sentinel flow as the reference demo
 
 ---
 
