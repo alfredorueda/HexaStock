@@ -66,7 +66,57 @@ This document is **read-only inventory**. It does not move any code. It is the i
 
 ## 2. Market Data *(pending — Phase 4)*
 
-> *To be filled in during Phase 4 of the global refactoring plan.*
+**Move target package**: `cat.gencat.agaur.hexastock.marketdata`
+
+**Why a Modulith module**: Market Data is a clearly delimited supporting capability. Its only responsibility is to convert a `Ticker` into a `StockPrice`, hiding the volatility of upstream providers (Finnhub, AlphaVantage, mock). Both Portfolio Management (for buy/sell pricing and reporting) and Watchlists / Market Sentinel (for threshold polling) depend on it via a single outbound port. Promoting it to a Modulith module makes that single dependency direction explicit and lets the Caffeine cache and provider switching live behind a stable named interface.
+
+### Domain (Maven module: `domain`)
+
+| Current package | Classes |
+|---|---|
+| `model.market` | `StockPrice`, `Ticker`, `InvalidTickerException` |
+
+### Application (Maven module: `application`)
+
+| Current package | Classes |
+|---|---|
+| `application.port.in` | `GetStockPriceUseCase` |
+| `application.port.out` | `StockPriceProviderPort` (rename to `MarketDataPort` deferred to Phase 4 PR) |
+| `application.service` | `GetStockPriceService` |
+
+### Adapters (Maven module: `adapters-outbound-market`)
+
+| Current package | Classes |
+|---|---|
+| `adapter.out.rest` | `FinhubStockPriceAdapter`, `AlphaVantageStockPriceAdapter`, `MockFinhubStockPriceAdapter` |
+
+### Inbound (Maven module: `adapters-inbound-rest`)
+
+| Current package | Classes |
+|---|---|
+| `adapter.in.controller` | `StockPriceController` (and DTOs) |
+
+### Cross-cutting infrastructure
+
+- Caffeine cache configuration in `bootstrap` (Spring `@EnableCaching` + `CacheManager` bean) — will remain in `platform/` because it is a generic infrastructure concern.
+- Spring profiles: `finnhub`, `alphavantage`, `mockfinhub` — profile activation logic stays in `bootstrap`.
+
+### What Market Data depends on
+
+- Nothing internal to HexaStock. Pure outbound to external HTTP APIs (or to a fake when `mockfinhub` is active).
+
+### What depends on Market Data (current consumers)
+
+- `application.service.MarketSentinelService` (Watchlists / Market Sentinel BC) — calls `StockPriceProviderPort.fetchStockPrice(Set<Ticker>)`.
+- `application.service.PortfolioStockOperationsService` and `ReportingService` (Portfolio Management BC) — call `StockPriceProviderPort.fetchStockPrice(Ticker)`.
+- The `WatchlistAlertTriggeredEvent` published by Watchlists also imports `model.market.Ticker`. After Phase 4, this means `watchlists` will have a documented Modulith dependency on `marketdata::events` (or on `shared::market` if `Ticker` is promoted to a shared kernel).
+
+### Constraints when extracting (Phase 4)
+
+- Adapters under `adapters-outbound-market` must remain isolated — they are the only place where Finnhub / AlphaVantage SDK or HTTP code may live.
+- Existing WireMock-based adapter tests must keep passing without changes.
+- The Caffeine caching annotation-based wiring (`@Cacheable` on `GetStockPriceService` or on the port adapters) must be preserved verbatim during the move.
+- A renaming of `StockPriceProviderPort` to `MarketDataPort` is recommended but optional and reversible; if performed, all call sites in `application.service.MarketSentinelService`, `PortfolioStockOperationsService`, and `ReportingService` must be updated in the same PR.
 
 ---
 
