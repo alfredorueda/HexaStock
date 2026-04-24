@@ -9,12 +9,16 @@ import java.util.Objects;
 
 /**
  * Watchlist is an Aggregate Root containing price-threshold alerts to monitor.
+ *
+ * <p>Pure domain object. Notification routing (Telegram chat ids, emails, phone numbers, etc.)
+ * is intentionally NOT modeled here: it is an infrastructure concern owned by the
+ * Notifications bounded context. The Watchlist only knows the business identity of its
+ * owner ({@code ownerName}), which is the {@code userId} carried in domain events.</p>
  */
 public class Watchlist {
 
     private final WatchlistId id;
     private final String ownerName;
-    private final String userNotificationId; // Is needed to send notifications to the user.
 
     private final String listName;
     private boolean active;
@@ -24,18 +28,28 @@ public class Watchlist {
                       String ownerName,
                       String listName,
                       boolean active,
-                      String userNotificationId,
                       List<AlertEntry> alerts) {
         this.id = Objects.requireNonNull(id, "id must not be null");
         this.ownerName = requireNonBlank(ownerName, "ownerName must not be blank");
         this.listName = requireNonBlank(listName, "listName must not be blank");
-        this.userNotificationId = requireNonBlank(userNotificationId, "userNotificationId must not be blank");
         this.active = active;
         this.alerts.addAll(List.copyOf(Objects.requireNonNull(alerts, "alerts must not be null")));
     }
 
-    public static Watchlist create(WatchlistId id, String ownerName, String listName, String userNotificationId) {
-        return new Watchlist(id, ownerName, listName, true, userNotificationId, List.of());
+    public static Watchlist create(WatchlistId id, String ownerName, String listName) {
+        return new Watchlist(id, ownerName, listName, true, List.of());
+    }
+
+    /**
+     * Reconstitution factory used by persistence adapters to rebuild an aggregate
+     * from its stored state without going through the {@link #create} business rules.
+     */
+    public static Watchlist rehydrate(WatchlistId id,
+                                      String ownerName,
+                                      String listName,
+                                      boolean active,
+                                      List<AlertEntry> alerts) {
+        return new Watchlist(id, ownerName, listName, active, alerts);
     }
 
     public void addAlert(Ticker ticker, Money thresholdPrice) {
@@ -75,10 +89,6 @@ public class Watchlist {
 
     public String getOwnerName() {
         return ownerName;
-    }
-
-    public String getUserNotificationId() {
-        return userNotificationId;
     }
 
     public String getListName() {

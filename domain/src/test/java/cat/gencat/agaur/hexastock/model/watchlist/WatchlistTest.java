@@ -20,27 +20,40 @@ class WatchlistTest {
         @Test
         @SpecificationRef(value = "US-WL-01.AC-1", level = TestLevel.DOMAIN, feature = "watchlists-create.feature")
         void shouldCreateActiveWatchlistWithNoAlerts() {
-            Watchlist watchlist = Watchlist.create(WatchlistId.generate(), "alice", "Tech", "123456");
+            Watchlist watchlist = Watchlist.create(WatchlistId.generate(), "alice", "Tech");
 
             assertTrue(watchlist.isActive());
             assertEquals("alice", watchlist.getOwnerName());
             assertEquals("Tech", watchlist.getListName());
             assertTrue(watchlist.getAlerts().isEmpty());
-            assertEquals("123456", watchlist.getUserNotificationId());
         }
 
         @Test
         @SpecificationRef(value = "US-WL-01.AC-2", level = TestLevel.DOMAIN, feature = "watchlists-create.feature")
         void shouldRejectBlankOwnerName() {
             WatchlistId id = WatchlistId.generate();
-            assertThrows(IllegalArgumentException.class, () -> Watchlist.create(id, "", "Tech", "123456"));
+            assertThrows(IllegalArgumentException.class, () -> Watchlist.create(id, "", "Tech"));
         }
 
         @Test
         @SpecificationRef(value = "US-WL-01.AC-3", level = TestLevel.DOMAIN, feature = "watchlists-create.feature")
         void shouldRejectBlankListName() {
             WatchlistId id = WatchlistId.generate();
-            assertThrows(IllegalArgumentException.class, () -> Watchlist.create(id, "alice", "", "123456"));
+            assertThrows(IllegalArgumentException.class, () -> Watchlist.create(id, "alice", ""));
+        }
+
+        @Test
+        @DisplayName("Watchlist no longer carries notification routing data")
+        void shouldNotExposeAnyNotificationIdentifier() {
+            // Sanity check that the userNotificationId concern is fully gone from the domain.
+            // If anyone re-introduces it, this test will not compile.
+            Watchlist watchlist = Watchlist.create(WatchlistId.generate(), "alice", "Tech");
+            for (var method : Watchlist.class.getDeclaredMethods()) {
+                String name = method.getName().toLowerCase();
+                assertFalse(name.contains("notification") || name.contains("telegram") || name.contains("chat"),
+                        "Watchlist must not expose infrastructure-specific notification methods, found: " + method.getName());
+            }
+            assertNotNull(watchlist);
         }
     }
 
@@ -51,7 +64,7 @@ class WatchlistTest {
         @Test
         @SpecificationRef(value = "US-WL-02.AC-1", level = TestLevel.DOMAIN, feature = "watchlists-alerts.feature")
         void shouldAddAlertEntry() {
-            Watchlist watchlist = Watchlist.create(WatchlistId.generate(), "alice", "Tech", "123456");
+            Watchlist watchlist = Watchlist.create(WatchlistId.generate(), "alice", "Tech");
 
             watchlist.addAlert(Ticker.of("AAPL"), Money.of("150.00"));
 
@@ -63,7 +76,7 @@ class WatchlistTest {
         @Test
         @SpecificationRef(value = "US-WL-02.AC-2", level = TestLevel.DOMAIN, feature = "watchlists-alerts.feature")
         void shouldRejectNonPositiveThresholdPrice() {
-            Watchlist watchlist = Watchlist.create(WatchlistId.generate(), "alice", "Tech", "123456");
+            Watchlist watchlist = Watchlist.create(WatchlistId.generate(), "alice", "Tech");
 
             Ticker ticker = Ticker.of("AAPL");
             Money threshold = Money.of("0.00");
@@ -73,7 +86,7 @@ class WatchlistTest {
         @Test
         @SpecificationRef(value = "US-WL-02.AC-3", level = TestLevel.DOMAIN, feature = "watchlists-alerts.feature")
         void shouldRejectExactDuplicateAlert() {
-            Watchlist watchlist = Watchlist.create(WatchlistId.generate(), "alice", "Tech", "123456");
+            Watchlist watchlist = Watchlist.create(WatchlistId.generate(), "alice", "Tech");
 
             watchlist.addAlert(Ticker.of("AAPL"), Money.of("150.00"));
 
@@ -85,7 +98,7 @@ class WatchlistTest {
         @Test
         @SpecificationRef(value = "US-WL-02.AC-4", level = TestLevel.DOMAIN, feature = "watchlists-alerts.feature")
         void shouldAllowMultipleAlertsForSameTickerAtDifferentThresholds() {
-            Watchlist watchlist = Watchlist.create(WatchlistId.generate(), "alice", "Tech", "123456");
+            Watchlist watchlist = Watchlist.create(WatchlistId.generate(), "alice", "Tech");
 
             watchlist.addAlert(Ticker.of("AAPL"), Money.of("150.00"));
             watchlist.addAlert(Ticker.of("AAPL"), Money.of("140.00"));
@@ -97,7 +110,7 @@ class WatchlistTest {
         @Test
         @SpecificationRef(value = "US-WL-02.AC-5", level = TestLevel.DOMAIN, feature = "watchlists-alerts.feature")
         void shouldRemoveSpecificAlertEntry() {
-            Watchlist watchlist = Watchlist.create(WatchlistId.generate(), "alice", "Tech", "123456");
+            Watchlist watchlist = Watchlist.create(WatchlistId.generate(), "alice", "Tech");
             watchlist.addAlert(Ticker.of("AAPL"), Money.of("150.00"));
             watchlist.addAlert(Ticker.of("AAPL"), Money.of("140.00"));
 
@@ -110,7 +123,7 @@ class WatchlistTest {
         @Test
         @SpecificationRef(value = "US-WL-02.AC-6", level = TestLevel.DOMAIN, feature = "watchlists-alerts.feature")
         void shouldRemoveAllAlertsForTicker() {
-            Watchlist watchlist = Watchlist.create(WatchlistId.generate(), "alice", "Tech", "123456");
+            Watchlist watchlist = Watchlist.create(WatchlistId.generate(), "alice", "Tech");
             watchlist.addAlert(Ticker.of("AAPL"), Money.of("150.00"));
             watchlist.addAlert(Ticker.of("AAPL"), Money.of("140.00"));
             watchlist.addAlert(Ticker.of("GOOGL"), Money.of("120.00"));
@@ -130,7 +143,7 @@ class WatchlistTest {
         @Test
         @SpecificationRef(value = "US-WL-03.AC-1", level = TestLevel.DOMAIN, feature = "watchlists-activation.feature")
         void shouldDeactivateWatchlist() {
-            Watchlist watchlist = Watchlist.create(WatchlistId.generate(), "alice", "Tech", "123456");
+            Watchlist watchlist = Watchlist.create(WatchlistId.generate(), "alice", "Tech");
 
             watchlist.deactivate();
 
@@ -140,7 +153,7 @@ class WatchlistTest {
         @Test
         @SpecificationRef(value = "US-WL-03.AC-2", level = TestLevel.DOMAIN, feature = "watchlists-activation.feature")
         void shouldActivateWatchlist() {
-            Watchlist watchlist = Watchlist.create(WatchlistId.generate(), "alice", "Tech", "123456");
+            Watchlist watchlist = Watchlist.create(WatchlistId.generate(), "alice", "Tech");
             watchlist.deactivate();
 
             watchlist.activate();
@@ -149,4 +162,3 @@ class WatchlistTest {
         }
     }
 }
-
