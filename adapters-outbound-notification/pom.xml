@@ -24,6 +24,12 @@
             <artifactId>spring-boot-starter-web</artifactId>
         </dependency>
 
+        <!-- Spring Modulith: @ApplicationModuleListener and event infrastructure -->
+        <dependency>
+            <groupId>org.springframework.modulith</groupId>
+            <artifactId>spring-modulith-events-api</artifactId>
+        </dependency>
+
         <!-- WireMock for adapter tests -->
         <dependency>
             <groupId>org.springframework.cloud</groupId>

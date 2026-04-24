@@ -37,6 +37,7 @@
         <mysql-connector.version>8.2.0</mysql-connector.version>
         <rest-assured.version>5.4.0</rest-assured.version>
         <jacoco.version>0.8.14</jacoco.version>
+        <spring-modulith.version>1.4.0</spring-modulith.version>
     </properties>
 
     <modules>
@@ -53,6 +54,14 @@
 
     <dependencyManagement>
         <dependencies>
+            <!-- Spring Modulith BOM (compatible with Spring Boot 3.5.x) -->
+            <dependency>
+                <groupId>org.springframework.modulith</groupId>
+                <artifactId>spring-modulith-bom</artifactId>
+                <version>${spring-modulith.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
             <!-- Testcontainers BOM -->
             <dependency>
                 <groupId>org.testcontainers</groupId>
