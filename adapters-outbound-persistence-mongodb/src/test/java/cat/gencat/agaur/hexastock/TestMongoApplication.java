@@ -1,4 +1,4 @@
-package cat.gencat.agaur.hexastock.adapter.out.persistence.mongodb;
+package cat.gencat.agaur.hexastock;
 
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
@@ -7,5 +7,5 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
  * in the adapters-outbound-persistence-mongodb module.
  */
 @SpringBootApplication
-class TestMongoApplication {
+public class TestMongoApplication {
 }

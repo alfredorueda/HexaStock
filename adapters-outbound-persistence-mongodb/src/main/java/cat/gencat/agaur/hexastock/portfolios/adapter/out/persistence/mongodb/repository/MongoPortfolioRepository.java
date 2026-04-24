@@ -1,8 +1,8 @@
-package cat.gencat.agaur.hexastock.adapter.out.persistence.mongodb.repository;
+package cat.gencat.agaur.hexastock.portfolios.adapter.out.persistence.mongodb.repository;
 
-import cat.gencat.agaur.hexastock.adapter.out.persistence.mongodb.document.PortfolioDocument;
-import cat.gencat.agaur.hexastock.adapter.out.persistence.mongodb.mapper.PortfolioDocumentMapper;
-import cat.gencat.agaur.hexastock.adapter.out.persistence.mongodb.springdatarepository.MongoPortfolioSpringDataRepository;
+import cat.gencat.agaur.hexastock.portfolios.adapter.out.persistence.mongodb.document.PortfolioDocument;
+import cat.gencat.agaur.hexastock.portfolios.adapter.out.persistence.mongodb.mapper.PortfolioDocumentMapper;
+import cat.gencat.agaur.hexastock.portfolios.adapter.out.persistence.mongodb.springdatarepository.MongoPortfolioSpringDataRepository;
 import cat.gencat.agaur.hexastock.portfolios.application.port.out.PortfolioPort;
 import cat.gencat.agaur.hexastock.portfolios.model.portfolio.Portfolio;
 import cat.gencat.agaur.hexastock.portfolios.model.portfolio.PortfolioId;

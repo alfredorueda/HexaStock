@@ -1,6 +1,6 @@
-package cat.gencat.agaur.hexastock.adapter.out.persistence.mongodb.springdatarepository;
+package cat.gencat.agaur.hexastock.portfolios.adapter.out.persistence.mongodb.springdatarepository;
 
-import cat.gencat.agaur.hexastock.adapter.out.persistence.mongodb.document.PortfolioDocument;
+import cat.gencat.agaur.hexastock.portfolios.adapter.out.persistence.mongodb.document.PortfolioDocument;
 import org.springframework.data.mongodb.repository.MongoRepository;
 import org.springframework.stereotype.Repository;
 

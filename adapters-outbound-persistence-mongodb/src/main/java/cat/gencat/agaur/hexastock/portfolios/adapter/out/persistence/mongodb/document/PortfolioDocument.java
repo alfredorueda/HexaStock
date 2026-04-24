@@ -1,4 +1,4 @@
-package cat.gencat.agaur.hexastock.adapter.out.persistence.mongodb.document;
+package cat.gencat.agaur.hexastock.portfolios.adapter.out.persistence.mongodb.document;
 
 import org.springframework.data.annotation.Id;
 import org.springframework.data.annotation.Version;
