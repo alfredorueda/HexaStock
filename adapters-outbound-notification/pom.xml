@@ -30,6 +30,12 @@
             <artifactId>spring-modulith-events-api</artifactId>
         </dependency>
 
+        <!-- Spring Modulith: @ApplicationModule annotation for explicit module boundaries -->
+        <dependency>
+            <groupId>org.springframework.modulith</groupId>
+            <artifactId>spring-modulith-api</artifactId>
+        </dependency>
+
         <!-- WireMock for adapter tests -->
         <dependency>
             <groupId>org.springframework.cloud</groupId>
