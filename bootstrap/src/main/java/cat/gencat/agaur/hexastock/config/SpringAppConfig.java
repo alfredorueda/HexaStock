@@ -1,7 +1,7 @@
 package cat.gencat.agaur.hexastock.config;
 
 import cat.gencat.agaur.hexastock.application.port.in.*;
-import cat.gencat.agaur.hexastock.application.port.out.NotificationPort;
+import cat.gencat.agaur.hexastock.application.port.out.DomainEventPublisher;
 import cat.gencat.agaur.hexastock.application.port.out.PortfolioPort;
 import cat.gencat.agaur.hexastock.application.port.out.StockPriceProviderPort;
 import cat.gencat.agaur.hexastock.application.port.out.TransactionPort;
@@ -82,7 +82,7 @@ public class SpringAppConfig {
   }
 
   @Bean
-  MarketSentinelUseCase getMarketSentinelService(NotificationPort notificationPort) {
-    return new MarketSentinelService(watchlistQueryPort, stockPriceProviderPort, notificationPort);
+  MarketSentinelUseCase getMarketSentinelService(DomainEventPublisher domainEventPublisher) {
+    return new MarketSentinelService(watchlistQueryPort, stockPriceProviderPort, domainEventPublisher);
   }
 }
