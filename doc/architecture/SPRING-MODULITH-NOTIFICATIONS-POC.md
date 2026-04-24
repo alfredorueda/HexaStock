@@ -70,9 +70,9 @@ Issues:
 ### Non-goals
 
 - No Kafka, no Spring Cloud Stream, no `@Externalized`. The event stays JVM-local for now.
-- No persistent recipient store. The default `InMemoryNotificationRecipientResolver` reads
-  Telegram chat ids from properties; replacing it with a database-backed resolver is left as a
-  future extension.
+- No persistent recipient store. The default `CompositeNotificationRecipientResolver` aggregates
+  one `NotificationDestinationProvider` per channel; replacing it (or any single provider)
+  with a database-backed implementation is left as a future extension.
 - No live registration of Telegram chat ids when a user contacts the bot. Naturally a follow-up
   POC, also via in-process domain events.
 
@@ -92,7 +92,7 @@ Issues:
                                                 │            │                              │
  MarketSentinelService                          │            ▼                              │
    │                                            │  NotificationRecipientResolver           │
-   │  builds                                    │  (default: InMemoryNotificationRecipientResolver)
+   │  builds                                    │  (default: CompositeNotificationRecipientResolver
    │  WatchlistAlertTriggeredEvent              │            │                              │
    │                                            │            ▼                              │
    │  publish(event)                            │  ┌────────────┬────────────┐              │
@@ -210,14 +210,19 @@ public interface NotificationRecipientResolver {
 }
 ```
 
-Default implementation `InMemoryNotificationRecipientResolver`:
+Default implementation `CompositeNotificationRecipientResolver` (post-Phase-5):
 
-- Reads Telegram chat ids from the SpEL-bound property
-  `notifications.telegram.chat-ids={alice:'123', bob:'456'}`.
-- For each `userId` returns:
-  - a `TelegramNotificationDestination(chatId)` **if** a chat id is configured;
-  - **always** a fallback `LoggingNotificationDestination(userId)` so notifications are never
-    silently dropped.
+- **Channel-agnostic**: aggregates every active `NotificationDestinationProvider` bean. The
+  resolver itself contains zero references to Telegram, logging, or any other channel.
+- One provider per channel:
+  - `LoggingNotificationDestinationProvider` — always active, contributes a
+    `LoggingNotificationDestination` for every user (the safe-by-default audit channel).
+  - `TelegramNotificationDestinationProvider` — only loaded under the
+    `telegram-notifications` profile. Reads Telegram chat ids from the SpEL-bound property
+    `notifications.telegram.chat-ids={alice:'123', bob:'456'}` and contributes a
+    `TelegramNotificationDestination(chatId)` when one is configured.
+- Adding a new channel is a zero-change task on the resolver: ship one
+  `NotificationDestinationProvider` + one `NotificationSender`, both gated by the same profile.
 
 To replace it with a persistent or service-backed resolver, declare another
 `NotificationRecipientResolver` bean annotated with `@Primary`.
@@ -255,7 +260,7 @@ guaranteed channel**, Telegram is opt-in.
   - `NotificationChannel` enum, `NotificationDestination` sealed interface and concrete records
     (`LoggingNotificationDestination`, `TelegramNotificationDestination`).
   - `NotificationRecipient`, `UserNotificationPreference`, `NotificationRecipientResolver`,
-    `InMemoryNotificationRecipientResolver`.
+    `CompositeNotificationRecipientResolver`, `NotificationDestinationProvider`.
   - `NotificationSender` interface + `LoggingNotificationSenderAdapter` (default) +
     `TelegramNotificationSenderAdapter` (`@Profile("telegram-notifications")`).
   - `WatchlistAlertNotificationListener` using `@ApplicationModuleListener`.
@@ -322,7 +327,8 @@ and only the logging sender runs.
 - **No event externalisation.** The event stays JVM-local. If we ever need to fan out to other
   services we can layer Spring Modulith's `@Externalized` or `spring-modulith-events-kafka`
   on top **without touching the domain**.
-- **No persistent recipient store.** Replacing `InMemoryNotificationRecipientResolver` is the
+- **No persistent recipient store.** Replacing `CompositeNotificationRecipientResolver` (or
+  swapping a single `NotificationDestinationProvider`) is the
   obvious next step.
 - **`@SpringBootTest` for the event-flow IT.** The event-flow test uses a full `@SpringBootTest`
   rather than `@ApplicationModuleTest` because the latter triggers global Modulith verification

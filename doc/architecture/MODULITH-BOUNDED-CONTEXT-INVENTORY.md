@@ -120,19 +120,50 @@ This document is **read-only inventory**. It does not move any code. It is the i
 
 ---
 
-## 3. Watchlists / Market Sentinel *(promoted, partial — Phase 5 hardening)*
+## 3. Watchlists / Market Sentinel *(promoted, partial — Phase 5 hardened)*
 
 **Promoted package**: `cat.gencat.agaur.hexastock.watchlists` (publisher side only — currently only `WatchlistAlertTriggeredEvent`).
 
-> *Pending classes still under `model.watchlist`, `application.port.*`, `application.service.MarketSentinelService` will be inventoried during Phase 5.*
+**Phase 5 verification (this branch)**:
+
+- The `Watchlist` aggregate (`domain/.../model/watchlist/Watchlist.java`) is channel-agnostic. The class javadoc explicitly documents that notification routing concerns (Telegram chat ids, emails, phone numbers) are NOT modeled here.
+- The published event `WatchlistAlertTriggeredEvent` carries only business data (`watchlistId`, `userId`, `ticker`, `alertType`, `threshold`, `currentPrice`, `occurredOn`, `message`). No transport identifiers.
+- The Modulith verification test asserts:
+  - `watchlists` has zero outgoing cross-module dependencies (`watchlistsHasNoOutgoingModuleDependencies`).
+  - `notifications` only depends on `watchlists` for the published event type (`notificationsOnlyDependsOnWatchlists`).
+
+### Pending classes (move target: same `watchlists` package, future phase)
+
+| Maven module | Current package | Classes |
+|---|---|---|
+| `domain` | `model.watchlist` | `Watchlist`, `WatchlistId`, `AlertEntry`, `AlertNotFoundException`, `DuplicateAlertException` |
+| `application` | `application.port.in` | `WatchlistUseCase`, `MarketSentinelUseCase` |
+| `application` | `application.port.out` | `WatchlistPort`, `WatchlistQueryPort`, `TriggeredAlertView` |
+| `application` | `application.service` | `WatchlistService`, `MarketSentinelService` |
+| `adapters-inbound-rest` | `adapter.in.controller` | watchlist-related controllers + DTOs |
+| `adapters-inbound-telegram` | (entire module) | Telegram bot inbound handler that creates watchlists |
+| `adapters-outbound-persistence-jpa` | `adapter.out.persistence.jpa.*` | watchlist entity / mapper / repository / port adapter |
+| `adapters-outbound-persistence-mongodb` | `adapter.out.persistence.mongodb.*` | Mongo equivalents |
+
+These will be moved into `watchlists.adapter.in.*` / `watchlists.adapter.out.*` subpackages of their respective Maven modules in a future phase. Phase 5 does not move them.
 
 ---
 
-## 4. Notifications *(promoted)*
+## 4. Notifications *(promoted, hardened — Phase 5)*
 
 **Promoted package**: `cat.gencat.agaur.hexastock.notifications` (Maven module `adapters-outbound-notification`).
 
-Already complete; see [SPRING-MODULITH-NOTIFICATIONS-POC.md](SPRING-MODULITH-NOTIFICATIONS-POC.md) for details.
+**Phase 5 hardening (this branch)**:
+
+- Replaced the channel-aware `InMemoryNotificationRecipientResolver` with a channel-agnostic `CompositeNotificationRecipientResolver`.
+- Introduced `NotificationDestinationProvider` SPI: one implementation per channel, profile-gated.
+  - `LoggingNotificationDestinationProvider` — always active.
+  - `TelegramNotificationDestinationProvider` — only under `@Profile("telegram-notifications")`.
+- Telegram configuration leakage eliminated: when the Telegram profile is OFF, the resolver no longer reads `notifications.telegram.chat-ids` and the listener no longer warns about absent Telegram senders.
+- Module package annotated with `@ApplicationModule(allowedDependencies = {"watchlists"})`.
+- Channel-specific senders live under internal subpackages (`adapter/logging`, `adapter/telegram`) which are not part of any Modulith named interface.
+
+See [SPRING-MODULITH-NOTIFICATIONS-POC.md](SPRING-MODULITH-NOTIFICATIONS-POC.md) for the full design discussion.
 
 ---
 
