@@ -1,4 +1,4 @@
-package cat.gencat.agaur.hexastock.adapter.out.persistence.jpa.entity;
+package cat.gencat.agaur.hexastock.portfolios.adapter.out.persistence.jpa.entity;
 
 import cat.gencat.agaur.hexastock.portfolios.model.transaction.TransactionType;
 import jakarta.persistence.*;

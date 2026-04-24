@@ -1,4 +1,4 @@
-package cat.gencat.agaur.hexastock.adapter.out.persistence.jpa;
+package cat.gencat.agaur.hexastock;
 
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
@@ -7,5 +7,5 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
  * in the adapters-outbound-persistence-jpa module.
  */
 @SpringBootApplication
-class TestJpaApplication {
+public class TestJpaApplication {
 }

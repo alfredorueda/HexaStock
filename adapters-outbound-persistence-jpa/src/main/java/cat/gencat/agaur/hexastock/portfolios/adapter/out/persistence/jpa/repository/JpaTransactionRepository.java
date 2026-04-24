@@ -1,8 +1,8 @@
-package cat.gencat.agaur.hexastock.adapter.out.persistence.jpa.repository;
+package cat.gencat.agaur.hexastock.portfolios.adapter.out.persistence.jpa.repository;
 
-import cat.gencat.agaur.hexastock.adapter.out.persistence.jpa.entity.TransactionJpaEntity;
-import cat.gencat.agaur.hexastock.adapter.out.persistence.jpa.mapper.TransactionMapper;
-import cat.gencat.agaur.hexastock.adapter.out.persistence.jpa.springdatarepository.JpaTransactionSpringDataRepository;
+import cat.gencat.agaur.hexastock.portfolios.adapter.out.persistence.jpa.entity.TransactionJpaEntity;
+import cat.gencat.agaur.hexastock.portfolios.adapter.out.persistence.jpa.mapper.TransactionMapper;
+import cat.gencat.agaur.hexastock.portfolios.adapter.out.persistence.jpa.springdatarepository.JpaTransactionSpringDataRepository;
 import cat.gencat.agaur.hexastock.portfolios.application.port.out.TransactionPort;
 import cat.gencat.agaur.hexastock.portfolios.model.portfolio.PortfolioId;
 import cat.gencat.agaur.hexastock.portfolios.model.transaction.Transaction;

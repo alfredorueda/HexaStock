@@ -1,4 +1,4 @@
-package cat.gencat.agaur.hexastock.adapter.out.persistence.jpa.repository;
+package cat.gencat.agaur.hexastock.portfolios.adapter.out.persistence.jpa.repository;
 
 import cat.gencat.agaur.hexastock.adapter.out.persistence.jpa.SharedMySQLContainer;
 import cat.gencat.agaur.hexastock.portfolios.application.port.out.AbstractPortfolioPortContractTest;

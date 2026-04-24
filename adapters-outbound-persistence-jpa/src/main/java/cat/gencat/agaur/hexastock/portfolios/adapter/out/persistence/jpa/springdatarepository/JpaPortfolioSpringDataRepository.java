@@ -1,6 +1,6 @@
-package cat.gencat.agaur.hexastock.adapter.out.persistence.jpa.springdatarepository;
+package cat.gencat.agaur.hexastock.portfolios.adapter.out.persistence.jpa.springdatarepository;
 
-import cat.gencat.agaur.hexastock.adapter.out.persistence.jpa.entity.PortfolioJpaEntity;
+import cat.gencat.agaur.hexastock.portfolios.adapter.out.persistence.jpa.entity.PortfolioJpaEntity;
 import jakarta.persistence.LockModeType;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Lock;

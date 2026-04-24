@@ -1,8 +1,8 @@
-package cat.gencat.agaur.hexastock.adapter.out.persistence.jpa.repository;
+package cat.gencat.agaur.hexastock.portfolios.adapter.out.persistence.jpa.repository;
 
-import cat.gencat.agaur.hexastock.adapter.out.persistence.jpa.entity.PortfolioJpaEntity;
-import cat.gencat.agaur.hexastock.adapter.out.persistence.jpa.mapper.PortfolioMapper;
-import cat.gencat.agaur.hexastock.adapter.out.persistence.jpa.springdatarepository.JpaPortfolioSpringDataRepository;
+import cat.gencat.agaur.hexastock.portfolios.adapter.out.persistence.jpa.entity.PortfolioJpaEntity;
+import cat.gencat.agaur.hexastock.portfolios.adapter.out.persistence.jpa.mapper.PortfolioMapper;
+import cat.gencat.agaur.hexastock.portfolios.adapter.out.persistence.jpa.springdatarepository.JpaPortfolioSpringDataRepository;
 import cat.gencat.agaur.hexastock.portfolios.application.exception.PortfolioNotFoundException;
 import cat.gencat.agaur.hexastock.portfolios.application.port.out.PortfolioPort;
 import cat.gencat.agaur.hexastock.portfolios.model.portfolio.Portfolio;

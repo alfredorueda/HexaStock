@@ -1,4 +1,4 @@
-package cat.gencat.agaur.hexastock.adapter.out.persistence.jpa.entity;
+package cat.gencat.agaur.hexastock.portfolios.adapter.out.persistence.jpa.entity;
 
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;

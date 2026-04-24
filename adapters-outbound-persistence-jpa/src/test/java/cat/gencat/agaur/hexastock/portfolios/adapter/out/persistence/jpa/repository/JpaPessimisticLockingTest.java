@@ -1,8 +1,8 @@
-package cat.gencat.agaur.hexastock.adapter.out.persistence.jpa.repository;
+package cat.gencat.agaur.hexastock.portfolios.adapter.out.persistence.jpa.repository;
 
 import cat.gencat.agaur.hexastock.adapter.out.persistence.jpa.SharedMySQLContainer;
-import cat.gencat.agaur.hexastock.adapter.out.persistence.jpa.entity.PortfolioJpaEntity;
-import cat.gencat.agaur.hexastock.adapter.out.persistence.jpa.springdatarepository.JpaPortfolioSpringDataRepository;
+import cat.gencat.agaur.hexastock.portfolios.adapter.out.persistence.jpa.entity.PortfolioJpaEntity;
+import cat.gencat.agaur.hexastock.portfolios.adapter.out.persistence.jpa.springdatarepository.JpaPortfolioSpringDataRepository;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
