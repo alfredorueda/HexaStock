@@ -40,7 +40,7 @@ import static org.mockito.Mockito.verify;
  *   <li>the publisher port is correctly wired to Spring's {@code ApplicationEventPublisher};</li>
  *   <li>the {@link org.springframework.modulith.events.ApplicationModuleListener} resolves
  *       and invokes asynchronously after commit; and</li>
- *   <li>the default {@link InMemoryNotificationRecipientResolver} produces a recipient with
+ *   <li>the default {@link CompositeNotificationRecipientResolver} produces a recipient with
  *       at least one logging destination, even when no Telegram chat id is configured.</li>
  * </ul>
  */
