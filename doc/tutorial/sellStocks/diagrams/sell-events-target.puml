@@ -1,0 +1,49 @@
+@startuml sell-events-target
+title Sell Stocks — Target Implementation (event-driven, Modulith listener)
+
+skinparam shadowing false
+skinparam backgroundColor #FFFFFF
+skinparam SequenceArrowColor #1f4e79
+skinparam ParticipantBorderColor #1f4e79
+skinparam ParticipantBackgroundColor #e7eef7
+
+actor "REST Client" as client
+participant "PortfolioRestController" as ctrl
+participant "PortfolioStockOperationsService\n(@Transactional)" as svc
+participant "PortfolioPort" as portfolioRepo
+participant "MarketDataPort" as feed
+participant "DomainEventPublisher" as pub
+participant "Spring\nApplicationEventPublisher" as spring
+participant "SaleTransactionRecordingListener\n@ApplicationModuleListener" as listener
+participant "TransactionPort" as txRepo
+
+client -> ctrl : POST /portfolios/{id}/sell
+ctrl -> svc : sellStock(portfolioId, ticker, qty)
+activate svc
+svc -> portfolioRepo : getPortfolioById(id)
+portfolioRepo --> svc : Portfolio
+svc -> feed : fetchStockPrice(ticker)
+feed --> svc : StockPrice
+svc -> svc : portfolio.sellStock(...) (FIFO)
+svc -> portfolioRepo : savePortfolio(portfolio)
+svc -> pub : publish(StockSoldEvent)
+pub -> spring : publishEvent(...)
+deactivate svc
+ctrl --> client : 200 OK SellResult
+
+== Transaction commits ==
+
+spring -> listener : on(StockSoldEvent)
+activate listener
+listener -> txRepo : save(Transaction.createSale(...))
+deactivate listener
+
+note right of listener
+  AFTER_COMMIT + REQUIRES_NEW + async.
+  Adding a new reaction (audit, broker,
+  email, BI feed) is a NEW listener
+  on the SAME event — no edits to
+  PortfolioStockOperationsService.
+end note
+
+@enduml

@@ -1,0 +1,55 @@
+@startuml 02-maven-multimodule
+title HexaStock — Maven Multi-Module Layout
+
+skinparam shadowing false
+skinparam backgroundColor #FFFFFF
+skinparam roundCorner 8
+skinparam ArrowColor #1f4e79
+skinparam ComponentBorderColor #1f4e79
+skinparam ComponentBackgroundColor #e7eef7
+
+[domain]                                     as domain
+[application]                                as app
+[adapters-inbound-rest]                      as rest
+[adapters-inbound-telegram]                  as tg
+[adapters-outbound-persistence-jpa]          as jpa
+[adapters-outbound-persistence-mongodb]      as mongo
+[adapters-outbound-market]                   as market
+[adapters-outbound-notification]             as notif
+[bootstrap\n(Spring Boot main)]              as boot
+
+app    --> domain
+rest   --> app
+tg     --> app
+jpa    --> app
+mongo  --> app
+market --> app
+notif  --> app
+boot   --> rest
+boot   --> tg
+boot   --> jpa
+boot   --> mongo
+boot   --> market
+boot   --> notif
+
+note right of domain
+  Pure Java. No Spring, no Jakarta,
+  no JPA, no Jackson. Only the
+  business model and exceptions.
+end note
+
+note right of app
+  Use cases + ports (in/out).
+  No Spring annotations
+  (ADR-007). Only @Transactional
+  from jakarta is allowed.
+end note
+
+note bottom of boot
+  The ONLY Spring Boot module.
+  Holds @Configuration, the main
+  class, and the Spring Modulith
+  @ApplicationModule declarations.
+end note
+
+@enduml

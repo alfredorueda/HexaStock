@@ -1,0 +1,42 @@
+@startuml sell-events-current
+title Sell Stocks — Current Implementation (synchronous, no domain events)
+
+skinparam shadowing false
+skinparam backgroundColor #FFFFFF
+skinparam SequenceArrowColor #1f4e79
+skinparam ParticipantBorderColor #1f4e79
+skinparam ParticipantBackgroundColor #e7eef7
+
+actor "REST Client" as client
+participant "PortfolioRestController" as ctrl
+participant "PortfolioStockOperationsService\n(@Transactional)" as svc
+participant "PortfolioPort\n(JPA / Mongo)" as portfolioRepo
+participant "MarketDataPort" as feed
+participant "TransactionPort\n(JPA / Mongo)" as txRepo
+
+client -> ctrl : POST /portfolios/{id}/sell
+ctrl -> svc : sellStock(portfolioId, ticker, qty)
+activate svc
+svc -> portfolioRepo : getPortfolioById(id)
+portfolioRepo --> svc : Portfolio
+svc -> feed : fetchStockPrice(ticker)
+feed --> svc : StockPrice
+svc -> svc : portfolio.sellStock(...) (FIFO)
+svc -> portfolioRepo : savePortfolio(portfolio)
+note right of svc #fff3cd
+  Side effect coupled
+  to the use case:
+end note
+svc -> txRepo : save(Transaction.createSale(...))
+deactivate svc
+ctrl --> client : 200 OK SellResult
+
+note over svc
+  Adding a new reaction (audit log,
+  email, broker integration, ...)
+  means modifying this method.
+  That is exactly what the exercise
+  asks participants to fix.
+end note
+
+@enduml

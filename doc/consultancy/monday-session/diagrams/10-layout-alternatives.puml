@@ -1,0 +1,80 @@
+@startuml 10-layout-alternatives
+title Layout Alternatives — Side-by-Side
+
+skinparam shadowing false
+skinparam backgroundColor #FFFFFF
+skinparam roundCorner 6
+skinparam Legend {
+  BackgroundColor #f4f7fb
+  BorderColor #b3c4d9
+}
+
+' ---------- Variant A: Layered ----------
+package "A. Layered (single Maven module)" as A #f8e9e9 {
+  package "controller/" #FFFFFF
+  package "service/" #FFFFFF
+  package "repository/" #FFFFFF
+  package "model/" #FFFFFF
+}
+
+' ---------- Variant B: Package-by-Feature ----------
+package "B. Package-by-feature (single module)" as B #fff3cd {
+  package "portfolios/" as Bp #FFFFFF {
+    package "controller / service / repo / model" as Bpfeat #FFFFFF
+  }
+  package "watchlists/" as Bw #FFFFFF {
+    package "controller / service / repo / model" as Bwfeat #FFFFFF
+  }
+}
+
+' ---------- Variant C: BC × hexagonal mini-modules ----------
+package "C. Per-BC mini-hexagons (one Maven module per BC)" as C #d4edda {
+  package "portfolios-domain / -application / -adapters" #FFFFFF
+  package "watchlists-domain / -application / -adapters" #FFFFFF
+}
+
+' ---------- Variant D: HexaStock today ----------
+package "D. HexaStock today — Hex-by-Layer × BC-by-Package" as D #e7eef7 {
+  package "domain/        (cross-cut by BC packages inside)" #FFFFFF
+  package "application/   (cross-cut by BC packages inside)" #FFFFFF
+  package "adapters-*/    (cross-cut by BC packages inside)" #FFFFFF
+  package "bootstrap/     (Spring + @ApplicationModule)" #FFFFFF
+}
+
+note bottom of A
+  + Cheapest start
+  + Familiar to most
+  - Hides bounded contexts
+  - Cyclic deps grow silently
+end note
+
+note bottom of B
+  + Cohesion improves
+  + Easy refactor target
+  - No build-time enforcement
+    of layer or BC boundaries
+  - Spring leaks into domain
+end note
+
+note bottom of C
+  + Strongest BC isolation
+  + Independent build/test
+  - High Maven module count
+  - Cross-BC value-object reuse
+    becomes painful
+  - Risk of premature splitting
+end note
+
+note bottom of D
+  + Hexagonal layering enforced
+    by Maven module dependencies
+  + BC boundaries enforced by
+    Spring Modulith at build time
+  + Single deployable, simple ops
+  - Each BC is sliced across
+    several Maven modules
+  - Newcomers need a mental
+    map (this document!)
+end note
+
+@enduml

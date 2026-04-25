@@ -1,0 +1,66 @@
+@startuml 01-architecture-overview
+title HexaStock — High-level Architecture Overview
+
+skinparam shadowing false
+skinparam backgroundColor #FFFFFF
+skinparam roundCorner 10
+skinparam defaultFontName "Helvetica"
+skinparam ArrowColor #1f4e79
+skinparam ComponentBorderColor #1f4e79
+skinparam ComponentBackgroundColor #e7eef7
+skinparam PackageBackgroundColor #f4f7fb
+skinparam PackageBorderColor #b3c4d9
+
+actor "REST Client\n(Postman / curl)" as client
+actor "Telegram User" as tg
+
+package "HexaStock — single Spring Boot deployable" as boot {
+
+  package "Inbound Adapters" as inbound {
+    [REST Controllers\n(adapters-inbound-rest)] as rest
+    [Telegram Bot\n(adapters-inbound-telegram)] as bot
+    [Schedulers\n(@Scheduled)] as sched
+  }
+
+  package "Application Modules\n(Spring Modulith)" as modules {
+    [Portfolios] as portfolios
+    [Market Data] as marketdata
+    [Watchlists /\nMarket Sentinel] as watchlists
+    [Notifications] as notifications
+  }
+
+  package "Outbound Adapters" as outbound {
+    [JPA / MySQL] as jpa
+    [MongoDB] as mongo
+    [Finnhub /\nAlpha Vantage REST] as feed
+    [Telegram /\nLogging Sender] as senders
+  }
+}
+
+client --> rest
+tg --> bot
+sched --> watchlists : detectBuySignals()
+rest --> portfolios
+rest --> marketdata
+rest --> watchlists
+bot --> portfolios
+
+portfolios --> marketdata : MarketDataPort
+watchlists --> marketdata : MarketDataPort
+watchlists ..> notifications : <<WatchlistAlertTriggeredEvent>>\n(in-process domain event)
+
+portfolios --> jpa
+portfolios --> mongo
+watchlists --> jpa
+watchlists --> mongo
+marketdata --> feed
+notifications --> senders
+
+note right of modules
+  Each module is a Spring Modulith
+  application module with explicit
+  allowed dependencies, verified at
+  build time by ModulithVerificationTest.
+end note
+
+@enduml

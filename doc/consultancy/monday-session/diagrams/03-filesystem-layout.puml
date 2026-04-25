@@ -1,0 +1,63 @@
+@startuml 03-filesystem-layout
+title HexaStock — Filesystem Layout (current state)
+
+skinparam shadowing false
+skinparam backgroundColor #FFFFFF
+skinparam Legend {
+  BackgroundColor #f4f7fb
+  BorderColor #b3c4d9
+}
+
+legend top left
+  | Color | Meaning |
+  |<#e7eef7>| Maven module root |
+  |<#fff3cd>| Bounded context package (Modulith module) |
+  |<#d4edda>| Hexagonal layer subpackage |
+endlegend
+
+package "HexaStock/" as root #FFFFFF {
+
+  package "domain/" as domain #e7eef7 {
+    package "cat.gencat.agaur.hexastock" {
+      package "model/ (cross-cutting VOs: Money, Price, Ticker)" as cross #d4edda
+      package "portfolios/" as p_dom #fff3cd {
+        package "portfolios.model.portfolio" #d4edda
+        package "portfolios.model.transaction" #d4edda
+      }
+      package "marketdata/" as m_dom #fff3cd {
+        package "marketdata.model.market" #d4edda
+      }
+      package "watchlists/" as w_dom #fff3cd {
+        package "watchlists.model.watchlist" #d4edda
+      }
+    }
+  }
+
+  package "application/" as app #e7eef7 {
+    package "cat.gencat.agaur.hexastock" {
+      package "portfolios/" as p_app #fff3cd {
+        package "application.service" #d4edda
+        package "application.port.in" #d4edda
+        package "application.port.out" #d4edda
+      }
+      package "marketdata/" as m_app #fff3cd
+      package "watchlists/" as w_app #fff3cd
+      package "application.port.out\n(DomainEventPublisher)" as cross_app #d4edda
+    }
+  }
+
+  package "adapters-* (rest, jpa, mongo, market, notification, telegram)" as adapters #e7eef7
+
+  package "bootstrap/" as boot #e7eef7 {
+    package "@SpringBootApplication\n+ @ApplicationModule\npackage-info.java mirrors" as bootcfg #d4edda
+  }
+}
+
+note right of root
+  Each Modulith module (yellow) cuts vertically
+  through ALL Maven modules. The package name is
+  the module identity; the Maven module is the
+  hexagonal layer.
+end note
+
+@enduml

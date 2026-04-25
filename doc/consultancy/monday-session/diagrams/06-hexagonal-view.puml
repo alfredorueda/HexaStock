@@ -1,0 +1,56 @@
+@startuml 06-hexagonal-view
+title HexaStock — Hexagonal (Ports & Adapters) View, per Bounded Context
+
+skinparam shadowing false
+skinparam backgroundColor #FFFFFF
+skinparam roundCorner 10
+skinparam ArrowColor #1f4e79
+
+package "Inbound (Driver) side" as inbound #e7eef7 {
+  [REST Controller]     as rest
+  [Scheduler]           as sched
+  [Telegram Bot]        as tg
+}
+
+hexagon "Use Case\n(Application Service)\nimplements <<port.in>>" as usecase #fff3cd
+
+package "Domain" as domain #d4edda {
+  [Aggregate Root\n(Portfolio / Watchlist)] as agg
+  [Value Objects\n(Money, Ticker, Price)] as vo
+}
+
+package "Outbound (Driven) side" as outbound #e7eef7 {
+  [JPA Adapter]          as jpa
+  [Mongo Adapter]        as mongo
+  [Market Data Adapter]  as feed
+  [Event Publisher\nAdapter]    as ev
+  [Notification Sender]  as sender
+}
+
+interface "<<port.in>>\nUseCase"          as portIn
+interface "<<port.out>>\nRepositoryPort"  as portRepo
+interface "<<port.out>>\nMarketDataPort"  as portFeed
+interface "<<port.out>>\nDomainEventPublisher" as portEv
+
+rest  --> portIn
+sched --> portIn
+tg    --> portIn
+portIn   ..> usecase
+usecase   --> agg
+usecase   --> portRepo
+usecase   --> portFeed
+usecase   --> portEv
+portRepo  ..> jpa
+portRepo  ..> mongo
+portFeed  ..> feed
+portEv    ..> ev
+ev        --> sender : in-process\n@ApplicationModuleListener
+
+note right of usecase
+  The hexagon is per-BC.
+  HexaStock currently has
+  4 hexagons (one per BC),
+  not one global hexagon.
+end note
+
+@enduml

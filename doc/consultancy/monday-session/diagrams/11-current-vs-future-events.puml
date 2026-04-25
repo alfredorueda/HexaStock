@@ -1,0 +1,43 @@
+@startuml 11-current-vs-future-events
+title Domain Events — Current (in-process) vs Possible Production Evolutions
+
+skinparam shadowing false
+skinparam backgroundColor #FFFFFF
+skinparam ArrowColor #1f4e79
+
+package "TODAY — in-process, single JVM" as today #d4edda {
+  [Publisher\n(MarketSentinelService)] as P1
+  [Spring\nApplicationEventPublisher] as S1
+  [Listener\n@ApplicationModuleListener\nAFTER_COMMIT, async] as L1
+  P1 --> S1
+  S1 --> L1
+}
+
+package "EVOLUTION 1 — Modulith Externalization\n(spring-modulith-events-jpa, outbox)" as evo1 #fff3cd {
+  [Publisher] as P2
+  [Spring Modulith\nEvent Registry\n(JPA outbox table)] as Reg
+  [Externalizer\n(adapter to broker)] as Ext
+  [In-process Listener] as L2a
+  [Out-of-process\nConsumer] as L2b
+  P2 --> Reg : same TX as aggregate write
+  Reg --> L2a : in-process delivery
+  Reg --> Ext : after commit
+  Ext --> L2b : Kafka / RabbitMQ / SNS
+}
+
+package "EVOLUTION 2 — Service split\n(physical extraction)" as evo2 #f8e9e9 {
+  [Watchlists service] as ws
+  [Notifications service] as ns
+  ws --> ns : Kafka topic\n'watchlist.alert.triggered.v1'
+  note bottom of ws
+    Contract migrated from POJO record
+    to Avro / Protobuf / JSON Schema.
+    Externalization annotation moved
+    to the same event class.
+  end note
+}
+
+today -[hidden]> evo1
+evo1  -[hidden]> evo2
+
+@enduml

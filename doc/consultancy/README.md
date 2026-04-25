@@ -45,3 +45,15 @@ Every claim in the pack is traceable to a concrete artefact in the repository:
 - The historical, sequenced extraction record is in [MODULITH-BOUNDED-CONTEXT-INVENTORY.md](../architecture/MODULITH-BOUNDED-CONTEXT-INVENTORY.md).
 
 When in doubt, the source code is the source of truth; the documents in this pack only summarise and explain it.
+
+---
+
+## Companion folder — focused training material
+
+A dedicated, self-contained training folder for the upcoming Monday consultancy session lives at [`monday-session/`](monday-session/README.md). It contains:
+
+- An [architecture overview](monday-session/00-ARCHITECTURE-OVERVIEW.md), [filesystem & Maven walk-through](monday-session/01-FILESYSTEM-AND-MAVEN-STRUCTURE.md), [Watchlists deep dive](monday-session/02-WATCHLISTS-EVENT-FLOW-DEEP-DIVE.md), [layout-alternatives comparison](monday-session/03-LAYOUT-ALTERNATIVES.md) and [production-evolution discussion](monday-session/04-PRODUCTION-EVOLUTION.md).
+- An [instructor guide](monday-session/05-INSTRUCTOR-GUIDE.md) and a [structured slide-deck specification](monday-session/06-SLIDE-DECK-SPEC.md).
+- 11 PlantUML sources, each rendered to PNG and SVG under [`monday-session/diagrams/`](monday-session/diagrams/).
+
+That folder also publishes a focused [documentation map and recommended reading order](monday-session/README.md) for the experimental branch only.

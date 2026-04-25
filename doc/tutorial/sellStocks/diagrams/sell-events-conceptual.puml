@@ -1,0 +1,47 @@
+@startuml sell-events-conceptual
+title Sell Stocks — Conceptual: One Business Fact, Many Reactions
+
+skinparam shadowing false
+skinparam backgroundColor #FFFFFF
+skinparam ArrowColor #1f4e79
+skinparam ComponentBorderColor #1f4e79
+skinparam ComponentBackgroundColor #fff3cd
+
+[PortfolioStockOperationsService\n.sellStock(...)] as core #d4edda
+[StockSoldEvent] as evt #e7eef7
+
+[SaleTransactionRecordingListener\n(in-module)] as L1
+[AuditTrailListener\n(future)] as L2
+[BrokerSyncListener\n(future, out-of-process)] as L3
+[BiFeedListener\n(future)] as L4
+
+core --> evt : publish (after FIFO write)
+evt --> L1
+evt ..> L2
+evt ..> L3
+evt ..> L4
+
+note right of evt
+  The event is the contract.
+  Any number of listeners can
+  react. The use case never
+  needs to know who they are.
+end note
+
+note bottom of L1
+  Mandatory in this exercise.
+  Replaces the synchronous
+  transactionPort.save(...) call
+  that today lives inside
+  sellStock().
+end note
+
+note bottom of L3
+  Illustrative. In a real
+  production system this would
+  likely consume an externalized
+  version of the same event
+  via Kafka.
+end note
+
+@enduml

@@ -1,0 +1,54 @@
+@startuml 07-watchlist-sentinel-sequence
+title Watchlists / Market Sentinel — End-to-End Sequence
+
+skinparam shadowing false
+skinparam backgroundColor #FFFFFF
+skinparam SequenceArrowColor #1f4e79
+skinparam SequenceLifeLineBorderColor #1f4e79
+skinparam ParticipantBorderColor #1f4e79
+skinparam ParticipantBackgroundColor #e7eef7
+skinparam NoteBorderColor #b3c4d9
+skinparam NoteBackgroundColor #fff8e1
+
+participant "Scheduler\n(@Scheduled)" as sched
+participant "MarketSentinelService\n(watchlists)" as sentinel
+participant "WatchlistQueryPort\n(read side)" as query
+participant "MarketDataPort\n(marketdata)" as feed
+participant "DomainEventPublisher\n(application port out)" as pub
+participant "Spring\nApplicationEventPublisher" as spring
+participant "WatchlistAlertNotificationListener\n(notifications)\n@ApplicationModuleListener" as listener
+participant "NotificationSender\n(Telegram / Logging)" as sender
+
+sched -> sentinel : detectBuySignals()
+activate sentinel
+sentinel -> query : findDistinctTickersInActiveWatchlists()
+query --> sentinel : Set<Ticker>
+sentinel -> feed : fetchStockPrice(tickers)
+feed --> sentinel : Map<Ticker, StockPrice>
+loop for each (ticker, price)
+  sentinel -> query : findTriggeredAlerts(ticker, currentPrice)
+  query --> sentinel : List<TriggeredAlertView>
+  loop for each triggered alert
+    sentinel -> pub : publish(WatchlistAlertTriggeredEvent)
+    pub -> spring : publishEvent(...)
+  end
+end
+deactivate sentinel
+
+== Transaction commits ==
+
+spring -> listener : on(WatchlistAlertTriggeredEvent)
+note right of listener
+  @ApplicationModuleListener =
+    @TransactionalEventListener(AFTER_COMMIT)
+  + @Async
+  + @Transactional(REQUIRES_NEW)
+end note
+activate listener
+listener -> listener : recipientResolver.resolve(userId)
+loop for each destination
+  listener -> sender : send(destination, event)
+end
+deactivate listener
+
+@enduml

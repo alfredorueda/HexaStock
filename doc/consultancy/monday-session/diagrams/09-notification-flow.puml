@@ -1,0 +1,46 @@
+@startuml 09-notification-flow
+title Notifications Module — Internal Dispatch Flow
+
+skinparam shadowing false
+skinparam backgroundColor #FFFFFF
+skinparam ArrowColor #1f4e79
+skinparam ParticipantBackgroundColor #e7eef7
+skinparam ParticipantBorderColor #1f4e79
+
+participant "WatchlistAlertNotificationListener" as L
+participant "CompositeNotificationRecipientResolver" as Resolver
+participant "TelegramNotificationDestinationProvider" as TgProv
+participant "LoggingNotificationDestinationProvider"  as LogProv
+participant "TelegramNotificationSenderAdapter"       as TgSender
+participant "LoggingNotificationSenderAdapter"         as LogSender
+
+[-> L : on(WatchlistAlertTriggeredEvent)
+activate L
+L -> Resolver : resolve(userId)
+Resolver -> TgProv : destinationsFor(userId)
+TgProv  --> Resolver : [TelegramDestination?]
+Resolver -> LogProv : destinationsFor(userId)
+LogProv --> Resolver : [LoggingDestination]
+Resolver --> L : NotificationRecipient(destinations[])
+
+loop for each destination
+  alt destination supported by TelegramSender
+    L -> TgSender : send(destination, event)
+  else destination supported by LoggingSender
+    L -> LogSender : send(destination, event)
+  end
+end
+deactivate L
+
+note right of L
+  Senders are injected as a
+  List<NotificationSender>; the
+  listener picks the first sender
+  whose supports(destination)
+  returns true.
+  Telegram sender is enabled by
+  the 'telegram-notifications'
+  profile only.
+end note
+
+@enduml

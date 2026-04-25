@@ -1,0 +1,41 @@
+@startuml 04-modulith-modules
+title HexaStock — Spring Modulith Application Modules
+
+skinparam shadowing false
+skinparam backgroundColor #FFFFFF
+skinparam ArrowColor #1f4e79
+skinparam ComponentBorderColor #1f4e79
+skinparam ComponentBackgroundColor #fff3cd
+skinparam ComponentBackgroundColor<<leaf>> #d4edda
+
+component "marketdata" <<leaf>> as marketdata
+component "portfolios" as portfolios
+component "watchlists" as watchlists
+component "notifications" as notifications
+
+portfolios     --> marketdata : allowedDependencies\n= {marketdata::model,\n   marketdata::port-out}
+watchlists     --> marketdata : allowedDependencies\n= {marketdata::model}
+notifications  --> watchlists : allowedDependencies\n= {watchlists, marketdata::model}\n(consumes domain event)
+notifications  ..> marketdata : Ticker VO inside event payload
+
+note bottom of marketdata
+  Leaf module. No outgoing
+  cross-module dependencies.
+end note
+
+note right of notifications
+  Only module that knows about
+  channels (Telegram, logging, ...).
+  Subscribes to WatchlistAlertTriggeredEvent
+  via @ApplicationModuleListener.
+end note
+
+note left of portfolios
+  Owns Portfolio aggregate,
+  FIFO trading orchestration,
+  Transaction ledger.
+  Does NOT depend on watchlists
+  or notifications.
+end note
+
+@enduml

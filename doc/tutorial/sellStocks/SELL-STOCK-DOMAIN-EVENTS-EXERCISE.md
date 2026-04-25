@@ -8,6 +8,18 @@
 
 ---
 
+## At a glance
+
+| Idea | Diagram |
+|---|---|
+| **Conceptual** — one business fact, many reactions | [![Conceptual diagram](diagrams/Rendered/sell-events-conceptual.png)](diagrams/Rendered/sell-events-conceptual.svg) |
+| **Today** — synchronous, two persistence side effects in one method | [![Current sell flow](diagrams/Rendered/sell-events-current.png)](diagrams/Rendered/sell-events-current.svg) |
+| **Target** — event-driven, listener writes the transaction | [![Target sell flow](diagrams/Rendered/sell-events-target.png)](diagrams/Rendered/sell-events-target.svg) |
+
+The companion documentation set for the upcoming consultancy session lives under [doc/consultancy/monday-session/](../../consultancy/monday-session/README.md).
+
+---
+
 ## 1. Why this exercise exists
 
 HexaStock already contains one fully working domain-event flow: the *Watchlist / Market Sentinel → Notifications* pipeline. That pipeline is documented in [doc/tutorial/watchlists/WATCHLISTS-MARKET-SENTINEL.md](../watchlists/WATCHLISTS-MARKET-SENTINEL.md) and dissected end-to-end in the consultancy briefing chapter [04-DOMAIN-EVENTS-DEEP-DIVE.md](../../consultancy/04-DOMAIN-EVENTS-DEEP-DIVE.md).

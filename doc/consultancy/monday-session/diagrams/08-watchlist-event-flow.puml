@@ -1,0 +1,50 @@
+@startuml 08-watchlist-event-flow
+title Watchlist Alert Event Flow — Component View
+
+skinparam shadowing false
+skinparam backgroundColor #FFFFFF
+skinparam ArrowColor #1f4e79
+skinparam Component {
+  BorderColor #1f4e79
+  BackgroundColor #e7eef7
+}
+
+package "watchlists module" as W #fff3cd {
+  [MarketSentinelService] as sentinel
+  [DomainEventPublisher\n(port out)] as port
+  [WatchlistAlertTriggeredEvent\n(record)] as event
+}
+
+package "bootstrap module" as B #e7eef7 {
+  [SpringDomainEventPublisher\n(@Component)] as adapter
+  [Spring\nApplicationEventPublisher] as spring
+}
+
+package "notifications module" as N #fff3cd {
+  [WatchlistAlertNotificationListener\n@ApplicationModuleListener] as listener
+  [NotificationRecipientResolver] as resolver
+  [NotificationSender\n(Telegram / Logging)] as sender
+}
+
+sentinel --> event : creates
+sentinel --> port : publish(event)
+port ..> adapter : <<implements>>
+adapter --> spring : publishEvent(event)
+spring ..> listener : delivers AFTER_COMMIT,\nasync, REQUIRES_NEW
+listener --> resolver : resolve(userId)
+listener --> sender  : send(destination, event)
+
+note right of event
+  Pure POJO record.
+  No Spring, no JPA, no Jackson.
+  Carries ONLY business data;
+  channel info is resolved later.
+end note
+
+note bottom of adapter
+  The only Spring-aware piece
+  in the publication path.
+  Application stays Spring-free.
+end note
+
+@enduml

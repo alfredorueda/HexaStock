@@ -1,0 +1,47 @@
+@startuml 05-bounded-context-map
+title HexaStock — DDD Bounded Context Map
+
+skinparam shadowing false
+skinparam backgroundColor #FFFFFF
+skinparam ArrowColor #1f4e79
+skinparam Component {
+  BorderColor #1f4e79
+  BackgroundColor #fff3cd
+}
+
+rectangle "Portfolio Management\n(Portfolio, Lot, Transaction)" as portfolios
+rectangle "Market Data\n(Ticker, StockPrice)" as marketdata
+rectangle "Watchlists / Market Sentinel\n(Watchlist, AlertEntry)" as watchlists
+rectangle "Notifications\n(NotificationChannel,\nDestination, Sender)" as notifications
+
+portfolios     -> marketdata    : Customer / Supplier\n(MarketDataPort, Ticker)
+watchlists     -> marketdata    : Customer / Supplier\n(MarketDataPort, Ticker)
+watchlists     -> notifications : Published Language\n(WatchlistAlertTriggeredEvent)
+notifications  -> marketdata    : Conformist\n(reuses Ticker VO)
+
+note bottom of marketdata
+  Shared kernel candidate:
+  Ticker, StockPrice, Money are
+  consumed by every BC.
+end note
+
+note right of watchlists
+  Publishes domain events,
+  knows nothing about who
+  consumes them.
+end note
+
+note left of notifications
+  Anti-corruption layer absent
+  by design: today the upstream
+  event vocabulary is small and
+  stable enough to consume directly.
+end note
+
+legend bottom right
+  Relationship vocabulary follows
+  Eric Evans / Vaughn Vernon
+  Context Mapping conventions.
+endlegend
+
+@enduml
