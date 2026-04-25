@@ -36,9 +36,13 @@ become user-visible signals. That is the entire teaching value of the example.
 
 The flow is short enough to walk verbally during the demo:
 
-1. A scheduler (or the integration test) calls
-   `MarketSentinelService.detectBuySignals()`.
-2. The service reads, on a CQRS-style **read port**
+1. A driving adapter — the `MarketSentinelScheduler` (`@Scheduled`) or an
+   integration test — calls the **inbound port**
+   `MarketSentinelUseCase.detectBuySignals()`. The scheduler does **not**
+   know `MarketSentinelService` exists; that is the whole point of
+   hexagonal — every entry point (REST, scheduler, test) goes through a
+   port, and the port is implemented by the application service.
+2. The service implementation reads, on a CQRS-style **read port**
    (`WatchlistQueryPort.findDistinctTickersInActiveWatchlists()`), the set of
    tickers currently being watched.
 3. It calls `MarketDataPort.fetchStockPrice(tickers)`, returning a

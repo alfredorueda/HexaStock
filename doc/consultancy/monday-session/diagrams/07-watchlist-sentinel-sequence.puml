@@ -10,8 +10,9 @@ skinparam ParticipantBackgroundColor #e7eef7
 skinparam NoteBorderColor #b3c4d9
 skinparam NoteBackgroundColor #fff8e1
 
-participant "Scheduler\n(@Scheduled)" as sched
-participant "MarketSentinelService\n(watchlists)" as sentinel
+participant "Scheduler\n(@Scheduled)\n[driving adapter]" as sched
+participant "MarketSentinelUseCase\n(application port in)" as usecase
+participant "MarketSentinelService\n(watchlists)\nimplements UseCase" as sentinel
 participant "WatchlistQueryPort\n(read side)" as query
 participant "MarketDataPort\n(marketdata)" as feed
 participant "DomainEventPublisher\n(application port out)" as pub
@@ -19,7 +20,15 @@ participant "Spring\nApplicationEventPublisher" as spring
 participant "WatchlistAlertNotificationListener\n(notifications)\n@ApplicationModuleListener" as listener
 participant "NotificationSender\n(Telegram / Logging)" as sender
 
-sched -> sentinel : detectBuySignals()
+sched -> usecase : detectBuySignals()
+note right of sched
+  Driving adapter rule:
+  the scheduler depends on the
+  inbound port, not on the service.
+  Same shape as the REST controller.
+end note
+activate usecase
+usecase -> sentinel : detectBuySignals()
 activate sentinel
 sentinel -> query : findDistinctTickersInActiveWatchlists()
 query --> sentinel : Set<Ticker>
@@ -34,6 +43,7 @@ loop for each (ticker, price)
   end
 end
 deactivate sentinel
+deactivate usecase
 
 == Transaction commits ==
 
