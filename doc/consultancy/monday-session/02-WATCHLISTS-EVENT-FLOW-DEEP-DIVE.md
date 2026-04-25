@@ -34,6 +34,18 @@ become user-visible signals. That is the entire teaching value of the example.
 
 [![Watchlists / Market Sentinel sequence](diagrams/Rendered/07-watchlist-sentinel-sequence.png)](diagrams/Rendered/07-watchlist-sentinel-sequence.svg)
 
+The same hexagonal entry-point rule applies to the synchronous REST side.
+Diagram 12 shows a representative command (`POST /api/watchlists/{id}/alerts`)
+flowing through the **same kind of inbound port** the scheduler uses:
+
+[![Watchlists REST command sequence](diagrams/Rendered/12-watchlist-rest-sequence.png)](diagrams/Rendered/12-watchlist-rest-sequence.svg)
+
+Both pictures share a single rule: every driving adapter (REST controller,
+`@Scheduled` job, Telegram bot, integration test) talks to a `*UseCase`
+inbound port; the application service implements the port; the service in
+turn talks to the domain aggregate and to outbound ports. The two diagrams
+are deliberately drawn with the same vocabulary so the symmetry is visible.
+
 The flow is short enough to walk verbally during the demo:
 
 1. A driving adapter — the `MarketSentinelScheduler` (`@Scheduled`) or an

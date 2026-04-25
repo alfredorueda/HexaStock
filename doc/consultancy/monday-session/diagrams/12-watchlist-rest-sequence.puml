@@ -1,0 +1,92 @@
+@startuml 12-watchlist-rest-sequence
+title Watchlists / REST Command — End-to-End Sequence
+
+skinparam shadowing false
+skinparam backgroundColor #FFFFFF
+skinparam SequenceArrowColor #1f4e79
+skinparam SequenceLifeLineBorderColor #1f4e79
+skinparam ParticipantBorderColor #1f4e79
+skinparam ParticipantBackgroundColor #e7eef7
+skinparam NoteBorderColor #b3c4d9
+skinparam NoteBackgroundColor #fff8e1
+
+actor "REST Client\n(Postman / curl)" as client
+participant "WatchlistRestController\n[driving adapter]" as ctrl
+participant "WatchlistUseCase\n(application port in)" as usecase
+participant "WatchlistService\n(watchlists)\nimplements UseCase" as svc
+participant "WatchlistPort\n(application port out)" as portOut
+participant "JpaWatchlistAdapter\n[driven adapter]" as jpa
+database  "MySQL" as db
+
+client -> ctrl : POST /api/watchlists/{id}/alerts\n{ ticker, thresholdPrice }
+activate ctrl
+ctrl -> ctrl : map DTO -> domain VOs\n(Ticker, Money)
+
+ctrl -> usecase : addAlertEntry(id, ticker, threshold)
+note right of ctrl
+  Driving adapter rule
+  (same as the @Scheduled adapter in 07):
+  the controller depends on the
+  inbound port, not on the service.
+  REST, scheduler and tests all enter
+  through the same port.
+end note
+activate usecase
+
+usecase -> svc : addAlertEntry(...)
+activate svc
+svc -> portOut : getWatchlistById(id)
+portOut -> jpa : findById(id)
+jpa -> db : SELECT ...
+db --> jpa : row(s)
+jpa --> portOut : Optional<Watchlist>
+portOut --> svc : Optional<Watchlist>
+
+svc -> svc : watchlist.addAlert(ticker, threshold)
+note right of svc
+  All invariant checks live in
+  the aggregate (domain layer):
+  uniqueness of (ticker, threshold),
+  active-state guard, etc.
+end note
+
+svc -> portOut : saveWatchlist(watchlist)
+portOut -> jpa : save(entity)
+jpa -> db : UPDATE / INSERT
+db --> jpa : ok
+jpa --> portOut : ok
+portOut --> svc : ok
+
+svc --> usecase : updated Watchlist
+deactivate svc
+usecase --> ctrl : updated Watchlist
+deactivate usecase
+
+ctrl -> ctrl : WatchlistResponseDTO.from(watchlist)
+ctrl --> client : 200 OK\nWatchlistResponseDTO
+deactivate ctrl
+
+note over ctrl, jpa
+  Symmetry with diagram 07:
+  - Diagram 07: Scheduler (driving adapter) -> MarketSentinelUseCase (port-in) -> service.
+  - Diagram 12: Controller (driving adapter) -> WatchlistUseCase    (port-in) -> service.
+  Replace the controller by another driving adapter (a Telegram bot, a CLI,
+  another @Scheduled job, an integration test) and nothing changes
+  inside the hexagon -- that is the whole point of ports & adapters.
+end note
+
+note over portOut, jpa
+  Today there is one inbound port
+  (WatchlistUseCase, command side)
+  and one outbound port
+  (WatchlistPort, CRUD).
+  A read-side port (WatchlistQueryPort)
+  exists for the sentinel's projections.
+  If a query API is added later we can
+  split the inbound port into
+  WatchlistCommandUseCase /
+  WatchlistQueryUseCase without
+  touching the controller's contract.
+end note
+
+@enduml

@@ -23,7 +23,7 @@
 | 5 | [04-PRODUCTION-EVOLUTION.md](04-PRODUCTION-EVOLUTION.md) | Main doc | Realistic evolution paths beyond the current in-process domain events: outbox, externalisation, eventual extraction. |
 | 6 | [05-INSTRUCTOR-GUIDE.md](05-INSTRUCTOR-GUIDE.md) | Teaching | Practical guide for running the Monday session: agenda, talking points, demo sequence, discussion prompts, exercise flow. |
 | 7 | [06-SLIDE-DECK-SPEC.md](06-SLIDE-DECK-SPEC.md) | Teaching | Structured, AI-feedable slide-by-slide specification. |
-| 8 | [diagrams/](diagrams/) | Sources | 11 PlantUML sources for this folder, each rendered to PNG and SVG under `diagrams/Rendered/`. |
+| 8 | [diagrams/](diagrams/) | Sources | 12 PlantUML sources for this folder, each rendered to PNG and SVG under `diagrams/Rendered/`. |
 
 The Sell Stocks event-driven exercise also gets three new diagrams — they live with the
 existing tutorial under [`doc/tutorial/sellStocks/diagrams/`](../../tutorial/sellStocks/diagrams/),
@@ -59,6 +59,7 @@ All diagram sources are PlantUML. Each `.puml` has a sibling `Rendered/<name>.sv
 | 9 | [09-notification-flow.puml](diagrams/09-notification-flow.puml) | [PNG](diagrams/Rendered/09-notification-flow.png) · [SVG](diagrams/Rendered/09-notification-flow.svg) |
 | 10 | [10-layout-alternatives.puml](diagrams/10-layout-alternatives.puml) | [PNG](diagrams/Rendered/10-layout-alternatives.png) · [SVG](diagrams/Rendered/10-layout-alternatives.svg) |
 | 11 | [11-current-vs-future-events.puml](diagrams/11-current-vs-future-events.puml) | [PNG](diagrams/Rendered/11-current-vs-future-events.png) · [SVG](diagrams/Rendered/11-current-vs-future-events.svg) |
+| 12 | [12-watchlist-rest-sequence.puml](diagrams/12-watchlist-rest-sequence.puml) | [PNG](diagrams/Rendered/12-watchlist-rest-sequence.png) · [SVG](diagrams/Rendered/12-watchlist-rest-sequence.svg) |
 | S1 | [sell-events-current.puml](../../tutorial/sellStocks/diagrams/sell-events-current.puml) | [PNG](../../tutorial/sellStocks/diagrams/Rendered/sell-events-current.png) · [SVG](../../tutorial/sellStocks/diagrams/Rendered/sell-events-current.svg) |
 | S2 | [sell-events-target.puml](../../tutorial/sellStocks/diagrams/sell-events-target.puml) | [PNG](../../tutorial/sellStocks/diagrams/Rendered/sell-events-target.png) · [SVG](../../tutorial/sellStocks/diagrams/Rendered/sell-events-target.svg) |
 | S3 | [sell-events-conceptual.puml](../../tutorial/sellStocks/diagrams/sell-events-conceptual.puml) | [PNG](../../tutorial/sellStocks/diagrams/Rendered/sell-events-conceptual.png) · [SVG](../../tutorial/sellStocks/diagrams/Rendered/sell-events-conceptual.svg) |
