@@ -239,9 +239,18 @@ docker run --rm --platform linux/amd64 -v "${REPO_ROOT}:/data" -w /data "${PANDO
   "doc/consultancy/monday-session/reading-edition/build/combined.md" \
   || echo "  (DOCX generation skipped or failed — PDF is the canonical output)"
 
+# ----------------------------------------------------------------------
+# Publish the assembled markdown source as a stable deliverable next to
+# the PDF/DOCX. This is the single-file source-of-truth that produced
+# both renderings -- useful for editing in Typora/iA Writer or for
+# re-importing into Word with custom styling.
+# ----------------------------------------------------------------------
+cp "${BUILD_DIR}/combined.md" \
+   "${OUT_DIR}/HexaStock-Consulting-Guide-Large-Print.md"
+
 echo ""
 echo "✅ Output:"
-ls -lh "${OUT_DIR}"/*.pdf "${OUT_DIR}"/*.docx 2>/dev/null || true
+ls -lh "${OUT_DIR}"/HexaStock-Consulting-Guide-Large-Print.{md,pdf,docx} 2>/dev/null || true
 echo ""
 echo "Move the PDF to your reMarkable 2:"
 echo "  ${OUT_DIR}/HexaStock-Consulting-Guide-Large-Print.pdf"

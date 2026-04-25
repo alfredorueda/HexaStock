@@ -8,6 +8,7 @@ Watchlists, Hexagonal Architecture).
 |---|---|
 | `HexaStock-Consulting-Guide-Large-Print.pdf` | Primary deliverable. A4, **20 pt body**, KOMA-Script `scrartcl`, ~144 pages. Move this to your reMarkable 2. |
 | `HexaStock-Consulting-Guide-Large-Print.docx` | Companion best-effort DOCX (default Word styling — adjust manually if needed). |
+| `HexaStock-Consulting-Guide-Large-Print.md` | The single assembled Markdown source that produced the PDF and the DOCX. Useful for editing in Typora / iA Writer / VS Code, importing into Word with custom styling, or feeding any other tool. |
 
 ## Contents (in reading order)
 

@@ -206,7 +206,9 @@ A short, defensible list:
   point.
 - It demonstrates the **CQRS read side** without going full CQRS:
   `WatchlistQueryPort` returns flat `TriggeredAlertView` projections, distinct
-  from the `Watchlist` aggregate read path.
+  from the `Watchlist` aggregate **write path** (which loads the full
+  aggregate in order to mutate it). The sentinel never loads the aggregate;
+  the controller only loads it on write commands.
 - The behaviour is **safely reversible** — disabling the listener (commenting
   out `@ApplicationModuleListener`) produces zero alerts, but breaks no
   invariants. That property would not hold if `MarketSentinelService` were
