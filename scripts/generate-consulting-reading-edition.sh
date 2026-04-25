@@ -28,7 +28,19 @@ SRC_MS="${REPO_ROOT}/doc/consultancy/monday-session"
 SRC_SS="${REPO_ROOT}/doc/tutorial/sellStocks"
 OUT_DIR="${SRC_MS}/reading-edition"
 BUILD_DIR="${OUT_DIR}/build"
-PANDOC_IMAGE="${PANDOC_IMAGE:-pandoc/extra:latest}"
+# We use a thin derived image (pandoc/extra + seqsplit + hyphenat) so
+# inline `\texttt{...}` content can break across lines instead of
+# overflowing the right margin. Built on demand the first time.
+PANDOC_IMAGE="${PANDOC_IMAGE:-hexastock/reading-edition:latest}"
+PANDOC_DOCKERFILE_DIR="${REPO_ROOT}/scripts/reading-edition"
+
+if ! docker image inspect "${PANDOC_IMAGE}" >/dev/null 2>&1; then
+  echo "▸ Building "${PANDOC_IMAGE}" (one-off, ~30 s) ..."
+  docker build --platform linux/amd64 \
+    -f "${PANDOC_DOCKERFILE_DIR}/Dockerfile" \
+    -t "${PANDOC_IMAGE}" \
+    "${PANDOC_DOCKERFILE_DIR}" >/dev/null
+fi
 
 mkdir -p "${OUT_DIR}" "${BUILD_DIR}"
 
@@ -186,9 +198,16 @@ header-includes:
   - \usepackage{graphicx}
   - \setkeys{Gin}{width=0.92\linewidth,keepaspectratio}
   - \usepackage{fvextra}
-  - \DefineVerbatimEnvironment{Highlighting}{Verbatim}{breaklines,breakanywhere,breaksymbolleft={},commandchars=\\\{\}}
+  - \DefineVerbatimEnvironment{Highlighting}{Verbatim}{breaklines,breakanywhere,breaksymbolleft={},fontsize=\small,commandchars=\\\{\}}
+  - \usepackage[htt]{hyphenat}
+  - \usepackage{seqsplit}
+  - \providecommand{\passthrough}[1]{#1}
+  - \AtBeginDocument{\renewcommand{\passthrough}[1]{\seqsplit{\texttt{#1}}}}
+  - \usepackage{xurl}
   - \usepackage{microtype}
-  - \setlength{\emergencystretch}{3em}
+  - \setlength{\emergencystretch}{6em}
+  - \tolerance=2000
+  - \hbadness=4000
   - \widowpenalty=10000
   - \clubpenalty=10000
 toc: false

@@ -34,8 +34,11 @@ From the repo root:
 ./scripts/generate-consulting-reading-edition.sh
 ```
 
-Requires Docker. Uses the `pandoc/extra:latest` image (linux/amd64; runs under
-emulation on Apple Silicon — first run is slow, subsequent runs are fast).
+Requires Docker. The script builds (and reuses) a thin derived image
+`hexastock/reading-edition:latest` based on `pandoc/extra:latest` plus two
+extra LaTeX packages (`seqsplit`, `hyphenat`). The Dockerfile lives at
+`scripts/reading-edition/Dockerfile`. First run is slow (~30 s build);
+subsequent runs are fast.
 
 ## Design choices
 
@@ -47,8 +50,14 @@ emulation on Apple Silicon — first run is slow, subsequent runs are fast).
 - **Body font:** Latin Modern (default in pandoc/extra). Unicode glyphs that
   Latin Modern lacks (emojis, box-drawing, arrows, tick marks) are
   transliterated to ASCII equivalents during preprocessing.
-- **Code blocks:** `\normalsize` (i.e. 20 pt) with `fvextra` line-wrapping so
-  long lines do not overflow.
+- **Code blocks:** rendered with `fvextra` at `\small` (i.e. ~16 pt at the
+  20 pt base) with `breaklines,breakanywhere` so long lines wrap.
+- **Inline code** (Markdown backticks, e.g. fully-qualified Java class
+  names) goes through a redefined `\passthrough` macro that wraps the
+  argument in `seqsplit`, allowing breaks at any character. Combined
+  with `hyphenat[htt]`, `xurl`, and a generous `\emergencystretch=6em`,
+  this eliminates overfull-hbox warnings (right-margin overflow) that
+  Word silently absorbs but xelatex cannot.
 - **Cross-document `.md` links** are flattened to plain text — the PDF has no
   anchor back into the original markdown.
 - **Clickable-image idiom** `[![alt](png)](svg)` is flattened to plain
