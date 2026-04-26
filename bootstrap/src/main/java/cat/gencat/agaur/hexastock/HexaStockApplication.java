@@ -3,6 +3,7 @@ package cat.gencat.agaur.hexastock;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.modulith.Modulithic;
+import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.scheduling.annotation.EnableScheduling;
 
 /**
@@ -23,6 +24,7 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 @SpringBootApplication(scanBasePackages = "cat.gencat.agaur.hexastock")
 @Modulithic(systemName = "HexaStock")
 @EnableScheduling
+@EnableAsync
 public class HexaStockApplication {
 
     public static void main(String[] args) {
