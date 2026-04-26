@@ -1,6 +1,8 @@
 package cat.gencat.agaur.hexastock.config.events;
 
 import cat.gencat.agaur.hexastock.application.port.out.DomainEventPublisher;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Component;
 
@@ -14,6 +16,8 @@ import org.springframework.stereotype.Component;
 @Component
 public class SpringDomainEventPublisher implements DomainEventPublisher {
 
+    private static final Logger log = LoggerFactory.getLogger(SpringDomainEventPublisher.class);
+
     private final ApplicationEventPublisher applicationEventPublisher;
 
     public SpringDomainEventPublisher(ApplicationEventPublisher applicationEventPublisher) {
@@ -22,6 +26,8 @@ public class SpringDomainEventPublisher implements DomainEventPublisher {
 
     @Override
     public void publish(Object event) {
+        log.info("DOMAIN_EVENT_PUBLISHED type={} payload={}",
+                event.getClass().getName(), event);
         applicationEventPublisher.publishEvent(event);
     }
 }

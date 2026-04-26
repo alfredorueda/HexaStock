@@ -1,0 +1,93 @@
+### =====================================================================
+### HexaStock — Watchlist / Market Sentinel demo — CONTROL & CLEANUP
+###
+### Operational and destructive requests, kept separate from the setup
+### flow so you can show activation/deactivation, alert removal, and
+### watchlist deletion individually during the live demo.
+###
+### IMPORTANT: run ./watchlist-market-sentinel-setup.http first.
+### That file initialises the global variables {{watchlistId}},
+### {{portfolioId}}, {{ticker}} and {{threshold}} via
+### client.global.set(...). This file reuses them with no copy-paste.
+###
+### Companion files:
+###   - Setup script .................... ./watchlist-market-sentinel-setup.http
+###   - Narrative + verification guide .. ../monday-session/DEMO-WATCHLIST-NOTIFICATION-FLOW.md
+### =====================================================================
+
+### Local default for baseUrl. {{watchlistId}}, {{portfolioId}},
+### {{ticker}} and {{threshold}} are pulled from the global environment
+### populated by the setup script — if they appear unresolved in the
+### request preview, run the setup script first.
+@baseUrl = http://localhost:8081
+
+
+### -------------------------------------------------------------------
+### 1) Deactivate the watchlist.
+### Kill-switch: from this moment on the scheduler stops finding the
+### alert (predicate fails on w.active=true) and WATCHLIST_ALERT log
+### lines stop appearing. Useful to show that activation has immediate
+### effect.
+### -------------------------------------------------------------------
+POST {{baseUrl}}/api/watchlists/{{watchlistId}}/deactivation
+
+> {%
+    client.log("watchlist " + client.global.get("watchlistId") + " is now INACTIVE");
+%}
+
+
+### -------------------------------------------------------------------
+### 2) Re-activate the watchlist (lets the demo loop).
+### -------------------------------------------------------------------
+POST {{baseUrl}}/api/watchlists/{{watchlistId}}/activation
+
+> {%
+    client.log("watchlist " + client.global.get("watchlistId") + " is ACTIVE again");
+%}
+
+
+### -------------------------------------------------------------------
+### 3) Remove ONE alert by (ticker, thresholdPrice).
+### Precise removal endpoint — leaves any other alerts on the same
+### ticker untouched.
+### -------------------------------------------------------------------
+DELETE {{baseUrl}}/api/watchlists/{{watchlistId}}/alerts?ticker={{ticker}}&thresholdPrice={{threshold}}
+
+
+### -------------------------------------------------------------------
+### 4) Remove ALL alerts for a given ticker.
+### Bulk variant — wipes every threshold registered for {{ticker}}.
+### Re-add the alert with the setup script's request 3 if you want to
+### keep demoing.
+### -------------------------------------------------------------------
+DELETE {{baseUrl}}/api/watchlists/{{watchlistId}}/alerts/{{ticker}}
+
+
+### -------------------------------------------------------------------
+### 5) Delete the watchlist (final cleanup).
+### After this the scheduler has nothing to poll for ownerName=alice.
+### -------------------------------------------------------------------
+DELETE {{baseUrl}}/api/watchlists/{{watchlistId}}
+
+> {%
+    client.log("watchlist " + client.global.get("watchlistId") + " deleted");
+%}
+
+
+### -------------------------------------------------------------------
+### 6) Inspect the demo portfolio (optional — read-only).
+### The portfolio API does not expose a DELETE endpoint by design;
+### portfolio data is meant to be retained for audit. Use this GET to
+### confirm the portfolio created by the setup script is still there.
+### To wipe portfolio data between demo runs, drop the MySQL volume
+### with `docker compose down -v && docker compose up -d mysql`.
+### -------------------------------------------------------------------
+GET {{baseUrl}}/api/portfolios/{{portfolioId}}
+
+> {%
+    if (response.status === 200) {
+        client.log("portfolio " + client.global.get("portfolioId") + " owner=" + response.body.ownerName);
+    } else {
+        client.log("portfolio GET returned " + response.status);
+    }
+%}

@@ -1,0 +1,156 @@
+### =====================================================================
+### HexaStock — Watchlist / Market Sentinel demo — SETUP script
+###
+### Purpose: prepare the full demo scenario in one shot.
+###          Open in IntelliJ IDEA → click "Run All Requests in File".
+###          Identifiers (portfolioId, watchlistId) are captured
+###          automatically into the HTTP Client global environment so
+###          the companion control script can reuse them with no
+###          copy-paste.
+###
+### Companion files:
+###   - Control / cleanup script ........ ./watchlist-market-sentinel-control.http
+###   - Narrative + verification guide .. ../monday-session/DEMO-WATCHLIST-NOTIFICATION-FLOW.md
+###
+### Pre-flight (in a terminal):
+###   docker compose up -d mysql
+###   ./mvnw -DskipTests install
+###   MARKET_SENTINEL_INTERVAL=10000 ./mvnw -pl bootstrap spring-boot:run \
+###       -Dspring-boot.run.profiles=jpa,mockfinhub
+###
+### App listens on 8081 (server.port in bootstrap/.../application.properties).
+### Telegram is intentionally OFF — the proof of delivery is the
+### WATCHLIST_ALERT line emitted by LoggingNotificationSenderAdapter.
+### =====================================================================
+
+@baseUrl     = http://localhost:8081
+@ownerName   = alice
+@listName    = Tech
+@ticker      = AAPL
+### Threshold deliberately above the mock price ceiling (~1000) so that
+### EVERY scheduler tick fires an alert. Lower it to e.g. 200.00 if you
+### want to demo the "no alert" case as well.
+@threshold   = 9999.00
+
+
+### -------------------------------------------------------------------
+### 1) Create the demo portfolio.
+### Independent bounded context; shares only ownerName with watchlists.
+### Captures portfolioId for any later request that may need it.
+### -------------------------------------------------------------------
+POST {{baseUrl}}/api/portfolios
+Content-Type: application/json
+
+{
+  "ownerName": "{{ownerName}}"
+}
+
+> {%
+    client.test("Portfolio created (201)", function () {
+        client.assert(response.status === 201, "Expected 201, got " + response.status);
+        client.assert(response.body.id, "Response body has no id");
+    });
+    client.global.set("portfolioId", response.body.id);
+    client.log("portfolioId = " + response.body.id);
+%}
+
+
+### -------------------------------------------------------------------
+### 2) Create the demo watchlist (active=false by default).
+### Captures watchlistId for every subsequent request in this file
+### and in the control script.
+### -------------------------------------------------------------------
+POST {{baseUrl}}/api/watchlists
+Content-Type: application/json
+
+{
+  "ownerName": "{{ownerName}}",
+  "listName":  "{{listName}}"
+}
+
+> {%
+    client.test("Watchlist created (201)", function () {
+        client.assert(response.status === 201, "Expected 201, got " + response.status);
+        client.assert(response.body.id, "Response body has no id");
+    });
+    client.global.set("watchlistId", response.body.id);
+    client.global.set("ticker",      "{{ticker}}");
+    client.global.set("threshold",   "{{threshold}}");
+    client.global.set("baseUrl",     "{{baseUrl}}");
+    client.log("watchlistId = " + response.body.id);
+%}
+
+
+### -------------------------------------------------------------------
+### 3) Add a price alert that is GUARANTEED to trigger.
+### Market Sentinel SQL predicate: thresholdPrice >= currentPrice
+### (a "buy signal"). MockFinhub returns prices in [10, 1000], so a
+### threshold of 9999.00 fires on every cycle.
+### -------------------------------------------------------------------
+POST {{baseUrl}}/api/watchlists/{{watchlistId}}/alerts
+Content-Type: application/json
+
+{
+  "ticker":         "{{ticker}}",
+  "thresholdPrice": "{{threshold}}"
+}
+
+> {%
+    client.test("Alert added (2xx)", function () {
+        client.assert(response.status >= 200 && response.status < 300,
+            "Expected 2xx, got " + response.status);
+    });
+    client.log("alert added: ticker=" + "{{ticker}}" + " threshold=" + "{{threshold}}");
+%}
+
+
+### -------------------------------------------------------------------
+### 4) Activate the watchlist.
+### JpaWatchlistQueryRepository only considers active watchlists
+### (WHERE w.active = true). Without this the sentinel ignores the alert.
+### -------------------------------------------------------------------
+POST {{baseUrl}}/api/watchlists/{{watchlistId}}/activation
+
+> {%
+    client.test("Watchlist activated (2xx)", function () {
+        client.assert(response.status >= 200 && response.status < 300,
+            "Expected 2xx, got " + response.status);
+    });
+    client.log("watchlist " + client.global.get("watchlistId") + " is now ACTIVE");
+%}
+
+
+### -------------------------------------------------------------------
+### 5) Sample the live mock price for the ticker.
+### Goes through StockRestController → MarketDataPort →
+### MockFinhubStockPriceAdapter (random in [10, 1000]).
+### Useful to motivate why the scheduler keeps polling.
+### -------------------------------------------------------------------
+GET {{baseUrl}}/api/stocks/{{ticker}}
+
+> {%
+    if (response.body && response.body.price !== undefined) {
+        client.log("mock price (sample 1) = " + response.body.price);
+    }
+%}
+
+
+### -------------------------------------------------------------------
+### 6) Sample the price a second time to show it varies per call.
+### -------------------------------------------------------------------
+GET {{baseUrl}}/api/stocks/{{ticker}}
+
+> {%
+    if (response.body && response.body.price !== undefined) {
+        client.log("mock price (sample 2) = " + response.body.price);
+    }
+    client.log("---------------------------------------------------------");
+    client.log("DEMO READY");
+    client.log("  portfolioId = " + client.global.get("portfolioId"));
+    client.log("  watchlistId = " + client.global.get("watchlistId"));
+    client.log("  ticker      = " + client.global.get("ticker"));
+    client.log("  threshold   = " + client.global.get("threshold"));
+    client.log("Wait ~MARKET_SENTINEL_INTERVAL ms (10s in the demo) and");
+    client.log("watch the app log for a line starting with WATCHLIST_ALERT.");
+    client.log("---------------------------------------------------------");
+%}

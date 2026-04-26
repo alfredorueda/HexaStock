@@ -34,7 +34,16 @@ public class WatchlistAlertNotificationListener {
 
     @ApplicationModuleListener
     public void on(WatchlistAlertTriggeredEvent event) {
+        log.info("WATCHLIST_ALERT_LISTENER_RECEIVED user={} watchlist={} ticker={} threshold={} current={} message={}",
+                event.userId(),
+                event.watchlistId(),
+                event.ticker().value(),
+                event.threshold(),
+                event.currentPrice(),
+                event.message());
         NotificationRecipient recipient = recipientResolver.resolve(event.userId());
+        log.info("WATCHLIST_ALERT_LISTENER_DISPATCH user={} destinations={}",
+                event.userId(), recipient.destinations().size());
         for (NotificationDestination destination : recipient.destinations()) {
             NotificationSender sender = pickSender(destination);
             if (sender == null) {
