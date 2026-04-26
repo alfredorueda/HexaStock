@@ -95,6 +95,24 @@ without the noise from Hibernate / Tomcat / Spring boot. (`tail -F`
 with capital F keeps following even if the file is rotated;
 `--line-buffered` flushes each line immediately.)
 
+**Terminal 2 — multi-color variant (one color per marker, very illustrative):**
+
+```bash
+tail -F /tmp/hexastock-demo.log | sed -u \
+  -e $'s/MARKET_SENTINEL_TICK[^ ]*/\033[1;36m&\033[0m/g' \
+  -e $'s/DOMAIN_EVENT_PUBLISHED/\033[1;33m&\033[0m/g' \
+  -e $'s/WATCHLIST_ALERT_LISTENER_RECEIVED/\033[1;35m&\033[0m/g' \
+  -e $'s/WATCHLIST_ALERT_LISTENER_DISPATCH/\033[1;34m&\033[0m/g' \
+  -e $'s/WATCHLIST_ALERT /\033[1;32m&\033[0m/g'
+```
+
+This paints each step of the chain in a different color (cyan → yellow
+→ magenta → blue → green) so the audience can visually follow the
+event as it crosses module boundaries. Unlike the `grep` variant, this
+one keeps every log line so you also see Hibernate/Tomcat noise in
+between — useful when you want to make the point that the sentinel is
+*part of* a normal Spring Boot app.
+
 Profiles in use:
 - `jpa` — MySQL persistence (matches running container).
 - `mockfinhub` — [MockFinhubStockPriceAdapter](adapters-outbound-market/src/main/java/cat/gencat/agaur/hexastock/marketdata/adapter/out/rest/MockFinhubStockPriceAdapter.java) returns random prices in roughly `[10.00, 1000.00]`. No API key, no network call.
@@ -343,13 +361,28 @@ flow per triggered alert:
 | `WATCHLIST_ALERT user=... ticker=... ...` | [LoggingNotificationSenderAdapter](adapters-outbound-notification/src/main/java/cat/gencat/agaur/hexastock/notifications/adapter/logging/LoggingNotificationSenderAdapter.java) | The end of the chain — the actual notification dispatched to the LOG channel. |
 
 If you started the app from Terminal 1 with `tee`, Terminal 2 already
-shows these lines filtered and color-highlighted. If not:
+shows these lines filtered and color-highlighted. If not, two recipes
+are available (see §1.3 for the full version):
 
 ```bash
+# Option A — grep filter (only shows the chain, suppresses framework noise)
 tail -F /tmp/hexastock-demo.log \
   | grep --line-buffered --color=always -E \
       "MARKET_SENTINEL_TICK|DOMAIN_EVENT_PUBLISHED|WATCHLIST_ALERT_LISTENER|WATCHLIST_ALERT "
+
+# Option B — sed multi-color (keeps every line, paints one color per marker)
+tail -F /tmp/hexastock-demo.log | sed -u \
+  -e $'s/MARKET_SENTINEL_TICK[^ ]*/\033[1;36m&\033[0m/g'  \
+  -e $'s/DOMAIN_EVENT_PUBLISHED/\033[1;33m&\033[0m/g'    \
+  -e $'s/WATCHLIST_ALERT_LISTENER_RECEIVED/\033[1;35m&\033[0m/g' \
+  -e $'s/WATCHLIST_ALERT_LISTENER_DISPATCH/\033[1;34m&\033[0m/g' \
+  -e $'s/WATCHLIST_ALERT /\033[1;32m&\033[0m/g'
 ```
+
+Color legend for Option B: **cyan** = scheduler tick · **yellow** =
+domain event published · **magenta** = listener received the event ·
+**blue** = listener dispatch (fan-out) · **green** = LOG sender
+emitted the final notification.
 
 ---
 
