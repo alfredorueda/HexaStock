@@ -1,13 +1,25 @@
 package cat.gencat.agaur.hexastock.architecture;
 
+import cat.gencat.agaur.hexastock.adapter.out.persistence.mongodb.OptimisticVersionContext;
+import cat.gencat.agaur.hexastock.application.annotation.RetryOnWriteConflict;
+import com.tngtech.archunit.base.DescribedPredicate;
+import com.tngtech.archunit.core.domain.JavaClass;
+import com.tngtech.archunit.core.domain.JavaField;
 import com.tngtech.archunit.core.domain.JavaClasses;
 import com.tngtech.archunit.core.importer.ClassFileImporter;
 import com.tngtech.archunit.core.importer.ImportOption;
+import com.tngtech.archunit.lang.ArchCondition;
+import com.tngtech.archunit.lang.ConditionEvents;
+import com.tngtech.archunit.lang.SimpleConditionEvent;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
+import java.util.Set;
+import java.util.stream.Collectors;
+
+import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.classes;
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.noClasses;
 
 /**
@@ -87,6 +99,55 @@ class HexagonalArchitectureTest {
                     .that().resideInAPackage("..application..")
                     .and().haveSimpleNameNotEndingWith("package-info")
                     .should().dependOnClassesThat().resideInAPackage("org.springframework..")
+                    .check(allClasses);
+        }
+    }
+
+    @Nested
+    @DisplayName("Optimistic locking")
+    class OptimisticLocking {
+
+        @Test
+        @DisplayName("MongoDB repositories backing @RetryOnWriteConflict use cases must declare OptimisticVersionContext")
+        void mongoRepositoriesBehindRetriedUseCasesMustDeclareVersionContext() {
+            // Step 1: collect outbound port interfaces used by services with @RetryOnWriteConflict methods
+            Set<JavaClass> retriedPorts = allClasses.stream()
+                    .filter(c -> c.getMethods().stream()
+                            .anyMatch(m -> m.isAnnotatedWith(RetryOnWriteConflict.class)))
+                    .flatMap(c -> c.getFields().stream())
+                    .map(JavaField::getRawType)
+                    .filter(t -> t.getPackageName().contains(".application.port.out"))
+                    .collect(Collectors.toSet());
+
+            if (retriedPorts.isEmpty()) {
+                return; // no retried use cases yet — rule trivially satisfied
+            }
+
+            // Step 2: MongoDB adapters in the repository package that implement any of those ports
+            DescribedPredicate<JavaClass> isMongoAdapterOfRetriedPort = DescribedPredicate.describe(
+                    "is a MongoDB repository adapter for a port used by @RetryOnWriteConflict",
+                    clazz -> retriedPorts.stream()
+                            .anyMatch(port -> clazz.getAllRawInterfaces().contains(port)));
+
+            // Step 3: must declare an OptimisticVersionContext field
+            ArchCondition<JavaClass> hasVersionContextField =
+                    new ArchCondition<>("declare a field of type OptimisticVersionContext") {
+                        @Override
+                        public void check(JavaClass clazz, ConditionEvents events) {
+                            boolean found = clazz.getFields().stream()
+                                    .anyMatch(f -> f.getRawType().isEquivalentTo(OptimisticVersionContext.class));
+                            if (!found) {
+                                events.add(SimpleConditionEvent.violated(clazz,
+                                        clazz.getSimpleName() + " is missing an OptimisticVersionContext field" +
+                                        " — its port is used by a @RetryOnWriteConflict use case"));
+                            }
+                        }
+                    };
+
+            classes()
+                    .that().resideInAPackage("..adapter.out.persistence.mongodb.repository..")
+                    .and(isMongoAdapterOfRetriedPort)
+                    .should(hasVersionContextField)
                     .check(allClasses);
         }
     }
