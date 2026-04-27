@@ -40,11 +40,21 @@ public class WatchlistDocument {
                              String listName,
                              boolean active,
                              List<AlertEntryDocument> alerts) {
+        this(id, ownerName, listName, active, alerts, null);
+    }
+
+    public WatchlistDocument(String id,
+                             String ownerName,
+                             String listName,
+                             boolean active,
+                             List<AlertEntryDocument> alerts,
+                             Long version) {
         this.id = id;
         this.ownerName = ownerName;
         this.listName = listName;
         this.active = active;
         this.alerts = alerts;
+        this.version = version;
     }
 
     public String getId() {
@@ -69,5 +79,9 @@ public class WatchlistDocument {
 
     public Long getVersion() {
         return version;
+    }
+
+    public void setVersion(Long version) {
+        this.version = version;
     }
 }

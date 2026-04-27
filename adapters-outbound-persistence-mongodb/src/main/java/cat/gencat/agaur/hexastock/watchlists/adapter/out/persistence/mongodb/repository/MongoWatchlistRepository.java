@@ -1,5 +1,7 @@
 package cat.gencat.agaur.hexastock.watchlists.adapter.out.persistence.mongodb.repository;
 
+import cat.gencat.agaur.hexastock.adapter.out.persistence.mongodb.OptimisticVersionContext;
+import cat.gencat.agaur.hexastock.watchlists.adapter.out.persistence.mongodb.document.WatchlistDocument;
 import cat.gencat.agaur.hexastock.watchlists.adapter.out.persistence.mongodb.mapper.WatchlistDocumentMapper;
 import cat.gencat.agaur.hexastock.watchlists.adapter.out.persistence.mongodb.springdatarepository.MongoWatchlistSpringDataRepository;
 import cat.gencat.agaur.hexastock.watchlists.application.port.out.WatchlistPort;
@@ -15,6 +17,8 @@ import java.util.Optional;
 public class MongoWatchlistRepository implements WatchlistPort {
 
     private final MongoWatchlistSpringDataRepository springDataRepository;
+    private final OptimisticVersionContext versionContext =
+            new OptimisticVersionContext(MongoWatchlistRepository.class);
 
     public MongoWatchlistRepository(MongoWatchlistSpringDataRepository springDataRepository) {
         this.springDataRepository = springDataRepository;
@@ -23,17 +27,26 @@ public class MongoWatchlistRepository implements WatchlistPort {
     @Override
     public Optional<Watchlist> getWatchlistById(WatchlistId id) {
         return springDataRepository.findById(id.value())
-                .map(WatchlistDocumentMapper::toModelEntity);
+                .map(doc -> {
+                    versionContext.remember(doc.getId(), doc.getVersion());
+                    return WatchlistDocumentMapper.toModelEntity(doc);
+                });
     }
 
     @Override
     public void createWatchlist(Watchlist watchlist) {
-        springDataRepository.insert(WatchlistDocumentMapper.toDocument(watchlist));
+        WatchlistDocument created = springDataRepository.insert(WatchlistDocumentMapper.toDocument(watchlist));
+        versionContext.remember(created.getId(), created.getVersion());
     }
 
     @Override
     public void saveWatchlist(Watchlist watchlist) {
-        springDataRepository.save(WatchlistDocumentMapper.toDocument(watchlist));
+        String id = watchlist.getId().value();
+        Long version = versionContext.resolve(id,
+                () -> springDataRepository.findById(id).map(WatchlistDocument::getVersion));
+
+        WatchlistDocument saved = springDataRepository.save(WatchlistDocumentMapper.toDocument(watchlist, version));
+        versionContext.remember(saved.getId(), saved.getVersion());
     }
 
     @Override
@@ -41,4 +54,3 @@ public class MongoWatchlistRepository implements WatchlistPort {
         springDataRepository.deleteById(id.value());
     }
 }
-

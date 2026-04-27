@@ -49,6 +49,18 @@ class JpaWatchlistRepositoryContractTest extends AbstractWatchlistPortContractTe
 
     @Test
     @Override
+    protected void saveWatchlist_afterRead_persistsModification() {
+        assertDoesNotThrow(super::saveWatchlist_afterRead_persistsModification);
+    }
+
+    @Test
+    @Override
+    protected void saveWatchlist_repeatedCalls_neverThrows() {
+        assertDoesNotThrow(super::saveWatchlist_repeatedCalls_neverThrows);
+    }
+
+    @Test
+    @Override
     protected void deleteWatchlist_removes() {
         assertDoesNotThrow(super::deleteWatchlist_removes);
     }

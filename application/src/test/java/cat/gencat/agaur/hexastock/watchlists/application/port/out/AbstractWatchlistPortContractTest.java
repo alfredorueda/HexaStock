@@ -44,6 +44,33 @@ public abstract class AbstractWatchlistPortContractTest {
     }
 
     @Test
+    @DisplayName("saveWatchlist after getWatchlistById persists the modification")
+    protected void saveWatchlist_afterRead_persistsModification() {
+        port().createWatchlist(Watchlist.create(WatchlistId.of("wl-save"), "alice", "Tech"));
+
+        Watchlist loaded = port().getWatchlistById(WatchlistId.of("wl-save")).orElseThrow();
+        loaded.addAlert(Ticker.of("AAPL"), Money.of("150.00"));
+        port().saveWatchlist(loaded);
+
+        Watchlist updated = port().getWatchlistById(WatchlistId.of("wl-save")).orElseThrow();
+        assertThat(updated.getAlertsForTicker(Ticker.of("AAPL"))).hasSize(1);
+    }
+
+    @Test
+    @DisplayName("saveWatchlist can be called repeatedly without version conflict (retry-safe)")
+    protected void saveWatchlist_repeatedCalls_neverThrows() {
+        port().createWatchlist(Watchlist.create(WatchlistId.of("wl-retry"), "alice", "Tech"));
+
+        for (int i = 0; i < 3; i++) {
+            Watchlist loaded = port().getWatchlistById(WatchlistId.of("wl-retry")).orElseThrow();
+            loaded.deactivate();
+            port().saveWatchlist(loaded);
+        }
+
+        assertThat(port().getWatchlistById(WatchlistId.of("wl-retry")).orElseThrow().isActive()).isFalse();
+    }
+
+    @Test
     @DisplayName("deleteWatchlist removes it")
     protected void deleteWatchlist_removes() {
         Watchlist watchlist = Watchlist.create(WatchlistId.of("wl-3"), "alice", "Tech");
