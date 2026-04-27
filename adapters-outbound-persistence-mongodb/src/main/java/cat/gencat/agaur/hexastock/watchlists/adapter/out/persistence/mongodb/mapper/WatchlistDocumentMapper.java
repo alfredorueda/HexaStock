@@ -28,6 +28,10 @@ public final class WatchlistDocumentMapper {
     }
 
     public static WatchlistDocument toDocument(Watchlist model) {
+        return toDocument(model, null);
+    }
+
+    public static WatchlistDocument toDocument(Watchlist model, Long version) {
         List<AlertEntryDocument> alerts = model.getAlerts().stream()
                 .map(WatchlistDocumentMapper::toDocument)
                 .toList();
@@ -36,7 +40,8 @@ public final class WatchlistDocumentMapper {
                 model.getOwnerName(),
                 model.getListName(),
                 model.isActive(),
-                alerts
+                alerts,
+                version
         );
     }
 
