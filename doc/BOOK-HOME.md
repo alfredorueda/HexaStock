@@ -55,6 +55,20 @@ These chapters deepen specific themes introduced in the main study.
 
 ---
 
+## Reading Contract: Pedagogical Simplifications vs Production Refinements
+
+HexaStock is intentionally designed to serve two audiences at once: it is a working, tested codebase, and it is a teaching artefact for engineers learning Domain-Driven Design and Hexagonal Architecture. To keep that dual purpose honest, this book classifies design choices in three explicit categories. Readers should keep this classification in mind whenever a chapter discusses a "simplification" or a "future refinement".
+
+| Category | Examples in HexaStock | What it means in the book |
+|---|---|---|
+| **Intentional pedagogical simplifications** — chosen to make the model legible; perfectly defensible at this scale | Loading the entire `Portfolio` aggregate on sell; recording transactions through application-service orchestration rather than domain events; single currency (USD); integer share quantities; no fees, taxes or margin | The current code is the right answer **for teaching**. A production team operating at very different scale would refine these. |
+| **Deliberate architectural choices** — production-quality decisions that are not simplifications | Two interchangeable persistence adapters (JPA pessimistic vs MongoDB optimistic + retry); separating `Portfolio` (state) from `Transaction` (history) into two aggregates; value objects (`Money`, `Price`, `Ticker`) instead of primitives; ArchUnit fitness tests | The current code is the right answer **in general**. These should be preserved or carried over to any production derivative. |
+| **Acknowledged future enhancements** — explicitly out of scope today, but discussed as roadmap | Domain events for transaction creation; CQRS read models for reporting at scale; promoting `Holding` to its own aggregate when sell invariants justify it; Flyway/Liquibase migrations replacing `ddl-auto` | Treated as legitimate next steps; the book explains the reasoning rather than implementing them today. |
+
+When the book uses the term **"production-grade"** without further qualification, it refers to *production-quality code* (typed, tested, layered, with enforced architectural boundaries) rather than to a *fully production-ready deployed system* (which would additionally require schema migrations, observability, capacity planning and operational tooling that are out of scope for this study).
+
+---
+
 ## License
 
 This project uses a dual-license model.

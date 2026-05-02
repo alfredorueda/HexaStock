@@ -1,8 +1,15 @@
-# MongoDB Adapter Validation (Implemented Solution, Educational Notes)
+# MongoDB Persistence Adapter: Optimistic Locking and Retry Strategy
 
 ## 1) Purpose of this document
 
-This document explains the **solution implemented in this branch** for MongoDB persistence in a hexagonal architecture project:
+This document explains the **optimistic concurrency control strategy implemented in the MongoDB persistence adapter** of HexaStock. The MongoDB adapter is one of two interchangeable persistence implementations available on `main` and is a co-equal alternative to the JPA/MySQL adapter; both implement the same outbound ports (`PortfolioPort`, `TransactionPort`) defined in the `application` module and are selected at runtime via Spring profiles (`jpa` or `mongodb`).
+
+The two adapters illustrate complementary concurrency strategies:
+
+- **JPA adapter** (`adapters-outbound-persistence-jpa`): pessimistic write locking with MySQL (`SELECT … FOR UPDATE`).
+- **MongoDB adapter** (`adapters-outbound-persistence-mongodb`): optimistic locking with application-level retry, driven by the `@RetryOnWriteConflict` annotation in the application layer and an aspect-based implementation in the bootstrap module.
+
+This document covers:
 
 - What was implemented.
 - Why key decisions were taken.
@@ -10,11 +17,11 @@ This document explains the **solution implemented in this branch** for MongoDB p
 - Why retry policy is modeled as an application concern with an infrastructure implementation.
 - How to reproduce the same implementation from scratch with Codex / Claude Code / Cursor.
 
-This is intentionally focused on the implemented design, not a broad alternatives analysis.
+It is intentionally focused on the implemented design, not a broad alternatives analysis.
 
 ---
 
-## 2) Scope implemented in this branch
+## 2) Scope of the MongoDB adapter
 
 ### 2.1 MongoDB outbound persistence adapter
 
@@ -275,7 +282,7 @@ Acceptance criteria:
 
 ## 9) Suggested verification commands
 
-Examples used in this branch:
+Representative commands used to validate the MongoDB adapter:
 
 ```bash
 ./mvnw -pl adapters-outbound-persistence-mongodb -am test \

@@ -6,7 +6,7 @@
 
 ## What the System Does
 
-HexaStock is a stock portfolio management platform. The system enables investors to create and manage investment portfolios, deposit and withdraw funds, buy and sell stocks with automatic FIFO lot accounting, track holdings performance with real-time market prices, and view complete transaction history. The platform integrates with external stock price providers (Finnhub, AlphaVantage), persists data through JPA with MySQL, and exposes a RESTful API documented via OpenAPI 3.0.
+HexaStock is a stock portfolio management platform. The system enables investors to create and manage investment portfolios, deposit and withdraw funds, buy and sell stocks with automatic FIFO lot accounting, track holdings performance with real-time market prices, and view complete transaction history. The platform integrates with external stock price providers (Finnhub, AlphaVantage), persists data through two interchangeable adapters — JPA with MySQL or Spring Data with MongoDB — and exposes a RESTful API documented via OpenAPI 3.0.
 
 ---
 
@@ -26,13 +26,16 @@ HexaStock is built as a **Maven multi-module project**. Each module corresponds 
 
 ```
 HexaStock (parent pom)
-├── domain/                              → Pure business model — no framework dependencies
-├── application/                         → Use case orchestration, inbound and outbound ports
-├── adapters-inbound-rest/               → Driving adapter: REST controllers, DTOs, error mapping
-├── adapters-outbound-persistence-jpa/   → Driven adapter: JPA entities, repositories, mappers
-├── adapters-outbound-market/            → Driven adapter: external stock-price provider clients
-└── bootstrap/                           → Spring Boot entry point, composition root, runtime wiring
+├── domain/                                  → Pure business model — no framework dependencies
+├── application/                             → Use case orchestration, inbound and outbound ports
+├── adapters-inbound-rest/                   → Driving adapter: REST controllers, DTOs, error mapping
+├── adapters-outbound-persistence-jpa/       → Driven adapter: JPA entities, repositories, mappers (MySQL)
+├── adapters-outbound-persistence-mongodb/   → Driven adapter: documents, mappers, repositories (MongoDB)
+├── adapters-outbound-market/                → Driven adapter: external stock-price provider clients
+└── bootstrap/                               → Spring Boot entry point, composition root, runtime wiring
 ```
+
+> **Note.** The workspace also contains the directories `adapters-inbound-telegram/` and `adapters-outbound-notification/`. They are reserved as placeholders for future inbound and outbound channels and currently contain no production source code; they are not part of the active build.
 
 **`domain`** contains the framework-independent core: aggregates, entities, value objects, domain exceptions, and business rules. It has no dependency on Spring, JPA, or any infrastructure library. All other modules may depend on `domain`; `domain` depends on nothing outside the JDK.
 
@@ -40,7 +43,9 @@ HexaStock (parent pom)
 
 **`adapters-inbound-rest`** is the driving adapter layer. It translates HTTP requests into calls on inbound ports and maps domain results back to JSON responses. REST controllers, request/response DTOs, and the global exception-handling advice live here.
 
-**`adapters-outbound-persistence-jpa`** is the driven persistence adapter. It implements the outbound `PortfolioPort` and `TransactionPort` using JPA entities, Spring Data repositories, and bidirectional mappers that convert between domain objects and their database representations.
+**`adapters-outbound-persistence-jpa`** is one of the two driven persistence adapters. It implements the outbound `PortfolioPort` and `TransactionPort` using JPA entities, Spring Data repositories, and bidirectional mappers that convert between domain objects and their database representations. It is active under the `jpa` Spring profile and uses pessimistic write locking on MySQL.
+
+**`adapters-outbound-persistence-mongodb`** is an alternative driven persistence adapter implementing the same outbound ports (`PortfolioPort`, `TransactionPort`) on top of Spring Data MongoDB. It is active under the `mongodb` profile and uses optimistic locking with application-level retry (see [MongoDB Adapter: Optimistic Locking and Retry Strategy](../../mongodb-adapter-optimistic-write-and-retry.md)). The coexistence of both adapters demonstrates a core hexagonal benefit: the domain and application layers are unaware of which persistence technology is active.
 
 **`adapters-outbound-market`** is the driven external-service adapter. It implements `StockPriceProviderPort` by integrating with third-party market APIs (Finnhub, AlphaVantage), including a mock adapter for offline development and testing.
 

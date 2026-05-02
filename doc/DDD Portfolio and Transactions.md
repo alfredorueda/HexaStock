@@ -1,5 +1,5 @@
 # Portfolio and Transaction Aggregates in DDD
-## A Production-Grade Architecture Guide
+## Aggregate Design Discipline Applied to a Personal Investment Portfolio
 
 ---
 
@@ -7,7 +7,7 @@
 
 This document formalizes the design decision for structuring the **Portfolio** domain and its related concepts (**Holdings**, **Lots**, and **Transactions**) in alignment with **Domain-Driven Design (DDD)** principles, as introduced by **Eric Evans** in *Domain-Driven Design: Tackling Complexity in the Heart of Software* (2003) and further developed by **Vaughn Vernon** (*Implementing Domain-Driven Design*, 2013) and **Jimmy Nilsson** (*Applying Domain-Driven Design and Patterns*, 2006).
 
-This guide aims to illustrate how those principles can be applied to a concrete portfolio domain implemented using a hexagonal architecture, where persistence technologies can be swapped through adapters.
+Published as part of HexaStock — a system designed to serve simultaneously as a working reference implementation and as an educational case study for engineers and architects — this guide illustrates how DDD aggregate design discipline applies to a concrete portfolio domain implemented using a hexagonal architecture, where persistence technologies can be swapped through adapters. The code is production-quality (tested, layered, profile-switchable persistence), but the primary audience here is the reader learning to apply DDD to non-trivial domains; specific operational concerns of a deployed system (monitoring, schema migrations, capacity planning) are treated as out of scope.
 
 In doing so, it also discusses a number of practical considerations that often arise in real systems, including:
 
@@ -116,6 +116,10 @@ A transaction is always created *after* the portfolio state change succeeds. The
 > "Created only AFTER successful completion of an operation."
 
 This temporal dependency — "record what happened" — is fundamentally different from "enforce what is allowed." Keeping transactions inside the aggregate inflates the consistency boundary **without any correctness benefit**.
+
+### Note on the current HexaStock implementation
+
+In the present implementation, transaction recording is orchestrated by the **application service** after the portfolio operation succeeds (`portfolio.sell(…)` followed by `transactionPort.save(…)` in `PortfolioStockOperationsService`). This is a deliberate pedagogical simplification: it keeps the focus on aggregate consistency boundaries without introducing the additional machinery of domain events. A production-oriented refinement would be to emit a `Transaction` from the domain as a domain event after each successful portfolio operation, decoupling history recording from application orchestration. Either approach is compatible with the design rationale of this section; the key point — that `Portfolio` and `Transaction` are separate aggregates — remains unchanged.
 
 ---
 

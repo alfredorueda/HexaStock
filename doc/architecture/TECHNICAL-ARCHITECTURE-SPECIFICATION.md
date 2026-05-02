@@ -328,7 +328,32 @@ Portfolio creation returns HTTP 201 with a `Location` header constructed via `Se
 
 ## 8. Persistence strategy
 
+### Dual persistence adapter strategy
+
+HexaStock provides two interchangeable persistence adapters, both implementing the same outbound ports (`PortfolioPort`, `TransactionPort`) declared in the `application` module:
+
+| Adapter | Module | Spring profile | Concurrency model |
+|---------|--------|----------------|-------------------|
+| JPA / MySQL | `adapters-outbound-persistence-jpa` | `jpa` | Pessimistic write lock (`SELECT … FOR UPDATE`) at the database row level |
+| Spring Data / MongoDB | `adapters-outbound-persistence-mongodb` | `mongodb` | Optimistic locking with `@Version` and application-level retry via `@RetryOnWriteConflict` |
+
+Only one persistence adapter is active at a time, selected at runtime via the Spring profile. Because the domain and application layers depend exclusively on the outbound ports, swapping the active adapter requires no change to business code.
+
+This dual implementation is a deliberate architectural choice that surfaces three concerns in the same codebase:
+
+- **Hexagonal interchangeability.** The same use cases run against fundamentally different storage technologies, demonstrating that the outbound port contract is sufficient to abstract persistence.
+- **Concurrency trade-offs.** Pessimistic locking serialises contending writers at the database; optimistic locking accepts that conflicts may occur and resolves them via retry. Neither is universally superior — the appropriate choice depends on contention profile, latency budget and operational constraints.
+- **Test portability.** A single abstract port contract test (`AbstractPortfolioPortContractTest`, `AbstractTransactionPortContractTest`) is inherited by both adapters, so behavioural equivalence between them is verified rather than assumed.
+
+**Selection guidance** (high level):
+- Prefer the **JPA adapter** when strict serialisation at the database tier is desirable (for example, financial workloads with low to moderate per-aggregate contention and a strong relational ecosystem).
+- Prefer the **MongoDB adapter** when application-level retry is acceptable, document-shaped persistence is convenient, or operational constraints favour the MongoDB stack. A replica set is required for multi-document transactions (provided by the `MongoTransactionManager` in the bootstrap module).
+
+**Evidence:** [adapters-outbound-persistence-jpa/pom.xml](../../adapters-outbound-persistence-jpa/pom.xml); [adapters-outbound-persistence-mongodb/pom.xml](../../adapters-outbound-persistence-mongodb/pom.xml); [RetryOnWriteConflict.java](../../application/src/main/java/cat/gencat/agaur/hexastock/application/annotation/RetryOnWriteConflict.java); [mongodb-adapter-optimistic-write-and-retry.md](../mongodb-adapter-optimistic-write-and-retry.md); [ADR-012-pessimistic-locking-for-aggregate-consistency.md](adr/ADR-012-pessimistic-locking-for-aggregate-consistency.md); [ADR-016-optimistic-locking-with-retry-for-mongodb-adapter.md](adr/ADR-016-optimistic-locking-with-retry-for-mongodb-adapter.md).
+
 ### Technology and pattern
+
+The primary persistence implementation discussed in the rest of this section is the JPA adapter. The MongoDB adapter follows the same domain-mapping discipline; for its concurrency design see [mongodb-adapter-optimistic-write-and-retry.md](../mongodb-adapter-optimistic-write-and-retry.md).
 
 Persistence is implemented via Spring Data JPA with Hibernate and MySQL 8.0.32. The persistence adapter is isolated in its own Maven module (`adapters-outbound-persistence-jpa`), activated only when the `jpa` Spring profile is active.
 

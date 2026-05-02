@@ -39,6 +39,7 @@ ADRs do not duplicate content from Gherkin, OpenAPI, or PlantUML. Instead, each 
 | [ADR-013](ADR-013-cache-stock-prices-with-caffeine.md) | Cache stock prices with Caffeine | Accepted | Local Caffeine cache with 5-minute TTL and 1,000 entry limit for external stock price API responses |
 | [ADR-014](ADR-014-specification-ref-traceability-annotation.md) | @SpecificationRef traceability annotation | Accepted | Custom repeatable annotation linking JUnit tests to Gherkin scenario identifiers at DOMAIN and INTEGRATION levels |
 | [ADR-015](ADR-015-explicit-bean-wiring-via-configuration.md) | Explicit bean wiring via @Configuration | Accepted | Application services wired via @Bean methods in SpringAppConfig, keeping services free of @Service annotations |
+| [ADR-016](ADR-016-optimistic-locking-with-retry-for-mongodb-adapter.md) | Optimistic locking with retry for the MongoDB adapter | Accepted | `@Version` optimistic locking on Mongo documents combined with `@RetryOnWriteConflict` application annotation and bootstrap aspect; symmetric counterpart to ADR-012 |
 
 ## ADR lifecycle
 

@@ -50,7 +50,7 @@ All error responses use the **RFC 7807 Problem Detail** format (`application/pro
 
 | # | Given / When / Then |
 |---|---|
-| 1 | **Given** a valid owner name<br/>**When** I POST `/api/portfolios` with `{"ownerName":"Alice"}`<br/>**Then** I receive **201 Created** with a `Location` header pointing to `/api/portfolios/{id}` and a body containing `id`, `ownerName`, `cashBalance` (0.00), `currency` ("USD") |
+| 1 | **Given** a valid owner name<br/>**When** I POST `/api/portfolios` with `{"ownerName":"Alice"}`<br/>**Then** I receive **201 Created** with a `Location` header containing the full URI of the created portfolio (e.g. `http://localhost:8080/api/portfolios/{id}`) and a body containing `id`, `ownerName`, `cashBalance` (0.00), `currency` ("USD") |
 
 #### Behavioural Scenarios (Gherkin)
 
@@ -67,7 +67,7 @@ Feature: Create Portfolio (US-01)
     Given a valid owner name "Alice"
     When I POST /api/portfolios with {"ownerName": "Alice"}
     Then I receive 201 Created
-    And the response contains a Location header pointing to /api/portfolios/{id}
+    And the response contains a Location header with the full URI of the created portfolio (e.g. http://localhost:8080/api/portfolios/{id})
     And the response body contains:
       | Field       | Value |
       | id          | (generated UUID) |

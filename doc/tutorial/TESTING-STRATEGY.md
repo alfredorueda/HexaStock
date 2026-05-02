@@ -234,22 +234,26 @@ For a detailed walkthrough of how WireMock eliminates non-determinism when testi
 
 ## 6. Layer 5 — Outbound Adapter Tests (Persistence)
 
-**Module:** `adapters-outbound-persistence-jpa` · **Tests:** 4 classes, 21 methods · **Execution time:** ~seconds (Testcontainers) · **Dependencies:** `@DataJpaTest`, Testcontainers MySQL 8, AssertJ
+**Modules:** `adapters-outbound-persistence-jpa`, `adapters-outbound-persistence-mongodb` · **Tests:** ~21 JPA methods + an equivalent MongoDB suite · **Execution time:** ~seconds each (Testcontainers) · **Dependencies:** `@DataJpaTest` / `@DataMongoTest`, Spring Data, Testcontainers (MySQL 8 / MongoDB), AssertJ
 
-Persistence adapter tests verify that domain objects survive the round-trip through JPA entities and a real MySQL database. They are split into three categories:
+Persistence adapter tests verify that domain objects survive the round-trip through the persistence layer and a real database. HexaStock implements two interchangeable adapters — JPA on MySQL and Spring Data on MongoDB — and the test suites of both adapters mirror each other, exercising the same outbound ports (`PortfolioPort`, `TransactionPort`) so that behavioural equivalence between the two technologies is verified, not assumed.
 
 ### Test Categories
 
-| Test Class | Category | What It Verifies |
-|---|---|---|
-| `MapperTest` | Pure unit tests | JPA ↔ Domain mapper correctness (no database) |
-| `JpaPortfolioRepositoryContractTest` | Port contract test | `PortfolioPort` contract against real MySQL |
-| `JpaTransactionRepositoryContractTest` | Port contract test | `TransactionPort` contract against real MySQL |
-| `JpaPessimisticLockingTest` | JPA-specific test | `SELECT ... FOR UPDATE` locking behaviour |
+| Test Class | Adapter | Category | What It Verifies |
+|---|---|---|---|
+| `MapperTest` | JPA | Pure unit tests | JPA ↔ Domain mapper correctness (no database) |
+| `JpaPortfolioRepositoryContractTest` | JPA | Port contract test | `PortfolioPort` contract against real MySQL |
+| `JpaTransactionRepositoryContractTest` | JPA | Port contract test | `TransactionPort` contract against real MySQL |
+| `JpaPessimisticLockingTest` | JPA | Adapter-specific test | `SELECT ... FOR UPDATE` locking behaviour |
+| `MongoMapperTest` | MongoDB | Pure unit tests | Document ↔ Domain mapper correctness (no database) |
+| `MongoPortfolioRepositoryContractTest` | MongoDB | Port contract test | `PortfolioPort` contract against real MongoDB |
+| `MongoTransactionRepositoryContractTest` | MongoDB | Port contract test | `TransactionPort` contract against real MongoDB |
+| `MongoOptimisticLockingTest` | MongoDB | Adapter-specific test | `@Version`-based optimistic locking and retry |
 
 ### Port Contract Tests: The Portability Pattern
 
-The most architecturally significant tests in this layer are the **port contract tests**. The abstract contract (`AbstractPortfolioPortContractTest`) defines what any `PortfolioPort` implementation must do — create-and-retrieve, update balance, list all, handle nonexistent IDs, and round-trip holdings with lots. The JPA implementation inherits these tests:
+The most architecturally significant tests in this layer are the **port contract tests**. The abstract contract (`AbstractPortfolioPortContractTest`) defines what any `PortfolioPort` implementation must do — create-and-retrieve, update balance, list all, handle nonexistent IDs, and round-trip holdings with lots. Both the JPA and MongoDB implementations inherit these tests:
 
 ```java
 // AbstractPortfolioPortContractTest — in application module, no Spring annotations
@@ -280,7 +284,7 @@ class JpaPortfolioRepositoryContractTest extends AbstractPortfolioPortContractTe
 }
 ```
 
-This design means that if HexaStock is ever migrated to MongoDB, the new adapter only needs to extend `AbstractPortfolioPortContractTest`, supply a `MongoPortfolioRepository` via `port()`, and all nine contract assertions run automatically against MongoDB. The same business behaviour is guaranteed regardless of the persistence technology.
+This design means that HexaStock can swap between MySQL (JPA) and MongoDB without rewriting a single contract test: each adapter only needs to extend `AbstractPortfolioPortContractTest`, supply its repository via `port()`, and all contract assertions run automatically against that technology. The same business behaviour is guaranteed regardless of the persistence technology in use.
 
 For the full architectural rationale, the override-and-delegate pattern explained, and a worked example of adding a second persistence technology, see [Deep Dive: Persistence Adapter Testing with Future Portability](#10-deep-dive-persistence-adapter-testing-with-future-portability).
 
