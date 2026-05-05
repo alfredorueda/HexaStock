@@ -868,9 +868,9 @@ Without optimisation, loading a portfolio with *H* holdings produces **2 + H SQL
 
 For a portfolio with 3 holdings, that means 5 queries. For 20 holdings, 22 queries. Each additional holding adds a round-trip to the database.
 
-**The fix: Hibernate `@BatchSize`**
+**A mitigation, not a cure: Hibernate `@BatchSize`**
 
-HexaStock addresses this with Hibernate's `@BatchSize(size = 30)` annotation on both `@OneToMany` collections:
+HexaStock mitigates this with Hibernate's `@BatchSize(size = 30)` annotation on both `@OneToMany` collections. It is important to be precise here: `@BatchSize` does not *eliminate* the N+1 problem in the strict sense — the lots collection is still loaded by a *separate* round-trip from the portfolio and the holdings — but it reduces the number of those round-trips by an order of magnitude, which is usually enough to make the cost negligible in practice.
 
 ```java
 // PortfolioJpaEntity.java
@@ -887,12 +887,17 @@ private Set<HoldingJpaEntity> holdings = new HashSet<>();
 private List<LotJpaEntity> lots = new ArrayList<>();
 ```
 
-When Hibernate initialises a lazy collection annotated with `@BatchSize`, it looks for other uninitialised collections of the same role in the persistence context and loads up to the batch size in a single `IN`-clause query [Hibernate ORM User Guide, § "Batch fetching"]. This yields:
+When Hibernate initialises a lazy collection annotated with `@BatchSize`, it looks for other uninitialised collections of the same role in the persistence context and loads up to the batch size in a single `IN`-clause query [Hibernate ORM User Guide, § "Batch fetching"]. The effect on the lots collection is:
 
-- **Without `@BatchSize`:** one query per holding's lots, i.e. *H* queries.
-- **With `@BatchSize(size = 30)`:** ⌈*H* / 30⌉ queries for all holdings' lots.
+- **Without `@BatchSize`:** one query per holding's lots, i.e. *H* queries — the textbook N+1 cost.
+- **With `@BatchSize(size = 30)`:** ⌈*H* / 30⌉ queries for all holdings' lots — strictly better, but still proportional to *H* once the portfolio grows beyond the batch size.
 
-For any portfolio with up to 30 holdings, all lots are loaded in a **single query** instead of *H* separate queries, and the total query count is reduced from **2 + H** to a constant **3** (portfolio + holdings + one batched query for lots).
+For any portfolio with up to 30 holdings, the lots of all holdings are fetched by a **single batched query**, so the total query count is bounded by **3** (portfolio + holdings + one batched query for lots). For larger portfolios the count grows as **2 + ⌈*H* / 30⌉** instead of **2 + *H***. Strictly speaking this is an N+1 pattern with a much smaller constant — the round-trips have not disappeared, but their number has been amortised across batches.
+
+Two limitations are worth being explicit about:
+
+- `@BatchSize` only batches collections that happen to be in the persistence context at the same time; siblings loaded later (for example, in a separate transaction or after the context was cleared) will not benefit.
+- Beyond the batch size, the cost is still linear in *H*. Portfolios that are expected to grow well past the configured batch size require a different strategy (a dedicated read model, projection queries, or an explicit `JOIN FETCH` query — see the trade-off note below).
 
 > **Why not `JOIN FETCH`?** A two-level `JOIN FETCH` (portfolio → holdings → lots) produces a Cartesian product in the SQL result set: every combination of holding × lot yields a row. For a portfolio with 10 holdings averaging 5 lots each, the result set would contain 50 rows rather than 10 + 50, and Hibernate would need to deduplicate in memory. `@BatchSize` avoids the Cartesian product by issuing separate but batched queries, and requires no changes to the JPQL query or the mapper traversal logic [Hibernate ORM User Guide, § "Fetching strategies"].
 
