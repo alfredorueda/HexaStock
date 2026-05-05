@@ -801,7 +801,7 @@ The transaction boundary is placed at the **application service** — not inside
 > - Race condition demonstrations with real tests
 > - When to use which strategy in production financial systems
 >
-> See the companion study: **[Concurrency Control with Pessimistic and Optimistic Locking](../CONCURRENCY-PESSIMISTIC-LOCKING.md)**
+> See the companion study: **[Concurrency Control: Pessimistic Locking and Optimistic Concurrency](../CONCURRENCY-PESSIMISTIC-LOCKING.md)**
 
 ---
 
@@ -1247,7 +1247,7 @@ This tutorial is part of a larger documentation ecosystem. The HexaStock reposit
 
 **Concurrency and Persistence**
 
-- [Concurrency Control with Pessimistic and Optimistic Locking](../CONCURRENCY-PESSIMISTIC-LOCKING.md) — Pessimistic and optimistic locking, transaction isolation levels, race condition demonstrations with real tests, and Java 21 virtual thread considerations.
+- [Concurrency Control: Pessimistic Locking and Optimistic Concurrency](../CONCURRENCY-PESSIMISTIC-LOCKING.md) — Pessimistic locking (JPA/MySQL) and optimistic concurrency with retries (MongoDB), with race-condition demonstrations backed by real tests.
 
 **Testing**
 

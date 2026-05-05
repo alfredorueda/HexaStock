@@ -776,7 +776,7 @@ Domain tests have zero infrastructure dependencies — they run without Docker, 
 - [Tutorial README — Traceability Chain](README.md) — `@SpecificationRef` architecture and identifier conventions
 - [Stock Portfolio API Specification](../stock-portfolio-api-specification.md) — all 10 use cases with acceptance criteria
 - [Gherkin Feature Files](../features/) — 15 `.feature` files providing executable behavioural specifications
-- [Concurrency Control with Pessimistic and Optimistic Locking](CONCURRENCY-PESSIMISTIC-LOCKING.md) — race condition demonstrations with real tests
+- [Concurrency Control: Pessimistic Locking and Optimistic Concurrency](CONCURRENCY-PESSIMISTIC-LOCKING.md) — race-condition demonstrations with real tests
 
 ---
 

@@ -713,7 +713,7 @@ The architect's role does not diminish. It evolves — from writing implementati
 
 - [HexaStock Repository](https://github.com/alfredorueda/HexaStock) — Full source code, specifications, and documentation
 - [Sell Stock Deep Dive](../sellStocks/SELL-STOCK-TUTORIAL.md) — End-to-end architectural tutorial tracing the sell use case
-- [Concurrency Control with Pessimistic and Optimistic Locking](../CONCURRENCY-PESSIMISTIC-LOCKING.md) — Companion study on concurrency strategies
+- [Concurrency Control: Pessimistic Locking and Optimistic Concurrency](../CONCURRENCY-PESSIMISTIC-LOCKING.md) — Companion study on concurrency strategies
 - [Rich vs Anemic Domain Model](../richVsAnemicDomainModel/RICH_VS_ANEMIC_DOMAIN_MODEL_TUTORIAL.md) — Comparative architectural study
 
 ### Tools

@@ -25,7 +25,7 @@ These chapters deepen specific themes introduced in the main study.
 
 - [Rich vs Anemic Domain Model](tutorial/richVsAnemicDomainModel/RICH_VS_ANEMIC_DOMAIN_MODEL_TUTORIAL.md) — Side-by-side architectural comparison using the sell flow, with failure mode demonstration.
 - [Dependency Inversion in Stock Selling](tutorial/DEPENDENCY-INVERSION-STOCK-SELLING.md) — Full execution flow through ports and adapters, with testability and extensibility analysis.
-- [Concurrency Control with Pessimistic and Optimistic Locking](tutorial/CONCURRENCY-PESSIMISTIC-LOCKING.md) — Locking strategies, isolation levels, race condition tests, and Java 21 virtual thread considerations.
+- [Concurrency Control: Pessimistic Locking and Optimistic Concurrency](tutorial/CONCURRENCY-PESSIMISTIC-LOCKING.md) — Pessimistic locking (JPA/MySQL) and optimistic concurrency with retries (MongoDB), isolation levels, and race-condition tests.
 - [DDD Portfolio and Transactions](DDD%20Portfolio%20and%20Transactions.md) — Why Portfolio and Transaction are separate aggregates: consistency boundaries, invariants, and a decision matrix.
 - [Remove Lots with Zero Remaining Quantity](Remove%20Lots%20with%20Zero%20Remaining%20Quantity%20from%20Portfolio%20Aggregate.md) — Design decision on retaining or pruning fully consumed lots, with DDD-grounded analysis.
 - [Holdings Performance at Scale](tutorial/portfolioReporting/HOLDINGS-PERFORMANCE-AT-SCALE.md) — Four reporting strategies from in-memory aggregation to CQRS read models.

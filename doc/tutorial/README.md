@@ -118,7 +118,7 @@ This repository includes additional tutorials that complement the traceability a
 
 - [DDD & Hexagonal Architecture Exercise](DDD-Hexagonal-exercise.md) — hands-on exercise exploring the hexagonal architecture pattern
 - [Dependency Inversion for Stock Selling](DEPENDENCY-INVERSION-STOCK-SELLING.md) — tutorial on dependency inversion in the context of stock operations
-- [Concurrency & Pessimistic Locking](CONCURRENCY-PESSIMISTIC-LOCKING.md) — tutorial on handling concurrent access to portfolios
+- [Concurrency Control: Pessimistic Locking and Optimistic Concurrency](CONCURRENCY-PESSIMISTIC-LOCKING.md) — tutorial on handling concurrent access to portfolios with pessimistic locking (JPA/MySQL) and optimistic concurrency with retries (MongoDB)
 
 ---
 

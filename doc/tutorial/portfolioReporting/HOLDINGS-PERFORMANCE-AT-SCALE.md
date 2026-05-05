@@ -556,7 +556,7 @@ There is no universally correct choice. The decision depends on measurable chara
 **Related tutorials in this project:**
 
 - [Selling Stocks — Hexagonal Architecture and DDD](../sellStocks/SELL-STOCK-TUTORIAL.md)
-- [Concurrency Control with Pessimistic Database Locking](../CONCURRENCY-PESSIMISTIC-LOCKING.md)
+- [Concurrency Control: Pessimistic Locking and Optimistic Concurrency](../CONCURRENCY-PESSIMISTIC-LOCKING.md)
 - [Dependency Inversion in Stock Selling](../DEPENDENCY-INVERSION-STOCK-SELLING.md)
 
 **External references:**
