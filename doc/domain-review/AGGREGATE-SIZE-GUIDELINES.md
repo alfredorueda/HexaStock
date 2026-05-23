@@ -78,6 +78,11 @@ The aggregate boundary should match the **invariants that must hold after every 
 
 This is the single most effective tool for keeping aggregates small.
 
+### 4.5 Reporting endpoints are a separate case
+A report may need to aggregate thousands or millions of historical records, but that does **not** imply that those records should be loaded as a single write-side aggregate. Reporting and analytical reads belong to the **query side** of the system and should be shaped by the query, not by the invariants of the write model. Common evolution paths are DTO projections, database-side aggregation (`GROUP BY`), snapshots, and CQRS-style read models.
+
+For a worked example of how HexaStock evolves from in-memory reporting (loading the full transaction list into the domain) toward database pre-aggregation and snapshot-based read models — including a realistic discussion of per-request memory footprint, concurrency amplification, and JPA hydration cost — see [Holdings Performance at Scale](../tutorial/portfolioReporting/HOLDINGS-PERFORMANCE-AT-SCALE.md). The thresholds in this chapter (low thousands = warning, tens of thousands = redesign) remain the **stricter, more general rule for write-side aggregates**; the reporting chapter explicitly does *not* propose its in-memory transaction list as a healthy aggregate boundary.
+
 ---
 
 ## 5. Concrete example — Portfolio / Holdings / Lots / Sell Shares

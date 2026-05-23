@@ -115,25 +115,33 @@ The domain service has **no I/O**. It receives all data as method arguments and 
 
 ## 3. Scalability Analysis of Approach A
 
-### 3.1 Working Set Per Request
+### 3.1 Approximate Request Footprint
+
+> **Important distinction.** This section analyzes a **reporting (read-side) use case**, not an aggregate-root sizing recommendation. The transaction list loaded by Approach A is *not* proposed as a healthy DDD aggregate boundary. For write-side aggregate design, follow the stricter guidance in [Aggregate Root Size Guidelines](../../domain-review/AGGREGATE-SIZE-GUIDELINES.md): low thousands of hydrated children already require measurement, and tens of thousands usually indicate a boundary problem. Approach A is intentionally simple and educational. It is suitable under low concurrency or in early-stage conditions, but it should not be generalized as a recommended production aggregate shape.
+
+*In this section, the term* **working set** *is used informally to describe the approximate memory involved in processing one request. Strictly speaking, **retained live set** (objects still reachable for the duration of the request) and **allocation volume** (short-lived objects produced during computation) are different dimensions and should be measured separately under production profiling.*
 
 Each call to `getHoldingsPerformance` materializes the following objects in the JVM heap:
 
-| Object | Count | Typical size |
-|---|---|---|
-| `Transaction` instances | T | ~200–400 bytes each (with Value Objects) |
-| `TickerAccumulator` entries | H | ~80 bytes each |
-| Intermediate `BigDecimal` allocations | ~3T | ~48 bytes each |
-| Result `HoldingDTO` list | H | ~120 bytes each |
+| Object | Count | Typical size | Nature |
+|---|---|---|---|
+| `Transaction` instances | T | ~200–400 bytes each (with Value Objects) | Retained live set |
+| `TickerAccumulator` entries | H | ~80 bytes each | Retained live set |
+| Intermediate `BigDecimal` allocations | ~3T | ~48 bytes each | Allocation volume (mostly short-lived) |
+| Result `HoldingDTO` list | H | ~120 bytes each | Retained live set |
 
-For T = 20,000 and H = 15 tickers, the working set per request is approximately:
+For T = 20,000 and H = 15 tickers, the approximate per-request footprint is:
 
-- Transactions: 20,000 × 300 bytes ≈ **6 MB**
+- Transactions (retained): 20,000 × 300 bytes ≈ **6 MB**
 - Accumulators: negligible
-- Intermediate BigDecimals: 60,000 × 48 bytes ≈ **2.7 MB**
+- Intermediate `BigDecimal` (allocation volume): 60,000 × 48 bytes ≈ **2.7 MB**
 - Total: **~9 MB per request**
 
-This is well within the capabilities of a modern JVM with a 256 MB–1 GB heap.
+A single request of this size is feasible on a modern JVM, but it is **not a small request**. At approximately 9 MB of retained and allocated data, the design must be evaluated under realistic concurrency, heap limits, ORM hydration cost, database access patterns, and GC behavior before being treated as a production default.
+
+The transaction objects are part of the **retained live set** for the duration of the request. The intermediate `BigDecimal` instances are better understood as **allocation volume**: many of them are short-lived and may die young. These two dimensions react very differently to GC tuning and should be measured separately in production profiling.
+
+The actual footprint of each `Transaction` object cannot be guaranteed from source code alone. It depends on JVM implementation details, compressed references, object alignment, value-object layout, graph depth, and ORM instrumentation (proxies, interceptors, lazy collection wrappers). Tools such as **JOL** (Java Object Layout) or production profilers should be used when exact memory footprint matters.
 
 ### 3.2 Concurrency Amplification
 
@@ -148,7 +156,9 @@ The critical insight is that the working set above is **per request**. Under con
 
 This is a linear amplification. A server handling 50 concurrent reporting requests on portfolios with 20,000 transactions each would hold ~450 MB of transaction objects simultaneously. Whether this is acceptable depends entirely on the JVM heap size and the GC configuration.
 
-The transactions are loaded from the database, so the amplification also applies to JDBC result set processing, object hydration, and JPA entity mapping — all of which happen before the domain service is invoked.
+At this point, the concern is no longer *whether one request can be processed*. The concern is whether the service can preserve **heap headroom**, **predictable GC behavior**, and **stable p95/p99 latency** when several such requests overlap. A design that is harmless for one request can become expensive when multiplied by 50 or 100 concurrent reporting requests. With a 1 GB heap, 100 concurrent requests of this shape would consume close to the entire heap for this single reporting pattern, leaving little headroom for Spring Boot internals, Hibernate persistence contexts, JDBC buffers, other endpoints, caches, object promotion, and GC overhead. With a 256 MB heap, the theoretical ceiling of 256 MB / 9 MB ≈ 28 concurrent requests is unrealistic because the application needs significant memory for everything else.
+
+The transactions are loaded from the database, so the amplification also applies to JDBC result-set processing, object hydration, and JPA entity mapping — **all of which happen before the domain service is invoked**. When the implementation loads full JPA entities (rather than DTO projections), the memory cost is not limited to the domain object graph: Hibernate may also maintain persistence-context entries, dirty-checking snapshots, proxies, collection wrappers, and internal references. For read-only reporting, DTO projections or dedicated query-side ports are usually preferable once the endpoint becomes performance-sensitive.
 
 ### 3.3 Heap Pressure and GC Pause Implications
 
@@ -163,7 +173,7 @@ As T grows, two effects emerge:
 1. **Elevated allocation rate** — more frequent young-generation collections, potentially overlapping with other requests.
 2. **Longer GC pauses if objects promote** — if the young generation is too small relative to the allocation rate, objects promote to old generation. Full GC cycles are far more expensive.
 
-With ZGC (available since Java 15, production-ready since Java 21), pause times are bounded regardless of heap size. With G1, pause targets are configurable but the JVM may exceed them under pressure. Neither changes the fundamental economics: the larger T is, the more heap you burn per request.
+With ZGC (available since Java 15, production-ready since Java 21, and generational since JEP 439), pause times are bounded regardless of heap size. With G1, pause targets are configurable but the JVM may exceed them under pressure. Modern garbage collectors make this allocation pattern **more survivable, not free**: they can reduce pause impact, especially for short-lived objects, but they do not remove the fundamental relationship between request footprint, allocation rate, concurrency, heap headroom, and latency distribution. The larger T is, the more heap you burn per request.
 
 ### 3.4 Latency Distribution Reasoning
 
@@ -285,6 +295,12 @@ With Approach B, the aggregation correctness depends on the SQL query. This mean
 
 Source: `./diagrams/approachC-sequence.puml`
 
+> **Principle: Do Not Confuse Reporting Queries with Aggregate Boundaries**
+>
+> A reporting query may scan or aggregate many historical records. That does not mean those records belong inside a single write-side aggregate. Large historical datasets are typically better handled through **query-side ports, DTO projections, database aggregation, snapshots, or CQRS-style read models**. The write model should remain shaped by invariants and transactional consistency boundaries; the read model should be shaped by the query.
+
+For production-grade reporting, **Approach C is usually the preferred evolution path** once the educational simplicity of Approach A is no longer sufficient. It removes the O(T) JVM memory footprint while preserving the most business-sensitive calculations in Java. The database performs raw, associative pre-aggregation (sums, counts, products). The domain layer remains responsible for business-sensitive finalization such as division, rounding, missing-price semantics, and unrealized gain calculation. This is the most balanced compromise between performance and domain correctness available without introducing snapshot/CQRS infrastructure.
+
 ### 5.1 Design Overview
 
 Approach C is a compromise between A and B. The database performs the **heavy lifting** (summing quantities and costs across thousands of rows), but the domain layer retains ownership of **business-sensitive calculations** (rounding, average price, unrealized gain).
@@ -336,7 +352,7 @@ By keeping division and rounding in the `HoldingPerformanceCalculator`, the busi
 | Complexity | Simpler (one query, done) | Slightly higher (query + domain finalization) |
 | Maintenance | SQL + Java must agree | SQL does raw sums, Java owns business rules |
 
-Approach C is the **recommended production path** when T exceeds the comfortable range for Approach A. It preserves domain purity for the sensitive calculations while eliminating the O(T) memory footprint.
+Approach C is the **preferred production evolution** from Approach A. Once transaction volume, concurrent reporting requests, heap pressure, or p95/p99 latency become relevant, Approach C preserves domain purity for the sensitive calculations while eliminating the O(T) memory footprint.
 
 The port definition for Approach C:
 
@@ -500,7 +516,7 @@ This complexity is justified only when the simpler approaches (A, B, C) are insu
 | **Rounding correctness** | ✅ Guaranteed — Java constants | ⚠️ Risk — depends on DB engine | ✅ Guaranteed — Java constants | ✅ If finalization stays in Java |
 | **Concurrency behavior** | Linear heap scaling with request count | Minimal JVM impact | Minimal JVM impact | Snapshot row contention on writes |
 | **Testability** | ✅ Pure unit tests, no DB needed | ⚠️ Integration tests required for query | ✅ Unit tests for rounding + integration for sums | ⚠️ Complex — write path, snapshot update, reconciliation all need testing |
-| **Production suitability** | ✅ Up to ~50K–100K transactions | ✅ Up to millions of transactions | ✅ Up to millions of transactions | ✅ Unlimited — read is O(H) always |
+| **Production suitability** | ⚠️ Educational, early-stage, and low-concurrency reporting; increasingly questionable beyond tens of thousands of transactions per portfolio unless realistic load tests confirm acceptable heap usage, GC behavior, and p95/p99 latency | ✅ Up to millions of transactions | ✅ Preferred production evolution — up to millions of transactions | ✅ Unlimited — read is O(H) always |
 | **Academic suitability** | ✅ Excellent — clear, self-contained, testable | ✅ Good — teaches DB-app boundary | ✅ Very good — teaches architectural tradeoffs | ⚠️ Advanced — requires event/CQRS knowledge |
 | **Implementation effort** | ✅ Already done | Low — one query + port + adapter | Medium — query + port + calculator method | High — table, updater, reconciliation, monitoring |
 
@@ -511,17 +527,21 @@ This complexity is justified only when the simpler approaches (A, B, C) are insu
 There is no universally correct choice. The decision depends on measurable characteristics of the deployment:
 
 **Stay with Approach A when:**
-- Transaction count per portfolio is under ~50,000
-- Concurrent reporting requests are low (single-digit)
-- Domain purity and testability are prioritized over raw performance
-- The team is small and operational complexity must be minimized
-- This is an academic or early-stage project
+- Transaction count per portfolio is modest — typically in the low tens of thousands or below — **and** realistic load tests confirm that heap usage, GC behavior, and p95/p99 latency remain acceptable.
+- Concurrent reporting requests are low.
+- The implementation is primarily educational or early-stage.
+- Domain purity and unit-testability are currently more important than query-side optimization.
+- The team has not yet observed memory pressure, latency outliers, or database hydration bottlenecks.
+- Operational complexity must be minimized.
 
-**Move to Approach C (hybrid) when:**
-- Transaction count exceeds ~50,000 per portfolio
-- Memory pressure is observed under concurrent load (monitor GC pause frequency and allocation rate)
-- Domain purity must be preserved (rounding and business rules stay in Java)
-- The team is comfortable with integration tests for the DB layer
+(Do not interpret 50K or 100K as a universal safe threshold. The right number depends on heap size, GC, concurrency, and the cost of JPA hydration in your environment.)
+
+**Move to Approach C (hybrid) — the preferred production evolution — when:**
+- Transaction count per portfolio grows into the tens of thousands or beyond.
+- Memory pressure, allocation rate, or GC pause frequency is observed under concurrent load.
+- p95/p99 latency on the reporting endpoint becomes a concern.
+- Domain purity must be preserved (rounding and business rules stay in Java).
+- The team is comfortable with integration tests for the DB layer.
 
 **Move to Approach B when:**
 - Approach C's additional complexity (two-step processing) is not justified
