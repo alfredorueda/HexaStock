@@ -29,6 +29,10 @@
         </dependency>
         <dependency>
             <groupId>cat.gencat.agaur</groupId>
+            <artifactId>hexastock-adapters-inbound-telegram</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>cat.gencat.agaur</groupId>
             <artifactId>hexastock-adapters-outbound-persistence-jpa</artifactId>
         </dependency>
         <dependency>
@@ -38,6 +42,10 @@
         <dependency>
             <groupId>cat.gencat.agaur</groupId>
             <artifactId>hexastock-adapters-outbound-market</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>cat.gencat.agaur</groupId>
+            <artifactId>hexastock-adapters-outbound-notification</artifactId>
         </dependency>
 
         <!-- Spring Boot -->
@@ -52,6 +60,17 @@
         <dependency>
             <groupId>org.springframework.retry</groupId>
             <artifactId>spring-retry</artifactId>
+        </dependency>
+
+        <!-- Spring Modulith: in-process module event bus + verification -->
+        <dependency>
+            <groupId>org.springframework.modulith</groupId>
+            <artifactId>spring-modulith-starter-core</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.modulith</groupId>
+            <artifactId>spring-modulith-starter-test</artifactId>
+            <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>org.springframework.boot</groupId>
