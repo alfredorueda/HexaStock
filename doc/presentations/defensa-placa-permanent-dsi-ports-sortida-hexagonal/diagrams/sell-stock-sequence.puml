@@ -1,0 +1,42 @@
+@startuml
+title Seqüència: el servei coordina, el domini decideix, l'adaptador integra
+
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam defaultFontName Arial
+skinparam defaultFontSize 15
+skinparam titleFontSize 20
+skinparam ArrowColor #444444
+
+actor "Client / controller" as Client
+participant "PortfolioStockOperationsUseCase\nport d'entrada" as InPort
+participant "PortfolioStockOperationsService\nservei d'aplicació" as Service
+participant "PortfolioPort" as PortfolioPort
+participant "StockPriceProviderPort\nport de sortida" as PricePort
+participant "Adaptador de preus\nFinnhub / Alpha Vantage / mock" as Adapter
+participant "API externa de preus" as ExternalApi
+participant "Portfolio\naggregate root" as Portfolio
+participant "TransactionPort" as TransactionPort
+
+Client -> InPort : sellStock(portfolioId, ticker, quantity)
+InPort -> Service : sellStock(...)
+Service -> PortfolioPort : getPortfolioById(portfolioId)
+PortfolioPort --> Service : Portfolio
+Service -> PricePort : fetchStockPrice(ticker)
+PricePort -> Adapter : fetchStockPrice(ticker)
+Adapter -> ExternalApi : consulta tècnica
+ExternalApi --> Adapter : resposta externa
+Adapter --> PricePort : StockPrice(ticker, Price, time)
+PricePort --> Service : StockPrice
+Service -> Portfolio : sell(ticker, quantity, price)
+Portfolio --> Service : SellResult
+Service -> PortfolioPort : savePortfolio(portfolio)
+Service -> TransactionPort : save(Transaction.createSale(...))
+Service --> InPort : SellResult
+InPort --> Client : resposta
+
+note over Service,Portfolio
+  La decisió de domini no es resol
+  a l'adaptador ni al controller.
+end note
+@enduml

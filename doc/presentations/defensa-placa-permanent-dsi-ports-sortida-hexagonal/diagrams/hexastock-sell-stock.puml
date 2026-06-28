@@ -1,0 +1,67 @@
+@startuml
+title HexaStock: venda d'accions amb proveïdor de preus substituïble
+
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam defaultFontName Arial
+skinparam defaultFontSize 15
+skinparam titleFontSize 20
+skinparam componentStyle rectangle
+skinparam packageStyle rectangle
+skinparam ArrowColor #444444
+
+package "Inbound adapter" as IN #FFF7E6 {
+  component "PortfolioRestController" as REST
+}
+
+package "Application" as APP #EEF4FA {
+  interface "PortfolioStockOperationsUseCase\n<<port d'entrada>>" as INPORT
+  component "PortfolioStockOperationsService\n<<servei d'aplicació>>" as SERVICE
+  interface "StockPriceProviderPort\n<<port de sortida>>" as PRICEPORT
+  interface "PortfolioPort" as PORTFOLIOPORT
+  interface "TransactionPort" as TXPORT
+}
+
+package "Domain" as DOM #EEF6F2 {
+  component "Portfolio\naggregate root" as PORTFOLIO
+  component "Holding" as HOLDING
+  component "Lot" as LOT
+  component "SellResult" as SELLRESULT
+  component "Ticker" as TICKER
+  component "ShareQuantity" as QTY
+  component "Price" as PRICE
+}
+
+package "Outbound adapters" as OUT #F7F7F7 {
+  component "FinhubStockPriceAdapter\nperfil: finhub" as FINHUB
+  component "AlphaVantageStockPriceAdapter\nperfil: alphaVantage" as ALPHA
+  component "MockFinhubStockPriceAdapter\nperfil: mockfinhub" as MOCK
+  cloud "APIs externes de preus" as API
+}
+
+REST --> INPORT : invoca
+SERVICE ..|> INPORT : implementa
+SERVICE --> PRICEPORT : fetchStockPrice(ticker)
+SERVICE --> PORTFOLIOPORT : recupera / desa
+SERVICE --> TXPORT : registra venda
+SERVICE --> PORTFOLIO : sell(ticker, quantity, price)
+
+PORTFOLIO --> HOLDING : delega FIFO
+HOLDING --> LOT : consumeix lots
+HOLDING --> SELLRESULT : retorna resultat
+PORTFOLIO ..> TICKER
+PORTFOLIO ..> QTY
+PORTFOLIO ..> PRICE
+
+FINHUB ..|> PRICEPORT
+ALPHA ..|> PRICEPORT
+MOCK ..|> PRICEPORT
+FINHUB --> API
+ALPHA --> API
+
+note bottom of SERVICE
+  El servei coordina.
+  El domini decideix.
+  La infraestructura adapta.
+end note
+@enduml

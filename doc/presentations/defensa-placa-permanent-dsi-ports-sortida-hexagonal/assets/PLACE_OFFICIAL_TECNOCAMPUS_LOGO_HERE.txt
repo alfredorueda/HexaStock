@@ -1,0 +1,6 @@
+Marcador per al logotip oficial TecnoCampus / UPF.
+
+Ja hi ha un logotip descarregat des de la pàgina oficial d'imatge corporativa:
+logotip-oficial-tecnocampus-upf-horitzontal-color.png
+
+Si Alfredo prefereix una altra variant oficial, substituir-la en aquesta carpeta i actualitzar src/build_pptx.py si cal.

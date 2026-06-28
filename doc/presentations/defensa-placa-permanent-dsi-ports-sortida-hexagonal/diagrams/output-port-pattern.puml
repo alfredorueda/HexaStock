@@ -1,0 +1,35 @@
+@startuml
+title Patró: el cas d'ús depèn d'una capacitat, no d'un proveïdor
+
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam defaultFontName Arial
+skinparam defaultFontSize 16
+skinparam titleFontSize 20
+skinparam componentStyle rectangle
+skinparam packageStyle rectangle
+skinparam ArrowColor #444444
+
+package "Application" as APP #EEF4FA {
+  component "Application Service\ncoordina el cas d'ús" as SERVICE #DDEAF7
+  interface "Output Port\ncapacitat requerida" as PORT #FFFFFF
+}
+
+package "Domain" as DOM #EEF6F2 {
+  component "Domain Model\ninvariants i regles" as DOMAIN #DDEFE6
+}
+
+package "Infrastructure" as INFRA #F7F7F7 {
+  component "Adapter\ntecnologia concreta" as ADAPTER #FFF3D6
+  cloud "External API\nproveïdor extern" as API #F4F4F4
+}
+
+SERVICE --> DOMAIN : delega decisions
+SERVICE --> PORT : usa contracte
+ADAPTER ..|> PORT : implementa
+ADAPTER --> API : HTTP / SOAP / JSON / XML
+
+note bottom
+  Regla de dependències: el nucli no depèn dels detalls d'infraestructura.
+end note
+@enduml

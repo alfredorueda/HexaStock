@@ -1,0 +1,41 @@
+@startuml
+title Després: port de sortida i adaptador per localitzar el canvi
+
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam defaultFontName Arial
+skinparam defaultFontSize 16
+skinparam titleFontSize 20
+skinparam componentStyle rectangle
+skinparam packageStyle rectangle
+skinparam ArrowColor #444444
+
+package "Nucli de l'aplicació" as CORE #EEF6F2 {
+  component "Cas d'ús / servei\nd'aplicació" as USECASE #DDEFE6
+  component "Model de domini\n(regles del procediment)" as DOMAIN #DDEFE6
+  interface "Port de sortida\nNecessitat d'informació\nadministrativa" as PORT #FFFFFF
+}
+
+package "Infraestructura" as INFRA #F7F7F7 {
+  component "Adaptador PICA\nSOAP / XML / mapping / errors" as ADAPTER #FFF3D6
+  component "PICA" as PICA #F4F4F4
+  component "Serveis administratius\nexterns" as EXT #F4F4F4
+}
+
+USECASE --> DOMAIN : delega decisions
+USECASE --> PORT : declara què necessita
+ADAPTER ..|> PORT : implementa
+ADAPTER --> PICA : resol com obtenir-ho
+PICA --> EXT : consulta
+
+note right of PORT
+  El port pertany al llenguatge
+  de l'aplicació.
+end note
+
+note bottom of ADAPTER
+  Els detalls tècnics queden
+  dins l'adaptador.
+end note
+
+@enduml

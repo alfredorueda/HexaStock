@@ -1,0 +1,62 @@
+@startuml
+title Abans: avaluació d'una beca amb integració externa acoblada
+
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam defaultFontName Arial
+skinparam defaultFontSize 15
+skinparam titleFontSize 20
+skinparam ArrowColor #444444
+skinparam rectangle {
+  RoundCorner 8
+  BorderColor #555555
+}
+
+left to right direction
+
+rectangle "Flux funcional del procediment" as PROC #EEF6F2 {
+  rectangle "1\nSol·licitud\nde beca" as SOL #E9F2F8
+  rectangle "2\nExpedient\nadministratiu" as EXP #E9F2F8
+  rectangle "3\nAvaluació\nde requisits\n\ncriteris de concessió\ncondicions patrimonials" as AVAL #F8E9E9
+  rectangle "4\nProposta de resolució\nconcessió / denegació" as RES #E9F2F8
+}
+
+rectangle "Detall tècnic barrejat amb l'avaluació" as TECH #FFF8E6 {
+  rectangle "SOAP / XML\nmissatgeria i format\nd'integració" as SOAP #FFF3D6
+  rectangle "DTOs externs\nmapping\nerrors tècnics" as DTO #FFF3D6
+  rectangle "PICA\ninteroperabilitat\nadministrativa" as PICA #F4F4F4
+  rectangle "Cadastre / Catastro\nregistre de\nbéns immobles" as CAD #F4F4F4
+}
+
+SOL --> EXP : inicia
+EXP --> AVAL : instrueix
+AVAL --> RES : determina
+
+AVAL -down-> SOAP : consulta informació externa
+SOAP --> DTO : transforma
+DTO --> PICA : invoca
+PICA --> CAD : dades catastrals
+
+note bottom of AVAL
+  Punt crític:
+  les regles del procediment
+  conviuen amb detalls tècnics
+  de la integració externa.
+end note
+
+note bottom of TECH
+  Glossari mínim:
+  PICA: plataforma d'interoperabilitat administrativa.
+  Cadastre: registre administratiu de béns immobles.
+  SOAP/XML: missatgeria i format d'integració.
+end note
+
+legend bottom
+  Problema arquitectònic: si l'avaluació de l'expedient depèn directament
+  de PICA, SOAP, XML o DTOs externs, qualsevol canvi tecnològic
+  impacta en massa responsabilitats.
+
+  Diagrama conceptual. No mostra dades personals, NIFs, endpoints,
+  credencials, logs ni detalls interns.
+endlegend
+@enduml

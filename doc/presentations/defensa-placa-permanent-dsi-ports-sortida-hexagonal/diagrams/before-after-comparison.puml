@@ -1,0 +1,36 @@
+@startuml
+title Comparació final: localitzar el canvi
+
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam defaultFontName Arial
+skinparam defaultFontSize 16
+skinparam titleFontSize 20
+skinparam componentStyle rectangle
+skinparam packageStyle rectangle
+skinparam ArrowColor #444444
+
+package "Acoblament directe" as BEFORE #F8E9E9 {
+  component "Cas d'ús" as B_USE
+  component "Client API concret" as B_CLIENT
+  component "SOAP / REST\nJSON / XML" as B_PROTOCOL
+  cloud "Proveïdor extern" as B_PROVIDER
+  B_USE --> B_CLIENT
+  B_CLIENT --> B_PROTOCOL
+  B_PROTOCOL --> B_PROVIDER
+}
+
+package "Arquitectura hexagonal" as AFTER #EEF6F2 {
+  component "Cas d'ús" as A_USE
+  interface "Port de sortida" as A_PORT
+  component "Adaptador" as A_ADAPTER
+  cloud "Proveïdor extern" as A_PROVIDER
+  A_USE --> A_PORT
+  A_ADAPTER ..|> A_PORT
+  A_ADAPTER --> A_PROVIDER
+}
+
+note bottom
+  Canvia el proveïdor: canvia l'adaptador, no el domini ni el cas d'ús.
+end note
+@enduml
