@@ -13,6 +13,7 @@ Subtítol:
 - `outline.md`: estructura narrativa de 20 minuts.
 - `slide-by-slide.md`: contingut, visual i notes del presentador per diapositiva.
 - `guio-oral-20-minuts.md`: guió oral amb temps aproximat.
+- `cas-funcional-agaur-beca.md`: dossier de suport sobre el cas funcional AGAUR, beca, renda, patrimoni, valors cadastrals, PICA i fonts públiques.
 - `checklist.md`: verificació final docent, tècnica i institucional.
 - `sources-and-evidence.md`: fonts, evidències i punts pendents de verificar.
 - `diagrams/*.puml`: diagrames PlantUML.

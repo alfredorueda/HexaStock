@@ -97,7 +97,32 @@ S'utilitza com a motivació conceptual del problema arquitectònic: procediments
 - No mostrar captures internes.
 - Formular el cas com a problema habitual en sistemes corporatius, no com a crítica a AGAUR.
 
-## 4. Informació extreta del repositori local HexaStock
+## 4. Informació pública sobre el cas funcional de beca
+
+**Document de suport creat**
+
+`cas-funcional-agaur-beca.md`
+
+**Fonts principals**
+- AGAUR, requisits econòmics de la beca general: `https://agaur.gencat.cat/ca/beques-i-ajuts/pagines-especials/beques-i-ajuts-per-estudis-universitaris1/beca-general-ministeri/Requisits-economics/index.html`
+- AGAUR, preguntes freqüents de la beca general: `https://agaur.gencat.cat/ca/beques-i-ajuts/beca-general-generalitat/estudiants-domicili-catalunya/quan-solicitud-presentada/preguntes-frequents/`
+- AGAUR, quarta addenda al conveni BOGA 2020: `https://agaur.gencat.cat/web/.content/Documents/AGAUR/transparencia/convenis/2020/03_2020_4a_Addenda_Ensenyament_CA.pdf`
+- BOE, Reial decret 163/2025, de 4 de març: `https://www.boe.es/diario_boe/txt.php?id=BOE-A-2025-4320`
+- Dirección General del Catastro, "El Catastro en cifras": `https://www.catastro.hacienda.gob.es/es-ES/catastroencifras.html`
+
+**Fets verificables incorporats a la presentació**
+- AGAUR descriu una fase de requisits econòmics de renda i patrimoni.
+- Si no es compleixen aquests requisits econòmics, l'expedient no avança a la revisió acadèmica.
+- Els límits patrimonials poden incloure finques urbanes i rústiques, valorades amb valors cadastrals.
+- La sol·licitud autoritza AGAUR a consultar dades de renda i patrimoni de la unitat familiar.
+- L'addenda pública AGAUR-Departament d'Educació documenta BOGA, processos d'interoperabilitat a través de PICA i certificat de dades de cadastre disponibles per AEAT.
+
+**Formulació prudent**
+Es pot afirmar que el procediment de beca necessita informació administrativa externa per avaluar renda i patrimoni, incloent-hi informació patrimonial relacionada amb valors cadastrals. També es pot afirmar que hi ha documentació pública que vincula BOGA, PICA i certificats de dades de cadastre disponibles per AEAT.
+
+No s'ha de formular com una afirmació sobre endpoints interns, protocols exactes en producció o captures dels sistemes d'AGAUR.
+
+## 5. Informació extreta del repositori local HexaStock
 
 **Repositori local**
 
@@ -123,7 +148,7 @@ S'utilitza com a motivació conceptual del problema arquitectònic: procediments
 **Flux confirmat**
 `PortfolioStockOperationsService.sellStock(...)` recupera el portfolio, consulta `StockPriceProviderPort.fetchStockPrice(ticker)`, extreu `Price`, invoca `portfolio.sell(ticker, quantity, price)`, desa el portfolio i registra la transacció.
 
-## 5. Informació extreta del repositori GitHub HexaStock
+## 6. Informació extreta del repositori GitHub HexaStock
 
 **URL revisada**
 
@@ -142,7 +167,7 @@ S'utilitza com a motivació conceptual del problema arquitectònic: procediments
 **Nota**
 El codi local s'ha prioritzat com a font principal perquè pot contenir canvis més recents.
 
-## 6. Informació extreta del GitBook d'Alfredo
+## 7. Informació extreta del GitBook d'Alfredo
 
 **URL prevista**
 
@@ -154,7 +179,7 @@ Pendent de contrastar. L'eina d'accés web no ha retornat contingut útil en aqu
 **Criteri aplicat**
 S'ha utilitzat el repositori local i la documentació local `doc/tutorial/sellStocks/SELL-STOCK-TUTORIAL.md` com a font funcional equivalent per a aquesta primera versió.
 
-## 7. Informació pendent de verificar
+## 8. Informació pendent de verificar
 
 - Pla docent oficial de Disseny de Sistemes d'Informació si es vol citar literalment.
 - Correspondència exacta entre GitBook i documentació local.
@@ -162,7 +187,7 @@ S'ha utilitzat el repositori local i la documentació local `doc/tutorial/sellSt
 - Si el logotip oficial descarregat és la versió institucional preferida per a una defensa de plaça.
 - Si es vol substituir `MockFinhubStockPriceAdapter` per una denominació més genèrica en la diapositiva oral, com ara "adaptador mock".
 
-## 8. Fonts conceptuals complementàries
+## 9. Fonts conceptuals complementàries
 
 **Llibre local**
 
@@ -185,7 +210,7 @@ S'ha utilitzat com a suport terminològic i conceptual per reforçar:
 **Nota de copyright**
 No s'han incorporat fragments extensos del llibre. La presentació en fa una síntesi pròpia orientada a docència.
 
-## 9. Identitat visual TecnoCampus
+## 10. Identitat visual TecnoCampus
 
 **Font oficial**
 

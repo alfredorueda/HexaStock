@@ -15,6 +15,8 @@
 - [ ] Hi ha un objectiu d'aprenentatge observable.
 - [ ] La seqüència és problema real, diagnòstic, solució, HexaStock, conclusió.
 - [ ] El cas AGAUR motiva el problema, però no desvia la classe cap a mèrits documentals.
+- [ ] El cas AGAUR s'explica primer funcionalment: sol·licitud, expedient, requisits econòmics, renda, patrimoni i proposta de resolució.
+- [ ] Les referències a PICA, AEAT i Cadastre apareixen després d'haver explicat per què el procediment necessita dades externes.
 
 ## Rigor tècnic
 

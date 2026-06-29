@@ -1,0 +1,32 @@
+@startuml
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam defaultFontName Arial
+skinparam defaultFontSize 17
+skinparam ArrowColor #444444
+skinparam rectangle {
+  RoundCorner 8
+  BorderColor #555555
+}
+
+top to bottom direction
+
+rectangle "1\nSol·licitud\nde beca" as SOL #E9F2F8
+rectangle "2\nExpedient administratiu\nAGAUR / BOGA" as EXP #E9F2F8
+rectangle "3\nRequisits generals\nidentitat, matrícula,\nunitat familiar" as GEN #EEF6F2
+rectangle "4\nAvaluació econòmica\nrenda + patrimoni" as ECO #F8E9E9
+rectangle "Patrimoni\nfinques urbanes i rústiques\nvalors cadastrals\nrendiments de capital\nvolum de facturació" as PAT #FFF3D6
+rectangle "5A\nSi compleix:\nrevisió acadèmica" as ACA #EEF6F2
+rectangle "5B\nSi no compleix:\nno avança per motiu econòmic" as NEG #F8E9E9
+rectangle "6\nProposta de resolució\nconcessió / denegació" as RES #E9F2F8
+
+SOL --> EXP : inicia tràmit
+EXP --> GEN : comprova
+GEN --> ECO : avalua
+ECO --> PAT : inclou
+ECO --> ACA : compleix
+ACA --> RES : proposa
+ECO --> NEG : no compleix
+NEG --> RES : informa
+
+@enduml

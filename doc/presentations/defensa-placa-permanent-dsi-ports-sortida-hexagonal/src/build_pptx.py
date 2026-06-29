@@ -229,25 +229,54 @@ def create_deck():
 
     # 4
     slide = blank_slide(prs)
-    add_title(slide, "El problema en sistemes reals", "AGAUR, processos corporatius i informació externa")
-    add_picture_fit(slide, DIAGRAMS_DIR / "agaur-before-coupled.png",
-                    Inches(0.55), Inches(1.35), Inches(12.25), Inches(4.0))
+    add_title(slide, "Cas funcional: avaluació econòmica d'una beca",
+              "Abans de parlar d'arquitectura, cal entendre el procediment")
+    add_picture_fit(slide, DIAGRAMS_DIR / "agaur-functional-scholarship.png",
+                    Inches(0.65), Inches(1.35), Inches(7.65), Inches(4.95))
     add_text(slide,
-             "Lectura funcional: una sol·licitud de beca genera un expedient, s'avaluen requisits i es prepara una proposta de resolució. El risc arquitectònic apareix quan aquesta avaluació incorpora directament SOAP/XML, DTOs, mapping i detalls de PICA.",
-             Inches(0.85), Inches(5.55), Inches(7.65), Inches(0.9), font_size=14, color=TITLE_COLOR)
-    add_band(slide, Inches(8.9), Inches(5.55), Inches(3.6), Inches(0.9), LIGHT_GREY)
+             "Una sol·licitud de beca genera un expedient. Després dels requisits generals, AGAUR revisa requisits econòmics de renda i patrimoni. Si no es compleixen, l'expedient no avança a la revisió acadèmica.",
+             Inches(8.65), Inches(1.65), Inches(3.55), Inches(1.55), font_size=18, bold=True, color=TITLE_COLOR)
+    add_bullets(slide, [
+        "Renda familiar.",
+        "Patrimoni de la unitat familiar.",
+        "Finques urbanes i rústiques amb valors cadastrals.",
+        "Proposta de concessió o denegació.",
+    ], Inches(8.65), Inches(3.45), Inches(3.55), Inches(1.55), font_size=14)
+    add_band(slide, Inches(8.65), Inches(5.45), Inches(3.55), Inches(0.9), LIGHT_GREY)
     add_text(slide,
-             "Evidència documental\nInforme AGAUR: formació i consultoria especialitzada, 60 h, maig-juliol 2025, serveis REST i arquitectura hexagonal.",
-             Inches(9.1), Inches(5.68), Inches(3.2), Inches(0.58), font_size=9, color=MUTED,
+             "Fonts públiques: AGAUR requisits econòmics i BOE 2025-2026 sobre llindars de renda i patrimoni.",
+             Inches(8.85), Inches(5.62), Inches(3.15), Inches(0.45), font_size=10, color=MUTED,
              align=PP_ALIGN.CENTER)
     add_footer(slide, 4)
 
     # 5
     slide = blank_slide(prs)
+    add_title(slide, "Quina informació externa necessita el procediment?",
+              "Renda, patrimoni i informació cadastral")
+    add_picture_fit(slide, DIAGRAMS_DIR / "agaur-data-interoperability.png",
+                    Inches(0.65), Inches(1.35), Inches(8.05), Inches(4.95))
+    add_text(slide,
+             "La necessitat funcional no és consumir una API concreta. És obtenir informació administrativa fiable per avaluar si una sol·licitud compleix els requisits econòmics.",
+             Inches(9.0), Inches(1.65), Inches(3.2), Inches(1.35), font_size=18, bold=True, color=TITLE_COLOR)
+    add_bullets(slide, [
+        "La sol·licitud autoritza la consulta de renda i patrimoni.",
+        "El patrimoni pot incloure béns immobles.",
+        "El valor cadastral pot influir en el resultat econòmic.",
+        "La documentació pública vincula PICA amb dades de cadastre disponibles per AEAT.",
+    ], Inches(9.0), Inches(3.35), Inches(3.2), Inches(1.85), font_size=12)
+    add_band(slide, Inches(9.0), Inches(5.35), Inches(3.2), Inches(1.1), LIGHT_GREY)
+    add_text(slide,
+             "Glossari mínim: PICA és interoperabilitat administrativa; Cadastre és registre de béns immobles; SOAP/XML és missatgeria i format d'integració.",
+             Inches(9.18), Inches(5.5), Inches(2.85), Inches(0.72), font_size=8, color=MUTED,
+             align=PP_ALIGN.CENTER)
+    add_footer(slide, 5)
+
+    # 6
+    slide = blank_slide(prs)
     add_title(slide, "Quan l'acoblament es fa risc d'evolució",
               "Lectura institucional prudent: PICA, web services i orientació CTTI cap a APIs")
     add_text(slide,
-             "La qüestió no és si SOAP desapareix: és que cap tecnologia d'integració ha d'arrossegar el procediment.",
+             "La qüestió no és predir l'evolució concreta de SOAP: és que cap tecnologia d'integració ha d'arrossegar el procediment.",
              Inches(0.9), Inches(1.42), Inches(11.4), Inches(0.35), font_size=16, bold=True, color=TITLE_COLOR,
              align=PP_ALIGN.CENTER)
 
@@ -298,9 +327,9 @@ def create_deck():
              "Evidència: l'informe AGAUR acredita refactorització SOAP cap a REST i reducció d'acoblament.",
              Inches(9.0), Inches(5.58), Inches(3.25), Inches(0.55), font_size=10, color=MUTED,
              align=PP_ALIGN.CENTER)
-    add_footer(slide, 5)
+    add_footer(slide, 6)
 
-    # 6
+    # 7
     slide = blank_slide(prs)
     add_title(slide, "Solució AGAUR: port de sortida i adaptador")
     add_picture_fit(slide, DIAGRAMS_DIR / "agaur-after-hexagonal.png",
@@ -311,9 +340,9 @@ def create_deck():
     add_text(slide,
              "El cas d'ús necessita una capacitat externa, no una tecnologia externa concreta.",
              Inches(9.0), Inches(4.55), Inches(3.25), Inches(0.9), font_size=17, color=BLUE)
-    add_footer(slide, 6)
+    add_footer(slide, 7)
 
-    # 7
+    # 8
     slide = blank_slide(prs)
     add_title(slide, "De la interface al port", "Una frontera arquitectònica, no només un contracte Java")
     add_picture_fit(slide, DIAGRAMS_DIR / "output-port-pattern.png",
@@ -323,9 +352,9 @@ def create_deck():
              "Una interface pot desacoblar dues classes.\n\nUn port de sortida defineix una frontera arquitectònica.",
              Inches(8.75), Inches(2.2), Inches(3.05), Inches(2.4), font_size=22, bold=True, color=TITLE_COLOR,
              align=PP_ALIGN.CENTER)
-    add_footer(slide, 7)
+    add_footer(slide, 8)
 
-    # 8
+    # 9
     slide = blank_slide(prs)
     add_title(slide, "Transferència a HexaStock", "Venda d'accions amb proveïdor de preus substituïble")
     add_picture_fit(slide, HEXASTOCK_ARCHITECTURE_IMAGE,
@@ -342,9 +371,9 @@ def create_deck():
              "Diagrama del tutorial HexaStock Sell Stocks.",
              Inches(9.35), Inches(6.2), Inches(3.0), Inches(0.25), font_size=10, color=MUTED,
              align=PP_ALIGN.CENTER)
-    add_footer(slide, 8)
+    add_footer(slide, 9)
 
-    # 9
+    # 10
     slide = blank_slide(prs)
     add_title(slide, "Flux i codi essencial", "El servei coordina. El domini decideix. La infraestructura adapta.")
     add_picture_fit(slide, DIAGRAMS_DIR / "sell-stock-sequence.png",
@@ -360,9 +389,9 @@ def create_deck():
     add_text(slide,
              "El servei obté informació externa a través d'un port i delega la decisió al domini ric.",
              Inches(8.9), Inches(4.85), Inches(3.75), Inches(0.9), font_size=17, color=TITLE_COLOR)
-    add_footer(slide, 9)
+    add_footer(slide, 10)
 
-    # 10
+    # 11
     slide = blank_slide(prs)
     add_title(slide, "Conclusió", "L'arquitectura no elimina el canvi. El localitza.")
     add_picture_fit(slide, DIAGRAMS_DIR / "before-after-comparison.png",
@@ -375,7 +404,7 @@ def create_deck():
              "L'arquitectura fa explícita, substituïble i localitzada la dependència del món exterior.",
              Inches(8.95), Inches(4.55), Inches(3.25), Inches(0.95), font_size=17, color=BLUE,
              align=PP_ALIGN.CENTER)
-    add_footer(slide, 10)
+    add_footer(slide, 11)
 
     OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
     prs.save(OUTPUT_FILE)

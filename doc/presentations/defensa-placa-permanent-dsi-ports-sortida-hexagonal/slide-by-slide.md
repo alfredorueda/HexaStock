@@ -52,26 +52,45 @@ En acabar la sessió, l'estudiant serà capaç de dissenyar un port de sortida o
 **Notes**
 El criteri d'èxit no és memoritzar una definició, sinó raonar una frontera arquitectònica.
 
-## 4. El problema en sistemes reals
+## 4. Cas funcional: avaluació econòmica d'una beca
 
 **Visual**
-`diagrams/rendered/agaur-before-coupled.svg`
+`diagrams/rendered/agaur-functional-scholarship.svg`
 
 **Text de diapositiva**
-En sistemes corporatius, un procediment pot necessitar informació externa per avaluar una sol·licitud. El cas funcional és senzill d'explicar: una sol·licitud de beca genera un expedient, s'avaluen requisits i es prepara una proposta de resolució. El risc apareix quan la lògica administrativa queda massa vinculada als detalls tècnics de la integració.
+Una sol·licitud de beca genera un expedient. Després dels requisits generals, AGAUR revisa requisits econòmics de renda i patrimoni. Si no es compleixen, l'expedient no avança a la revisió acadèmica.
 
-**Glossari mínim**
-- PICA: plataforma d'interoperabilitat per consultar o intercanviar dades entre administracions.
-- Cadastre / Catastro: registre administratiu de béns immobles; en aquest context pot aportar informació patrimonial rellevant per al procediment.
-- SOAP/XML: protocol de missatgeria i format de dades utilitzats en integracions entre sistemes; aquí són detalls d'infraestructura.
+**Punts**
+- Renda familiar.
+- Patrimoni de la unitat familiar.
+- Finques urbanes i rústiques amb valors cadastrals.
+- Proposta de concessió o denegació.
 
-**Evidència documental visible**
-Informe acreditatiu AGAUR: formació i consultoria especialitzada, 60 h, maig-juliol 2025, serveis REST i arquitectura hexagonal.
+**Fonts públiques visibles**
+AGAUR requisits econòmics i BOE 2025-2026 sobre llindars de renda i patrimoni.
 
 **Notes**
-Presentar AGAUR de manera prudent. El PDF acredita formació i consultoria especialitzada en REST i arquitectura hexagonal, entre maig i juliol de 2025, amb 60 hores. Les referències a BOGA, PICA i informació catastral són context professional aportat per Alfredo i s'han d'explicar sense dades sensibles ni com a crítica. La idea docent és mostrar que els criteris de concessió i la tecnologia d'integració no haurien de quedar barrejats.
+Començar pel cas funcional abans d'entrar en tecnologia. Explicar que la decisió administrativa no és trivial: cal avaluar renda, patrimoni, llindars i condicions de la unitat familiar. Aquí encara no cal parlar de SOAP ni de ports; només cal entendre què necessita resoldre el procediment.
 
-## 5. Quan l'acoblament es fa risc d'evolució
+## 5. Quina informació externa necessita el procediment?
+
+**Visual**
+`diagrams/rendered/agaur-data-interoperability.svg`
+
+**Text de diapositiva**
+La necessitat funcional no és consumir una API concreta. És obtenir informació administrativa fiable per avaluar si una sol·licitud compleix els requisits econòmics.
+
+**Punts**
+- La sol·licitud autoritza la consulta de renda i patrimoni.
+- El patrimoni pot incloure béns immobles.
+- El valor cadastral pot influir en el resultat econòmic.
+- La documentació pública vincula PICA amb dades de cadastre disponibles per AEAT.
+- Glossari mínim: PICA és interoperabilitat administrativa; Cadastre és registre de béns immobles; SOAP/XML és missatgeria i format d'integració.
+
+**Notes**
+Formular-ho amb prudència: no afirmem endpoints ni detalls interns. Les fonts públiques permeten afirmar el patró funcional: AGAUR avalua renda i patrimoni, el patrimoni pot incloure valors cadastrals, i hi ha documentació pública que vincula BOGA, PICA i certificats de dades de cadastre disponibles per AEAT. Introduir els acrònims només després d'haver explicat la necessitat funcional.
+
+## 6. Quan l'acoblament es fa risc d'evolució
 
 **Títol**
 Quan l'acoblament es fa risc d'evolució
@@ -92,7 +111,7 @@ No afirmar una retirada pública total de SOAP en PICA, perquè no s'ha localitz
 
 Connectar amb Hombergs: les arquitectures centrades en el domini busquen que el nucli no depengui de frameworks, bases de dades, UI ni sistemes externs. La idea no és eliminar el món exterior, sinó canviar la direcció i la localització de les dependències.
 
-## 6. Solució AGAUR: port de sortida i adaptador
+## 7. Solució AGAUR: port de sortida i adaptador
 
 **Visual**
 `diagrams/rendered/agaur-after-hexagonal.svg`
@@ -106,7 +125,7 @@ El cas d'ús necessita una capacitat externa, no una tecnologia externa concreta
 **Notes**
 En el cas AGAUR, la necessitat pot ser obtenir informació administrativa rellevant per a l'avaluació d'un procediment. El cas d'ús no hauria de dependre directament de PICA, SOAP, XML ni de DTOs específics del proveïdor.
 
-## 7. De la interface al port
+## 8. De la interface al port
 
 **Visual**
 `diagrams/rendered/output-port-pattern.svg`
@@ -120,7 +139,7 @@ Una interface pot desacoblar dues classes. Un port de sortida defineix una front
 **Notes**
 No tot ús d'una interface és arquitectura hexagonal. En una arquitectura hexagonal, el port expressa una capacitat requerida o oferta per l'aplicació, i l'adaptador encapsula el detall tècnic.
 
-## 8. Transferència a HexaStock
+## 9. Transferència a HexaStock
 
 **Visual**
 `assets/hexastock-sellstocks-arquitectura-vpd.png`
@@ -133,7 +152,7 @@ En HexaStock, el cas d'ús de venda d'accions necessita el preu actual d'un tick
 **Notes**
 Presentar HexaStock com a producció docent i professional pròpia. No com a autopromoció, sinó com a material de transferència entre pràctica professional, arquitectura aplicada i docència universitària.
 
-## 9. Flux i codi essencial
+## 10. Flux i codi essencial
 
 **Visual**
 `diagrams/rendered/sell-stock-sequence.svg`
@@ -149,7 +168,7 @@ SellResult sellResult = portfolio.sell(ticker, quantity, price);
 **Notes**
 Aquest és el punt didàctic central. El servei d'aplicació obté informació externa a través d'un port, però la decisió de domini queda dins el domini ric. `Portfolio.sell(...)` i `Holding.sell(...)` apliquen invariants i FIFO.
 
-## 10. Conclusió
+## 11. Conclusió
 
 **Visual**
 `diagrams/rendered/before-after-comparison.svg`
