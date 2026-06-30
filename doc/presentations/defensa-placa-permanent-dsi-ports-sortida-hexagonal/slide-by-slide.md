@@ -1,183 +1,238 @@
 # Diapositiva a diapositiva
 
+Versió simplificada per a exposició oral. Les diapositives han de ser suport visual, no document de lectura.
+
 ## 1. Portada
 
-**Títol**
-Disseny de ports de sortida en arquitectura hexagonal: desacoblament entre casos d'ús, domini i APIs externes
+Títol:
+`Disseny de ports de sortida en arquitectura hexagonal`
 
-**Subtítol**
-Una microlliçó de Disseny de Sistemes d'Informació a partir d'un cas real de consultoria i del projecte HexaStock
+Subtítol:
+`desacoblament entre casos d'ús, domini i APIs externes`
 
-**Elements**
-- Alfredo Rueda Unsain
-- Defensa de plaça de professorat permanent
-- TecnoCampus
-- Classe magistral reduïda, màxim 20 minuts
-- Logotip oficial TecnoCampus / UPF
-
-**Notes**
-Obrir situant la sessió dins l'assignatura i marcant el focus. No prometre una visió completa de l'arquitectura hexagonal.
+Funció oral:
+Presentar que es tracta d'una microlliçó dins Disseny de Sistemes d'Informació, no d'una explicació completa de tota l'arquitectura hexagonal.
 
 ## 2. On som dins l'assignatura
 
-**Text de diapositiva**
-Aquesta sessió forma part del bloc d'arquitectures clean o hexagonals dins Disseny de Sistemes d'Informació.
+Text visible:
 
-**Ancoratge oficial**
-- Guia docent oficial 2025/26.
-- Assignatura 103322, tercer curs, segon trimestre, 6 ECTS.
-- Professorat: Josep Roure Alcobé i Alfredo Rueda Unsain.
+```text
+Disseny de Sistemes d'Informació
+3r curs · 6 ECTS
 
-**Seqüència**
-1. Arquitectura per capes i limitacions
-2. Introducció a Clean / Hexagonal Architecture
-3. Ports i adaptadors
-4. Ports de sortida per a integracions externes
-5. Testing, mocks i substitució d'infraestructura
-6. Microserveis i DDD
+Ports de sortida
+en arquitectura hexagonal
 
-**Notes**
-Cal explicar que la sessió no és una peça aliena al pla docent, sinó una microlliçó situada dins una assignatura que Alfredo ja imparteix i que la guia oficial vincula explícitament amb arquitectures clean o hexagonals, ports i adaptadors, mapping, mòduls, microserveis i DDD.
+No explicarem tota l'arquitectura hexagonal.
+Ens centrem en una decisió de disseny concreta.
+```
+
+Funció oral:
+Connectar amb l'assignatura i amb el bloc de clean / hexagonal architecture, ports, adaptadors i DDD.
 
 ## 3. Objectiu d'aprenentatge
 
-**Text de diapositiva**
-En acabar la sessió, l'estudiant serà capaç de dissenyar un port de sortida orientat al llenguatge de l'aplicació, implementar adaptadors intercanviables per a APIs externes i justificar com aquesta decisió redueix l'acoblament entre casos d'ús, domini i infraestructura.
+Text visible:
 
-**Tres resultats**
-- Identificar el risc d'acoblament amb APIs externes.
-- Dissenyar un port de sortida en llenguatge de l'aplicació.
-- Substituir adaptadors sense modificar el domini.
+```text
+El servei d'aplicació necessita una capacitat, no una tecnologia.
 
-**Notes**
-El criteri d'èxit no és memoritzar una definició, sinó raonar una frontera arquitectònica.
+Identificar acoblament
+Definir un port
+Substituir adaptadors
+```
 
-## 4. Cas funcional: avaluació econòmica d'una beca
+Funció oral:
+Explicar què hauria de saber fer l'estudiant en acabar la sessió.
 
-**Visual**
-`diagrams/rendered/agaur-functional-scholarship.svg`
+## 4. Avaluació econòmica d'una beca
 
-**Text de diapositiva**
-Una sol·licitud de beca genera un expedient. Després dels requisits generals, AGAUR revisa requisits econòmics de renda i patrimoni. Si no es compleixen, l'expedient no avança a la revisió acadèmica.
+Text visible:
 
-**Punts**
-- Renda familiar.
-- Patrimoni de la unitat familiar.
-- Finques urbanes i rústiques amb valors cadastrals.
-- Proposta de concessió o denegació.
+```text
+Sol·licitud → Expedient → Requisits generals
+→ Requisits econòmics → Revisió acadèmica
+→ Resolució
 
-**Fonts públiques visibles**
-AGAUR requisits econòmics i BOE 2025-2026 sobre llindars de renda i patrimoni.
+Si no es compleixen requisits econòmics,
+l'expedient no avança.
+```
 
-**Notes**
-Començar pel cas funcional abans d'entrar en tecnologia. Explicar que la decisió administrativa no és trivial: cal avaluar renda, patrimoni, llindars i condicions de la unitat familiar. Aquí encara no cal parlar de SOAP ni de ports; només cal entendre què necessita resoldre el procediment.
+Diagrama:
+`diagrams/rendered/agaur-functional-scholarship.png`
+
+Funció oral:
+Explicar primer el cas funcional AGAUR: el procediment avalua requisits econòmics de renda i patrimoni abans de continuar.
 
 ## 5. Quina informació externa necessita el procediment?
 
-**Visual**
-`diagrams/rendered/agaur-data-interoperability.svg`
+Text visible:
 
-**Text de diapositiva**
-La necessitat funcional no és consumir una API concreta. És obtenir informació administrativa fiable per avaluar si una sol·licitud compleix els requisits econòmics.
+```text
+NECESSITAT
+- Renda familiar
+- Patrimoni
+- Béns immobles
 
-**Punts**
-- La sol·licitud autoritza la consulta de renda i patrimoni.
-- El patrimoni pot incloure béns immobles.
-- El valor cadastral pot influir en el resultat econòmic.
-- La documentació pública vincula PICA amb dades de cadastre disponibles per AEAT.
-- Glossari mínim: PICA és interoperabilitat administrativa; Cadastre és registre de béns immobles; SOAP/XML és missatgeria i format d'integració.
+FONTS
+- AEAT
+- Cadastre
+- PICA
 
-**Notes**
-Formular-ho amb prudència: no afirmem endpoints ni detalls interns. Les fonts públiques permeten afirmar el patró funcional: AGAUR avalua renda i patrimoni, el patrimoni pot incloure valors cadastrals, i hi ha documentació pública que vincula BOGA, PICA i certificats de dades de cadastre disponibles per AEAT. Introduir els acrònims només després d'haver explicat la necessitat funcional.
+El procediment necessita informació administrativa,
+no una API concreta.
+```
 
-## 6. Quan l'acoblament es fa risc d'evolució
+Diagrama:
+`diagrams/rendered/agaur-data-interoperability.png`
 
-**Títol**
-Quan l'acoblament es fa risc d'evolució
+Funció oral:
+Definir breument PICA, Cadastre, AEAT i SOAP/XML, i explicar que la necessitat és funcional abans de ser tècnica.
 
-**Subtítol**
-Lectura institucional prudent: PICA, web services i orientació CTTI cap a APIs
+## 6. Quan canvia la integració, canvia massa codi
 
-**Estructura visual**
-- Situació verificable: PICA continua descrita públicament com a plataforma corporativa d'interoperabilitat; la documentació tècnica pública mostra integració amb web services i antecedents SOAP.
-- Risc arquitectònic: si el flux de l'expedient coneix PICA, SOAP/XML, DTOs, mapping i errors tècnics, l'evolució tecnològica travessa massa capes.
-- Criteri docent: separar criteris del procediment, casos d'ús i infraestructura mitjançant ports de sortida i adaptadors substituïbles.
+Text visible:
 
-**Conclusió**
-El motiu arquitectònic no és només "fer REST". És evitar que l'evolució tecnològica arrossegui els casos d'ús.
+```text
+Cas d'ús → SOAP/XML → PICA → AEAT
 
-**Notes**
-No afirmar una retirada pública total de SOAP en PICA, perquè no s'ha localitzat una font pública que ho acrediti. El PDF AGAUR acredita refactorització de serveis SOAP cap a REST i reducció de l'acoblament. Les fonts públiques del CTTI i Canigó permeten sostenir una lectura més precisa: PICA com a plataforma corporativa d'interoperabilitat, integracions web service/SOAP documentades i principis CTTI que orienten cap a desacoblament, REST/JSON, API Manager i EventHub/Kafka.
+El cas d'ús coneix la infraestructura
+El canvi tecnològic impacta massa
+Errors tècnics afecten el procediment
 
-Connectar amb Hombergs: les arquitectures centrades en el domini busquen que el nucli no depengui de frameworks, bases de dades, UI ni sistemes externs. La idea no és eliminar el món exterior, sinó canviar la direcció i la localització de les dependències.
+Separar casos d'ús, criteris del procediment i infraestructura.
+```
 
-## 7. Solució AGAUR: port de sortida i adaptador
+Funció oral:
+Fer el diagnòstic arquitectònic sense afirmar una retirada pública de SOAP. El problema és l'acoblament, no l'existència de sistemes externs.
 
-**Visual**
-`diagrams/rendered/agaur-after-hexagonal.svg`
+## 7. Port de sortida i adaptador
 
-**Text de diapositiva**
-El port defineix què necessita l'aplicació. L'adaptador resol com obtenir-ho amb una tecnologia concreta.
+Text visible:
 
-**Frase clau**
-El cas d'ús necessita una capacitat externa, no una tecnologia externa concreta.
+```text
+Cas d'ús
+↓
+Port de sortida
+↓
+Adaptador
+↓
+Sistema extern
 
-**Notes**
-En el cas AGAUR, la necessitat pot ser obtenir informació administrativa rellevant per a l'avaluació d'un procediment. El cas d'ús no hauria de dependre directament de PICA, SOAP, XML ni de DTOs específics del proveïdor.
+El port defineix què.
+L'adaptador resol com.
+```
+
+Funció oral:
+Presentar la solució hexagonal de manera general.
 
 ## 8. De la interface al port
 
-**Visual**
-`diagrams/rendered/output-port-pattern.svg`
+Text visible:
 
-**Text de diapositiva**
-En Java, una interface defineix un contracte i permet substituir implementacions. L'arquitectura hexagonal fa un pas més: organitza les dependències al voltant de fronteres arquitectòniques.
+```text
+Una interface desacobla codi.
+Un port desacobla arquitectura.
+```
 
-**Frase clau**
-Una interface pot desacoblar dues classes. Un port de sortida defineix una frontera arquitectònica.
+Diagrama:
+`diagrams/rendered/output-port-pattern.png`
 
-**Notes**
-No tot ús d'una interface és arquitectura hexagonal. En una arquitectura hexagonal, el port expressa una capacitat requerida o oferta per l'aplicació, i l'adaptador encapsula el detall tècnic.
+Funció oral:
+Explicar que no tot ús d'una interface és arquitectura hexagonal; el port expressa una frontera.
 
 ## 9. Transferència a HexaStock
 
-**Visual**
+Text visible:
+
+```text
+Mateix problema,
+diferent domini
+
+Cas d'ús: venda d'accions
+Necessitat: preu actual
+No depèn de proveïdors concrets
+```
+
+Imatge:
 `assets/hexastock-sellstocks-arquitectura-vpd.png`
 
-El diagrama PlantUML propi `diagrams/rendered/hexastock-sell-stock.svg` queda com a versió editable complementària.
-
-**Text de diapositiva**
-En HexaStock, el cas d'ús de venda d'accions necessita el preu actual d'un ticker, però no hauria de dependre de Finnhub, Alpha Vantage, REST, JSON, tokens, endpoints ni clients HTTP.
-
-**Notes**
-Presentar HexaStock com a producció docent i professional pròpia. No com a autopromoció, sinó com a material de transferència entre pràctica professional, arquitectura aplicada i docència universitària.
+Funció oral:
+Traslladar el patró del cas AGAUR a un domini financer: el cas d'ús necessita un preu, no un proveïdor concret.
 
 ## 10. Flux i codi essencial
 
-**Visual**
-`diagrams/rendered/sell-stock-sequence.svg`
-
-**Fragment curt**
+Text visible:
 
 ```java
-StockPrice stockPrice = stockPriceProviderPort.fetchStockPrice(ticker);
-Price price = stockPrice.price();
-SellResult sellResult = portfolio.sell(ticker, quantity, price);
+stockPrice = port.fetch(ticker);
+
+result = portfolio.sell(...);
 ```
 
-**Notes**
-Aquest és el punt didàctic central. El servei d'aplicació obté informació externa a través d'un port, però la decisió de domini queda dins el domini ric. `Portfolio.sell(...)` i `Holding.sell(...)` apliquen invariants i FIFO.
+Punts:
 
-## 11. Conclusió
+```text
+El servei coordina
+El port obté informació
+El domini decideix
+```
 
-**Visual**
-`diagrams/rendered/before-after-comparison.svg`
+Funció oral:
+Mostrar el punt on el servei d'aplicació obté informació externa i delega la decisió al domini ric.
 
-**Text de diapositiva**
-L'arquitectura no elimina la dependència del món exterior. La fa explícita, substituïble i localitzada.
+## 11. Demo controlada
 
-**Frase final**
-Quan el proveïdor canvia, volem canviar l'adaptador, no el cas d'ús ni el model de domini.
+Text visible:
 
-**Notes**
-Tancar tornant al problema inicial: el canvi no desapareix, però queda localitzat en una peça de la infraestructura.
+```text
+HexaStock és un projecte open source propi utilitzat en docència universitària
+i formació o consultoria amb institucions financeres.
+
+Mateix cas d'ús
+Mateix servei
+Mateix domini
+
+Canvi: adaptador real ↔ adaptador mock
+
+Canvia la infraestructura; el cas d'ús roman estable.
+```
+
+Funció oral:
+Executar o explicar la demo sense dependència d'internet ni claus reals.
+
+## 12. Conclusió
+
+Text visible:
+
+```text
+L'arquitectura no elimina el canvi.
+El localitza.
+
+Quan el proveïdor canvia,
+volem canviar l'adaptador,
+no el cas d'ús ni el model de domini.
+```
+
+Funció oral:
+Tancar la part tècnica amb la idea principal.
+
+## 13. Agraïment
+
+Text visible:
+
+```text
+Vull expressar el meu agraïment al TecnoCampus per l'oportunitat
+d'aprendre, créixer com a docent i transferir coneixement entre
+l'empresa i la universitat.
+
+Aquesta experiència m'ha permès portar casos reals, criteri professional
+i arquitectura aplicada a l'aula.
+
+Agraïment especial al Dr. Josep Roure, company professor del TecnoCampus,
+amb qui he tingut l'oportunitat d'aprendre molt sobre arquitectura i software.
+```
+
+Funció oral:
+Tancar en registre institucional i personal, sense to promocional.

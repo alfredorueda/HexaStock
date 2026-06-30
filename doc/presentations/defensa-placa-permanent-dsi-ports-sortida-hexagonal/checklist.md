@@ -7,6 +7,7 @@
 - [ ] L'estètica és acadèmica, sòbria i no comercial.
 - [ ] No hi ha elements decoratius innecessaris.
 - [ ] La durada és compatible amb 20 minuts.
+- [ ] Les diapositives funcionen com a suport visual, no com a document de lectura.
 
 ## Adequació docent
 
@@ -17,6 +18,7 @@
 - [ ] El cas AGAUR motiva el problema, però no desvia la classe cap a mèrits documentals.
 - [ ] El cas AGAUR s'explica primer funcionalment: sol·licitud, expedient, requisits econòmics, renda, patrimoni i proposta de resolució.
 - [ ] Les referències a PICA, AEAT i Cadastre apareixen després d'haver explicat per què el procediment necessita dades externes.
+- [ ] La presentació inclou demo controlada i tancament institucional d'agraïment.
 
 ## Rigor tècnic
 
@@ -49,3 +51,4 @@
 - [ ] S'utilitza terminologia tècnica: acoblament, dependència, frontera, infraestructura i adaptador.
 - [ ] Les frases clau apareixen de manera consistent.
 - [ ] Les diapositives tenen una idea principal cadascuna.
+- [ ] El text visible és breu i els detalls es reserven per al guió oral.

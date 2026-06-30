@@ -16,7 +16,6 @@ participant "StockPriceProviderPort\nport de sortida" as PricePort
 participant "Adaptador de preus\nFinnhub / Alpha Vantage / mock" as Adapter
 participant "API externa de preus" as ExternalApi
 participant "Portfolio\naggregate root" as Portfolio
-participant "TransactionPort" as TransactionPort
 
 Client -> InPort : sellStock(portfolioId, ticker, quantity)
 InPort -> Service : sellStock(...)
@@ -31,7 +30,6 @@ PricePort --> Service : StockPrice
 Service -> Portfolio : sell(ticker, quantity, price)
 Portfolio --> Service : SellResult
 Service -> PortfolioPort : savePortfolio(portfolio)
-Service -> TransactionPort : save(Transaction.createSale(...))
 Service --> InPort : SellResult
 InPort --> Client : resposta
 

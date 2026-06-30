@@ -184,28 +184,21 @@ def create_deck():
     slide = blank_slide(prs)
     add_title(slide, "On som dins l'assignatura", "Disseny de Sistemes d'Informació")
     add_text(slide,
-             "Guia docent oficial 2025/26: assignatura 103322, tercer curs, segon trimestre, 6 ECTS. Professorat: Josep Roure Alcobé i Alfredo Rueda Unsain.",
-             Inches(0.8), Inches(1.48), Inches(11.6), Inches(0.48), font_size=16, bold=True, color=TITLE_COLOR)
+             "Disseny de Sistemes d'Informació\n3r curs · 6 ECTS",
+             Inches(0.9), Inches(1.65), Inches(4.1), Inches(1.0), font_size=28, bold=True,
+             color=TITLE_COLOR, align=PP_ALIGN.CENTER)
+    add_band(slide, Inches(5.25), Inches(1.65), Inches(0.05), Inches(3.5), BLUE, line=BLUE)
     add_text(slide,
-             "No explicarem tota l'arquitectura hexagonal. Ens centrarem en una decisió concreta: consumir APIs externes sense acoblar casos d'ús i domini a la infraestructura.",
-             Inches(0.8), Inches(2.02), Inches(11.6), Inches(0.68), font_size=18)
-    sequence = [
-        "1. Arquitectura per capes i limitacions",
-        "2. Introducció a Clean / Hexagonal Architecture",
-        "3. Ports i adaptadors",
-        "4. Ports de sortida per a integracions externes",
-        "5. Testing, mocks i substitució d'infraestructura",
-        "6. Microserveis i DDD",
-    ]
-    for i, item in enumerate(sequence):
-        y = Inches(2.95 + i * 0.5)
-        fill = LIGHT_BLUE if i == 3 else LIGHT_GREY
-        add_band(slide, Inches(1.05), y, Inches(10.8), Inches(0.38), fill)
-        add_text(slide, item, Inches(1.28), y + Inches(0.055), Inches(10.1), Inches(0.24),
-                 font_size=14, bold=(i == 3), color=TITLE_COLOR if i == 3 else TEXT_COLOR)
+             "Ports de sortida\nen arquitectura hexagonal",
+             Inches(5.65), Inches(1.65), Inches(5.9), Inches(1.15), font_size=30, bold=True,
+             color=TITLE_COLOR, align=PP_ALIGN.CENTER)
     add_text(slide,
-             "Blocs oficials del temari: clean/hexagonal, ports i adaptadors, mapping, mòduls, microserveis i DDD.",
-             Inches(1.05), Inches(6.25), Inches(10.8), Inches(0.32), font_size=12, color=MUTED,
+             "No explicarem tota l'arquitectura hexagonal.\n\nEns centrem en una decisió de disseny concreta.",
+             Inches(5.9), Inches(3.25), Inches(5.45), Inches(1.25), font_size=22,
+             color=TEXT_COLOR, align=PP_ALIGN.CENTER)
+    add_text(slide,
+             "Microlliçó dins el bloc de clean / hexagonal architecture, ports, adaptadors i DDD.",
+             Inches(1.05), Inches(6.2), Inches(10.8), Inches(0.35), font_size=13, color=MUTED,
              align=PP_ALIGN.CENTER)
     add_footer(slide, 2)
 
@@ -213,39 +206,39 @@ def create_deck():
     slide = blank_slide(prs)
     add_title(slide, "Objectiu d'aprenentatge")
     add_text(slide,
-             "Dissenyar un port de sortida orientat al llenguatge de l'aplicació, implementar adaptadors intercanviables i justificar la reducció d'acoblament.",
-             Inches(0.8), Inches(1.65), Inches(11.3), Inches(0.8), font_size=23, color=TITLE_COLOR)
+             "El servei d'aplicació necessita una capacitat, no una tecnologia.",
+             Inches(1.05), Inches(1.55), Inches(11.2), Inches(0.7), font_size=27, bold=True,
+             color=TITLE_COLOR, align=PP_ALIGN.CENTER)
     objectives = [
-        "Identificar el risc d'acoblament amb APIs externes.",
-        "Definir el port en termes de capacitat requerida.",
-        "Substituir l'adaptador sense modificar domini ni cas d'ús.",
+        "Identificar\nacoblament",
+        "Definir\nun port",
+        "Substituir\nadaptadors",
     ]
     for i, item in enumerate(objectives):
         x = Inches(0.9 + i * 4.08)
-        add_band(slide, x, Inches(3.0), Inches(3.55), Inches(1.7), [LIGHT_RED, YELLOW, LIGHT_GREEN][i])
-        add_text(slide, item, x + Inches(0.22), Inches(3.28), Inches(3.1), Inches(1.05),
-                 font_size=18, bold=True, color=TITLE_COLOR, align=PP_ALIGN.CENTER)
+        add_band(slide, x, Inches(3.0), Inches(3.55), Inches(1.75), [LIGHT_RED, YELLOW, LIGHT_GREEN][i])
+        add_text(slide, item, x + Inches(0.22), Inches(3.35), Inches(3.1), Inches(0.85),
+                 font_size=24, bold=True, color=TITLE_COLOR, align=PP_ALIGN.CENTER)
     add_footer(slide, 3)
 
     # 4
     slide = blank_slide(prs)
-    add_title(slide, "Cas funcional: avaluació econòmica d'una beca",
+    add_title(slide, "Avaluació econòmica d'una beca",
               "Abans de parlar d'arquitectura, cal entendre el procediment")
     add_picture_fit(slide, DIAGRAMS_DIR / "agaur-functional-scholarship.png",
-                    Inches(0.65), Inches(1.35), Inches(7.65), Inches(4.95))
+                    Inches(0.65), Inches(1.35), Inches(7.8), Inches(5.2))
     add_text(slide,
-             "Una sol·licitud de beca genera un expedient. Després dels requisits generals, AGAUR revisa requisits econòmics de renda i patrimoni. Si no es compleixen, l'expedient no avança a la revisió acadèmica.",
-             Inches(8.65), Inches(1.65), Inches(3.55), Inches(1.55), font_size=18, bold=True, color=TITLE_COLOR)
-    add_bullets(slide, [
-        "Renda familiar.",
-        "Patrimoni de la unitat familiar.",
-        "Finques urbanes i rústiques amb valors cadastrals.",
-        "Proposta de concessió o denegació.",
-    ], Inches(8.65), Inches(3.45), Inches(3.55), Inches(1.55), font_size=14)
-    add_band(slide, Inches(8.65), Inches(5.45), Inches(3.55), Inches(0.9), LIGHT_GREY)
+             "Sol·licitud → Expedient → Requisits generals\n→ Requisits econòmics → Revisió acadèmica\n→ Resolució",
+             Inches(8.75), Inches(1.85), Inches(3.35), Inches(1.35), font_size=18,
+             bold=True, color=TITLE_COLOR, align=PP_ALIGN.CENTER)
+    add_band(slide, Inches(8.75), Inches(3.65), Inches(3.35), Inches(1.35), LIGHT_RED)
     add_text(slide,
-             "Fonts públiques: AGAUR requisits econòmics i BOE 2025-2026 sobre llindars de renda i patrimoni.",
-             Inches(8.85), Inches(5.62), Inches(3.15), Inches(0.45), font_size=10, color=MUTED,
+             "Si no es compleixen\nrequisits econòmics,\nl'expedient no avança.",
+             Inches(9.0), Inches(3.9), Inches(2.85), Inches(0.82), font_size=20,
+             bold=True, color=TITLE_COLOR, align=PP_ALIGN.CENTER)
+    add_text(slide,
+             "Fonts públiques: AGAUR requisits econòmics i BOE 2025-2026.",
+             Inches(8.75), Inches(5.65), Inches(3.35), Inches(0.32), font_size=10, color=MUTED,
              align=PP_ALIGN.CENTER)
     add_footer(slide, 4)
 
@@ -254,103 +247,88 @@ def create_deck():
     add_title(slide, "Quina informació externa necessita el procediment?",
               "Renda, patrimoni i informació cadastral")
     add_picture_fit(slide, DIAGRAMS_DIR / "agaur-data-interoperability.png",
-                    Inches(0.65), Inches(1.35), Inches(8.05), Inches(4.95))
+                    Inches(0.65), Inches(1.35), Inches(7.8), Inches(5.15))
+    add_text(slide, "NECESSITAT",
+             Inches(8.95), Inches(1.55), Inches(3.2), Inches(0.35), font_size=16, bold=True,
+             color=BLUE, align=PP_ALIGN.CENTER)
+    add_bullets(slide, ["Renda familiar", "Patrimoni", "Béns immobles"],
+                Inches(9.05), Inches(2.0), Inches(3.0), Inches(1.05), font_size=17)
+    add_text(slide, "FONTS",
+             Inches(8.95), Inches(3.35), Inches(3.2), Inches(0.35), font_size=16, bold=True,
+             color=BLUE, align=PP_ALIGN.CENTER)
+    add_bullets(slide, ["AEAT", "Cadastre", "PICA"],
+                Inches(9.05), Inches(3.8), Inches(3.0), Inches(1.0), font_size=17)
     add_text(slide,
-             "La necessitat funcional no és consumir una API concreta. És obtenir informació administrativa fiable per avaluar si una sol·licitud compleix els requisits econòmics.",
-             Inches(9.0), Inches(1.65), Inches(3.2), Inches(1.35), font_size=18, bold=True, color=TITLE_COLOR)
-    add_bullets(slide, [
-        "La sol·licitud autoritza la consulta de renda i patrimoni.",
-        "El patrimoni pot incloure béns immobles.",
-        "El valor cadastral pot influir en el resultat econòmic.",
-        "La documentació pública vincula PICA amb dades de cadastre disponibles per AEAT.",
-    ], Inches(9.0), Inches(3.35), Inches(3.2), Inches(1.85), font_size=12)
-    add_band(slide, Inches(9.0), Inches(5.35), Inches(3.2), Inches(1.1), LIGHT_GREY)
+             "El procediment necessita informació administrativa,\nno una API concreta.",
+             Inches(8.85), Inches(5.35), Inches(3.35), Inches(0.75), font_size=16,
+             bold=True, color=TITLE_COLOR, align=PP_ALIGN.CENTER)
     add_text(slide,
-             "Glossari mínim: PICA és interoperabilitat administrativa; Cadastre és registre de béns immobles; SOAP/XML és missatgeria i format d'integració.",
-             Inches(9.18), Inches(5.5), Inches(2.85), Inches(0.72), font_size=8, color=MUTED,
+             "PICA: interoperabilitat administrativa · Cadastre: registre de béns immobles · SOAP/XML: missatgeria i format d'integració",
+             Inches(1.0), Inches(6.45), Inches(11.3), Inches(0.25), font_size=9, color=MUTED,
              align=PP_ALIGN.CENTER)
     add_footer(slide, 5)
 
     # 6
     slide = blank_slide(prs)
-    add_title(slide, "Quan l'acoblament es fa risc d'evolució",
-              "Lectura institucional prudent: PICA, web services i orientació CTTI cap a APIs")
+    add_title(slide, "Quan canvia la integració, canvia massa codi")
     add_text(slide,
-             "La qüestió no és predir l'evolució concreta de SOAP: és que cap tecnologia d'integració ha d'arrossegar el procediment.",
-             Inches(0.9), Inches(1.42), Inches(11.4), Inches(0.35), font_size=16, bold=True, color=TITLE_COLOR,
-             align=PP_ALIGN.CENTER)
-
-    add_rect_band(slide, Inches(0.85), Inches(1.95), Inches(3.55), Inches(3.25), LIGHT_RED)
-    add_text(slide, "Situació verificable",
-             Inches(1.1), Inches(2.2), Inches(3.05), Inches(0.32), font_size=18, bold=True, color=TITLE_COLOR,
-             align=PP_ALIGN.CENTER)
+             "Cas d'ús  →  SOAP/XML  →  PICA  →  AEAT",
+             Inches(1.05), Inches(1.75), Inches(11.2), Inches(0.85), font_size=31,
+             bold=True, color=TITLE_COLOR, align=PP_ALIGN.CENTER)
+    add_rect_band(slide, Inches(1.0), Inches(3.0), Inches(3.35), Inches(1.3), LIGHT_RED)
+    add_text(slide, "El cas d'ús coneix\nla infraestructura",
+             Inches(1.25), Inches(3.3), Inches(2.85), Inches(0.6), font_size=18, bold=True,
+             color=TITLE_COLOR, align=PP_ALIGN.CENTER)
+    add_rect_band(slide, Inches(4.95), Inches(3.0), Inches(3.35), Inches(1.3), YELLOW)
+    add_text(slide, "El canvi tecnològic\nimpacta massa",
+             Inches(5.2), Inches(3.3), Inches(2.85), Inches(0.6), font_size=18, bold=True,
+             color=TITLE_COLOR, align=PP_ALIGN.CENTER)
+    add_rect_band(slide, Inches(8.9), Inches(3.0), Inches(3.35), Inches(1.3), LIGHT_BLUE)
+    add_text(slide, "Errors tècnics afecten\nel procediment",
+             Inches(9.15), Inches(3.3), Inches(2.85), Inches(0.6), font_size=18, bold=True,
+             color=TITLE_COLOR, align=PP_ALIGN.CENTER)
     add_text(slide,
-             "PICA continua essent una plataforma corporativa d'interoperabilitat.",
-             Inches(1.12), Inches(2.72), Inches(3.05), Inches(0.7), font_size=16, bold=True, color=TITLE_COLOR,
-             align=PP_ALIGN.CENTER)
-    add_text(slide,
-             "La documentació pública mostra integració amb web services i antecedents SOAP.",
-             Inches(1.12), Inches(3.68), Inches(3.05), Inches(0.7), font_size=14, color=TEXT_COLOR,
-             align=PP_ALIGN.CENTER)
-    add_text(slide,
-             "PICA / web services",
-             Inches(1.12), Inches(4.5), Inches(3.05), Inches(0.35), font_size=17, bold=True, color=BLUE,
-             align=PP_ALIGN.CENTER)
-
-    add_rect_band(slide, Inches(4.85), Inches(1.95), Inches(3.55), Inches(3.25), YELLOW)
-    add_text(slide, "Risc arquitectònic",
-             Inches(5.1), Inches(2.2), Inches(3.05), Inches(0.32), font_size=18, bold=True, color=TITLE_COLOR,
-             align=PP_ALIGN.CENTER)
-    add_bullets(slide, [
-        "El flux de l'expedient coneix PICA, SOAP/XML, DTOs, mapping i errors tècnics.",
-        "La lògica administrativa depèn d'una tecnologia d'integració concreta.",
-        "Qualsevol evolució cap a REST, API Manager o EventHub impacta massa capes.",
-    ], Inches(5.12), Inches(2.75), Inches(3.05), Inches(1.9), font_size=12)
-
-    add_rect_band(slide, Inches(8.85), Inches(1.95), Inches(3.55), Inches(3.25), LIGHT_BLUE)
-    add_text(slide, "Criteri docent",
-             Inches(9.1), Inches(2.2), Inches(3.05), Inches(0.32), font_size=18, bold=True, color=TITLE_COLOR,
-             align=PP_ALIGN.CENTER)
-    add_text(slide,
-             "Separar criteris del procediment, casos d'ús i infraestructura.",
-             Inches(9.12), Inches(2.78), Inches(3.05), Inches(0.75), font_size=16, bold=True, color=TITLE_COLOR,
-             align=PP_ALIGN.CENTER)
-    add_text(slide,
-             "Port de sortida\n+\nadaptadors substituïbles",
-             Inches(9.12), Inches(3.8), Inches(3.05), Inches(0.85), font_size=18, bold=True, color=BLUE,
-             align=PP_ALIGN.CENTER)
-
-    add_text(slide,
-             "El motiu arquitectònic no és només \"fer REST\": és evitar que l'evolució tecnològica arrossegui els casos d'ús.",
-             Inches(1.15), Inches(5.55), Inches(7.6), Inches(0.62), font_size=17, bold=True, color=TITLE_COLOR)
-    add_text(slide,
-             "Evidència: l'informe AGAUR acredita refactorització SOAP cap a REST i reducció d'acoblament.",
-             Inches(9.0), Inches(5.58), Inches(3.25), Inches(0.55), font_size=10, color=MUTED,
-             align=PP_ALIGN.CENTER)
+             "Separar casos d'ús, criteris del procediment i infraestructura.",
+             Inches(1.05), Inches(5.55), Inches(11.2), Inches(0.55), font_size=25,
+             bold=True, color=BLUE, align=PP_ALIGN.CENTER)
     add_footer(slide, 6)
 
     # 7
     slide = blank_slide(prs)
-    add_title(slide, "Solució AGAUR: port de sortida i adaptador")
-    add_picture_fit(slide, DIAGRAMS_DIR / "agaur-after-hexagonal.png",
-                    Inches(0.75), Inches(1.45), Inches(8.0), Inches(5.3))
+    add_title(slide, "Port de sortida i adaptador")
+    steps = [
+        ("Cas d'ús", LIGHT_BLUE),
+        ("Port de sortida", YELLOW),
+        ("Adaptador", LIGHT_GREEN),
+        ("Sistema extern", LIGHT_GREY),
+    ]
+    for i, (label, fill) in enumerate(steps):
+        y = Inches(1.55 + i * 1.05)
+        add_band(slide, Inches(4.15), y, Inches(4.9), Inches(0.62), fill)
+        add_text(slide, label, Inches(4.35), y + Inches(0.11), Inches(4.5), Inches(0.28),
+                 font_size=21, bold=True, color=TITLE_COLOR, align=PP_ALIGN.CENTER)
+        if i < len(steps) - 1:
+            add_text(slide, "↓", Inches(6.45), y + Inches(0.62), Inches(0.3), Inches(0.32),
+                     font_size=22, bold=True, color=BLUE, align=PP_ALIGN.CENTER)
     add_text(slide,
-             "El port defineix què necessita l'aplicació.\n\nL'adaptador resol com obtenir-ho amb una tecnologia concreta.",
-             Inches(9.0), Inches(2.0), Inches(3.25), Inches(2.1), font_size=21, bold=True, color=TITLE_COLOR)
+             "El port defineix què.",
+             Inches(1.0), Inches(5.85), Inches(5.2), Inches(0.38), font_size=23,
+             bold=True, color=TITLE_COLOR, align=PP_ALIGN.CENTER)
     add_text(slide,
-             "El cas d'ús necessita una capacitat externa, no una tecnologia externa concreta.",
-             Inches(9.0), Inches(4.55), Inches(3.25), Inches(0.9), font_size=17, color=BLUE)
+             "L'adaptador resol com.",
+             Inches(7.0), Inches(5.85), Inches(5.2), Inches(0.38), font_size=23,
+             bold=True, color=TITLE_COLOR, align=PP_ALIGN.CENTER)
     add_footer(slide, 7)
 
     # 8
     slide = blank_slide(prs)
     add_title(slide, "De la interface al port", "Una frontera arquitectònica, no només un contracte Java")
     add_picture_fit(slide, DIAGRAMS_DIR / "output-port-pattern.png",
-                    Inches(0.75), Inches(1.45), Inches(7.4), Inches(5.25))
+                    Inches(0.75), Inches(1.45), Inches(6.7), Inches(5.25))
     add_band(slide, Inches(8.45), Inches(1.75), Inches(3.65), Inches(3.8), LIGHT_GREY)
     add_text(slide,
-             "Una interface pot desacoblar dues classes.\n\nUn port de sortida defineix una frontera arquitectònica.",
-             Inches(8.75), Inches(2.2), Inches(3.05), Inches(2.4), font_size=22, bold=True, color=TITLE_COLOR,
+             "Una interface\ndesacobla codi.\n\nUn port\ndesacobla arquitectura.",
+             Inches(8.75), Inches(2.1), Inches(3.05), Inches(2.55), font_size=22, bold=True, color=TITLE_COLOR,
              align=PP_ALIGN.CENTER)
     add_footer(slide, 8)
 
@@ -358,17 +336,18 @@ def create_deck():
     slide = blank_slide(prs)
     add_title(slide, "Transferència a HexaStock", "Venda d'accions amb proveïdor de preus substituïble")
     add_picture_fit(slide, HEXASTOCK_ARCHITECTURE_IMAGE,
-                    Inches(0.55), Inches(1.35), Inches(8.55), Inches(5.6))
+                    Inches(0.55), Inches(1.35), Inches(8.6), Inches(5.55))
     add_text(slide,
-             "El cas d'ús necessita el preu actual d'un ticker, però no ha de dependre de Finnhub, Alpha Vantage, REST, JSON, tokens, endpoints ni clients HTTP.",
-             Inches(9.35), Inches(1.75), Inches(3.0), Inches(2.2), font_size=17, bold=True, color=TITLE_COLOR)
+             "Mateix problema,\ndiferent domini",
+             Inches(9.35), Inches(1.62), Inches(3.0), Inches(0.8), font_size=22, bold=True,
+             color=TITLE_COLOR, align=PP_ALIGN.CENTER)
     add_bullets(slide, [
-        "Port: StockPriceProviderPort",
-        "Adaptadors: Finnhub, Alpha Vantage, mock",
-        "Domini: Portfolio, Holding, Price, Ticker, ShareQuantity",
-    ], Inches(9.35), Inches(4.3), Inches(3.0), Inches(1.55), font_size=13)
+        "Cas d'ús: venda d'accions",
+        "Necessitat: preu actual",
+        "No depèn de proveïdors concrets",
+    ], Inches(9.35), Inches(3.05), Inches(3.0), Inches(1.55), font_size=15)
     add_text(slide,
-             "Diagrama del tutorial HexaStock Sell Stocks.",
+             "Port: StockPriceProviderPort\nAdaptadors: Finnhub, Alpha Vantage, mock",
              Inches(9.35), Inches(6.2), Inches(3.0), Inches(0.25), font_size=10, color=MUTED,
              align=PP_ALIGN.CENTER)
     add_footer(slide, 9)
@@ -379,19 +358,40 @@ def create_deck():
     add_picture_fit(slide, DIAGRAMS_DIR / "sell-stock-sequence.png",
                     Inches(0.55), Inches(1.35), Inches(8.0), Inches(4.95))
     code = (
-        "StockPrice stockPrice =\n"
-        "    stockPriceProviderPort.fetchStockPrice(ticker);\n\n"
-        "Price price = stockPrice.price();\n\n"
-        "SellResult sellResult =\n"
-        "    portfolio.sell(ticker, quantity, price);"
+        "stockPrice = port.fetch(ticker);\n\n"
+        "result = portfolio.sell(...);"
     )
-    add_code(slide, code, Inches(8.85), Inches(1.8), Inches(3.85), Inches(2.65))
-    add_text(slide,
-             "El servei obté informació externa a través d'un port i delega la decisió al domini ric.",
-             Inches(8.9), Inches(4.85), Inches(3.75), Inches(0.9), font_size=17, color=TITLE_COLOR)
+    add_code(slide, code, Inches(8.85), Inches(1.8), Inches(3.85), Inches(1.55))
+    add_bullets(slide, [
+        "El servei coordina",
+        "El port obté informació",
+        "El domini decideix",
+    ], Inches(9.0), Inches(4.0), Inches(3.35), Inches(1.25), font_size=16)
     add_footer(slide, 10)
 
     # 11
+    slide = blank_slide(prs)
+    add_title(slide, "Demo controlada", "Mateix cas d'ús, adaptador substituïble")
+    add_text(slide,
+             "HexaStock és un projecte open source propi utilitzat en docència universitària i formació o consultoria amb institucions financeres.",
+             Inches(1.0), Inches(1.45), Inches(11.25), Inches(0.55), font_size=18,
+             color=TITLE_COLOR, align=PP_ALIGN.CENTER)
+    for i, label in enumerate(["Mateix cas d'ús", "Mateix servei", "Mateix domini"]):
+        x = Inches(0.95 + i * 4.05)
+        add_band(slide, x, Inches(2.45), Inches(3.55), Inches(1.05), [LIGHT_BLUE, YELLOW, LIGHT_GREEN][i])
+        add_text(slide, label, x + Inches(0.2), Inches(2.78), Inches(3.15), Inches(0.28),
+                 font_size=19, bold=True, color=TITLE_COLOR, align=PP_ALIGN.CENTER)
+    add_text(slide,
+             "Canvi: adaptador real  ↔  adaptador mock",
+             Inches(1.15), Inches(4.25), Inches(11.0), Inches(0.55), font_size=26,
+             bold=True, color=BLUE, align=PP_ALIGN.CENTER)
+    add_text(slide,
+             "Canvia la infraestructura; el cas d'ús roman estable.",
+             Inches(1.15), Inches(5.55), Inches(11.0), Inches(0.5), font_size=24,
+             bold=True, color=TITLE_COLOR, align=PP_ALIGN.CENTER)
+    add_footer(slide, 11)
+
+    # 12
     slide = blank_slide(prs)
     add_title(slide, "Conclusió", "L'arquitectura no elimina el canvi. El localitza.")
     add_picture_fit(slide, DIAGRAMS_DIR / "before-after-comparison.png",
@@ -400,11 +400,25 @@ def create_deck():
              "Quan el proveïdor canvia, volem canviar l'adaptador, no el cas d'ús ni el model de domini.",
              Inches(8.95), Inches(2.05), Inches(3.25), Inches(1.9), font_size=24, bold=True, color=TITLE_COLOR,
              align=PP_ALIGN.CENTER)
+    add_footer(slide, 12)
+
+    # 13
+    slide = blank_slide(prs)
+    add_title(slide, "Agraïment")
     add_text(slide,
-             "L'arquitectura fa explícita, substituïble i localitzada la dependència del món exterior.",
-             Inches(8.95), Inches(4.55), Inches(3.25), Inches(0.95), font_size=17, color=BLUE,
-             align=PP_ALIGN.CENTER)
-    add_footer(slide, 11)
+             "Vull expressar el meu agraïment al TecnoCampus per l'oportunitat d'aprendre, créixer com a docent i transferir coneixement entre l'empresa i la universitat.",
+             Inches(1.35), Inches(1.75), Inches(10.5), Inches(1.1), font_size=24,
+             color=TITLE_COLOR, align=PP_ALIGN.CENTER)
+    add_text(slide,
+             "Aquesta experiència m'ha permès portar casos reals, criteri professional i arquitectura aplicada a l'aula.",
+             Inches(1.65), Inches(3.25), Inches(9.9), Inches(0.75), font_size=21,
+             color=TEXT_COLOR, align=PP_ALIGN.CENTER)
+    add_band(slide, Inches(2.15), Inches(4.75), Inches(9.05), Inches(1.0), LIGHT_GREY)
+    add_text(slide,
+             "Agraïment especial al Dr. Josep Roure, company professor del TecnoCampus, amb qui he tingut l'oportunitat d'aprendre molt sobre arquitectura i software.",
+             Inches(2.45), Inches(4.98), Inches(8.45), Inches(0.48), font_size=16,
+             color=TITLE_COLOR, align=PP_ALIGN.CENTER)
+    add_footer(slide, 13)
 
     OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
     prs.save(OUTPUT_FILE)

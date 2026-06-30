@@ -10,6 +10,7 @@ Subtítol:
 
 ## Estat del material
 
+- Versió actual del PowerPoint: 13 diapositives simplificades, pensades com a suport visual per a una explicació oral de 20 minuts.
 - `outline.md`: estructura narrativa de 20 minuts.
 - `slide-by-slide.md`: contingut, visual i notes del presentador per diapositiva.
 - `guio-oral-20-minuts.md`: guió oral amb temps aproximat.
@@ -53,6 +54,8 @@ doc/presentations/defensa-placa-permanent-dsi-ports-sortida-hexagonal/output/def
 ## Criteri docent
 
 La sessió no intenta explicar tota l'arquitectura hexagonal. Se centra en una decisió concreta i transferible: dissenyar un port de sortida quan un cas d'ús necessita informació d'un sistema extern.
+
+La versió actual redueix deliberadament el text visible. El rigor s'ha de sostenir amb el guió oral, els diagrames i una demo controlada amb HexaStock.
 
 Idea força:
 
