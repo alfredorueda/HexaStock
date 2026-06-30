@@ -30,9 +30,9 @@ Mantindria el títol. És clar, tècnic i ajustat. Afegiria oralment, no necess�
 
 La diapositiva funciona. Correcció aplicada: `desacoplada` s'ha substituït per `desacoblada`. També s'ha reforçat el vincle amb el pla docent amb una referència discreta: `Pla docent 103322: clean/hexagonal architecture, ports i adaptadors, mapping, mòduls i DDD`. No cal citar tot el pla docent; amb aquesta referència n'hi ha prou.
 
-**Diapositives 3 i 4. Objectiu d'aprenentatge**
+**Diapositives 3 i 4. Principi de disseny i objectiu d'aprenentatge**
 
-Hi ha una duplicació útil però visualment confusa. La 3 dona el principi; la 4 dona les operacions que l'estudiant ha de poder fer. Es poden mantenir totes dues si es corregeix la numeració i es presenta la 3 com a idea nuclear i la 4 com a resultat observable. Alternativa: fusionar-les si cal retallar temps.
+Correcció aplicada. La diapositiva 3 es presenta ara com a `Principi de disseny`: el servei d'aplicació necessita una capacitat, no una tecnologia. La diapositiva 4 es presenta com a `Objectiu d'aprenentatge`: aplicar aquest principi en tres operacions observables. També s'ha corregit la numeració del peu de la diapositiva 4.
 
 **Diapositiva 5. Avaluació econòmica d'una beca**
 
@@ -104,7 +104,7 @@ Per tant, aquesta no és una sessió afegida artificialment al temari. És una m
 
 El que farem avui és acotar molt el focus. No analitzarem tota l'arquitectura hexagonal. Ens centrarem en els ports de sortida: aquells ports que permeten que l'aplicació obtingui o persisteixi informació mitjançant sistemes externs, sense que el cas d'ús quedi lligat a una tecnologia concreta.
 
-### Diapositiva 3. Objectiu d'aprenentatge - 1:10
+### Diapositiva 3. Principi de disseny - 1:10
 
 La idea central de la sessió és aquesta: el servei d'aplicació necessita una capacitat, no una tecnologia. [pausa breu; mirar el tribunal]
 
@@ -114,7 +114,7 @@ En arquitectura hexagonal, aquest canvi de pregunta és fonamental. El nucli de 
 
 El llibre de Tom Hombergs sobre Clean Architecture ho formula en la mateixa direcció conceptual: les dependències han d'apuntar cap al nucli, i el domini no ha de quedar condicionat per frameworks, bases de dades, interfícies d'usuari o sistemes externs. No es tracta d'ignorar que aquests sistemes existeixen. Es tracta de posar-los al lloc arquitectònic que els correspon.
 
-### Diapositiva 4. Objectiu d'aprenentatge II - 0:50
+### Diapositiva 4. Objectiu d'aprenentatge - 0:50
 
 Per convertir aquesta idea en aprenentatge observable, podem formular tres accions. [assenyalar les tres caixes]
 
@@ -256,7 +256,7 @@ Moltes gràcies.
 - No panoràmica completa; focus en APIs externes desacoblades.
 - Transició: formular l'objectiu d'aprenentatge.
 
-### 3. Objectiu d'aprenentatge - 1:10
+### 3. Principi de disseny - 1:10
 
 - Frase clau: capacitat, no tecnologia.
 - Canviar la pregunta: no `quina API?`, sinó `quina necessitat?`.
@@ -264,7 +264,7 @@ Moltes gràcies.
 - Dependències cap al nucli, no cap a la infraestructura.
 - Transició: convertir el principi en accions observables.
 
-### 4. Objectiu II - 0:50
+### 4. Objectiu d'aprenentatge - 0:50
 
 - Identificar necessitat.
 - Definir port.
