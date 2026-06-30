@@ -18,7 +18,7 @@ El punt més fort és la connexió entre el pla docent i l'informe AGAUR. El pla
 
 El risc principal és que algunes diapositives poden confondre tres plans diferents: flux d'execució, dependència de codi i dependència arquitectònica. La recomanació del Dr. Josep Roure és conceptualment correcta: en ports de sortida, l'adaptador implementa el port definit per l'aplicació. Per tant, si la fletxa representa dependència de codi o realització d'interfície, ha d'anar de l'adaptador cap al port, no del port cap a l'adaptador. Si la fletxa representa flux d'execució, aleshores pot anar del servei cap al port, del port cap a l'adaptador i de l'adaptador cap al sistema extern. Les dues lectures són compatibles, però s'han de distingir visualment.
 
-S'han revisat també els detalls formals del text visible de la presentació: `Generarlitat` s'ha corregit per `Generalitat`; `tecnología` per `tecnologia`; `necesita` per `necessita`; `d´ús` per `d'ús`; i s'ha regularitzat la numeració visible de les diapositives. La correcció `desacoplada` -> `desacoblada` ja s'havia aplicat a la diapositiva 2.
+S'han revisat també els detalls formals del text visible de la presentació: ortografia, accents, apòstrofs, cometes, noms propis i numeració visible de les diapositives. La terminologia de desacoblament ja queda formulada de manera correcta i coherent.
 
 ## 2. Millores proposades per diapositiva
 
@@ -28,7 +28,7 @@ Mantindria el títol. És clar, tècnic i ajustat. Afegiria oralment, no necess�
 
 **Diapositiva 2. On som dins l'assignatura**
 
-La diapositiva funciona. Correcció aplicada: `desacoplada` s'ha substituït per `desacoblada`. També s'ha reforçat el vincle amb el pla docent amb una referència discreta: `Pla docent 103322: clean/hexagonal architecture, ports i adaptadors, mapping, mòduls i DDD`. No cal citar tot el pla docent; amb aquesta referència n'hi ha prou.
+La diapositiva funciona. S'ha reforçat el vincle amb el pla docent amb una referència discreta: `Pla docent 103322: clean/hexagonal architecture, ports i adaptadors, mapping, mòduls i DDD`. No cal citar tot el pla docent; amb aquesta referència n'hi ha prou.
 
 **Diapositives 3 i 4. Principi de disseny i objectiu d'aprenentatge**
 
@@ -36,11 +36,11 @@ Correcció aplicada. La diapositiva 3 es presenta ara com a `Principi de disseny
 
 **Diapositiva 5. Avaluació econòmica d'una beca**
 
-La diapositiva situa bé el cas funcional abans de la tecnologia. Correcció aplicada: la frase `no es pot concedir la beca` s'ha substituït per una formulació més institucional i prudent: `Quan no s'acredita el compliment dels requisits econòmics, l'expedient no obté una valoració favorable en aquesta fase.` El diagrama petit pot ser difícil de llegir; si no es retoca, cal assenyalar només el bloc d'avaluació econòmica.
+La diapositiva situa bé el cas funcional abans de la tecnologia. S'hi ha incorporat una formulació més institucional i prudent: `Quan no s'acredita el compliment dels requisits econòmics, l'expedient no obté una valoració favorable en aquesta fase.` El diagrama petit pot ser difícil de llegir; si no es retoca, cal assenyalar només el bloc d'avaluació econòmica.
 
 **Diapositiva 6. Informació externa**
 
-La idea és molt bona: necessitat funcional abans que API concreta. Correcció aplicada: `Generarlitat` s'ha substituït per `Generalitat` i la definició de PICA s'ha simplificat per evitar una nota massa llarga. La resta s'explica oralment.
+La idea és molt bona: necessitat funcional abans que API concreta. La definició de PICA s'ha simplificat per evitar una nota massa llarga. La resta s'explica oralment.
 
 **Diapositiva 7. Dependència directa**
 
