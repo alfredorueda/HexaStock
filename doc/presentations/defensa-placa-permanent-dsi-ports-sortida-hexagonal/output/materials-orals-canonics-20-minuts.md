@@ -36,7 +36,7 @@ Correcció aplicada. La diapositiva 3 es presenta ara com a `Principi de disseny
 
 **Diapositiva 5. Avaluació econòmica d'una beca**
 
-La diapositiva situa bé el cas funcional abans de la tecnologia. La frase `no es pot concedir la beca` és entenedora; oralment convé formular-la amb prudència: si no es compleixen els requisits econòmics, l'expedient no avança favorablement en aquest tram del procediment. El diagrama petit pot ser difícil de llegir; si no es retoca, cal assenyalar només el bloc d'avaluació econòmica.
+La diapositiva situa bé el cas funcional abans de la tecnologia. Correcció aplicada: la frase `no es pot concedir la beca` s'ha substituït per una formulació més institucional i prudent: `Quan no s'acredita el compliment dels requisits econòmics, l'expedient no obté una valoració favorable en aquesta fase.` El diagrama petit pot ser difícil de llegir; si no es retoca, cal assenyalar només el bloc d'avaluació econòmica.
 
 **Diapositiva 6. Informació externa**
 
@@ -130,7 +130,7 @@ Abans de parlar d'arquitectura de programari, cal entendre mínimament el proced
 
 En un procediment de beca, una sol·licitud dona lloc a un expedient. Aquest expedient passa per diferents fases: requisits generals, requisits econòmics, revisió acadèmica i resolució. [assenyalar la seqüència de la dreta]
 
-La part que ens interessa és l'avaluació econòmica. En aquest punt es comproven aspectes com la renda familiar i el patrimoni. Si els requisits econòmics no es compleixen, l'expedient no avança favorablement en aquest tram del procediment. [pausa breu]
+La part que ens interessa és l'avaluació econòmica. En aquest punt es comproven aspectes com la renda familiar i el patrimoni. Quan no s'acredita el compliment dels requisits econòmics, l'expedient no obté una valoració favorable en aquesta fase. [pausa breu]
 
 La idea docent important és que aquí encara no hem parlat de SOAP, ni de REST, ni de PICA, ni de cap base de dades. Estem parlant de la necessitat funcional del procediment: per poder aplicar uns criteris econòmics, el sistema necessita dades fiables sobre renda i patrimoni.
 
