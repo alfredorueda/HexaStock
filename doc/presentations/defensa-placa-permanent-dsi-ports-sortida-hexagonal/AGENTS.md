@@ -10,6 +10,7 @@ When working on this presentation, oral rehearsal, speaker notes, slide improvem
 Key reminders:
 
 - Keep the tone academic, sober, institutional, and in Catalan unless the user explicitly asks otherwise.
+- Use `software`, not `programari`, in this defense presentation and related oral materials because the official call is for a position in Enginyeria de Software.
 - Treat `IMPORTANTE_MANUAL_defensa-dsi-ports-sortida-hexagonal.pptx` as the canonical presentation.
 - Do not use old drafts as authoritative sources if they conflict with the canonical PowerPoint or `materials-orals-canonics-20-minuts.md`.
 - During rehearsal or presentation-improvement work, actively remind Alfredo to apply the slide improvements recorded in `recordatori-millores-diapositives.md`.
