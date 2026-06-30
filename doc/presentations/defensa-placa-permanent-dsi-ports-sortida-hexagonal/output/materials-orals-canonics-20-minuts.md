@@ -18,7 +18,7 @@ El punt més fort és la connexió entre el pla docent i l'informe AGAUR. El pla
 
 El risc principal és que algunes diapositives poden confondre tres plans diferents: flux d'execució, dependència de codi i dependència arquitectònica. La recomanació del Dr. Josep Roure és conceptualment correcta: en ports de sortida, l'adaptador implementa el port definit per l'aplicació. Per tant, si la fletxa representa dependència de codi o realització d'interfície, ha d'anar de l'adaptador cap al port, no del port cap a l'adaptador. Si la fletxa representa flux d'execució, aleshores pot anar del servei cap al port, del port cap a l'adaptador i de l'adaptador cap al sistema extern. Les dues lectures són compatibles, però s'han de distingir visualment.
 
-També hi ha detalls formals que convindria revisar abans de la defensa: `Generarlitat` hauria de ser `Generalitat`; `tecnología` hauria de ser `tecnologia`; `necesita` hauria de ser `necessita`; `d´ús` hauria de ser `d'ús`; la numeració de diapositives 3 i 4 apareix duplicada; i les notes del presentador de les diapositives 1 i 2 contenen informació sobre PICA que correspon millor a les diapositives 5 o 6. La correcció `desacoplada` -> `desacoblada` ja s'ha aplicat a la diapositiva 2.
+S'han revisat també els detalls formals del text visible de la presentació: `Generarlitat` s'ha corregit per `Generalitat`; `tecnología` per `tecnologia`; `necesita` per `necessita`; `d´ús` per `d'ús`; i s'ha regularitzat la numeració visible de les diapositives. La correcció `desacoplada` -> `desacoblada` ja s'havia aplicat a la diapositiva 2.
 
 ## 2. Millores proposades per diapositiva
 
@@ -40,7 +40,7 @@ La diapositiva situa bé el cas funcional abans de la tecnologia. Correcció apl
 
 **Diapositiva 6. Informació externa**
 
-La idea és molt bona: necessitat funcional abans que API concreta. Corregir `Generarlitat`. La definició de PICA a peu de pàgina és llarga i petita; es podria reduir a: `PICA: plataforma corporativa d'interoperabilitat administrativa de la Generalitat`. La resta s'explica oralment.
+La idea és molt bona: necessitat funcional abans que API concreta. Correcció aplicada: `Generarlitat` s'ha substituït per `Generalitat` i la definició de PICA s'ha simplificat per evitar una nota massa llarga. La resta s'explica oralment.
 
 **Diapositiva 7. Dependència directa**
 
@@ -62,7 +62,7 @@ La frase superior és molt bona. El diagrama, però, manté `implemented by` amb
 
 **Diapositiva 10. Transferència a domini financer**
 
-La transferència és clara. El diagrama HexaStock, com el d'AGAUR, hauria de distingir flux d'execució i dependència de codi. Especialment en `StockPriceProviderPort`, convé que `FinhubStockPriceAdapter`, `AlphaVantageStockPriceAdapter` i `MockFinhubStockPriceAdapter` apareguin com a implementacions que apunten cap al port. El missatge inferior és correcte i s'ha de mantenir.
+La transferència és clara. El diagrama HexaStock, com el d'AGAUR, hauria de distingir flux d'execució i dependència de codi. Especialment en `StockPriceProviderPort`, convé que `FinhubStockPriceAdapter`, `AlphaVantageStockPriceAdapter` i `MockFinhubStockPriceAdapter` apareguin com a implementacions que apunten cap al port. El missatge central és correcte i s'ha de mantenir: el cas d'ús necessita el preu actual, no un proveïdor concret.
 
 **Diapositiva 11. Flux i codi essencial**
 
@@ -74,7 +74,7 @@ Funciona com a demostració controlada. Substituiria `consultoria empresarial` p
 
 **Diapositiva 13. Agraïment**
 
-Correcta i institucional. El pla docent identifica el professor com a Josep Roure Alcobé; per coherència documental, faria servir `Dr. Josep Roure Alcobé`. El text es pot llegir només parcialment; millor tancar mirant el tribunal.
+Correcta i institucional. El tancament s'ha reformulat per evitar un to de comiat o de petició explícita: agraeix l'entorn que encoratja el creixement docent i acadèmic, en present, i manté el vincle amb l'equip docent. El pla docent identifica el professor com a Josep Roure Alcobé; per coherència documental, es pot fer servir `Dr. Josep Roure Alcobé`. Millor tancar mirant el tribunal, no llegint la diapositiva.
 
 ## 3. Guió oral complet imprimible
 
@@ -126,7 +126,7 @@ Ara ho veurem amb un cas funcional.
 
 ### Diapositiva 5. Avaluació econòmica d'una beca - 1:45
 
-Abans de parlar d'arquitectura de programari, cal entendre mínimament el procediment administratiu. [to més lent]
+Abans de parlar d'arquitectura de software, cal entendre mínimament el procediment administratiu. [to més lent]
 
 En un procediment de beca, una sol·licitud dona lloc a un expedient. Aquest expedient passa per diferents fases: requisits generals, requisits econòmics, revisió acadèmica i resolució. [assenyalar la seqüència de la dreta]
 
@@ -146,7 +146,7 @@ PICA és la Plataforma d'Integració i Col·laboració Administrativa de la Gene
 
 La distinció clau és aquesta: el procediment necessita informació administrativa; no necessita, en el seu llenguatge propi, una API concreta. [pausa llarga; mirar el tribunal]
 
-Això no vol dir que la API concreta no sigui important. Ho és, i molt. Però pertany a un altre nivell de decisió. El cas d'ús ha de poder dir: `necessito informació patrimonial avaluable`. L'adaptador ja resoldrà si aquesta informació arriba per SOAP, REST, PICA, un certificat, una base de dades corporativa o un mecanisme futur.
+Això no vol dir que l'API concreta no sigui important. Ho és, i molt. Però pertany a un altre nivell de decisió. El cas d'ús ha de poder dir: `necessito informació patrimonial avaluable`. L'adaptador ja resoldrà si aquesta informació arriba per SOAP, REST, PICA, un certificat, una base de dades corporativa o un mecanisme futur.
 
 Quan aquesta separació no es respecta, apareix el problema arquitectònic que veurem ara.
 
@@ -158,7 +158,7 @@ El problema no és consumir PICA. Ho remarco perquè és important. PICA, en aqu
 
 Quan això passa, l'evolució tecnològica travessa la frontera del cas d'ús. Si un servei evoluciona, si canvia el contracte tècnic, si cal passar de SOAP a REST, o si apareix un altre mecanisme corporatiu, el canvi pot impactar codi que hauria d'estar expressant criteris del procediment.
 
-Des del punt de vista de l'enginyeria del programari, això incrementa tres riscos. Primer, acoblament tecnològic: el cas d'ús coneix massa detalls externs. Segon, fragilitat del manteniment: canvis d'infraestructura obliguen a revisar lògica d'aplicació. I tercer, risc de continuïtat operativa: una evolució tècnica pot afectar un procediment que hauria de romandre estable. [assenyalar les tres caixes]
+Des del punt de vista de l'enginyeria de software, això incrementa tres riscos. Primer, acoblament tecnològic: el cas d'ús coneix massa detalls externs. Segon, fragilitat del manteniment: canvis d'infraestructura obliguen a revisar lògica d'aplicació. I tercer, risc de continuïtat operativa: una evolució tècnica pot afectar un procediment que hauria de romandre estable. [assenyalar les tres caixes]
 
 La pregunta docent, per tant, és: com podem permetre que el cas d'ús necessiti dades externes, però sense dependre directament de la tecnologia que les proporciona?
 
@@ -234,7 +234,9 @@ L'arquitectura no elimina la dependència del món exterior. Les aplicacions rea
 
 Quan canvia un proveïdor, una API o una tecnologia, volem canviar l'adaptador. No volem reescriure el cas d'ús ni deformar el model de domini. [pausa]
 
-Vull acabar expressant el meu agraïment al TecnoCampus per l'oportunitat d'aprendre, créixer com a docent i transferir coneixement entre la universitat i l'entorn professional. I també el meu agraïment especial al Dr. Josep Roure, amb qui comparteixo aquesta assignatura i de qui he après molt sobre arquitectura de programari i metodologies actives d'aprenentatge. [mirada al tribunal]
+Vull expressar el meu agraïment al TecnoCampus per un entorn que m'encoratja a créixer, tant en la docència com en l'àmbit acadèmic, al costat d'un equip del qual aprenc i amb qui comparteixo coneixement, responsabilitat i compromís amb la formació universitària. [pausa breu; mirar el tribunal]
+
+També vull fer un agraïment especial al Dr. Josep Roure, company professor del TecnoCampus, amb qui he tingut l'oportunitat d'aprendre sobre arquitectura de software, metodologies actives d'aprenentatge i treball en equip. [mirada al tribunal]
 
 Moltes gràcies.
 
@@ -290,9 +292,9 @@ Moltes gràcies.
 
 ### 7. Dependència directa - 2:00
 
-- El problema no és PICA; es l'acoblament directe.
+- El problema no és PICA; és l'acoblament directe.
 - Cas d'ús coneix SOAP/XML, DTOs, clients, errors tècnics.
-- Evolucio tecnològica travessa frontera.
+- Evolució tecnològica travessa frontera.
 - Tres riscos: acoblament, manteniment fràgil, continuïtat operativa.
 - Transició: resposta arquitectònica, port de sortida.
 
