@@ -16,11 +16,11 @@ La presentació té un fil narratiu acadèmicament defensable: situa la microlli
 
 El punt més fort és la connexió entre el pla docent i l'informe AGAUR. El pla docent situa l'assignatura a tercer curs, 6 ECTS, amb continguts de clean o hexagonal architecture, ports i adaptadors, mapping entre capes, organització en mòduls, microserveis i DDD. L'informe AGAUR acredita una activitat real de 60 hores, entre maig i juliol de 2025, centrada en serveis REST i arquitectura hexagonal aplicada a sistemes d'informació, amb refactorització de serveis SOAP cap a REST, reducció d'acoblament, separació de responsabilitats, proves i mantenibilitat.
 
-El risc principal és que algunes diapositives poden confondre tres plans diferents: flux d'execució, dependència de codi i dependència arquitectònica. La recomanació del Dr. Josep Roure és conceptualment correcta: en ports de sortida, l'adaptador implementa el port definit per l'aplicació. Per tant, si la fletxa representa dependència de codi o realització d'interfície, ha d'anar de l'adaptador cap al port, no del port cap a l'adaptador. Si la fletxa representa flux d'execució, aleshores pot anar del servei cap al port, del port cap a l'adaptador i de l'adaptador cap al sistema extern. Les dues lectures són compatibles, però s'han de distingir visualment.
+El punt conceptual que cal preservar és la distinció entre tres plans diferents: flux d'execució, dependència de codi i dependència arquitectònica. Aquesta millora ja queda incorporada als diagrames principals: quan la fletxa representa implementació, apunta de l'adaptador cap al port; quan representa ús o flux d'execució, pot sortir del servei cap al port i cap al sistema extern. Les dues lectures són compatibles, però s'han de distingir oralment amb precisió.
 
 S'han revisat també els detalls formals del text visible de la presentació: ortografia, accents, apòstrofs, cometes, noms propis i numeració visible de les diapositives. La terminologia de desacoblament ja queda formulada de manera correcta i coherent.
 
-## 2. Millores proposades per diapositiva
+## 2. Estat de les millores per diapositiva
 
 **Diapositiva 1. Portada**
 
@@ -48,21 +48,15 @@ Funciona com a diapositiva de problema. Recomanació: si no es vol aportar una f
 
 **Diapositiva 7. Port de sortida i adaptador**
 
-Aquí cal aplicar la millora de fletxes. La seqüència vertical actual explica bé el flux d'execució, però no la dependència de codi. Proposta visual:
-
-- Fletxa continua i fina cap avall: `flux d'execució`.
-- Fletxa discontinua o d'un altre color de l'adaptador cap al port: `dependència de codi / implementa`.
-- Text lateral: `El servei usa el port; l'adaptador implementa el port`.
-
-Això permet dir: el cas d'ús crida una capacitat definida pel port, però la implementació concreta depèn del contracte de l'aplicació.
+La diapositiva funciona com a esquema de flux d'execució: cas d'ús, port, adaptador i sistema extern. No cal carregar-la amb una segona notació gràfica. Oralment convé aclarir que aquesta seqüència mostra el camí de la crida, mentre que la dependència de codi queda expressada en els diagrames següents: el servei usa el port i l'adaptador implementa el port.
 
 **Diapositiva 8. Port de sortida per a informació patrimonial**
 
-La frase superior és molt bona. El diagrama, però, manté `implemented by` amb fletxes que visualment semblen sortir del port cap a l'adaptador. Proposta: invertir aquestes fletxes o canviar-ne l'etiqueta a `implementa`, amb la direcció adaptador -> port. Mantenir les fletxes de `uses` des del servei cap als ports si es vol representar el flux d'execució.
+Correcció aplicada. El diagrama ja diferencia el flux d'ús del servei cap als ports i la implementació dels ports per part dels adaptadors. Les fletxes `implemented by` apunten des dels adaptadors cap als ports, de manera coherent amb la inversió de dependències. En l'explicació oral cal mantenir aquesta lectura: el servei usa el port; l'adaptador implementa el port.
 
 **Diapositiva 9. Transferència a domini financer**
 
-La transferència és clara. El diagrama HexaStock, com el d'AGAUR, hauria de distingir flux d'execució i dependència de codi. Especialment en `StockPriceProviderPort`, convé que `FinhubStockPriceAdapter`, `AlphaVantageStockPriceAdapter` i `MockFinhubStockPriceAdapter` apareguin com a implementacions que apunten cap al port. El missatge central és correcte i s'ha de mantenir: el cas d'ús necessita el preu actual, no un proveïdor concret.
+Correcció aplicada. El diagrama HexaStock ja manté la mateixa lectura que el cas AGAUR: les fletxes d'ús representen el flux del servei cap als ports, i les fletxes `implemented by` apunten dels adaptadors cap als ports. En `StockPriceProviderPort`, els adaptadors de mercat apareixen com a implementacions del port. El missatge central és correcte i s'ha de mantenir: el cas d'ús necessita el preu actual, no un proveïdor concret.
 
 **Diapositiva 10. Flux i codi essencial**
 
@@ -176,7 +170,7 @@ En el diagrama, el nucli de l'aplicació conté el servei d'aplicació i el mode
 
 El punt tècnic més important és que l'adaptador de PICA o l'adaptador JDBC no són el centre de l'arquitectura. Són substituïbles. El que és estable és el contracte que el cas d'ús necessita. [pausa breu]
 
-Per això la proposta de revisar les fletxes és encertada. Si la fletxa indica `implementa`, hauria d'anar de l'adaptador cap al port. El servei usa el port. L'adaptador implementa el port. I el domini no coneix ni l'adaptador, ni PICA, ni SOAP, ni REST.
+Aquesta distinció queda reflectida en la direcció de les fletxes. Quan indiquen `implemented by`, les fletxes van de l'adaptador cap al port. El servei usa el port. L'adaptador implementa el port. I el domini no coneix ni l'adaptador, ni PICA, ni SOAP, ni REST.
 
 Aquesta mateixa estructura la podem transferir ara a un domini financer docent: HexaStock.
 
@@ -387,7 +381,7 @@ Risc de temps: les diapositives 4-10 poden allargar-se fàcilment. Si vas tard, 
 
 Risc conceptual: no diguis que PICA és el problema. Formula-ho sempre així: el problema és que el cas d'ús depengui directament dels detalls tècnics de la integració.
 
-Risc de fletxes: quan el tribunal vegi fletxes cap a fora, aclareix si representen flux d'execució. Quan parlis d'implementació o dependència de codi, la direcció correcta és adaptador cap al port.
+Risc de lectura de fletxes: no presentar totes les fletxes com si signifiquessin el mateix. Quan representen ús o flux d'execució, poden sortir del servei cap als ports. Quan representen implementació o dependència de codi, la lectura correcta és de l'adaptador cap al port.
 
 Risc documental: el pla docent oficial diu que la llengua de docència és l'anglès. Si surt la pregunta, la resposta prudent és que la defensa és en català i que la microlliçó és una adaptació per al context del tribunal; el contingut docent és el mateix.
 
