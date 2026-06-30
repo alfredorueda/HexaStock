@@ -13,7 +13,7 @@ PRESENTATION_DIR = Path(__file__).resolve().parents[1]
 ASSETS_DIR = PRESENTATION_DIR / "assets"
 DIAGRAMS_DIR = PRESENTATION_DIR / "diagrams" / "rendered"
 OUTPUT_DIR = PRESENTATION_DIR / "output"
-OUTPUT_FILE = OUTPUT_DIR / "defensa-dsi-ports-sortida-hexagonal.pptx"
+OUTPUT_FILE = OUTPUT_DIR / "IMPORTANTE_MANUAL_defensa-dsi-ports-sortida-hexagonal.pptx"
 LOGO = ASSETS_DIR / "logotip-oficial-tecnocampus-upf-horitzontal-color.png"
 HEXASTOCK_ARCHITECTURE_IMAGE = ASSETS_DIR / "hexastock-sellstocks-arquitectura-vpd.png"
 
@@ -197,7 +197,7 @@ def create_deck():
              Inches(5.9), Inches(3.25), Inches(5.45), Inches(1.25), font_size=22,
              color=TEXT_COLOR, align=PP_ALIGN.CENTER)
     add_text(slide,
-             "Microlliçó dins el bloc de clean / hexagonal architecture, ports, adaptadors i DDD.",
+             "Pla docent 103322: clean/hexagonal architecture, ports i adaptadors, mapping, mòduls i DDD.",
              Inches(1.05), Inches(6.2), Inches(10.8), Inches(0.35), font_size=13, color=MUTED,
              align=PP_ALIGN.CENTER)
     add_footer(slide, 2)

@@ -13,7 +13,9 @@ Subtítol:
 - Versió actual del PowerPoint: 13 diapositives simplificades, pensades com a suport visual per a una explicació oral de 20 minuts.
 - `outline.md`: estructura narrativa de 20 minuts.
 - `slide-by-slide.md`: contingut, visual i notes del presentador per diapositiva.
-- `guio-oral-20-minuts.md`: guió oral amb temps aproximat.
+- `output/IMPORTANTE_MANUAL_defensa-dsi-ports-sortida-hexagonal.pptx`: presentació canònica.
+- `output/materials-orals-canonics-20-minuts.md`: guió oral, notes del presentador, esquema de memorització i pla d'entrenament.
+- `output/materials-orals-canonics-20-minuts.docx`: exportació editable del material oral canònic.
 - `cas-funcional-agaur-beca.md`: dossier de suport sobre el cas funcional AGAUR, beca, renda, patrimoni, valors cadastrals, PICA i fonts públiques.
 - `checklist.md`: verificació final docent, tècnica i institucional.
 - `sources-and-evidence.md`: fonts, evidències i punts pendents de verificar.
@@ -48,7 +50,7 @@ PYTHONPATH=/tmp/python-pptx-deps python3 doc/presentations/defensa-placa-permane
 Sortida prevista:
 
 ```text
-doc/presentations/defensa-placa-permanent-dsi-ports-sortida-hexagonal/output/defensa-dsi-ports-sortida-hexagonal.pptx
+doc/presentations/defensa-placa-permanent-dsi-ports-sortida-hexagonal/output/IMPORTANTE_MANUAL_defensa-dsi-ports-sortida-hexagonal.pptx
 ```
 
 ## Criteri docent
