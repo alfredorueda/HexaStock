@@ -10,19 +10,20 @@ Subtítol:
 
 ## Estat del material
 
-- Versió actual del PowerPoint: 13 diapositives simplificades, pensades com a suport visual per a una explicació oral de 20 minuts.
+- Versió actual del PowerPoint: 12 diapositives simplificades, pensades com a suport visual per a una explicació oral de 20 minuts.
 - `outline.md`: estructura narrativa de 20 minuts.
 - `slide-by-slide.md`: contingut, visual i notes del presentador per diapositiva.
 - `output/IMPORTANTE_MANUAL_defensa-dsi-ports-sortida-hexagonal.pptx`: presentació canònica.
+- `output/defensa-dsi-ports-sortida-hexagonal_Alfredo_Rueda.pdf`: export PDF de la presentació canònica.
 - `output/materials-orals-canonics-20-minuts.md`: guió oral, notes del presentador, esquema de memorització i pla d'entrenament.
 - `output/materials-orals-canonics-20-minuts.docx`: exportació editable del material oral canònic.
+- `output/REMARKABLE_materials-orals-canonics-20-minuts.pdf`: versió de lectura amb mida gran per a reMarkable.
 - `cas-funcional-agaur-beca.md`: dossier de suport sobre el cas funcional AGAUR, beca, renda, patrimoni, valors cadastrals, PICA i fonts públiques.
 - `checklist.md`: verificació final docent, tècnica i institucional.
 - `sources-and-evidence.md`: fonts, evidències i punts pendents de verificar.
 - `diagrams/*.puml`: diagrames PlantUML.
 - `diagrams/rendered/*`: diagrames renderitzats en SVG i PNG.
 - `src/render_diagrams.sh`: renderitzat amb Docker i PlantUML.
-- `src/build_pptx.py`: generació d'una primera plantilla PowerPoint editable.
 - `assets/evidencies/informe-acreditatiu-agaur-arquitectura-hexagonal.pdf`: informe AGAUR incorporat com a evidència documental.
 - `assets/evidencies/pla-docent-dsi-103322-2025-26.pdf`: guia docent oficial de Disseny de Sistemes d'Informació 2025/26.
 - `assets/logotip-oficial-tecnocampus-upf-horitzontal-color.png`: logotip descarregat de la pàgina oficial d'imatge corporativa del TecnoCampus.
@@ -38,20 +39,15 @@ doc/presentations/defensa-placa-permanent-dsi-ports-sortida-hexagonal/src/render
 
 L'script utilitza Docker amb la imatge `plantuml/plantuml:latest` i genera SVG i PNG.
 
-## Com generar el PowerPoint
+## Criteri d'edició del PowerPoint
 
-El generador utilitza `python-pptx`. Si no està instal·lat al sistema, es pot instal·lar en una carpeta temporal:
-
-```bash
-python3 -m pip install --target /tmp/python-pptx-deps python-pptx
-PYTHONPATH=/tmp/python-pptx-deps python3 doc/presentations/defensa-placa-permanent-dsi-ports-sortida-hexagonal/src/build_pptx.py
-```
-
-Sortida prevista:
+La presentació canònica s'edita directament sobre el fitxer PowerPoint:
 
 ```text
-doc/presentations/defensa-placa-permanent-dsi-ports-sortida-hexagonal/output/IMPORTANTE_MANUAL_defensa-dsi-ports-sortida-hexagonal.pptx
+output/IMPORTANTE_MANUAL_defensa-dsi-ports-sortida-hexagonal.pptx
 ```
+
+El generador Python antic s'ha eliminat perquè havia quedat descoordinat respecte de la versió manualment curada de la presentació. En aquesta fase final, els canvis han de ser petits i s'han de fer directament sobre el PowerPoint canònic, amb l'export PDF actualitzat quan calgui.
 
 ## Criteri docent
 
