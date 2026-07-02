@@ -12,9 +12,9 @@ Documents antics ignorats com a font: `outline.md`, `slide-by-slide.md`, `guió-
 
 ## 1. Diagnòstic general
 
-La presentació té un fil narratiu acadèmicament defensable: situa la microlliçó dins Disseny de Sistemes d'Informació, formula un objectiu d'aprenentatge concret, parteix d'un cas real d'administració pública, diagnostica l'acoblament tecnològic, presenta el port de sortida i transfereix el patró a HexaStock. Aquesta estructura és adequada per a un tribunal perquè no presenta només tecnologia, sinó una decisió de disseny vinculada a docència, experiència professional i rigor arquitectònic.
+La presentació té un fil narratiu acadèmicament defensable: situa la classe dins Disseny de Sistemes d'Informació, formula un objectiu d'aprenentatge concret, parteix d'un cas real d'administració pública, diagnostica l'acoblament tecnològic, presenta el port de sortida i transfereix el patró a HexaStock. Aquesta estructura és adequada per a un tribunal perquè no presenta només tecnologia, sinó una decisió de disseny vinculada a docència, experiència professional i rigor arquitectònic.
 
-El punt més fort és la connexió entre el pla docent i l'informe AGAUR. El pla docent situa l'assignatura a tercer curs, 6 ECTS, amb continguts de clean o hexagonal architecture, ports i adaptadors, mapping entre capes, organització en mòduls, microserveis i DDD. L'informe AGAUR acredita una activitat real de 60 hores, entre maig i juliol de 2025, centrada en serveis REST i arquitectura hexagonal aplicada a sistemes d'informació, amb refactorització de serveis SOAP cap a REST, reducció d'acoblament, separació de responsabilitats, proves i mantenibilitat.
+El punt més fort és la connexió entre el pla docent i l'informe AGAUR. El pla docent situa l'assignatura a tercer curs, 6 ECTS, amb continguts de clean o hexagonal architecture, ports i adaptadors, mapping entre capes, organització en mòduls, microserveis i DDD. L'informe AGAUR acredita una activitat professional especialitzada vinculada a arquitectura hexagonal i sistemes d'informació.
 
 El punt conceptual que cal preservar és la distinció entre tres plans diferents: flux d'execució, dependència de codi i dependència arquitectònica. Aquesta millora ja queda incorporada als diagrames principals: quan la fletxa representa implementació, apunta de l'adaptador cap al port; quan representa ús o flux d'execució, pot sortir del servei cap al port i cap al sistema extern. Les dues lectures són compatibles, però s'han de distingir oralment amb precisió.
 
@@ -78,11 +78,11 @@ Temps total previst: 20:00.
 
 Bon dia, membres del tribunal. [pausa breu, mirada al tribunal]
 
-La microlliçó que presento porta per títol `Disseny de ports de sortida en arquitectura hexagonal`, i se centra en el desacoblament entre casos d'ús, domini i APIs externes. [assenyalar el títol]
+La classe que presento porta per títol `Disseny de ports de sortida en arquitectura hexagonal`, i se centra en el desacoblament entre casos d'ús, domini i APIs externes. [assenyalar el títol]
 
-Abans d'entrar en el contingut tècnic, voldria fer una precisió de context. A la documentació del tribunal he incorporat un informe acreditatiu de la meva activitat de formació i consultoria especialitzada per a l'AGAUR, l'Agència de Gestió d'Ajuts Universitaris i de Recerca. Aquest informe acredita una activitat de 60 hores, desenvolupada entre maig i juliol de 2025, centrada en serveis REST, arquitectura hexagonal i sistemes d'informació. [pausa breu]
+Abans d'entrar en el contingut tècnic, voldria fer una precisió de context. A la documentació del tribunal he incorporat un informe acreditatiu de la meva activitat de formació i consultoria especialitzada per a l'AGAUR, l'Agència de Gestió d'Ajuts Universitaris i de Recerca. [pausa breu]
 
-Ho explico al principi perquè aquesta sessió està plantejada deliberadament a partir d'una doble vinculació. D'una banda, és una microlliçó situada dins l'assignatura Disseny de Sistemes d'Informació, que imparteixo juntament amb el Dr. Josep Roure. De l'altra, parteix d'un cas professional real en l'àmbit de l'administració pública catalana. [mirada al tribunal]
+Ho explico al principi perquè aquesta sessió està plantejada deliberadament a partir d'una doble vinculació. D'una banda, és una classe situada dins l'assignatura Disseny de Sistemes d'Informació, que imparteixo juntament amb el Dr. Josep Roure. De l'altra, parteix d'un cas professional real en l'àmbit de l'administració pública catalana. [mirada al tribunal]
 
 La intenció no és revelar cap detall intern, ni cap endpoint, ni cap dada sensible. La intenció és docent: mostrar com conceptes que treballem a l'aula, com ports, adaptadors, inversió de dependències i separació entre domini, aplicació i infraestructura, apareixen també en problemes reals d'evolució de sistemes d'informació. [pausa]
 
@@ -94,7 +94,7 @@ La sessió se situa dins Disseny de Sistemes d'Informació, una assignatura obli
 
 El pla docent de l'assignatura explica que s'hi treballa una visió global d'arquitectures de sistemes d'informació: arquitectures per capes, arquitectures clean o hexagonals, i arquitectures basades en microserveis. Dins el bloc d'arquitectures clean o hexagonals hi apareixen explícitament ports i adaptadors, mapping entre capes i organització en mòduls. [to calmat, explicatiu]
 
-Per tant, aquesta no és una sessió afegida artificialment al temari. És una microlliçó versemblant dins l'assignatura. [pausa breu]
+Per tant, aquesta no és una sessió afegida artificialment al temari. És una classe versemblant dins l'assignatura. [pausa breu]
 
 El que farem avui és acotar molt el focus. No analitzarem tota l'arquitectura hexagonal. Ens centrarem en els ports de sortida: aquells ports que permeten que l'aplicació obtingui o persisteixi informació mitjançant sistemes externs, sense que el cas d'ús quedi lligat a una tecnologia concreta.
 
@@ -126,7 +126,7 @@ Per avaluar renda i patrimoni, el procediment pot necessitar informació que no 
 
 En termes funcionals, podem parlar de renda familiar, patrimoni i béns immobles. En termes de fonts administratives, apareixen organismes i plataformes com l'AEAT, el Cadastre i PICA. [assenyalar la columna de fonts]
 
-PICA és la Plataforma d'Integració i Col·laboració Administrativa de la Generalitat de Catalunya. Per a aquesta microlliçó, no cal entrar en tots els detalls tècnics de PICA. El que ens interessa és que actua com a mecanisme corporatiu d'interoperabilitat administrativa.
+PICA és la Plataforma d'Integració i Col·laboració Administrativa de la Generalitat de Catalunya. Per a aquesta classe, no cal entrar en tots els detalls tècnics de PICA. El que ens interessa és que actua com a mecanisme corporatiu d'interoperabilitat administrativa.
 
 La distinció clau és aquesta: el procediment necessita informació administrativa; no necessita, en el seu llenguatge propi, una API concreta. [pausa llarga; mirar el tribunal]
 
@@ -200,7 +200,7 @@ Dit de manera sintètica: l'adaptador pot saber com obtenir un preu; no hauria d
 
 ### Diapositiva 11. Demo - 1:45
 
-La demo, en aquesta microlliçó, no pretén impressionar per complexitat tècnica. Té una funció docent molt concreta: mostrar que podem mantenir el mateix cas d'ús, el mateix servei d'aplicació i el mateix domini, canviant només l'adaptador. [assenyalar les tres caixes]
+La demo, en aquesta classe, no pretén impressionar per complexitat tècnica. Té una funció docent molt concreta: mostrar que podem mantenir el mateix cas d'ús, el mateix servei d'aplicació i el mateix domini, canviant només l'adaptador. [assenyalar les tres caixes]
 
 En HexaStock, això es pot veure amb perfils diferents: un adaptador Finnhub, un adaptador Alpha Vantage o un adaptador mock. El port que veu el servei és el mateix: `StockPriceProviderPort`. La implementació concreta canvia segons la configuració.
 
@@ -228,8 +228,8 @@ Moltes gràcies.
 
 ### 1. Portada - 1:45
 
-- Microlliçó de DSI, no explicació completa d'arquitectura hexagonal.
-- Informe AGAUR incorporat al tribunal: activitat real de 60 hores, maig-juliol 2025.
+- Classe de DSI, no explicació completa d'arquitectura hexagonal.
+- Informe AGAUR incorporat al tribunal: activitat de formació i consultoria especialitzada.
 - Connexió: docència amb Dr. Josep Roure + consultoria en sistemes d'informació.
 - No revelar dades internes; cas real com a base docent.
 - Transició: ens centrarem en una decisió concreta, el port de sortida.
@@ -327,7 +327,7 @@ Moltes gràcies.
 | Diapositiva | Missatge central | Concepte tècnic imprescindible | Connexió anterior | Connexió següent |
 |---|---|---|---|---|
 | 1 | Classe des d'un cas real acreditat | Ports de sortida com a focus | Inici | Situar dins DSI |
-| 2 | La microlliçó encaixa en el pla docent | Clean/hexagonal, ports, adaptadors | Cas real + docència | Objectiu breu |
+| 2 | La classe encaixa en el pla docent | Clean/hexagonal, ports, adaptadors | Cas real + docència | Objectiu breu |
 | 3 | Objectiu: necessitat, port, adaptador | Capacitat, no tecnologia | Assignatura | Cas funcional |
 | 4 | Primer procediment, després tecnologia | Necessitat funcional | Objectiu | Fonts externes |
 | 5 | El procediment necessita dades, no API | Interoperabilitat administrativa | Procediment | Risc d'acoblament |
@@ -383,7 +383,7 @@ Risc conceptual: no diguis que PICA és el problema. Formula-ho sempre així: el
 
 Risc de lectura de fletxes: no presentar totes les fletxes com si signifiquessin el mateix. Quan representen ús o flux d'execució, poden sortir del servei cap als ports. Quan representen implementació o dependència de codi, la lectura correcta és de l'adaptador cap al port.
 
-Risc documental: el pla docent oficial diu que la llengua de docència és l'anglès. Si surt la pregunta, la resposta prudent és que la defensa és en català i que la microlliçó és una adaptació per al context del tribunal; el contingut docent és el mateix.
+Risc documental: el pla docent oficial diu que la llengua de docència és l'anglès. Si surt la pregunta, la resposta prudent és que la defensa és en català i que la classe és una adaptació per al context del tribunal; el contingut docent és el mateix.
 
 Risc de nom: el pla docent identifica `Josep Roure Alcobé`. Si a altres documents apareix `Roura`, cal unificar abans de tancar la PPTX.
 
