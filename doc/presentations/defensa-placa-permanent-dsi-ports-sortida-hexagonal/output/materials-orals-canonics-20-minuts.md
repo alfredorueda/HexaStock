@@ -2,19 +2,25 @@
 
 Fonts canòniques utilitzades:
 
-- `IMPORTANTE_MANUAL_defensa-dsi-ports-sortida-hexagonal.pptx`
-- `informe-acreditatiu-agaur-arquitectura-hexagonal.pdf`
-- `pla-docent-dsi-103322-2025-26.pdf`
-- `HexaStock_SellStocks.vpd` i el seu render PNG equivalent
-- `Get Your Hands Dirty on Clean Architecture.pdf`
+* `IMPORTANTE_MANUAL_defensa-dsi-ports-sortida-hexagonal.pptx`
+* `informe-acreditatiu-agaur-arquitectura-hexagonal.pdf`
+* `pla-docent-dsi-103322-2025-26.pdf`
+* `HexaStock_SellStocks.vpd` i el seu render PNG equivalent
+* `Get Your Hands Dirty on Clean Architecture.pdf`
 
 Documents antics ignorats com a font: `outline.md`, `slide-by-slide.md`, `guió-oral-20-minuts.md` i altres esborranys previs.
 
+Nota de versió: la demo queda fora del cos principal de la classe. El tancament formal és la diapositiva d'agraïment. La demo es conserva com a annex opcional, només per activar-la si el tribunal la demana o si hi ha temps explícitament disponible després del tancament.
+
+---
+
 ## 1. Guió oral complet imprimible
 
-Temps total previst: 20:00.
+Temps total previst del cos principal: 20:00 aproximadament, sense demo en viu.
 
-### Diapositiva 1. Portada - 1:45
+La demo no forma part del temps canònic de la classe. S'ha de considerar un annex opcional posterior al tancament.
+
+### Diapositiva 1. Portada - 1:35
 
 Bon dia, membres del tribunal. [pausa breu, mirada al tribunal]
 
@@ -30,11 +36,11 @@ I de l'altra, la dimensió professional: un cas real que ens permet veure com aq
 
 En vint minuts no seria rigorós intentar explicar tota l'arquitectura hexagonal. Per això em centraré en una decisió concreta: com dissenyar un port de sortida quan un cas d'ús necessita informació que es troba fora de l'aplicació.
 
-### Diapositiva 2. On som dins l'assignatura - 1:10
+### Diapositiva 2. On som dins l'assignatura - 1:05
 
 La sessió se situa dins Disseny de Sistemes d'Informació, una assignatura de tercer curs, de 6 ECTS. [assenyalar la part esquerra]
 
-El pla docent de l'assignatura explica que s'hi treballa una visió global d'arquitectures de sistemes d'informació: arquitectures per capes, arquitectures hexagonals, basades en microserveis. Dins el bloc d'arquitectures hexagonals hi apareixen explícitament ports i adaptadors. [to calmat, explicatiu]
+El pla docent de l'assignatura explica que s'hi treballa una visió global d'arquitectures de sistemes d'informació: arquitectures per capes, arquitectures hexagonals i arquitectures basades en microserveis. Dins el bloc d'arquitectures hexagonals hi apareixen explícitament ports i adaptadors. [to calmat, explicatiu]
 
 Per tant, aquesta no és una sessió afegida artificialment al temari. És una classe versemblant dins l'assignatura. [pausa breu]
 
@@ -48,7 +54,7 @@ Per tant, el que aprendrem és a fer tres operacions: identificar una necessitat
 
 No desenvoluparé encara tota l'abstracció. Primer veurem el problema en un cas real d'administració pública, i a partir d'aquí formularem la decisió arquitectònica. [pausa breu]
 
-### Diapositiva 4. Avaluació econòmica d'una beca - 1:50
+### Diapositiva 4. Avaluació econòmica d'una beca - 1:45
 
 Abans de parlar d'arquitectura de software, cal entendre mínimament el procediment administratiu. [to més lent]
 
@@ -60,7 +66,7 @@ La idea docent important és que aquí encara no hem parlat de SOAP, ni de REST,
 
 Aquest pas és essencial. Si comencem directament per la tecnologia, correm el risc de construir el cas d'ús al voltant de la integració. En canvi, si comencem pel procediment, podem distingir entre la decisió administrativa que volem modelar i el mecanisme tècnic que ens proporciona la informació.
 
-### Diapositiva 5. Quina informació externa necessita el procediment? - 2:00
+### Diapositiva 5. Quina informació externa necessita el procediment? - 1:55
 
 Per avaluar renda i patrimoni, el procediment pot necessitar informació que no neix dins l'aplicació. [assenyalar la columna de necessitats]
 
@@ -76,11 +82,11 @@ El cas d'ús hauria de poder formular-se així: `necessito informació patrimoni
 
 Quan aquesta separació no es respecta, apareix el problema arquitectònic que veurem ara.
 
-### Diapositiva 6. Dependència directa entre procediment i integració - 2:10
+### Diapositiva 6. Dependència directa entre procediment i integració - 2:05
 
 Imaginem una situació en què el cas d'ús queda vinculat directament a la cadena tècnica: SOAP/XML, PICA, AEAT o Cadastre. [assenyalar la cadena central]
 
-El problema no és consumir PICA. Ho remarco perquè és important. PICA, en aquest context, és una plataforma corporativa d'interoperabilitat. El problema arquitectònic apareix quan la lògica del procediment administratiu depèn directament dels detalls de la integració: Estructures XML, clients SOAP, codis d'error tècnics o convencions d'una API concreta. [pausa breu]
+El problema no és consumir PICA. Ho remarco perquè és important. PICA, en aquest context, és una plataforma corporativa d'interoperabilitat. El problema arquitectònic apareix quan la lògica del procediment administratiu depèn directament dels detalls de la integració: estructures XML, clients SOAP, codis d'error tècnics o convencions d'una API concreta. [pausa breu]
 
 Quan això passa, l'evolució tecnològica travessa la frontera del cas d'ús. Si un servei evoluciona, si canvia el contracte tècnic, si cal passar de SOAP a REST, o si apareix un altre mecanisme corporatiu, el canvi pot impactar codi que hauria d'estar expressant criteris del procediment.
 
@@ -90,7 +96,7 @@ La pregunta docent, per tant, és: com podem permetre que el cas d'ús necessiti
 
 La resposta és introduir un port de sortida.
 
-### Diapositiva 7. Port de sortida i adaptador - 0:55
+### Diapositiva 7. Port de sortida i adaptador - 2:20
 
 Abans d'aplicar-ho al cas patrimonial, fixem una distinció important.
 
@@ -115,7 +121,7 @@ Aquesta és la inversió de dependències: la infraestructura depèn del port de
 
 Amb aquesta idea clara, ara podem portar el patró al cas administratiu.
 
-### Diapositiva 8. Port de sortida per a informació patrimonial - 2:05
+### Diapositiva 8. Port de sortida per a informació patrimonial - 1:55
 
 Portem aquesta idea al cas administratiu. [assenyalar el diagrama]
 
@@ -129,11 +135,11 @@ Aquesta distinció queda reflectida en la direcció de les fletxes. Quan indique
 
 Aquesta mateixa estructura la podem transferir ara a un domini diferent: una aplicació de gestió d'una cartera d'inversió personal.
 
-### Diapositiva 9. Transferència a domini financer - 1:45
+### Diapositiva 9. Transferència a domini financer - 1:35
 
 Ara fem un canvi de domini. Ja no parlem d'una sol·licitud de beca, sinó d'una aplicació de gestió d'una cartera d'inversió personal. [assenyalar el títol]
 
-El diagrama que veiem ja correspon al projecte que utilitzaré després a la demo. Ara, però, no em centraré en els noms concrets; el que m'interessa és reconèixer el mateix patró: cas d'ús, port de sortida i adaptadors substituïbles.
+El diagrama que veiem correspon a HexaStock. Ara, però, no em centraré en els noms concrets; el que m'interessa és reconèixer el mateix patró: cas d'ús, port de sortida i adaptadors substituïbles.
 
 Imaginem un cas d'ús molt concret: vendre accions d'una cartera. Per executar aquesta operació correctament, l'aplicació pot necessitar consultar el preu actual de l'acció que l'usuari vol vendre.
 
@@ -147,9 +153,9 @@ El patró és idèntic al cas AGAUR. En el cas administratiu, el procediment nec
 
 Per tant, el missatge docent és transferible: primer identifiquem la necessitat funcional; després definim el port; finalment implementem adaptadors.
 
-### Diapositiva 10. Flux i codi essencial - 1:45
+### Diapositiva 10. Flux i codi essencial - 1:35
 
-A partir d'aquí ja podem baixar al projecte concret de la demo: HexaStock. Aquesta diapositiva mostra el flux temporal del cas d'ús de venda. [assenyalar el diagrama de seqüència]
+A partir d'aquí ja podem baixar al projecte concret HexaStock. Aquesta diapositiva mostra el flux temporal del cas d'ús de venda. [assenyalar el diagrama de seqüència]
 
 El client o controlador invoca el port d'entrada, `PortfolioStockOperationsUseCase`. La implementació és el servei d'aplicació, `PortfolioStockOperationsService`. Aquest servei recupera el portfolio mitjançant un port de persistència, consulta el preu mitjançant el port de preus, i després crida el domini amb l'acció, la quantitat i el preu. [pausa breu]
 
@@ -157,21 +163,9 @@ La separació de responsabilitats és molt important. El servei coordina. El por
 
 Dit de manera sintètica: l'adaptador pot saber com obtenir un preu; no hauria de decidir com es ven una acció dins la cartera. [pausa]
 
-### Diapositiva 11. Demo (Opcional) - 1:45
+Aquesta idea ens porta al tancament: l'arquitectura no elimina la dependència respecte del món exterior, però sí que ens ajuda a ubicar-la en una frontera explícita.
 
-La demo, en aquesta classe, no pretén impressionar per complexitat tècnica. Té una funció docent molt concreta: mostrar que podem mantenir el mateix cas d'ús, el mateix servei d'aplicació i el mateix domini, canviant només l'adaptador. [assenyalar les tres caixes]
-
-En HexaStock, això es pot veure amb perfils diferents: un adaptador Finnhub, un adaptador Alpha Vantage o un adaptador mock. El port que veu el servei és el mateix: `StockPriceProviderPort`. La implementació concreta canvia segons la configuració.
-
-Aquests noms són implementacions concretes. El que vull que observeu és que el contracte que veu el cas d'ús no canvia.
-
-Aquest punt és especialment rellevant en docència. Permet fer proves amb un adaptador mock, sense claus reals, sense disponibilitat d'un proveïdor extern i sense contaminar el domini amb detalls tècnics. [mirada al tribunal]
-
-El missatge de la demo és el mateix que hem treballat des del principi: canvia la infraestructura; el cas d'ús i el domini romanen estables.
-
-Això no vol dir que l'arquitectura elimini el canvi. El canvi continua existint. El que fa una bona arquitectura és localitzar-lo.
-
-### Diapositiva 12. Agraïment - 1:20
+### Diapositiva 11. Agraïment - 1:40
 
 Per tancar, voldria recuperar aquesta idea final. [pausa breu]
 
@@ -185,105 +179,139 @@ També vull fer un agraïment especial al Dr. Josep Roure, company professor del
 
 Moltes gràcies.
 
+---
+
+## Annex A. Demo opcional
+
+Aquest annex no forma part del cos principal de la classe magistral de 20 minuts. Només s'ha d'utilitzar si el tribunal ho demana o si, després del tancament formal, es considera oportú mostrar breument la demostració.
+
+### Annex A. Demo opcional - 1:30 a 2:30
+
+Si es vol veure la translació pràctica d'aquesta idea, tinc preparada una demo molt breu amb HexaStock.
+
+La demo no pretén impressionar per complexitat tècnica. Té una funció docent molt concreta: mostrar que podem mantenir el mateix cas d'ús, el mateix servei d'aplicació i el mateix domini, canviant només l'adaptador. [assenyalar les three caixes]
+
+En HexaStock, això es pot veure amb perfils diferents: un adaptador Finnhub, un adaptador Alpha Vantage o un adaptador mock. El port que veu el servei és el mateix: `StockPriceProviderPort`. La implementació concreta canvia segons la configuració.
+
+Aquests noms són implementacions concretes. El que vull que observeu és que el contracte que veu el cas d'ús no canvia.
+
+Aquest punt és especialment rellevant en docència. Permet fer proves amb un adaptador mock, sense claus reals, sense disponibilitat d'un proveïdor extern i sense contaminar el domini amb detalls tècnics. [mirada al tribunal]
+
+El missatge de la demo és el mateix que hem treballat des del principi: canvia la infraestructura; el cas d'ús i el domini romanen estables.
+
+Això no vol dir que l'arquitectura elimini el canvi. El canvi continua existint. El que fa una bona arquitectura és localitzar-lo.
+
+---
+
 ## 2. Notes del presentador per diapositiva
 
-### 1. Portada - 1:45
+### 1. Portada - 1:35
 
-- Classe de DSI, no explicació completa d'arquitectura hexagonal.
-- Informe incorporat a la documentació de la convocatòria: consultoria especialitzada per a la Generalitat/AGAUR.
-- Trobada entre dimensió acadèmica i dimensió professional.
-- Cas real com a base docent, sense entrar en detalls interns.
-- Transició: ens centrarem en una decisió concreta, el port de sortida.
+* Classe de DSI, no explicació completa d'arquitectura hexagonal.
+* Informe incorporat a la documentació de la convocatòria: consultoria especialitzada per a la Generalitat/AGAUR.
+* Trobada entre dimensió acadèmica i dimensió professional.
+* Cas real com a base docent, sense entrar en detalls interns.
+* Transició: ens centrarem en una decisió concreta, el port de sortida.
 
-### 2. On som dins l'assignatura - 1:10
+### 2. On som dins l'assignatura - 1:05
 
-- Pla docent: 3r curs, 6 ECTS, assignatura obligatòria.
-- Bloc: clean/hexagonal, ports i adaptadors, mapping, mòduls, DDD.
-- Justificar que la sessió encaixa en el temari.
-- No panoràmica completa; focus en ports de sortida.
-- Transició: objectiu mínim i entrada ràpida al cas real.
+* Pla docent: 3r curs, 6 ECTS, assignatura obligatòria.
+* Bloc: clean/hexagonal, ports i adaptadors, mapping, mòduls, DDD.
+* Justificar que la sessió encaixa en el temari.
+* No panoràmica completa; focus en ports de sortida.
+* Transició: objectiu mínim i entrada ràpida al cas real.
 
 ### 3. Objectiu de la sessió - 0:55
 
-- Passar-hi ràpid: és una diapositiva pont, no una explicació teòrica llarga.
-- Frase clau: el cas d'ús necessita una capacitat, no una tecnologia.
-- Tres accions: identificar necessitat, definir port, implementar adaptadors.
-- Anunciar metodologia: primer cas real, després abstracció arquitectònica.
-- Transició: començar pel procediment de beca.
+* Passar-hi ràpid: és una diapositiva pont, no una explicació teòrica llarga.
+* Frase clau: el cas d'ús necessita una capacitat, no una tecnologia.
+* Tres accions: identificar necessitat, definir port, implementar adaptadors.
+* Anunciar metodologia: primer cas real, després abstracció arquitectònica.
+* Transició: començar pel procediment de beca.
 
-### 4. Avaluació econòmica - 1:50
+### 4. Avaluació econòmica - 1:45
 
-- Primer entendre procediment, després tecnologia.
-- Sol·licitud, expedient, requisits generals, econòmics, revisió, resolució.
-- Renda i patrimoni com a decisió funcional.
-- Evitar començar per SOAP/REST/PICA.
-- Transició: quines dades externes fan falta?
+* Primer entendre procediment, després tecnologia.
+* Sol·licitud, expedient, requisits generals, econòmics, revisió, resolució.
+* Renda i patrimoni com a decisió funcional.
+* Evitar començar per SOAP/REST/PICA.
+* Transició: quines dades externes fan falta?
 
-### 5. Informació externa - 2:00
+### 5. Informació externa - 1:55
 
-- Necessitats: renda, patrimoni, béns immobles.
-- Fonts: AEAT, Cadastre, PICA.
-- PICA com a interoperabilitat administrativa.
-- Frase clau: informació administrativa, no API concreta.
-- Transició: si no separem, apareix dependència directa.
+* Necessitats: renda, patrimoni, béns immobles.
+* Fonts: AEAT, Cadastre, PICA.
+* PICA com a interoperabilitat administrativa.
+* Frase clau: informació administrativa, no API concreta.
+* Transició: si no separem, apareix dependència directa.
 
-### 6. Dependència directa - 2:10
+### 6. Dependència directa - 2:05
 
-- El problema no és PICA; és l'acoblament directe.
-- Cas d'ús coneix SOAP/XML, DTOs, clients, errors tècnics.
-- Evolució tecnològica travessa frontera.
-- Tres riscos: acoblament, manteniment fràgil, continuïtat operativa.
-- Transició: resposta arquitectònica, port de sortida.
+* El problema no és PICA; és l'acoblament directe.
+* Cas d'ús coneix SOAP/XML, DTOs, clients, errors tècnics.
+* Evolució tecnològica travessa frontera.
+* Tres riscos: acoblament, manteniment fràgil, continuïtat operativa.
+* Transició: resposta arquitectònica, port de sortida.
 
-### 7. Port i adaptador - 0:55
+### 7. Port i adaptador - 2:20
 
-- Fer-la servir com a frontissa conceptual, no com a explicació llarga.
-- Flux d'execució: el cas d'ús demana informació cap enfora.
-- Dependència de codi: el cas d'ús depèn del port; l'adaptador implementa el port.
-- Inversió: la infraestructura depèn del port definit per l'aplicació.
-- Transició: aplicar-ho al cas patrimonial.
+* Fer-la servir com a frontissa conceptual forta, no com a tràmit ràpid.
+* Flux d'execució: el cas d'ús demana informació cap enfora.
+* Dependència de codi: el cas d'ús depèn del port; l'adaptador implementa el port.
+* En Java, el port s'expressa com una interfície.
+* L'adaptador implementa aquesta interfície.
+* La interfície funciona com a contracte desacoblador entre components.
+* Inversió: la infraestructura depèn del port definit per l'aplicació.
+* Transició: aplicar-ho al cas patrimonial.
 
-### 8. Port patrimonial - 2:05
+### 8. Port patrimonial - 1:55
 
-- Servei d'aplicació depèn de contractes propis.
-- Adaptadors fora del nucli.
-- PICA/JDBC/SOAP/REST són detalls substituïbles.
-- Fletxa correcta d'implementació: adaptador -> port.
-- Transició: mateix patró en un domini financer.
+* Servei d'aplicació depèn de contractes propis.
+* Adaptadors fora del nucli.
+* PICA/JDBC/SOAP/REST són detalls substituïbles.
+* Fletxa correcta d'implementació: adaptador -> port.
+* Transició: mateix patró en un domini financer.
 
-### 9. Domini financer - 1:45
+### 9. Domini financer - 1:35
 
-- Canvi explícit de domini: beca -> cartera d'inversió personal.
-- El diagrama ja correspon a HexaStock, però s'ha de llegir com a patró.
-- Cas d'ús: vendre accions.
-- Necessitat: preu actual de l'acció que l'usuari vol vendre.
-- Port de sortida: defineix aquesta capacitat.
-- Transició: ara sí, concretar-ho en HexaStock.
+* Canvi explícit de domini: beca -> cartera d'inversió personal.
+* El diagrama correspon a HexaStock, però s'ha de llegir com a patró.
+* Cas d'ús: vendre accions.
+* Necessitat: preu actual de l'acció que l'usuari vol vendre.
+* Port de sortida: defineix aquesta capacitat.
+* Transició: concretar-ho en el flux de HexaStock.
 
-### 10. Flux i codi - 1:45
+### 10. Flux i codi - 1:35
 
-- Diagrama de seqüència = flux temporal, no dependència de codi.
-- Controller -> port d'entrada -> servei.
-- Servei consulta ports i delega venda al domini.
-- Domini decideix; adaptador integra.
-- Transició: demo controlada amb adaptador substituïble.
+* Diagrama de seqüència = flux temporal, no dependència de codi.
+* Controller -> port d'entrada -> servei.
+* Servei consulta ports i delega venda al domini.
+* Domini decideix; adaptador integra.
+* Frase clau: el servei coordina, el domini decideix, l'adaptador integra.
+* Transició: conclusió i agraïment.
 
-### 11. Demo - 1:45
+### 11. Agraïment - 1:40
 
-- Mateix cas d'ús, servei i domini.
-- Canvia l'adaptador.
-- Perfils: Finnhub, Alpha Vantage, mock.
-- Finnhub i Alpha Vantage són implementacions concretes; el contracte no canvia.
-- Utilitat docent: proves amb adaptador mock i sense claus reals.
-- Transició: conclusió final.
+* Arquitectura no elimina canvi; el localitza.
+* Canviar adaptador, no cas d'ús ni domini.
+* Agraïment TecnoCampus.
+* Agraïment Dr. Josep Roure.
+* Tancar mirant el tribunal: `Moltes gràcies`.
+* No obrir la demo després del tancament si el tribunal no la demana o si no hi ha temps clar.
 
-### 12. Agraïment - 1:20
+### Annex A. Demo opcional - 1:30 a 2:30
 
-- Arquitectura no elimina canvi; el localitza.
-- Canviar adaptador, no cas d'ús ni domini.
-- Agraïment TecnoCampus.
-- Agraïment Dr. Josep Roure.
-- Tancar mirant el tribunal: `Moltes gràcies`.
+* Annex posterior al tancament, no part del cos principal.
+* Només mostrar si el tribunal ho demana o si hi ha temps explícit després de la classe.
+* Mateix cas d'ús, servei i domini.
+* Canvia l'adaptador.
+* Perfils: Finnhub, Alpha Vantage, mock.
+* Finnhub i Alpha Vantage són implementacions concretes; el contracte no canvia.
+* Utilitat docent: proves amb adaptador mock i sense claus reals.
+* Missatge: canvia la infraestructura; el cas d'ús i el domini romanen estables.
+* No convertir l'annex en una segona explicació llarga.
+
+---
 
 ## 3. Esquema de memorització
 
@@ -296,56 +324,71 @@ Moltes gràcies.
 | 4           | Primer procediment, després tecnologia          | Necessitat funcional               | Objectiu                 | Fonts externes                    |
 | 5           | El procediment necessita dades, no API           | Interoperabilitat administrativa   | Procediment              | Risc d'acoblament                 |
 | 6           | La dependència directa fa fràgil el cas d'ús  | Acoblament tecnològic             | Dades externes           | Port de sortida                   |
-| 7           | Port diu què; adaptador diu com                 | Inversió de dependències         | Problema                 | Aplicació al cas patrimonial     |
+| 7           | Port diu què; adaptador diu com                 | Interfície, contracte, inversió  | Problema                 | Aplicació al cas patrimonial     |
 | 8           | AGAUR: contracte d'aplicació, no detall tècnic | Adaptador implementa port          | Port genèric            | Transferència al domini financer |
 | 9           | Mateix patró en domini financer                 | Necessitat, port i adaptador       | Cas AGAUR                | Projecte concret                  |
-| 10          | Servei coordina, domini decideix                 | Seqüència vs dependència        | Transferència genèrica | Demo                              |
-| 11          | Canvia infraestructura, no cas d'ús             | Adaptador substituïble            | Flux                     | Conclusió                        |
-| 12          | L'arquitectura localitza el canvi                | Frontera explícita                | Demo                     | Tancament                         |
+| 10          | Servei coordina, domini decideix                 | Seqüència vs dependència        | Transferència genèrica | Conclusió                        |
+| 11          | L'arquitectura localitza el canvi                | Frontera explícita                | Flux i codi              | Tancament                         |
+| Annex A     | Demostració opcional del canvi d'adaptador      | Adaptador substituïble            | Només si escau          | Preguntes / discussió            |
 
-Mantra de memòria: `context -> assignatura -> objectiu breu -> procediment -> dada externa -> acoblament -> port -> AGAUR -> domini financer -> HexaStock -> demo -> conclusió`.
+Mantra de memòria del cos principal: `context -> assignatura -> objectiu breu -> procediment -> dada externa -> acoblament -> port -> AGAUR -> domini financer -> HexaStock -> conclusió`.
+
+Mantra de l'annex opcional: `mateix cas d'ús -> mateix servei -> mateix domini -> canvia l'adaptador`.
+
+---
 
 ## 4. Pla d'entrenament comunicatiu
 
-**Entrenament inicial**
+### Entrenament inicial
 
-Llegeix el guió complet en veu alta dues vegades sense cronòmetre. L'objectiu no és memoritzar, sinó detectar frases que no sonen naturals. Marca amb llapis les frases que vols dir exactament igual: la definició inicial, la distinció entre flux i dependència, i la conclusió final. La resta pot ser més flexible.
+Llegeix el guió complet del cos principal en veu alta dues vegades sense cronòmetre. L'objectiu no és memoritzar, sinó detectar frases que no sonen naturals. Marca amb llapis les frases que vols dir exactament igual: la definició inicial, la distinció entre flux i dependència, la idea del port com a interfície, i la conclusió final. La resta pot ser més flexible.
 
-Després fes una lectura cronometrada. Ritme orientatiu: 125-135 paraules per minut, amb pauses reals. Si surt per sobre de 22 minuts, retalla exemples; si surt per sota de 18:30, no afegeixis contingut tècnic, amplia pauses i transicions.
+Després fes una lectura cronometrada només del cos principal, sense annex. Ritme orientatiu: 125-135 paraules per minut, amb pauses reals. Si surt per sobre de 21 minuts, retalla detall de les diapositives 5, 6, 8 o 9. Si surt per sota de 18:30, no afegeixis contingut tècnic nou; amplia pauses, mirada i transicions.
 
-**Entrenament intermedi**
+La demo opcional s'ha d'assajar per separat. No s'ha d'incloure en el cronòmetre principal.
+
+### Entrenament intermedi
 
 Practica per blocs, no tota la presentació sempre sencera:
 
-- Bloc 1: diapositives 1-3, context, assignatura i objectiu breu.
-- Bloc 2: diapositives 4-8, cas AGAUR, problema i port de sortida.
-- Bloc 3: diapositives 9-12, domini financer, HexaStock, demo i tancament.
+* Bloc 1: diapositives 1-3, context, assignatura i objectiu breu.
+* Bloc 2: diapositives 4-8, cas AGAUR, problema i port de sortida.
+* Bloc 3: diapositives 9-11, domini financer, HexaStock, conclusió i agraïment.
+* Annex: demo opcional, en una versió de màxim 2 minuts.
 
 En cada bloc, treballa tres coses: mirada, pausa i gest. La mirada ha d'anar al tribunal en les frases conceptuals; a la pantalla només quan assenyales una part concreta. Les mans han d'ajudar a separar conceptes: una mà per `necessitat funcional`, l'altra per `tecnologia concreta`. Evita caminar mentre expliques una distinció fina; atura't, formula-la i continua.
 
-**Assaig final**
+### Assaig final
 
-Fes com a mínim tres passades completes:
+Fes com a mínim tres passades completes del cos principal:
 
-- Primera passada: amb guió complet a la mà.
-- Segona passada: només amb notes del presentador.
-- Tercera passada: només amb l'esquema de memorització.
+* Primera passada: amb guió complet a la mà.
+* Segona passada: només amb notes del presentador.
+* Tercera passada: només amb l'esquema de memorització.
 
 Grava una passada en vídeo. Revisa només quatre indicadors: si mires massa la pantalla, si acceleres a les diapositives 6-10, si les pauses existeixen de veritat, i si la frase `flux d'execució no és dependència de codi` queda clara.
 
-**Ritme, veu i cos**
+Després grava una passada independent de l'annex opcional. La demo ha de poder explicar-se sense reobrir tota la classe. Ha de sonar com una verificació pràctica del que ja s'ha explicat, no com una secció nova.
 
-Mantingues un to més lent a les diapositives 3, 6, 7 i 8, perquè són les conceptualment més importants. Fes pauses llargues després de: `capacitat, no tecnologia`; `el problema no és consumir PICA`; `l'adaptador implementa el port`; `l'arquitectura no elimina el canvi, el localitza`.
+### Ritme, veu i cos
+
+Mantingues un to més lent a les diapositives 3, 6, 7 i 8, perquè són les conceptualment més importants. Fes pauses llargues després de: `capacitat, no tecnologia`; `el problema no és consumir PICA`; `en Java, el port s'expressa com una interfície`; `l'adaptador implementa el port`; `l'arquitectura no elimina el canvi, el localitza`.
 
 La postura ha de ser estable, amb els peus oberts a amplada d'espatlles. Usa les mans per marcar fronteres: dins/fora, port/adaptador, flux/dependència. Si et perds, torna al mantra: necessitat, port, adaptador. Aquesta triada recupera tota la presentació.
 
+---
+
 ## 5. Advertiments finals
 
-Risc de temps: les diapositives 4-10 poden allargar-se fàcilment. Si vas tard, no retallis la conclusió; retalla detall del cas AGAUR i de la demo.
+Risc de temps: les diapositives 4-10 poden allargar-se fàcilment. Si vas tard, no retallis la conclusió; retalla detall del cas AGAUR, de la transferència al domini financer o de la lectura del diagrama de seqüència.
+
+Risc de demo: la demo no forma part del cos principal. No s'ha d'obrir abans del tancament. Després de `Moltes gràcies`, només s'ha d'activar si el tribunal ho demana o si explícitament hi ha marge per fer-ho. Si no, la classe ja està tancada correctament.
 
 Risc conceptual: no diguis que PICA és el problema. Formula-ho sempre així: el problema és que el cas d'ús depengui directament dels detalls tècnics de la integració.
 
 Risc de lectura de fletxes: no presentar totes les fletxes com si signifiquessin el mateix. Quan representen ús o flux d'execució, poden sortir del servei cap als ports. Quan representen implementació o dependència de codi, la lectura correcta és de l'adaptador cap al port.
+
+Risc de port massa abstracte: concretar-lo sempre amb Java. En aquesta explicació, el port s'expressa com una interfície i l'adaptador implementa aquesta interfície. Aquesta concreció evita que el concepte soni massa metafòric o purament teòric.
 
 Risc documental: el pla docent oficial diu que la llengua de docència és l'anglès. Si surt la pregunta, la resposta prudent és que la defensa és en català i que la classe és una adaptació per al context del tribunal; el contingut docent és el mateix.
 
