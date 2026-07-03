@@ -20,57 +20,7 @@ El punt conceptual que cal preservar és la distinció entre tres plans diferent
 
 S'han revisat també els detalls formals del text visible de la presentació: ortografia, accents, apòstrofs, cometes, noms propis i numeració visible de les diapositives. La terminologia de desacoblament ja queda formulada de manera correcta i coherent.
 
-## 2. Estat de les millores per diapositiva
-
-**Diapositiva 1. Portada**
-
-Mantindria el títol. És clar, tècnic i ajustat. Afegiria oralment, no necessàriament a la diapositiva, que l'informe AGAUR està incorporat a la documentació del tribunal com a evidència de la connexió entre docència i pràctica professional. No carregaria la portada amb més text.
-
-**Diapositiva 2. On som dins l'assignatura**
-
-La diapositiva funciona. S'ha reforçat el vincle amb el pla docent amb una referència discreta: `Pla docent 103322: clean/hexagonal architecture, ports i adaptadors, mapping, mòduls i DDD`. No cal citar tot el pla docent; amb aquesta referència n'hi ha prou.
-
-**Diapositiva 3. Objectiu de la sessió**
-
-Correcció aplicada. Les antigues diapositives 3 i 4 s'han fusionat en una sola diapositiva pont, més lleugera i sense diagrama. La diapositiva presenta només el principi de treball —el cas d'ús necessita una capacitat, no una tecnologia— i les tres accions observables: identificar una necessitat, definir un port de sortida i implementar adaptadors. La funció d'aquesta diapositiva és situar l'objectiu sense frenar l'entrada al cas real.
-
-**Diapositiva 4. Avaluació econòmica d'una beca**
-
-La diapositiva situa bé el cas funcional abans de la tecnologia. S'hi ha incorporat una formulació més institucional i prudent: `Quan no s'acredita el compliment dels requisits econòmics, l'expedient no obté una valoració favorable en aquesta fase.` El diagrama petit pot ser difícil de llegir; si no es retoca, cal assenyalar només el bloc d'avaluació econòmica.
-
-**Diapositiva 5. Informació externa**
-
-La idea és molt bona: necessitat funcional abans que API concreta. La definició de PICA s'ha simplificat per evitar una nota massa llarga. La resta s'explica oralment.
-
-**Diapositiva 6. Dependència directa**
-
-Funciona com a diapositiva de problema. Recomanació: si no es vol aportar una font pública específica sobre `principis del CTTI`, suavitzar la frase inicial: `En arquitectures corporatives, l'orientació habitual és reduir l'acoblament i encapsular la integració amb sistemes externs`. Mantindria la frase final: `El problema no és consumir PICA; és que el procediment en depengui directament`.
-
-**Diapositiva 7. Port de sortida i adaptador**
-
-La diapositiva funciona com a esquema de flux d'execució: cas d'ús, port, adaptador i sistema extern. No cal carregar-la amb una segona notació gràfica. Oralment convé aclarir que aquesta seqüència mostra el camí de la crida, mentre que la dependència de codi queda expressada en els diagrames següents: el servei usa el port i l'adaptador implementa el port.
-
-**Diapositiva 8. Port de sortida per a informació patrimonial**
-
-Correcció aplicada. El diagrama ja diferencia el flux d'ús del servei cap als ports i la implementació dels ports per part dels adaptadors. Les fletxes `implemented by` apunten des dels adaptadors cap als ports, de manera coherent amb la inversió de dependències. En l'explicació oral cal mantenir aquesta lectura: el servei usa el port; l'adaptador implementa el port.
-
-**Diapositiva 9. Transferència a domini financer**
-
-Correcció aplicada. La diapositiva funciona com a canvi explícit de domini: ja no parlem d'una sol·licitud de beca, sinó d'una aplicació de gestió d'una cartera d'inversió personal. El missatge central és genèric i transferible: el cas d'ús necessita el preu actual d'una acció, no un proveïdor concret, ni una API específica, ni un format tècnic de resposta.
-
-**Diapositiva 10. Flux i codi essencial**
-
-La diapositiva és forta perquè mostra el flux temporal. Afegiria oralment una frase preventiva: `Aquest diagrama de seqüència representa ordre d'execució, no direcció de dependències de codi`. Això evita contradiccions amb les diapositives 7-9.
-
-**Diapositiva 11. Demo**
-
-Funciona com a demostració controlada. Substituiria `consultoria empresarial` per `formació o consultoria professional`, perquè en aquest context la referència principal és administració pública i universitat. Si es fa demo real, cal tenir preparada una versió amb adaptador mock i sense claus reals.
-
-**Diapositiva 12. Agraïment**
-
-Correcta i institucional. El tancament s'ha reformulat per evitar un to de comiat o de petició explícita: agraeix l'entorn que encoratja el creixement docent i acadèmic, en present, i manté el vincle amb l'equip docent. El pla docent identifica el professor com a Josep Roure Alcobé; per coherència documental, es pot fer servir `Dr. Josep Roure Alcobé`. Millor tancar mirant el tribunal, no llegint la diapositiva.
-
-## 3. Guió oral complet imprimible
+## 2. Guió oral complet imprimible
 
 Temps total previst: 20:00.
 
@@ -80,15 +30,13 @@ Bon dia, membres del tribunal. [pausa breu, mirada al tribunal]
 
 La classe que presento porta per títol `Disseny de ports de sortida en arquitectura hexagonal`, i se centra en el desacoblament entre casos d'ús, domini i APIs externes. [assenyalar el títol]
 
-Abans d'entrar en el contingut tècnic, voldria fer una precisió de context. A la documentació del tribunal he incorporat un informe acreditatiu de la meva activitat de formació i consultoria especialitzada per a l'AGAUR, l'Agència de Gestió d'Ajuts Universitaris i de Recerca. [pausa breu]
+Abans d'entrar en el contingut tècnic, voldria fer una precisió de context. A la documentació de la convocatòria he incorporat un informe acreditatiu de la meva activitat de consultoria especialitzada per a la Generalitat de Catalunya, específicamente l'Agència de Gestió d'Ajuts Universitaris i de Recerca. [pausa breu]
 
 Ho explico perquè em semblava molt enriquidor plantejar aquesta sessió com una trobada entre dues dimensions.
 
 D'una banda, la dimensió acadèmica: l'assignatura de Disseny de Sistemes d'Informació, on treballem conceptes com arquitectura hexagonal, ports, adaptadors i inversió de dependències.
 
-I de l'altra, la dimensió professional: un cas real que ens permet veure com aquests conceptes s'aterren en problemes concrets d'arquitectura de software. [mirada al tribunal]
-
-La intenció no és revelar cap detall intern, ni cap endpoint, ni cap dada sensible. La intenció és docent: mostrar com conceptes que treballem a l'aula, com ports, adaptadors, inversió de dependències i separació entre domini, aplicació i infraestructura, apareixen també en problemes reals d'evolució de sistemes d'informació. [pausa]
+I de l'altra, la dimensió professional: un cas real que ens permet veure com aquests conceptes s'aterren en reptes concrets d'arquitectura de software. [mirada al tribunal]
 
 En vint minuts no seria rigorós intentar explicar tota l'arquitectura hexagonal. Per això em centraré en una decisió concreta: com dissenyar un port de sortida quan un cas d'ús necessita informació que es troba fora de l'aplicació.
 
@@ -234,7 +182,7 @@ També vull fer un agraïment especial al Dr. Josep Roure, company professor del
 
 Moltes gràcies.
 
-## 4. Notes del presentador per diapositiva
+## 3. Notes del presentador per diapositiva
 
 ### 1. Portada - 1:45
 
@@ -332,26 +280,27 @@ Moltes gràcies.
 - Agraïment Dr. Josep Roure.
 - Tancar mirant el tribunal: `Moltes gràcies`.
 
-## 5. Esquema de memorització
+## 4. Esquema de memorització
 
-| Diapositiva | Missatge central | Concepte tècnic imprescindible | Connexió anterior | Connexió següent |
-|---|---|---|---|---|
-| 1 | Classe des d'un cas real acreditat | Ports de sortida com a focus | Inici | Situar dins DSI |
-| 2 | La classe encaixa en el pla docent | Clean/hexagonal, ports, adaptadors | Cas real + docència | Objectiu breu |
-| 3 | Objectiu: necessitat, port, adaptador | Capacitat, no tecnologia | Assignatura | Cas funcional |
-| 4 | Primer procediment, després tecnologia | Necessitat funcional | Objectiu | Fonts externes |
-| 5 | El procediment necessita dades, no API | Interoperabilitat administrativa | Procediment | Risc d'acoblament |
-| 6 | La dependència directa fa fràgil el cas d'ús | Acoblament tecnològic | Dades externes | Port de sortida |
-| 7 | Port diu què; adaptador diu com | Inversió de dependències | Problema | Aplicació al cas patrimonial |
-| 8 | AGAUR: contracte d'aplicació, no detall tècnic | Adaptador implementa port | Port genèric | Transferència al domini financer |
-| 9 | Mateix patró en domini financer | Necessitat, port i adaptador | Cas AGAUR | Projecte concret |
-| 10 | Servei coordina, domini decideix | Seqüència vs dependència | Transferència genèrica | Demo |
-| 11 | Canvia infraestructura, no cas d'ús | Adaptador substituïble | Flux | Conclusió |
-| 12 | L'arquitectura localitza el canvi | Frontera explícita | Demo | Tancament |
+
+| Diapositiva | Missatge central                                 | Concepte tècnic imprescindible    | Connexió anterior       | Connexió següent                |
+| ----------- | ------------------------------------------------ | ---------------------------------- | ------------------------ | --------------------------------- |
+| 1           | Classe des d'un cas real acreditat               | Ports de sortida com a focus       | Inici                    | Situar dins DSI                   |
+| 2           | La classe encaixa en el pla docent               | Clean/hexagonal, ports, adaptadors | Cas real + docència     | Objectiu breu                     |
+| 3           | Objectiu: necessitat, port, adaptador            | Capacitat, no tecnologia           | Assignatura              | Cas funcional                     |
+| 4           | Primer procediment, després tecnologia          | Necessitat funcional               | Objectiu                 | Fonts externes                    |
+| 5           | El procediment necessita dades, no API           | Interoperabilitat administrativa   | Procediment              | Risc d'acoblament                 |
+| 6           | La dependència directa fa fràgil el cas d'ús  | Acoblament tecnològic             | Dades externes           | Port de sortida                   |
+| 7           | Port diu què; adaptador diu com                 | Inversió de dependències         | Problema                 | Aplicació al cas patrimonial     |
+| 8           | AGAUR: contracte d'aplicació, no detall tècnic | Adaptador implementa port          | Port genèric            | Transferència al domini financer |
+| 9           | Mateix patró en domini financer                 | Necessitat, port i adaptador       | Cas AGAUR                | Projecte concret                  |
+| 10          | Servei coordina, domini decideix                 | Seqüència vs dependència        | Transferència genèrica | Demo                              |
+| 11          | Canvia infraestructura, no cas d'ús             | Adaptador substituïble            | Flux                     | Conclusió                        |
+| 12          | L'arquitectura localitza el canvi                | Frontera explícita                | Demo                     | Tancament                         |
 
 Mantra de memòria: `context -> assignatura -> objectiu breu -> procediment -> dada externa -> acoblament -> port -> AGAUR -> domini financer -> HexaStock -> demo -> conclusió`.
 
-## 6. Pla d'entrenament comunicatiu
+## 5. Pla d'entrenament comunicatiu
 
 **Entrenament inicial**
 
@@ -385,7 +334,7 @@ Mantingues un to més lent a les diapositives 3, 6, 7 i 8, perquè són les conc
 
 La postura ha de ser estable, amb els peus oberts a amplada d'espatlles. Usa les mans per marcar fronteres: dins/fora, port/adaptador, flux/dependència. Si et perds, torna al mantra: necessitat, port, adaptador. Aquesta triada recupera tota la presentació.
 
-## 7. Advertiments finals
+## 6. Advertiments finals
 
 Risc de temps: les diapositives 4-10 poden allargar-se fàcilment. Si vas tard, no retallis la conclusió; retalla detall del cas AGAUR i de la demo.
 
