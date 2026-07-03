@@ -10,17 +10,7 @@ Fonts canòniques utilitzades:
 
 Documents antics ignorats com a font: `outline.md`, `slide-by-slide.md`, `guió-oral-20-minuts.md` i altres esborranys previs.
 
-## 1. Diagnòstic general
-
-La presentació té un fil narratiu acadèmicament defensable: situa la classe dins Disseny de Sistemes d'Informació, formula un objectiu d'aprenentatge concret, parteix d'un cas real d'administració pública, diagnostica l'acoblament tecnològic, presenta el port de sortida, transfereix el patró a un domini financer i el concreta en la demo de HexaStock. Aquesta estructura és adequada per a un tribunal perquè no presenta només tecnologia, sinó una decisió de disseny vinculada a docència, experiència professional i rigor arquitectònic.
-
-El punt més fort és la connexió entre el pla docent i l'informe AGAUR. El pla docent situa l'assignatura a tercer curs, 6 ECTS, amb continguts de clean o hexagonal architecture, ports i adaptadors, mapping entre capes, organització en mòduls, microserveis i DDD. L'informe AGAUR acredita una activitat professional especialitzada vinculada a arquitectura hexagonal i sistemes d'informació.
-
-El punt conceptual que cal preservar és la distinció entre tres plans diferents: flux d'execució, dependència de codi i dependència arquitectònica. Aquesta millora ja queda incorporada als diagrames principals: quan la fletxa representa implementació, apunta de l'adaptador cap al port; quan representa ús o flux d'execució, pot sortir del servei cap al port i cap al sistema extern. Les dues lectures són compatibles, però s'han de distingir oralment amb precisió.
-
-S'han revisat també els detalls formals del text visible de la presentació: ortografia, accents, apòstrofs, cometes, noms propis i numeració visible de les diapositives. La terminologia de desacoblament ja queda formulada de manera correcta i coherent.
-
-## 2. Guió oral complet imprimible
+## 1. Guió oral complet imprimible
 
 Temps total previst: 20:00.
 
@@ -30,7 +20,7 @@ Bon dia, membres del tribunal. [pausa breu, mirada al tribunal]
 
 La classe que presento porta per títol `Disseny de ports de sortida en arquitectura hexagonal`, i se centra en el desacoblament entre casos d'ús, domini i APIs externes. [assenyalar el títol]
 
-Abans d'entrar en el contingut tècnic, voldria fer una precisió de context. A la documentació de la convocatòria he incorporat un informe acreditatiu de la meva activitat de consultoria especialitzada per a la Generalitat de Catalunya, específicamente l'Agència de Gestió d'Ajuts Universitaris i de Recerca. [pausa breu]
+Abans d'entrar en el contingut tècnic, voldria fer una precisió de context. A la documentació de la convocatòria he incorporat un informe acreditatiu de la meva activitat de consultoria especialitzada per a la Generalitat de Catalunya, concretament l'Agència de Gestió d'Ajuts Universitaris i de Recerca. [pausa breu]
 
 Ho explico perquè em semblava molt enriquidor plantejar aquesta sessió com una trobada entre dues dimensions.
 
@@ -132,6 +122,8 @@ Aquesta mateixa estructura la podem transferir ara a un domini diferent: una apl
 
 Ara fem un canvi de domini. Ja no parlem d'una sol·licitud de beca, sinó d'una aplicació de gestió d'una cartera d'inversió personal. [assenyalar el títol]
 
+El diagrama que veiem ja correspon al projecte que utilitzaré després a la demo. Ara, però, no em centraré en els noms concrets; el que m'interessa és reconèixer el mateix patró: cas d'ús, port de sortida i adaptadors substituïbles.
+
 Imaginem un cas d'ús molt concret: vendre accions d'una cartera. Per executar aquesta operació correctament, l'aplicació pot necessitar consultar el preu actual de l'acció que l'usuari vol vendre.
 
 Ara bé, el cas d'ús no hauria de dependre directament d'un proveïdor concret de dades financeres, ni d'una API específica, ni del format tècnic de la resposta. El cas d'ús només hauria d'expressar la seva necessitat: `necessito obtenir el preu actual d'una acció concreta`.
@@ -162,6 +154,8 @@ La demo, en aquesta classe, no pretén impressionar per complexitat tècnica. T�
 
 En HexaStock, això es pot veure amb perfils diferents: un adaptador Finnhub, un adaptador Alpha Vantage o un adaptador mock. El port que veu el servei és el mateix: `StockPriceProviderPort`. La implementació concreta canvia segons la configuració.
 
+Aquests noms són implementacions concretes. El que vull que observeu és que el contracte que veu el cas d'ús no canvia.
+
 Aquest punt és especialment rellevant en docència. Permet fer proves amb un adaptador mock, sense claus reals, sense disponibilitat d'un proveïdor extern i sense contaminar el domini amb detalls tècnics. [mirada al tribunal]
 
 El missatge de la demo és el mateix que hem treballat des del principi: canvia la infraestructura; el cas d'ús i el domini romanen estables.
@@ -182,14 +176,14 @@ També vull fer un agraïment especial al Dr. Josep Roure, company professor del
 
 Moltes gràcies.
 
-## 3. Notes del presentador per diapositiva
+## 2. Notes del presentador per diapositiva
 
 ### 1. Portada - 1:45
 
 - Classe de DSI, no explicació completa d'arquitectura hexagonal.
-- Informe AGAUR incorporat al tribunal: activitat de formació i consultoria especialitzada.
-- Connexió: docència amb Dr. Josep Roure + consultoria en sistemes d'informació.
-- No revelar dades internes; cas real com a base docent.
+- Informe incorporat a la documentació de la convocatòria: consultoria especialitzada per a la Generalitat/AGAUR.
+- Trobada entre dimensió acadèmica i dimensió professional.
+- Cas real com a base docent, sense entrar en detalls interns.
 - Transició: ens centrarem en una decisió concreta, el port de sortida.
 
 ### 2. On som dins l'assignatura - 1:10
@@ -251,6 +245,7 @@ Moltes gràcies.
 ### 9. Domini financer - 1:45
 
 - Canvi explícit de domini: beca -> cartera d'inversió personal.
+- El diagrama ja correspon a HexaStock, però s'ha de llegir com a patró.
 - Cas d'ús: vendre accions.
 - Necessitat: preu actual de l'acció que l'usuari vol vendre.
 - Port de sortida: defineix aquesta capacitat.
@@ -269,6 +264,7 @@ Moltes gràcies.
 - Mateix cas d'ús, servei i domini.
 - Canvia l'adaptador.
 - Perfils: Finnhub, Alpha Vantage, mock.
+- Finnhub i Alpha Vantage són implementacions concretes; el contracte no canvia.
 - Utilitat docent: proves amb adaptador mock i sense claus reals.
 - Transició: conclusió final.
 
@@ -280,7 +276,7 @@ Moltes gràcies.
 - Agraïment Dr. Josep Roure.
 - Tancar mirant el tribunal: `Moltes gràcies`.
 
-## 4. Esquema de memorització
+## 3. Esquema de memorització
 
 
 | Diapositiva | Missatge central                                 | Concepte tècnic imprescindible    | Connexió anterior       | Connexió següent                |
@@ -300,7 +296,7 @@ Moltes gràcies.
 
 Mantra de memòria: `context -> assignatura -> objectiu breu -> procediment -> dada externa -> acoblament -> port -> AGAUR -> domini financer -> HexaStock -> demo -> conclusió`.
 
-## 5. Pla d'entrenament comunicatiu
+## 4. Pla d'entrenament comunicatiu
 
 **Entrenament inicial**
 
@@ -334,7 +330,7 @@ Mantingues un to més lent a les diapositives 3, 6, 7 i 8, perquè són les conc
 
 La postura ha de ser estable, amb els peus oberts a amplada d'espatlles. Usa les mans per marcar fronteres: dins/fora, port/adaptador, flux/dependència. Si et perds, torna al mantra: necessitat, port, adaptador. Aquesta triada recupera tota la presentació.
 
-## 6. Advertiments finals
+## 5. Advertiments finals
 
 Risc de temps: les diapositives 4-10 poden allargar-se fàcilment. Si vas tard, no retallis la conclusió; retalla detall del cas AGAUR i de la demo.
 
