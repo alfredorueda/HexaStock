@@ -157,7 +157,7 @@ La separació de responsabilitats és molt important. El servei coordina. El por
 
 Dit de manera sintètica: l'adaptador pot saber com obtenir un preu; no hauria de decidir com es ven una acció dins la cartera. [pausa]
 
-### Diapositiva 11. Demo - 1:45
+### Diapositiva 11. Demo (Opcional) - 1:45
 
 La demo, en aquesta classe, no pretén impressionar per complexitat tècnica. Té una funció docent molt concreta: mostrar que podem mantenir el mateix cas d'ús, el mateix servei d'aplicació i el mateix domini, canviant només l'adaptador. [assenyalar les tres caixes]
 
