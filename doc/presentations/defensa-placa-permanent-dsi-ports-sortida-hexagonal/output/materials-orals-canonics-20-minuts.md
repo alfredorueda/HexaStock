@@ -82,11 +82,11 @@ La classe que presento porta per títol `Disseny de ports de sortida en arquitec
 
 Abans d'entrar en el contingut tècnic, voldria fer una precisió de context. A la documentació del tribunal he incorporat un informe acreditatiu de la meva activitat de formació i consultoria especialitzada per a l'AGAUR, l'Agència de Gestió d'Ajuts Universitaris i de Recerca. [pausa breu]
 
-Ho explico al principi perquè aquesta classe neix de dues coses.
+Ho explico perquè em semblava molt enriquidor plantejar aquesta sessió com una trobada entre dues dimensions.
 
-Primer, de l'assignatura Disseny de Sistemes d'Informació, que imparteixo juntament amb el Dr. Josep Roure.
+D'una banda, la dimensió acadèmica: l'assignatura de Disseny de Sistemes d'Informació, on treballem conceptes com arquitectura hexagonal, ports, adaptadors i inversió de dependències.
 
-I segon, d'un cas professional real en l'àmbit de l'administració pública catalana. [mirada al tribunal]
+I de l'altra, la dimensió professional: un cas real que ens permet veure com aquests conceptes s'aterren en problemes concrets d'arquitectura de software. [mirada al tribunal]
 
 La intenció no és revelar cap detall intern, ni cap endpoint, ni cap dada sensible. La intenció és docent: mostrar com conceptes que treballem a l'aula, com ports, adaptadors, inversió de dependències i separació entre domini, aplicació i infraestructura, apareixen també en problemes reals d'evolució de sistemes d'informació. [pausa]
 
