@@ -130,7 +130,9 @@ PICA és la Plataforma d'Integració i Col·laboració Administrativa de la Gene
 
 La distinció clau és aquesta: el procediment necessita informació administrativa; no necessita, en el seu llenguatge propi, una API concreta. [pausa llarga; mirar el tribunal]
 
-Això no vol dir que l'API concreta no sigui important. Ho és, i molt. Però pertany a un altre nivell de decisió. El cas d'ús ha de poder dir: `necessito informació patrimonial avaluable`. L'adaptador ja resoldrà si aquesta informació arriba per SOAP, REST, PICA, un certificat, una base de dades corporativa o un mecanisme futur.
+Això no vol dir que el mecanisme tècnic concret no sigui important. Ho és, i molt. Però encara no som en aquest nivell de decisió. En aquest moment, el que volem destacar és que el cas d'ús ha d'expressar una necessitat del procediment, no una dependència tecnològica concreta.
+
+El cas d'ús hauria de poder formular-se així: `necessito informació patrimonial avaluable`. Encara no estem decidint si aquesta informació arribarà a través de PICA, d'un servei SOAP, d'una API REST, d'un certificat, d'una base de dades corporativa o d'un altre mecanisme futur.
 
 Quan aquesta separació no es respecta, apareix el problema arquitectònic que veurem ara.
 
