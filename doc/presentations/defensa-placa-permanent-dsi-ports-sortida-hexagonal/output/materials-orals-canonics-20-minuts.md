@@ -72,7 +72,7 @@ La distinció clau és aquesta: el procediment necessita informació administrat
 
 Això no vol dir que el mecanisme tècnic concret no sigui important. Ho és, i molt. Però encara no som en aquest nivell de decisió. En aquest moment, el que volem destacar és que el cas d'ús ha d'expressar una necessitat del procediment, no una dependència tecnològica concreta.
 
-El cas d'ús hauria de poder formular-se així: `necessito informació patrimonial avaluable`. Encara no estem decidint si aquesta informació arribarà a través de PICA, d'un servei SOAP, d'una API REST, d'un certificat, d'una base de dades corporativa o d'un altre mecanisme futur.
+El cas d'ús hauria de poder formular-se així: `necessito informació patrimonial avaluable`. Encara no estem decidint si aquesta informació arribarà a través de PICA, d'un servei SOAP, d'una API REST, d'una base de dades corporativa o d'un altre mecanisme futur.
 
 Quan aquesta separació no es respecta, apareix el problema arquitectònic que veurem ara.
 
@@ -80,7 +80,7 @@ Quan aquesta separació no es respecta, apareix el problema arquitectònic que v
 
 Imaginem una situació en què el cas d'ús queda vinculat directament a la cadena tècnica: SOAP/XML, PICA, AEAT o Cadastre. [assenyalar la cadena central]
 
-El problema no és consumir PICA. Ho remarco perquè és important. PICA, en aquest context, és una plataforma corporativa d'interoperabilitat. El problema arquitectònic apareix quan la lògica del procediment administratiu depèn directament dels detalls de la integració: DTOs externs, estructures XML, clients SOAP, codis d'error tècnics o convencions d'una API concreta. [pausa breu]
+El problema no és consumir PICA. Ho remarco perquè és important. PICA, en aquest context, és una plataforma corporativa d'interoperabilitat. El problema arquitectònic apareix quan la lògica del procediment administratiu depèn directament dels detalls de la integració: Estructures XML, clients SOAP, codis d'error tècnics o convencions d'una API concreta. [pausa breu]
 
 Quan això passa, l'evolució tecnològica travessa la frontera del cas d'ús. Si un servei evoluciona, si canvia el contracte tècnic, si cal passar de SOAP a REST, o si apareix un altre mecanisme corporatiu, el canvi pot impactar codi que hauria d'estar expressant criteris del procediment.
 
@@ -94,11 +94,24 @@ La resposta és introduir un port de sortida.
 
 Abans d'aplicar-ho al cas patrimonial, fixem una distinció important.
 
-Una cosa és el flux d'execució: el cas d'ús demana una informació i aquesta informació pot acabar venint d'un sistema extern. [assenyalar la primera línia]
+Una cosa és el flux d'execució: el cas d'ús demana una informació i aquesta informació pot acabar venint d'un sistema extern.
+[assenyalar la primera línia]
 
-Una altra cosa és la dependència de codi: el cas d'ús depèn del port, i l'adaptador implementa aquest port. [assenyalar la segona línia]
+Una altra cosa és la dependència de codi: el cas d'ús depèn del port, i l'adaptador implementa aquest port.
+[assenyalar la segona línia]
 
-Aquesta és la inversió de dependències: la infraestructura depèn del port definit per l'aplicació, no a l'inrevés. [mirada al tribunal]
+Per situar bé el concepte, quan aquí parlem d'un port no estem parlant d'un element físic ni d'un detall d'infraestructura. En termes de Java, aquest port s'expressa com una interfície.
+
+És a dir, el cas d'ús no depèn directament d'una base de dades, d'una API externa o d'un client concret. El cas d'ús depèn d'una interfície que defineix què necessita: per exemple, obtenir una determinada informació, consultar un expedient o recuperar unes dades administratives.
+
+Després, l'adaptador és la peça que implementa aquesta interfície i sap com anar realment a buscar aquella informació al sistema extern corresponent.
+
+Això ens ajuda a entendre el valor arquitectònic de la interfície. Una interfície és una eina d'enginyeria que permet comunicar components sense acoblar-los directament entre ells. Defineix un contracte estable: què es necessita i què es retorna, però sense obligar el cas d'ús a conèixer com es resol tècnicament aquesta necessitat.
+
+I això no és només una idea pròpia de la programació. És un principi molt general d'enginyeria: separar el contracte d'ús de la implementació concreta. Quan fem això, els components poden evolucionar, substituir-se o adaptar-se amb molt menys impacte sobre la resta del sistema.
+
+Aquesta és la inversió de dependències: la infraestructura depèn del port definit per l'aplicació, no a l'inrevés.
+[mirada al tribunal]
 
 Amb aquesta idea clara, ara podem portar el patró al cas administratiu.
 
@@ -137,8 +150,6 @@ Per tant, el missatge docent és transferible: primer identifiquem la necessitat
 ### Diapositiva 10. Flux i codi essencial - 1:45
 
 A partir d'aquí ja podem baixar al projecte concret de la demo: HexaStock. Aquesta diapositiva mostra el flux temporal del cas d'ús de venda. [assenyalar el diagrama de seqüència]
-
-Convé aclarir que, en un diagrama de seqüència, les fletxes representen ordre d'execució, no dependències de codi. Això és perfectament compatible amb la inversió de dependències que acabem d'explicar.
 
 El client o controlador invoca el port d'entrada, `PortfolioStockOperationsUseCase`. La implementació és el servei d'aplicació, `PortfolioStockOperationsService`. Aquest servei recupera el portfolio mitjançant un port de persistència, consulta el preu mitjançant el port de preus, i després crida el domini amb l'acció, la quantitat i el preu. [pausa breu]
 
