@@ -12,7 +12,7 @@ Documents antics ignorats com a font: `outline.md`, `slide-by-slide.md`, `guió-
 
 ## 1. Diagnòstic general
 
-La presentació té un fil narratiu acadèmicament defensable: situa la classe dins Disseny de Sistemes d'Informació, formula un objectiu d'aprenentatge concret, parteix d'un cas real d'administració pública, diagnostica l'acoblament tecnològic, presenta el port de sortida i transfereix el patró a HexaStock. Aquesta estructura és adequada per a un tribunal perquè no presenta només tecnologia, sinó una decisió de disseny vinculada a docència, experiència professional i rigor arquitectònic.
+La presentació té un fil narratiu acadèmicament defensable: situa la classe dins Disseny de Sistemes d'Informació, formula un objectiu d'aprenentatge concret, parteix d'un cas real d'administració pública, diagnostica l'acoblament tecnològic, presenta el port de sortida, transfereix el patró a un domini financer i el concreta en la demo de HexaStock. Aquesta estructura és adequada per a un tribunal perquè no presenta només tecnologia, sinó una decisió de disseny vinculada a docència, experiència professional i rigor arquitectònic.
 
 El punt més fort és la connexió entre el pla docent i l'informe AGAUR. El pla docent situa l'assignatura a tercer curs, 6 ECTS, amb continguts de clean o hexagonal architecture, ports i adaptadors, mapping entre capes, organització en mòduls, microserveis i DDD. L'informe AGAUR acredita una activitat professional especialitzada vinculada a arquitectura hexagonal i sistemes d'informació.
 
@@ -56,7 +56,7 @@ Correcció aplicada. El diagrama ja diferencia el flux d'ús del servei cap als 
 
 **Diapositiva 9. Transferència a domini financer**
 
-Correcció aplicada. El diagrama HexaStock ja manté la mateixa lectura que el cas AGAUR: les fletxes d'ús representen el flux del servei cap als ports, i les fletxes `implemented by` apunten dels adaptadors cap als ports. En `StockPriceProviderPort`, els adaptadors de mercat apareixen com a implementacions del port. El missatge central és correcte i s'ha de mantenir: el cas d'ús necessita el preu actual, no un proveïdor concret.
+Correcció aplicada. La diapositiva funciona com a canvi explícit de domini: ja no parlem d'una sol·licitud de beca, sinó d'una aplicació de gestió d'una cartera d'inversió personal. El missatge central és genèric i transferible: el cas d'ús necessita el preu actual d'una acció, no un proveïdor concret, ni una API específica, ni un format tècnic de resposta.
 
 **Diapositiva 10. Flux i codi essencial**
 
@@ -64,7 +64,7 @@ La diapositiva és forta perquè mostra el flux temporal. Afegiria oralment una 
 
 **Diapositiva 11. Demo**
 
-Funciona com a demostració controlada. Substituiria `consultoria empresarial` per `formació o consultoria professional`, perquè en aquest context la referència principal és administració pública i universitat. Si es fa demo real, cal tenir preparada una versió sense internet ni claus.
+Funciona com a demostració controlada. Substituiria `consultoria empresarial` per `formació o consultoria professional`, perquè en aquest context la referència principal és administració pública i universitat. Si es fa demo real, cal tenir preparada una versió amb adaptador mock i sense claus reals.
 
 **Diapositiva 12. Agraïment**
 
@@ -176,27 +176,31 @@ El punt tècnic més important és que l'adaptador de PICA o l'adaptador JDBC no
 
 Aquesta distinció queda reflectida en la direcció de les fletxes. Quan indiquen `implemented by`, les fletxes van de l'adaptador cap al port. El servei usa el port. L'adaptador implementa el port. I el domini no coneix ni l'adaptador, ni PICA, ni SOAP, ni REST.
 
-Aquesta mateixa estructura la podem transferir ara a un domini financer docent: HexaStock.
+Aquesta mateixa estructura la podem transferir ara a un domini diferent: una aplicació de gestió d'una cartera d'inversió personal.
 
 ### Diapositiva 9. Transferència a domini financer - 1:45
 
-HexaStock ens permet treballar el mateix patró en un domini diferent: la venda d'accions. [assenyalar el títol]
+Ara fem un canvi de domini. Ja no parlem d'una sol·licitud de beca, sinó d'una aplicació de gestió d'una cartera d'inversió personal. [assenyalar el títol]
 
-Aquí el cas d'ús és vendre accions d'una cartera. Per fer-ho correctament, el servei d'aplicació necessita el preu actual del ticker. Però el cas d'ús no hauria de dependre de Finnhub, Alpha Vantage, tokens, endpoints, JSON, clients HTTP o disponibilitat d'internet. [pausa breu]
+Imaginem un cas d'ús molt concret: vendre accions d'una cartera. Per executar aquesta operació correctament, l'aplicació pot necessitar consultar el preu actual de l'acció que l'usuari vol vendre.
 
-El port de sortida és `StockPriceProviderPort`. Aquest port expressa la capacitat que l'aplicació necessita: obtenir el preu d'una acció. Després podem tenir diferents adaptadors que implementen aquest port: `FinhubStockPriceAdapter`, `AlphaVantageStockPriceAdapter` o un adaptador mock per a proves i demos controlades.
+Ara bé, el cas d'ús no hauria de dependre directament d'un proveïdor concret de dades financeres, ni d'una API específica, ni del format tècnic de la resposta. El cas d'ús només hauria d'expressar la seva necessitat: `necessito obtenir el preu actual d'una acció concreta`.
 
-El patró és idèntic al cas AGAUR. En el cas administratiu, el procediment necessita informació patrimonial, no una tecnologia concreta. En HexaStock, el cas d'ús necessita un preu actual, no un proveïdor concret. [mirada al tribunal]
+Aquesta necessitat es pot representar amb un port de sortida. Aquest port no diu quin proveïdor s'ha de consultar, ni quin endpoint s'ha d'utilitzar, ni si la resposta vindrà en JSON, XML o qualsevol altre format. Només defineix una capacitat que l'aplicació necessita.
+
+L'adaptador serà la peça que implementarà aquest port i coneixerà el detall tècnic concret: quin servei extern es consulta, com es fa la petició, quin format retorna la resposta i com es transforma aquesta informació perquè el cas d'ús la pugui utilitzar.
+
+El patró és idèntic al cas AGAUR. En el cas administratiu, el procediment necessita informació patrimonial, no una tecnologia concreta. En el domini financer, el cas d'ús necessita un preu actual, no un proveïdor concret. [mirada al tribunal]
 
 Per tant, el missatge docent és transferible: primer identifiquem la necessitat funcional; després definim el port; finalment implementem adaptadors.
 
 ### Diapositiva 10. Flux i codi essencial - 1:45
 
-Aquesta diapositiva mostra el flux temporal del cas d'ús de venda. [assenyalar el diagrama de seqüència]
+A partir d'aquí ja podem baixar al projecte concret de la demo: HexaStock. Aquesta diapositiva mostra el flux temporal del cas d'ús de venda. [assenyalar el diagrama de seqüència]
 
 Convé aclarir que, en un diagrama de seqüència, les fletxes representen ordre d'execució, no dependències de codi. Això és perfectament compatible amb la inversió de dependències que acabem d'explicar.
 
-El client o controlador invoca el port d'entrada, `PortfolioStockOperationsUseCase`. La implementació és el servei d'aplicació, `PortfolioStockOperationsService`. Aquest servei recupera el portfolio mitjançant un port de persistència, consulta el preu mitjançant `StockPriceProviderPort`, i després crida el domini: `portfolio.sell(ticker, quantity, price)`. [pausa breu]
+El client o controlador invoca el port d'entrada, `PortfolioStockOperationsUseCase`. La implementació és el servei d'aplicació, `PortfolioStockOperationsService`. Aquest servei recupera el portfolio mitjançant un port de persistència, consulta el preu mitjançant el port de preus, i després crida el domini amb l'acció, la quantitat i el preu. [pausa breu]
 
 La separació de responsabilitats és molt important. El servei coordina. El port obté informació. L'adaptador integra amb la infraestructura. Però la decisió de domini, la venda i el càlcul del resultat, no es resolen ni al controlador ni a l'adaptador de preus. Es resolen al model de domini, dins l'agregat `Portfolio`.
 
@@ -208,7 +212,7 @@ La demo, en aquesta classe, no pretén impressionar per complexitat tècnica. T�
 
 En HexaStock, això es pot veure amb perfils diferents: un adaptador Finnhub, un adaptador Alpha Vantage o un adaptador mock. El port que veu el servei és el mateix: `StockPriceProviderPort`. La implementació concreta canvia segons la configuració.
 
-Aquest punt és especialment rellevant en docència. Permet fer proves sense dependre d'internet, sense claus reals, sense disponibilitat d'un proveïdor extern i sense contaminar el domini amb detalls tècnics. [mirada al tribunal]
+Aquest punt és especialment rellevant en docència. Permet fer proves amb un adaptador mock, sense claus reals, sense disponibilitat d'un proveïdor extern i sense contaminar el domini amb detalls tècnics. [mirada al tribunal]
 
 El missatge de la demo és el mateix que hem treballat des del principi: canvia la infraestructura; el cas d'ús i el domini romanen estables.
 
@@ -292,15 +296,15 @@ Moltes gràcies.
 - Adaptadors fora del nucli.
 - PICA/JDBC/SOAP/REST són detalls substituïbles.
 - Fletxa correcta d'implementació: adaptador -> port.
-- Transició: mateix patró en HexaStock.
+- Transició: mateix patró en un domini financer.
 
-### 9. HexaStock - 1:45
+### 9. Domini financer - 1:45
 
-- Domini financer: vendre accions.
-- Necessitat: preu actual del ticker.
-- Port: `StockPriceProviderPort`.
-- Adaptadors: Finnhub, Alpha Vantage, mock.
-- Transició: veure el flux i el codi essencial.
+- Canvi explícit de domini: beca -> cartera d'inversió personal.
+- Cas d'ús: vendre accions.
+- Necessitat: preu actual de l'acció que l'usuari vol vendre.
+- Port de sortida: defineix aquesta capacitat.
+- Transició: ara sí, concretar-ho en HexaStock.
 
 ### 10. Flux i codi - 1:45
 
@@ -315,7 +319,7 @@ Moltes gràcies.
 - Mateix cas d'ús, servei i domini.
 - Canvia l'adaptador.
 - Perfils: Finnhub, Alpha Vantage, mock.
-- Utilitat docent: proves sense internet ni claus.
+- Utilitat docent: proves amb adaptador mock i sense claus reals.
 - Transició: conclusió final.
 
 ### 12. Agraïment - 1:20
@@ -337,13 +341,13 @@ Moltes gràcies.
 | 5 | El procediment necessita dades, no API | Interoperabilitat administrativa | Procediment | Risc d'acoblament |
 | 6 | La dependència directa fa fràgil el cas d'ús | Acoblament tecnològic | Dades externes | Port de sortida |
 | 7 | Port diu què; adaptador diu com | Inversió de dependències | Problema | Aplicació al cas patrimonial |
-| 8 | AGAUR: contracte d'aplicació, no detall tècnic | Adaptador implementa port | Port genèric | Transferència a HexaStock |
-| 9 | Mateix patró en domini financer | `StockPriceProviderPort` | Cas AGAUR | Flux temporal |
-| 10 | Servei coordina, domini decideix | Seqüència vs dependència | Diagrama HexaStock | Demo |
+| 8 | AGAUR: contracte d'aplicació, no detall tècnic | Adaptador implementa port | Port genèric | Transferència al domini financer |
+| 9 | Mateix patró en domini financer | Necessitat, port i adaptador | Cas AGAUR | Projecte concret |
+| 10 | Servei coordina, domini decideix | Seqüència vs dependència | Transferència genèrica | Demo |
 | 11 | Canvia infraestructura, no cas d'ús | Adaptador substituïble | Flux | Conclusió |
 | 12 | L'arquitectura localitza el canvi | Frontera explícita | Demo | Tancament |
 
-Mantra de memòria: `context -> assignatura -> objectiu breu -> procediment -> dada externa -> acoblament -> port -> AGAUR -> HexaStock -> flux -> demo -> conclusió`.
+Mantra de memòria: `context -> assignatura -> objectiu breu -> procediment -> dada externa -> acoblament -> port -> AGAUR -> domini financer -> HexaStock -> demo -> conclusió`.
 
 ## 6. Pla d'entrenament comunicatiu
 
@@ -359,7 +363,7 @@ Practica per blocs, no tota la presentació sempre sencera:
 
 - Bloc 1: diapositives 1-3, context, assignatura i objectiu breu.
 - Bloc 2: diapositives 4-8, cas AGAUR, problema i port de sortida.
-- Bloc 3: diapositives 9-12, HexaStock, flux, demo i tancament.
+- Bloc 3: diapositives 9-12, domini financer, HexaStock, demo i tancament.
 
 En cada bloc, treballa tres coses: mirada, pausa i gest. La mirada ha d'anar al tribunal en les frases conceptuals; a la pantalla només quan assenyales una part concreta. Les mans han d'ajudar a separar conceptes: una mà per `necessitat funcional`, l'altra per `tecnologia concreta`. Evita caminar mentre expliques una distinció fina; atura't, formula-la i continua.
 
