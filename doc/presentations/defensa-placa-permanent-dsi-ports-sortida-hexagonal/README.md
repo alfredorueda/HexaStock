@@ -17,6 +17,7 @@ Subtítol:
 - `output/defensa-dsi-ports-sortida-hexagonal_Alfredo_Rueda.pdf`: export PDF de la presentació canònica.
 - `output/materials-orals-canonics-20-minuts.md`: guió oral, notes del presentador, esquema de memorització i pla d'entrenament.
 - `output/materials-orals-canonics-20-minuts.docx`: exportació editable del material oral canònic.
+- `output/REMARKABLE_materials-orals-canonics-20-minuts.docx`: exportació editable amb mida gran per preparar la versió reMarkable.
 - `output/REMARKABLE_materials-orals-canonics-20-minuts.pdf`: versió de lectura amb mida gran per a reMarkable.
 - `cas-funcional-agaur-beca.md`: dossier de suport sobre el cas funcional AGAUR, beca, renda, patrimoni, valors cadastrals, PICA i fonts públiques.
 - `checklist.md`: verificació final docent, tècnica i institucional.
@@ -38,6 +39,24 @@ doc/presentations/defensa-placa-permanent-dsi-ports-sortida-hexagonal/src/render
 ```
 
 L'script utilitza Docker amb la imatge `plantuml/plantuml:latest` i genera SVG i PNG.
+
+## Com regenerar els materials derivats
+
+Des de l'arrel del repositori:
+
+```bash
+doc/presentations/defensa-placa-permanent-dsi-ports-sortida-hexagonal/src/generate_derived_materials.sh
+```
+
+Aquest script regenera els DOCX i PDF derivats del guió oral canònic, exporta el PDF de la presentació canònica i aplica una mida mínima de 18 pt al DOCX per a reMarkable abans de convertir-lo a PDF.
+
+Si cal augmentar temporalment la mida mínima del reMarkable:
+
+```bash
+REMARKABLE_MIN_FONT_PT=20 doc/presentations/defensa-placa-permanent-dsi-ports-sortida-hexagonal/src/generate_derived_materials.sh
+```
+
+Requereix `pandoc`, `python3` i LibreOffice (`soffice`).
 
 ## Criteri d'edició del PowerPoint
 
