@@ -154,19 +154,17 @@ La pregunta docent, per tant, és: com podem permetre que el cas d'ús necessiti
 
 La resposta és introduir un port de sortida.
 
-### Diapositiva 7. Port de sortida i adaptador - 1:30
+### Diapositiva 7. Port de sortida i adaptador - 0:55
 
-Un port de sortida és un contracte definit des de l'aplicació. [pausa breu]
+Abans d'aplicar-ho al cas patrimonial, fixem una distinció important.
 
-El cas d'ús o el servei d'aplicació diu: `necessito aquesta capacitat`. Per exemple: obtenir informació patrimonial, recuperar un expedient administratiu, consultar la situació acadèmica del sol·licitant o verificar determinades dades administratives necessàries per tramitar la beca. El port expressa aquest `què`. [assenyalar el port]
+Una cosa és el flux d'execució: el cas d'ús demana una informació i aquesta informació pot acabar venint d'un sistema extern. [assenyalar la primera línia]
 
-L'adaptador, en canvi, resol el `com`. És la peça que coneix la tecnologia concreta: SOAP, REST, JDBC, JPA, un client HTTP, una estructura XML, JSON o el mecanisme que sigui necessari. [assenyalar adaptador i sistema extern]
+Una altra cosa és la dependència de codi: el cas d'ús depèn del port, i l'adaptador implementa aquest port. [assenyalar la segona línia]
 
-Aquí és important no confondre dues fletxes. Si parlem de flux d'execució, el cas d'ús demana una informació i aquesta informació pot acabar venint d'un sistema extern. Però si parlem de dependència de codi, el cas d'ús no depèn d'aquest sistema extern ni de l'adaptador que el consulta. Depèn només d'un port de sortida, que és una interfície definida des de la pròpia aplicació. [mirada al tribunal]
+Aquesta és la inversió de dependències: la infraestructura depèn del port definit per l'aplicació, no a l'inrevés. [mirada al tribunal]
 
-La inversió de dependències no consisteix simplement a afegir una interfície. Consisteix a fer que el cas d'ús no depengui d'un mecanisme tècnic concret. El cas d'ús depèn d'un port definit per l'aplicació, i són els adaptadors externs els que s'han d'ajustar a aquest port.
-
-Per això diem que la dependència s'inverteix: no és el cas d'ús qui queda lligat a PICA, SOAP o REST; és l'adaptador qui depèn del contracte que ha definit l'aplicació. La infraestructura depèn del port definit per l'aplicació, no a l'inrevés.
+Amb aquesta idea clara, ara podem portar el patró al cas administratiu.
 
 ### Diapositiva 8. Port de sortida per a informació patrimonial - 2:05
 
@@ -286,12 +284,12 @@ Moltes gràcies.
 - Tres riscos: acoblament, manteniment fràgil, continuïtat operativa.
 - Transició: resposta arquitectònica, port de sortida.
 
-### 7. Port i adaptador - 1:30
+### 7. Port i adaptador - 0:55
 
-- Port = què necessita l'aplicació.
-- Adaptador = com s'integra tècnicament.
-- Distingir flux d'execució i dependència de codi.
-- Inversió: adaptador implementa port; nucli no depèn d'adaptador.
+- Fer-la servir com a frontissa conceptual, no com a explicació llarga.
+- Flux d'execució: el cas d'ús demana informació cap enfora.
+- Dependència de codi: el cas d'ús depèn del port; l'adaptador implementa el port.
+- Inversió: la infraestructura depèn del port definit per l'aplicació.
 - Transició: aplicar-ho al cas patrimonial.
 
 ### 8. Port patrimonial - 2:05
