@@ -32,13 +32,11 @@ En vint minuts no seria rigorós intentar explicar tota l'arquitectura hexagonal
 
 ### Diapositiva 2. On som dins l'assignatura - 1:10
 
-La sessió se situa dins Disseny de Sistemes d'Informació, una assignatura obligatòria de tercer curs, de 6 ECTS. [assenyalar la part esquerra]
+La sessió se situa dins Disseny de Sistemes d'Informació, una assignatura de tercer curs, de 6 ECTS. [assenyalar la part esquerra]
 
-El pla docent de l'assignatura explica que s'hi treballa una visió global d'arquitectures de sistemes d'informació: arquitectures per capes, arquitectures clean o hexagonals, i arquitectures basades en microserveis. Dins el bloc d'arquitectures clean o hexagonals hi apareixen explícitament ports i adaptadors, mapping entre capes i organització en mòduls. [to calmat, explicatiu]
+El pla docent de l'assignatura explica que s'hi treballa una visió global d'arquitectures de sistemes d'informació: arquitectures per capes, arquitectures hexagonals, basades en microserveis. Dins el bloc d'arquitectures hexagonals hi apareixen explícitament ports i adaptadors. [to calmat, explicatiu]
 
 Per tant, aquesta no és una sessió afegida artificialment al temari. És una classe versemblant dins l'assignatura. [pausa breu]
-
-El que farem avui és acotar molt el focus. No analitzarem tota l'arquitectura hexagonal. Ens centrarem en els ports de sortida: aquells ports que permeten que l'aplicació obtingui o persisteixi informació mitjançant sistemes externs, sense que el cas d'ús quedi lligat a una tecnologia concreta.
 
 ### Diapositiva 3. Objectiu de la sessió - 0:55
 
