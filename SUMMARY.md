@@ -1,17 +1,19 @@
-# Table of Contents
+# Table of contents
+
+* [BOOK-HOME](doc/BOOK-HOME.md)
 
 ## Reference Use Case
 
 * [Sell Stock Deep Dive](doc/tutorial/sellStocks/SELL-STOCK-TUTORIAL.md)
 * [HexaStock Project Overview](doc/tutorial/sellStocks/HEXASTOCK-PROJECT-OVERVIEW.md)
 * [Sell Stock — Domain Layer Only](doc/tutorial/sellStocks/SELL-STOCK-DOMAIN-TUTORIAL.md)
- 
+
 ## Architecture and Design
 
 * [Rich vs Anemic Domain Model](doc/tutorial/richVsAnemicDomainModel/RICH_VS_ANEMIC_DOMAIN_MODEL_TUTORIAL.md)
 * [Dependency Inversion in Stock Selling](doc/tutorial/DEPENDENCY-INVERSION-STOCK-SELLING.md)
-* [DDD Portfolio and Transactions](doc/DDD%20Portfolio%20and%20Transactions.md)
-* [Remove Lots with Zero Remaining Quantity](doc/Remove%20Lots%20with%20Zero%20Remaining%20Quantity%20from%20Portfolio%20Aggregate.md)
+* [DDD Portfolio and Transactions](<doc/DDD Portfolio and Transactions.md>)
+* [Remove Lots with Zero Remaining Quantity](<doc/Remove Lots with Zero Remaining Quantity from Portfolio Aggregate.md>)
 
 ## Supporting Chapters
 

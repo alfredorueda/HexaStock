@@ -2,7 +2,7 @@
 
 ## Evolving from In-Memory Aggregation to Production-Grade Reporting
 
----
+***
 
 ## 1. Introduction and Context
 
@@ -14,19 +14,19 @@ This tutorial examines four strategies for implementing this reporting feature, 
 
 **Key files in the current implementation:**
 
-| Layer | File | Role |
-|---|---|---|
-| Domain service | `model.service.HoldingPerformanceCalculator` | O(T) single-pass aggregation |
-| Application service | `application.service.ReportingService` | Orchestration — loads data, delegates to domain |
-| Inbound port | `application.port.in.ReportingUseCase` | Use case contract |
-| Outbound ports | `PortfolioPort`, `TransactionPort`, `StockPriceProviderPort` | Data retrieval contracts |
-| DTO | `adapter.in.webmodel.HoldingDTO` | Result record |
+| Layer               | File                                                         | Role                                            |
+| ------------------- | ------------------------------------------------------------ | ----------------------------------------------- |
+| Domain service      | `model.service.HoldingPerformanceCalculator`                 | O(T) single-pass aggregation                    |
+| Application service | `application.service.ReportingService`                       | Orchestration — loads data, delegates to domain |
+| Inbound port        | `application.port.in.ReportingUseCase`                       | Use case contract                               |
+| Outbound ports      | `PortfolioPort`, `TransactionPort`, `StockPriceProviderPort` | Data retrieval contracts                        |
+| DTO                 | `adapter.in.webmodel.HoldingDTO`                             | Result record                                   |
 
----
+***
 
 ## 2. Approach A — Single-Pass In-Memory Aggregation (Current)
 
-[![Approach A — Single-Pass In-Memory Aggregation](diagrams/Rendered/approachA-sequence.png)](diagrams/Rendered/approachA-sequence.svg)
+[![Approach A — Single-Pass In-Memory Aggregation](../../../.gitbook/assets/approachA-sequence.png)](https://github.com/alfredorueda/HexaStock/blob/main/doc/tutorial/portfolioReporting/diagrams/Rendered/approachA-sequence.svg)
 
 Source: `./diagrams/approachA-sequence.puml`
 
@@ -60,11 +60,11 @@ switch (tx.type()) {
 
 **Complexity:**
 
-| Metric | Value | Explanation |
-|---|---|---|
-| Time | O(T) | Single linear scan of T transactions |
-| Memory | O(H) | One `TickerAccumulator` per distinct ticker (H ≪ T typically) |
-| Passes over data | 1 | No re-filtering, no `groupingBy` + per-group re-scan |
+| Metric           | Value | Explanation                                                   |
+| ---------------- | ----- | ------------------------------------------------------------- |
+| Time             | O(T)  | Single linear scan of T transactions                          |
+| Memory           | O(H)  | One `TickerAccumulator` per distinct ticker (H ≪ T typically) |
+| Passes over data | 1     | No re-filtering, no `groupingBy` + per-group re-scan          |
 
 After the loop, a second O(H) pass builds the immutable result list by combining each accumulator with live prices and portfolio state.
 
@@ -90,8 +90,8 @@ Sequential execution gives deterministic throughput: one thread, one core, linea
 
 Every `BigDecimal.add()`, `multiply()`, or `divide()` allocates a new `BigDecimal` object. In a single pass over T transactions, the calculator performs approximately:
 
-- **2 × T** allocations for `PURCHASE` transactions (one for quantity conversion, one for cost multiplication + accumulation)
-- **1 × T** allocations for `SALE` transactions (profit accumulation)
+* **2 × T** allocations for `PURCHASE` transactions (one for quantity conversion, one for cost multiplication + accumulation)
+* **1 × T** allocations for `SALE` transactions (profit accumulation)
 
 For T = 20,000 this is roughly 40,000–60,000 short-lived `BigDecimal` instances. These are small objects (typically 40–56 bytes on a 64-bit JVM with compressed oops) and die young — exactly the scenario G1/ZGC's young generation is optimized for. They are collected in minor GCs with near-zero pause impact.
 
@@ -101,41 +101,41 @@ However, as T grows into the hundreds of thousands, the allocation rate per requ
 
 The current implementation strictly separates concerns across hexagonal layers:
 
-| Responsibility | Layer | Class |
-|---|---|---|
-| Load portfolio, transactions, prices | Application | `ReportingService` |
-| Iterate, aggregate, build DTOs | Domain | `HoldingPerformanceCalculator` |
-| Remaining shares, unrealized gain | Domain | `Holding` (entity) |
-| Rounding constants (SCALE, HALF_UP) | Domain | `HoldingPerformanceCalculator` |
-| Live price fetching | Infrastructure | `StockPriceProviderPort` impl |
+| Responsibility                       | Layer          | Class                          |
+| ------------------------------------ | -------------- | ------------------------------ |
+| Load portfolio, transactions, prices | Application    | `ReportingService`             |
+| Iterate, aggregate, build DTOs       | Domain         | `HoldingPerformanceCalculator` |
+| Remaining shares, unrealized gain    | Domain         | `Holding` (entity)             |
+| Rounding constants (SCALE, HALF\_UP) | Domain         | `HoldingPerformanceCalculator` |
+| Live price fetching                  | Infrastructure | `StockPriceProviderPort` impl  |
 
 The domain service has **no I/O**. It receives all data as method arguments and returns an immutable `List<HoldingDTO>`. This makes it trivially unit-testable — the test suite exercises it with in-memory portfolios and transaction lists, with no mocks needed.
 
----
+***
 
 ## 3. Scalability Analysis of Approach A
 
 ### 3.1 Approximate Request Footprint
 
-> **Important distinction.** This section analyzes a **reporting (read-side) use case**, not an aggregate-root sizing recommendation. The transaction list loaded by Approach A is *not* proposed as a healthy DDD aggregate boundary. For write-side aggregate design, follow the stricter guidance in [Aggregate Root Size Guidelines](../../domain-review/AGGREGATE-SIZE-GUIDELINES.md): low thousands of hydrated children already require measurement, and tens of thousands usually indicate a boundary problem. Approach A is intentionally simple and educational. It is suitable under low concurrency or in early-stage conditions, but it should not be generalized as a recommended production aggregate shape.
+> **Important distinction.** This section analyzes a **reporting (read-side) use case**, not an aggregate-root sizing recommendation. The transaction list loaded by Approach A is _not_ proposed as a healthy DDD aggregate boundary. For write-side aggregate design, follow the stricter guidance in [Aggregate Root Size Guidelines](https://github.com/alfredorueda/HexaStock/blob/main/doc/domain-review/AGGREGATE-SIZE-GUIDELINES.md): low thousands of hydrated children already require measurement, and tens of thousands usually indicate a boundary problem. Approach A is intentionally simple and educational. It is suitable under low concurrency or in early-stage conditions, but it should not be generalized as a recommended production aggregate shape.
 
-*In this section, the term* **working set** *is used informally to describe the approximate memory involved in processing one request. Strictly speaking, **retained live set** (objects still reachable for the duration of the request) and **allocation volume** (short-lived objects produced during computation) are different dimensions and should be measured separately under production profiling.*
+_In this section, the term_ **working set** _is used informally to describe the approximate memory involved in processing one request. Strictly speaking, **retained live set** (objects still reachable for the duration of the request) and **allocation volume** (short-lived objects produced during computation) are different dimensions and should be measured separately under production profiling._
 
 Each call to `getHoldingsPerformance` materializes the following objects in the JVM heap:
 
-| Object | Count | Typical size | Nature |
-|---|---|---|---|
-| `Transaction` instances | T | ~200–400 bytes each (with Value Objects) | Retained live set |
-| `TickerAccumulator` entries | H | ~80 bytes each | Retained live set |
-| Intermediate `BigDecimal` allocations | ~3T | ~48 bytes each | Allocation volume (mostly short-lived) |
-| Result `HoldingDTO` list | H | ~120 bytes each | Retained live set |
+| Object                                | Count | Typical size                              | Nature                                 |
+| ------------------------------------- | ----- | ----------------------------------------- | -------------------------------------- |
+| `Transaction` instances               | T     | \~200–400 bytes each (with Value Objects) | Retained live set                      |
+| `TickerAccumulator` entries           | H     | \~80 bytes each                           | Retained live set                      |
+| Intermediate `BigDecimal` allocations | \~3T  | \~48 bytes each                           | Allocation volume (mostly short-lived) |
+| Result `HoldingDTO` list              | H     | \~120 bytes each                          | Retained live set                      |
 
 For T = 20,000 and H = 15 tickers, the approximate per-request footprint is:
 
-- Transactions (retained): 20,000 × 300 bytes ≈ **6 MB**
-- Accumulators: negligible
-- Intermediate `BigDecimal` (allocation volume): 60,000 × 48 bytes ≈ **2.7 MB**
-- Total: **~9 MB per request**
+* Transactions (retained): 20,000 × 300 bytes ≈ **6 MB**
+* Accumulators: negligible
+* Intermediate `BigDecimal` (allocation volume): 60,000 × 48 bytes ≈ **2.7 MB**
+* Total: **\~9 MB per request**
 
 A single request of this size is feasible on a modern JVM, but it is **not a small request**. At approximately 9 MB of retained and allocated data, the design must be evaluated under realistic concurrency, heap limits, ORM hydration cost, database access patterns, and GC behavior before being treated as a production default.
 
@@ -148,15 +148,15 @@ The actual footprint of each `Transaction` object cannot be guaranteed from sour
 The critical insight is that the working set above is **per request**. Under concurrent load:
 
 | Concurrent requests | Aggregate working set |
-|---|---|
-| 1 | ~9 MB |
-| 10 | ~90 MB |
-| 50 | ~450 MB |
-| 100 | ~900 MB |
+| ------------------- | --------------------- |
+| 1                   | \~9 MB                |
+| 10                  | \~90 MB               |
+| 50                  | \~450 MB              |
+| 100                 | \~900 MB              |
 
-This is a linear amplification. A server handling 50 concurrent reporting requests on portfolios with 20,000 transactions each would hold ~450 MB of transaction objects simultaneously. Whether this is acceptable depends entirely on the JVM heap size and the GC configuration.
+This is a linear amplification. A server handling 50 concurrent reporting requests on portfolios with 20,000 transactions each would hold \~450 MB of transaction objects simultaneously. Whether this is acceptable depends entirely on the JVM heap size and the GC configuration.
 
-At this point, the concern is no longer *whether one request can be processed*. The concern is whether the service can preserve **heap headroom**, **predictable GC behavior**, and **stable p95/p99 latency** when several such requests overlap. A design that is harmless for one request can become expensive when multiplied by 50 or 100 concurrent reporting requests. With a 1 GB heap, 100 concurrent requests of this shape would consume close to the entire heap for this single reporting pattern, leaving little headroom for Spring Boot internals, Hibernate persistence contexts, JDBC buffers, other endpoints, caches, object promotion, and GC overhead. With a 256 MB heap, the theoretical ceiling of 256 MB / 9 MB ≈ 28 concurrent requests is unrealistic because the application needs significant memory for everything else.
+At this point, the concern is no longer _whether one request can be processed_. The concern is whether the service can preserve **heap headroom**, **predictable GC behavior**, and **stable p95/p99 latency** when several such requests overlap. A design that is harmless for one request can become expensive when multiplied by 50 or 100 concurrent reporting requests. With a 1 GB heap, 100 concurrent requests of this shape would consume close to the entire heap for this single reporting pattern, leaving little headroom for Spring Boot internals, Hibernate persistence contexts, JDBC buffers, other endpoints, caches, object promotion, and GC overhead. With a 256 MB heap, the theoretical ceiling of 256 MB / 9 MB ≈ 28 concurrent requests is unrealistic because the application needs significant memory for everything else.
 
 The transactions are loaded from the database, so the amplification also applies to JDBC result-set processing, object hydration, and JPA entity mapping — **all of which happen before the domain service is invoked**. When the implementation loads full JPA entities (rather than DTO projections), the memory cost is not limited to the domain object graph: Hibernate may also maintain persistence-context entries, dirty-checking snapshots, proxies, collection wrappers, and internal references. For read-only reporting, DTO projections or dedicated query-side ports are usually preferable once the endpoint becomes performance-sensitive.
 
@@ -164,9 +164,9 @@ The transactions are loaded from the database, so the amplification also applies
 
 Approach A's allocation pattern has favorable GC characteristics for moderate T:
 
-- **Short-lived objects** — `BigDecimal` intermediates die within the method scope. G1 and ZGC collect these efficiently in young-generation cycles.
-- **No object graph complexity** — accumulators are flat, no deep reference chains. GC marking is trivial.
-- **Predictable lifetime** — everything is request-scoped. No tenured-generation promotion under normal conditions.
+* **Short-lived objects** — `BigDecimal` intermediates die within the method scope. G1 and ZGC collect these efficiently in young-generation cycles.
+* **No object graph complexity** — accumulators are flat, no deep reference chains. GC marking is trivial.
+* **Predictable lifetime** — everything is request-scoped. No tenured-generation promotion under normal conditions.
 
 As T grows, two effects emerge:
 
@@ -180,9 +180,7 @@ With ZGC (available since Java 15, production-ready since Java 21, and generatio
 For a given T, the computation itself is deterministic: one pass, O(T) work. The **variance** in response time comes from three external factors:
 
 1. **Database query time** — loading T transactions involves a single `SELECT ... WHERE portfolio_id = ?` query. With an index on `portfolio_id`, this is O(T) in the DB with sequential I/O. Latency depends on whether pages are in the buffer pool.
-
-2. **Price API latency** — fetching H prices sequentially takes H × (API round-trip). For H = 10 tickers and 200ms per call, this is ~2 seconds — likely the dominant contributor to p95.
-
+2. **Price API latency** — fetching H prices sequentially takes H × (API round-trip). For H = 10 tickers and 200ms per call, this is \~2 seconds — likely the dominant contributor to p95.
 3. **GC pauses** — under low concurrency, GC pauses are negligible. Under high concurrency with large T, GC pauses may appear as p99 outliers.
 
 The key observation: **Approach A's compute time is not the bottleneck.** The I/O operations (DB + price API) dominate. Optimizing the aggregation algorithm further yields diminishing returns — the next improvement must reduce I/O.
@@ -191,18 +189,18 @@ The key observation: **Approach A's compute time is not the bottleneck.** The I/
 
 O(T) in-memory processing becomes a concern when:
 
-- **T exceeds ~100,000** per portfolio — the working set approaches hundreds of MB per request, making concurrent processing expensive.
-- **The transaction table is used by multiple portfolios** — loading all transactions for a portfolio requires filtering a shared table. Without careful indexing, this degrades.
-- **Response time SLAs tighten** — if the reporting endpoint must return in <500ms at p99, spending 200ms just hydrating 100K JPA entities is unacceptable regardless of how fast the aggregation is.
-- **Horizontal scaling is constrained** — each replica needs enough heap for concurrent working sets. With Approach A, scaling out means adding RAM proportional to T × concurrency.
+* **T exceeds \~100,000** per portfolio — the working set approaches hundreds of MB per request, making concurrent processing expensive.
+* **The transaction table is used by multiple portfolios** — loading all transactions for a portfolio requires filtering a shared table. Without careful indexing, this degrades.
+* **Response time SLAs tighten** — if the reporting endpoint must return in <500ms at p99, spending 200ms just hydrating 100K JPA entities is unacceptable regardless of how fast the aggregation is.
+* **Horizontal scaling is constrained** — each replica needs enough heap for concurrent working sets. With Approach A, scaling out means adding RAM proportional to T × concurrency.
 
 These thresholds are not absolute numbers — they depend on the JVM heap, GC choice, container memory limits, and concurrent request patterns. The correct approach is to **monitor allocation rate and GC pause frequency** in a realistic load test, then decide whether to move to Approach B or C based on observed data, not speculation.
 
----
+***
 
 ## 4. Approach B — DB-Powered Query Side
 
-[![Approach B — DB-Powered Query Side](diagrams/Rendered/approachB-sequence.png)](diagrams/Rendered/approachB-sequence.svg)
+[![Approach B — DB-Powered Query Side](../../../.gitbook/assets/approachB-sequence.png)](https://github.com/alfredorueda/HexaStock/blob/main/doc/tutorial/portfolioReporting/diagrams/Rendered/approachB-sequence.svg)
 
 Source: `./diagrams/approachB-sequence.puml`
 
@@ -267,31 +265,31 @@ The `ReportingService` would then use this port instead of `TransactionPort` + `
 
 **Advantages:**
 
-- **O(1) JVM memory** — the application receives H rows regardless of T. A portfolio with 500,000 transactions still produces ~15 rows.
-- **Reduced object graph** — no JPA entity hydration for Transaction objects. No `BigDecimal` intermediate allocations.
-- **DB engine optimization** — the database can use covering indexes, parallel scan operators, and its own buffer pool to process the aggregation far more efficiently than a JVM loop.
+* **O(1) JVM memory** — the application receives H rows regardless of T. A portfolio with 500,000 transactions still produces \~15 rows.
+* **Reduced object graph** — no JPA entity hydration for Transaction objects. No `BigDecimal` intermediate allocations.
+* **DB engine optimization** — the database can use covering indexes, parallel scan operators, and its own buffer pool to process the aggregation far more efficiently than a JVM loop.
 
 **Disadvantages:**
 
-- **Domain purity compromise** — the aggregation logic (which is genuinely domain logic: "how do we compute average purchase price?") now lives in SQL, outside the domain layer. This breaks the hexagonal principle that domain rules should be in domain code.
-- **Rounding portability risk** — SQL `SUM()` and division rounding behavior varies across database engines (MySQL, PostgreSQL, H2). The Java domain centralized rounding with `SCALE = 2` and `RoundingMode.HALF_UP`. In SQL, this must be replicated with `ROUND()` or `CAST()`, introducing a subtle source of inconsistency.
-- **Testing complexity** — the aggregation query cannot be tested in a plain unit test. It requires an integration test with a real (or containerized) database. This increases test suite execution time and CI complexity.
-- **Dual maintenance** — if the definition of "average purchase price" changes (e.g., to exclude certain transaction types), the change must be applied to the SQL query, not to a Java method. Developers must remember that business logic lives in two places.
+* **Domain purity compromise** — the aggregation logic (which is genuinely domain logic: "how do we compute average purchase price?") now lives in SQL, outside the domain layer. This breaks the hexagonal principle that domain rules should be in domain code.
+* **Rounding portability risk** — SQL `SUM()` and division rounding behavior varies across database engines (MySQL, PostgreSQL, H2). The Java domain centralized rounding with `SCALE = 2` and `RoundingMode.HALF_UP`. In SQL, this must be replicated with `ROUND()` or `CAST()`, introducing a subtle source of inconsistency.
+* **Testing complexity** — the aggregation query cannot be tested in a plain unit test. It requires an integration test with a real (or containerized) database. This increases test suite execution time and CI complexity.
+* **Dual maintenance** — if the definition of "average purchase price" changes (e.g., to exclude certain transaction types), the change must be applied to the SQL query, not to a Java method. Developers must remember that business logic lives in two places.
 
 ### 4.5 Integration Testing Implications
 
 With Approach B, the aggregation correctness depends on the SQL query. This means:
 
-- **Unit tests are insufficient** — the query must be executed against a real database engine to verify correctness.
-- **Testcontainers is essential** — use a containerized MySQL (matching production) to run the query in integration tests. H2 in-memory databases have different rounding and type semantics.
-- **Test data setup is heavier** — each test must insert Transaction rows into the database, not just build in-memory lists. This is slower and more verbose.
-- **Rounding edge cases require DB-level verification** — the parameterized rounding tests from Approach A must be rewritten as integration tests that insert transactions, run the query, and assert the results against expected `BigDecimal` values.
+* **Unit tests are insufficient** — the query must be executed against a real database engine to verify correctness.
+* **Testcontainers is essential** — use a containerized MySQL (matching production) to run the query in integration tests. H2 in-memory databases have different rounding and type semantics.
+* **Test data setup is heavier** — each test must insert Transaction rows into the database, not just build in-memory lists. This is slower and more verbose.
+* **Rounding edge cases require DB-level verification** — the parameterized rounding tests from Approach A must be rewritten as integration tests that insert transactions, run the query, and assert the results against expected `BigDecimal` values.
 
----
+***
 
 ## 5. Approach C — Hybrid (DB Pre-Aggregation + Domain Finalization)
 
-[![Approach C — Hybrid](diagrams/Rendered/approachC-sequence.png)](diagrams/Rendered/approachC-sequence.svg)
+[![Approach C — Hybrid](../../../.gitbook/assets/approachC-sequence.png)](https://github.com/alfredorueda/HexaStock/blob/main/doc/tutorial/portfolioReporting/diagrams/Rendered/approachC-sequence.svg)
 
 Source: `./diagrams/approachC-sequence.puml`
 
@@ -311,14 +309,14 @@ The SQL query returns **raw numeric sums without rounding**. The domain service 
 
 The boundary between DB and domain is explicit and intentional:
 
-| Responsibility | Performed by | Why |
-|---|---|---|
-| `SUM(quantity)` for purchases | Database | Commutative addition — no rounding risk, DB is faster |
-| `SUM(quantity * unit_price)` for cost | Database | Multiplication then sum — deterministic in SQL |
-| `SUM(profit)` for realized gain | Database | Same reasoning as above |
-| `cost / quantity` for average price | Domain (Java) | Division requires explicit rounding — `HALF_UP` at scale 2 |
-| Unrealized gain | Domain (Java) | Requires live price + `Holding.getUnrealizedGain()` |
-| Missing price fallback | Domain (Java) | Business decision about what "no price available" means |
+| Responsibility                        | Performed by  | Why                                                        |
+| ------------------------------------- | ------------- | ---------------------------------------------------------- |
+| `SUM(quantity)` for purchases         | Database      | Commutative addition — no rounding risk, DB is faster      |
+| `SUM(quantity * unit_price)` for cost | Database      | Multiplication then sum — deterministic in SQL             |
+| `SUM(profit)` for realized gain       | Database      | Same reasoning as above                                    |
+| `cost / quantity` for average price   | Domain (Java) | Division requires explicit rounding — `HALF_UP` at scale 2 |
+| Unrealized gain                       | Domain (Java) | Requires live price + `Holding.getUnrealizedGain()`        |
+| Missing price fallback                | Domain (Java) | Business decision about what "no price available" means    |
 
 The key principle: **addition and multiplication are safe in SQL; division and rounding must stay in Java.**
 
@@ -326,31 +324,32 @@ The key principle: **addition and multiplication are safe in SQL; division and r
 
 SQL `ROUND()` behavior is vendor-specific:
 
-| Database | `ROUND(2.5, 0)` | Mode |
-|---|---|---|
-| MySQL 8 | `3` | Rounds away from zero |
-| PostgreSQL 15 | `3` | Rounds half up |
-| H2 (test DB) | `3` | Rounds half up |
-| Java `HALF_UP` | `3` | Rounds toward nearest neighbor, ties round up |
-| Java `HALF_EVEN` | `2` | Banker's rounding — different result |
+| Database         | `ROUND(2.5, 0)` | Mode                                          |
+| ---------------- | --------------- | --------------------------------------------- |
+| MySQL 8          | `3`             | Rounds away from zero                         |
+| PostgreSQL 15    | `3`             | Rounds half up                                |
+| H2 (test DB)     | `3`             | Rounds half up                                |
+| Java `HALF_UP`   | `3`             | Rounds toward nearest neighbor, ties round up |
+| Java `HALF_EVEN` | `2`             | Banker's rounding — different result          |
 
 For HexaStock, `HALF_UP` at scale 2 is the defined business rule. Delegating this to SQL would introduce a hidden dependency on the database engine's rounding mode — a dependency that could silently change during a database migration or version upgrade.
 
 By keeping division and rounding in the `HoldingPerformanceCalculator`, the business rule is:
-- **Explicit** — defined as `static final` constants (`SCALE = 2`, `ROUNDING = HALF_UP`)
-- **Testable** — verified by parameterized unit tests without a database
-- **Portable** — identical behavior regardless of the persistence engine
+
+* **Explicit** — defined as `static final` constants (`SCALE = 2`, `ROUNDING = HALF_UP`)
+* **Testable** — verified by parameterized unit tests without a database
+* **Portable** — identical behavior regardless of the persistence engine
 
 ### 5.4 Tradeoff vs Approach B
 
-| Dimension | Approach B (full DB) | Approach C (hybrid) |
-|---|---|---|
-| JVM memory | O(H) | O(H) |
-| Domain purity | Compromised — logic in SQL | Preserved — rounding in Java |
-| Rounding correctness | Depends on DB engine | Guaranteed by Java constants |
-| Testing | Integration-only for aggregation | Unit tests for rounding + integration for sums |
-| Complexity | Simpler (one query, done) | Slightly higher (query + domain finalization) |
-| Maintenance | SQL + Java must agree | SQL does raw sums, Java owns business rules |
+| Dimension            | Approach B (full DB)             | Approach C (hybrid)                            |
+| -------------------- | -------------------------------- | ---------------------------------------------- |
+| JVM memory           | O(H)                             | O(H)                                           |
+| Domain purity        | Compromised — logic in SQL       | Preserved — rounding in Java                   |
+| Rounding correctness | Depends on DB engine             | Guaranteed by Java constants                   |
+| Testing              | Integration-only for aggregation | Unit tests for rounding + integration for sums |
+| Complexity           | Simpler (one query, done)        | Slightly higher (query + domain finalization)  |
+| Maintenance          | SQL + Java must agree            | SQL does raw sums, Java owns business rules    |
 
 Approach C is the **preferred production evolution** from Approach A. Once transaction volume, concurrent reporting requests, heap pressure, or p95/p99 latency become relevant, Approach C preserves domain purity for the sensitive calculations while eliminating the O(T) memory footprint.
 
@@ -375,11 +374,11 @@ public record RawTickerAggregate(
 
 The `HoldingPerformanceCalculator` gains a second method that accepts `RawTickerAggregate` instead of raw transactions, applying the same `SCALE`/`ROUNDING` constants.
 
----
+***
 
 ## 6. Snapshot / CQRS Read Model
 
-[![Snapshot / CQRS Read Model Architecture](diagrams/Rendered/snapshot-architecture.png)](diagrams/Rendered/snapshot-architecture.svg)
+[![Snapshot / CQRS Read Model Architecture](../../../.gitbook/assets/snapshot-architecture.png)](https://github.com/alfredorueda/HexaStock/blob/main/doc/tutorial/portfolioReporting/diagrams/Rendered/snapshot-architecture.svg)
 
 Source: `./diagrams/snapshot-architecture.puml`
 
@@ -414,15 +413,15 @@ snapshotPort.updateSnapshot(portfolioId, ticker, updatedTotals);
 
 **Advantages:**
 
-- **Strong consistency** — the snapshot is always in sync with the write model. No stale reads.
-- **Simple to implement** — no event infrastructure, no message broker, no eventual consistency concerns.
-- **Transactional safety** — if the command fails, the snapshot is not updated (same DB transaction).
+* **Strong consistency** — the snapshot is always in sync with the write model. No stale reads.
+* **Simple to implement** — no event infrastructure, no message broker, no eventual consistency concerns.
+* **Transactional safety** — if the command fails, the snapshot is not updated (same DB transaction).
 
 **Disadvantages:**
 
-- **Write amplification** — every buy/sell operation now includes an additional `UPSERT` to the snapshot table. This increases write latency by the time for one additional SQL statement.
-- **Coupling** — the command side must know about the snapshot table, creating a dependency between the write model and the read model.
-- **Bottleneck risk** — the snapshot row for a given (portfolio_id, ticker) becomes a contention point under high-frequency trading scenarios.
+* **Write amplification** — every buy/sell operation now includes an additional `UPSERT` to the snapshot table. This increases write latency by the time for one additional SQL statement.
+* **Coupling** — the command side must know about the snapshot table, creating a dependency between the write model and the read model.
+* **Bottleneck risk** — the snapshot row for a given (portfolio\_id, ticker) becomes a contention point under high-frequency trading scenarios.
 
 ### 6.3 Asynchronous Event-Driven Alternative
 
@@ -451,14 +450,14 @@ The async model introduces **eventual consistency**: after a buy/sell command co
 
 **Implications for HexaStock:**
 
-- A user who buys stock and immediately navigates to the holdings report may see the **pre-purchase** state.
-- This is generally acceptable for reporting use cases — financial dashboards routinely display data that is seconds or minutes old.
-- It is **not acceptable** for transactional use cases — the sell operation must always use the current portfolio state, never the snapshot.
+* A user who buys stock and immediately navigates to the holdings report may see the **pre-purchase** state.
+* This is generally acceptable for reporting use cases — financial dashboards routinely display data that is seconds or minutes old.
+* It is **not acceptable** for transactional use cases — the sell operation must always use the current portfolio state, never the snapshot.
 
 **Mitigation strategies:**
 
 1. **Read-your-writes consistency** — after a write, the response includes the updated state. The client does not need to re-query the snapshot immediately.
-2. **Versioning** — the snapshot includes a `last_updated_at` timestamp. The client can display "as of [timestamp]" to set expectations.
+2. **Versioning** — the snapshot includes a `last_updated_at` timestamp. The client can display "as of \[timestamp]" to set expectations.
 3. **Synchronous fallback** — if the snapshot is stale beyond a threshold, fall back to Approach A or C for that specific request.
 
 ### 6.5 Reconciliation Strategy
@@ -482,9 +481,9 @@ public void reconcileSnapshots() {
 
 Reconciliation serves multiple purposes:
 
-- **Catches bugs** — if the snapshot update logic has a defect, reconciliation detects and corrects the drift.
-- **Handles missed events** — in the async model, events can be lost (broker outage, consumer crash). Reconciliation is the backstop.
-- **Audit trail** — reconciliation metrics reveal how often drift occurs, indicating the health of the snapshot pipeline.
+* **Catches bugs** — if the snapshot update logic has a defect, reconciliation detects and corrects the drift.
+* **Handles missed events** — in the async model, events can be lost (broker outage, consumer crash). Reconciliation is the backstop.
+* **Audit trail** — reconciliation metrics reveal how often drift occurs, indicating the health of the snapshot pipeline.
 
 The reconciliation frequency depends on the SLA: hourly for dashboards, every few minutes for near-real-time reporting, daily for batch analytics.
 
@@ -492,68 +491,72 @@ The reconciliation frequency depends on the SLA: hourly for dashboards, every fe
 
 The snapshot model adds significant operational surface area:
 
-| Concern | Impact |
-|---|---|
-| Schema migration | Two table structures to maintain (transactions + snapshot) |
-| Deployment ordering | Schema changes to either table require coordinated migration |
-| Monitoring | New metrics needed: snapshot staleness, reconciliation frequency, drift count |
-| Failure modes | New failure scenarios: snapshot corruption, event loss, reconciliation timeout |
-| Testing | Integration tests must verify both write-then-read consistency and reconciliation correctness |
-| Debugging | When a report shows unexpected values, the investigation must determine whether the issue is in the write path, the snapshot update, or the read path |
+| Concern             | Impact                                                                                                                                                |
+| ------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Schema migration    | Two table structures to maintain (transactions + snapshot)                                                                                            |
+| Deployment ordering | Schema changes to either table require coordinated migration                                                                                          |
+| Monitoring          | New metrics needed: snapshot staleness, reconciliation frequency, drift count                                                                         |
+| Failure modes       | New failure scenarios: snapshot corruption, event loss, reconciliation timeout                                                                        |
+| Testing             | Integration tests must verify both write-then-read consistency and reconciliation correctness                                                         |
+| Debugging           | When a report shows unexpected values, the investigation must determine whether the issue is in the write path, the snapshot update, or the read path |
 
 This complexity is justified only when the simpler approaches (A, B, C) are insufficient for the performance or scalability requirements. For most HexaStock deployments (small-to-medium portfolios, low concurrency), Approach A or C is preferable.
 
----
+***
 
 ## 7. Engineering Decision Matrix
 
-| Dimension | Approach A | Approach B | Approach C | Snapshot |
-|---|---|---|---|---|
-| **Time complexity (read)** | O(T) | O(T) in DB, O(H) in app | O(T) in DB, O(H) in app | O(H) in DB and app |
-| **Memory footprint (JVM)** | O(T) — full transaction list | O(H) — projection DTOs only | O(H) — raw aggregate DTOs | O(H) — snapshot rows |
-| **Operational complexity** | Minimal — no extra infrastructure | Low — one new query/port | Low-Medium — new port + finalization | High — snapshot table, sync/async update, reconciliation |
-| **Architectural purity** | ✅ Full — domain logic in domain layer | ⚠️ Partial — aggregation in SQL | ✅ High — raw sums in DB, business rules in Java | ⚠️ Partial — write side must update read model |
-| **Rounding correctness** | ✅ Guaranteed — Java constants | ⚠️ Risk — depends on DB engine | ✅ Guaranteed — Java constants | ✅ If finalization stays in Java |
-| **Concurrency behavior** | Linear heap scaling with request count | Minimal JVM impact | Minimal JVM impact | Snapshot row contention on writes |
-| **Testability** | ✅ Pure unit tests, no DB needed | ⚠️ Integration tests required for query | ✅ Unit tests for rounding + integration for sums | ⚠️ Complex — write path, snapshot update, reconciliation all need testing |
-| **Production suitability** | ⚠️ Educational, early-stage, and low-concurrency reporting; increasingly questionable beyond tens of thousands of transactions per portfolio unless realistic load tests confirm acceptable heap usage, GC behavior, and p95/p99 latency | ✅ Up to millions of transactions | ✅ Preferred production evolution — up to millions of transactions | ✅ Unlimited — read is O(H) always |
-| **Academic suitability** | ✅ Excellent — clear, self-contained, testable | ✅ Good — teaches DB-app boundary | ✅ Very good — teaches architectural tradeoffs | ⚠️ Advanced — requires event/CQRS knowledge |
-| **Implementation effort** | ✅ Already done | Low — one query + port + adapter | Medium — query + port + calculator method | High — table, updater, reconciliation, monitoring |
+| Dimension                  | Approach A                                                                                                                                                                                                                               | Approach B                              | Approach C                                                        | Snapshot                                                                  |
+| -------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------- | ----------------------------------------------------------------- | ------------------------------------------------------------------------- |
+| **Time complexity (read)** | O(T)                                                                                                                                                                                                                                     | O(T) in DB, O(H) in app                 | O(T) in DB, O(H) in app                                           | O(H) in DB and app                                                        |
+| **Memory footprint (JVM)** | O(T) — full transaction list                                                                                                                                                                                                             | O(H) — projection DTOs only             | O(H) — raw aggregate DTOs                                         | O(H) — snapshot rows                                                      |
+| **Operational complexity** | Minimal — no extra infrastructure                                                                                                                                                                                                        | Low — one new query/port                | Low-Medium — new port + finalization                              | High — snapshot table, sync/async update, reconciliation                  |
+| **Architectural purity**   | ✅ Full — domain logic in domain layer                                                                                                                                                                                                    | ⚠️ Partial — aggregation in SQL         | ✅ High — raw sums in DB, business rules in Java                   | ⚠️ Partial — write side must update read model                            |
+| **Rounding correctness**   | ✅ Guaranteed — Java constants                                                                                                                                                                                                            | ⚠️ Risk — depends on DB engine          | ✅ Guaranteed — Java constants                                     | ✅ If finalization stays in Java                                           |
+| **Concurrency behavior**   | Linear heap scaling with request count                                                                                                                                                                                                   | Minimal JVM impact                      | Minimal JVM impact                                                | Snapshot row contention on writes                                         |
+| **Testability**            | ✅ Pure unit tests, no DB needed                                                                                                                                                                                                          | ⚠️ Integration tests required for query | ✅ Unit tests for rounding + integration for sums                  | ⚠️ Complex — write path, snapshot update, reconciliation all need testing |
+| **Production suitability** | ⚠️ Educational, early-stage, and low-concurrency reporting; increasingly questionable beyond tens of thousands of transactions per portfolio unless realistic load tests confirm acceptable heap usage, GC behavior, and p95/p99 latency | ✅ Up to millions of transactions        | ✅ Preferred production evolution — up to millions of transactions | ✅ Unlimited — read is O(H) always                                         |
+| **Academic suitability**   | ✅ Excellent — clear, self-contained, testable                                                                                                                                                                                            | ✅ Good — teaches DB-app boundary        | ✅ Very good — teaches architectural tradeoffs                     | ⚠️ Advanced — requires event/CQRS knowledge                               |
+| **Implementation effort**  | ✅ Already done                                                                                                                                                                                                                           | Low — one query + port + adapter        | Medium — query + port + calculator method                         | High — table, updater, reconciliation, monitoring                         |
 
----
+***
 
 ## 8. Choosing the Right Approach
 
 There is no universally correct choice. The decision depends on measurable characteristics of the deployment:
 
 **Stay with Approach A when:**
-- Transaction count per portfolio is modest — typically in the low tens of thousands or below — **and** realistic load tests confirm that heap usage, GC behavior, and p95/p99 latency remain acceptable.
-- Concurrent reporting requests are low.
-- The implementation is primarily educational or early-stage.
-- Domain purity and unit-testability are currently more important than query-side optimization.
-- The team has not yet observed memory pressure, latency outliers, or database hydration bottlenecks.
-- Operational complexity must be minimized.
+
+* Transaction count per portfolio is modest — typically in the low tens of thousands or below — **and** realistic load tests confirm that heap usage, GC behavior, and p95/p99 latency remain acceptable.
+* Concurrent reporting requests are low.
+* The implementation is primarily educational or early-stage.
+* Domain purity and unit-testability are currently more important than query-side optimization.
+* The team has not yet observed memory pressure, latency outliers, or database hydration bottlenecks.
+* Operational complexity must be minimized.
 
 (Do not interpret 50K or 100K as a universal safe threshold. The right number depends on heap size, GC, concurrency, and the cost of JPA hydration in your environment.)
 
 **Move to Approach C (hybrid) — the preferred production evolution — when:**
-- Transaction count per portfolio grows into the tens of thousands or beyond.
-- Memory pressure, allocation rate, or GC pause frequency is observed under concurrent load.
-- p95/p99 latency on the reporting endpoint becomes a concern.
-- Domain purity must be preserved (rounding and business rules stay in Java).
-- The team is comfortable with integration tests for the DB layer.
+
+* Transaction count per portfolio grows into the tens of thousands or beyond.
+* Memory pressure, allocation rate, or GC pause frequency is observed under concurrent load.
+* p95/p99 latency on the reporting endpoint becomes a concern.
+* Domain purity must be preserved (rounding and business rules stay in Java).
+* The team is comfortable with integration tests for the DB layer.
 
 **Move to Approach B when:**
-- Approach C's additional complexity (two-step processing) is not justified
-- The team accepts that aggregation logic lives in SQL
-- The database engine's rounding behavior has been verified to match the domain requirements
-- Rapid implementation is more important than architectural purity
+
+* Approach C's additional complexity (two-step processing) is not justified
+* The team accepts that aggregation logic lives in SQL
+* The database engine's rounding behavior has been verified to match the domain requirements
+* Rapid implementation is more important than architectural purity
 
 **Move to Snapshot/CQRS when:**
-- Read latency SLAs require sub-100ms at p99 regardless of transaction volume
-- The reporting endpoint is called orders of magnitude more often than the write endpoints
-- The team has experience with event-driven architectures and is willing to accept the operational complexity
-- Reconciliation and monitoring infrastructure are already in place or budgeted for
+
+* Read latency SLAs require sub-100ms at p99 regardless of transaction volume
+* The reporting endpoint is called orders of magnitude more often than the write endpoints
+* The team has experience with event-driven architectures and is willing to accept the operational complexity
+* Reconciliation and monitoring infrastructure are already in place or budgeted for
 
 **How to validate the decision:**
 
@@ -562,29 +565,28 @@ There is no universally correct choice. The decision depends on measurable chara
 3. **Identify the bottleneck** — if the bottleneck is the price API (likely), optimize there first (caching, batching). If the bottleneck is transaction loading or heap pressure, move to C.
 4. **Re-measure** — after switching approaches, repeat the load test and compare. The improvement should be measurable, not theoretical.
 
----
+***
 
 ## 9. References
 
 **Project source code:**
 
-- `HoldingPerformanceCalculator` — [`src/main/java/.../model/service/HoldingPerformanceCalculator.java`](../../../src/main/java/cat/gencat/agaur/hexastock/model/service/HoldingPerformanceCalculator.java)
-- `ReportingService` — [`src/main/java/.../application/service/ReportingService.java`](../../../src/main/java/cat/gencat/agaur/hexastock/application/service/ReportingService.java)
-- `HoldingPerformanceCalculatorTest` — [`src/test/java/.../model/service/HoldingPerformanceCalculatorTest.java`](../../../src/test/java/cat/gencat/agaur/hexastock/model/service/HoldingPerformanceCalculatorTest.java)
-- `ReportingServiceTest` — [`src/test/java/.../application/service/ReportingServiceTest.java`](../../../src/test/java/cat/gencat/agaur/hexastock/application/service/ReportingServiceTest.java)
+* `HoldingPerformanceCalculator` — [`src/main/java/.../model/service/HoldingPerformanceCalculator.java`](https://github.com/alfredorueda/HexaStock/blob/main/src/main/java/cat/gencat/agaur/hexastock/model/service/HoldingPerformanceCalculator.java)
+* `ReportingService` — [`src/main/java/.../application/service/ReportingService.java`](https://github.com/alfredorueda/HexaStock/blob/main/src/main/java/cat/gencat/agaur/hexastock/application/service/ReportingService.java)
+* `HoldingPerformanceCalculatorTest` — [`src/test/java/.../model/service/HoldingPerformanceCalculatorTest.java`](https://github.com/alfredorueda/HexaStock/blob/main/src/test/java/cat/gencat/agaur/hexastock/model/service/HoldingPerformanceCalculatorTest.java)
+* `ReportingServiceTest` — [`src/test/java/.../application/service/ReportingServiceTest.java`](https://github.com/alfredorueda/HexaStock/blob/main/src/test/java/cat/gencat/agaur/hexastock/application/service/ReportingServiceTest.java)
 
 **Related tutorials in this project:**
 
-- [Selling Stocks — Hexagonal Architecture and DDD](../sellStocks/SELL-STOCK-TUTORIAL.md)
-- [Concurrency Control: Pessimistic Locking and Optimistic Concurrency](../CONCURRENCY-PESSIMISTIC-LOCKING.md)
-- [Dependency Inversion in Stock Selling](../DEPENDENCY-INVERSION-STOCK-SELLING.md)
+* [Selling Stocks — Hexagonal Architecture and DDD](../sellStocks/SELL-STOCK-TUTORIAL.md)
+* [Concurrency Control: Pessimistic Locking and Optimistic Concurrency](../CONCURRENCY-PESSIMISTIC-LOCKING.md)
+* [Dependency Inversion in Stock Selling](../DEPENDENCY-INVERSION-STOCK-SELLING.md)
 
 **External references:**
 
-- Fowler, Martin. "CQRS." *martinfowler.com*, 2011. https://martinfowler.com/bliki/CQRS.html
-- Goetz, Brian, et al. *Java Concurrency in Practice.* Addison-Wesley, 2006. (Shared pool semantics of `ForkJoinPool`.)
-- Mihalcea, Vlad. *High-Performance Java Persistence.* 2nd ed., self-published, 2020. (JPA query projections, DTO mapping, entity hydration cost.)
-- Oracle. *BigDecimal JavaDoc (Java 21).* https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/math/BigDecimal.html
-- Vernon, Vaughn. *Implementing Domain-Driven Design.* Addison-Wesley, 2013. (Ch. 4 on architecture and CQRS.)
-- Young, Greg. "CQRS Documents." 2010. https://cqrs.files.wordpress.com/2010/11/cqrs_documents.pdf
-
+* Fowler, Martin. "CQRS." _martinfowler.com_, 2011. https://martinfowler.com/bliki/CQRS.html
+* Goetz, Brian, et al. _Java Concurrency in Practice._ Addison-Wesley, 2006. (Shared pool semantics of `ForkJoinPool`.)
+* Mihalcea, Vlad. _High-Performance Java Persistence._ 2nd ed., self-published, 2020. (JPA query projections, DTO mapping, entity hydration cost.)
+* Oracle. _BigDecimal JavaDoc (Java 21)._ https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/math/BigDecimal.html
+* Vernon, Vaughn. _Implementing Domain-Driven Design._ Addison-Wesley, 2013. (Ch. 4 on architecture and CQRS.)
+* Young, Greg. "CQRS Documents." 2010. https://cqrs.files.wordpress.com/2010/11/cqrs\_documents.pdf

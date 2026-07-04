@@ -12,16 +12,16 @@ For commercial use, including commercial training, paid courses, corporate progr
 
 ## What This Covers
 
-The CC BY-NC 4.0 license applies to the book and editorial written content published through the [HexaStock GitBook](https://alfredo-rueda-unsain.gitbook.io/alfredo-rueda-unsain-docs) and the documentation files in the [`doc/`](../../doc/) directory that constitute the book's chapters, tutorials, and supporting prose.
+The CC BY-NC 4.0 license applies to the book and editorial written content published through the [HexaStock GitBook](https://alfredo-rueda-unsain.gitbook.io/alfredo-rueda-unsain-docs) and the documentation files in the [`doc/`](https://github.com/alfredorueda/HexaStock/blob/main/doc/README.md) directory that constitute the book's chapters, tutorials, and supporting prose.
 
-It does **not** apply to source code, configuration files, build scripts, or other software artifacts, which remain under the [Apache License 2.0](../../LICENSE).
+It does **not** apply to source code, configuration files, build scripts, or other software artifacts, which remain under the [Apache License 2.0](https://github.com/alfredorueda/HexaStock/blob/main/LICENSE/README.md).
 
 ## Scope Summary
 
-| Content | License |
-|---------|---------|
-| Book chapters, tutorials, editorial prose | CC BY-NC 4.0 |
-| Source code, configuration, build files | [Apache License 2.0](../../LICENSE) |
+| Content                                   | License                                                                                     |
+| ----------------------------------------- | ------------------------------------------------------------------------------------------- |
+| Book chapters, tutorials, editorial prose | CC BY-NC 4.0                                                                                |
+| Source code, configuration, build files   | [Apache License 2.0](https://github.com/alfredorueda/HexaStock/blob/main/LICENSE/README.md) |
 
 ## Dual-License Model
 
