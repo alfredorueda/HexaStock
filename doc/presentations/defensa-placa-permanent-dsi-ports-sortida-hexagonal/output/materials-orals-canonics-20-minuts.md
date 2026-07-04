@@ -28,7 +28,7 @@ La classe que presento porta per títol `Disseny de ports de sortida en arquitec
 
 Abans d'entrar en el contingut tècnic, voldria fer una precisió de context. A la documentació de la convocatòria he incorporat un informe acreditatiu de la meva activitat de consultoria especialitzada per a la Generalitat de Catalunya, concretament l'Agència de Gestió d'Ajuts Universitaris i de Recerca. [pausa breu]
 
-Ho explico perquè em semblava molt enriquidor plantejar aquesta sessió com una trobada entre dues dimensions.
+Ho explico perquè em sembla molt enriquidor plantejar aquesta sessió com una trobada entre dues dimensions.
 
 D'una banda, la dimensió acadèmica: l'assignatura de Disseny de Sistemes d'Informació, on treballem conceptes com arquitectura hexagonal, ports, adaptadors i inversió de dependències.
 
@@ -42,15 +42,14 @@ La sessió se situa dins Disseny de Sistemes d'Informació, una assignatura de t
 
 El pla docent de l'assignatura explica que s'hi treballa una visió global d'arquitectures de sistemes d'informació: arquitectures per capes, arquitectures hexagonals i arquitectures basades en microserveis. Dins el bloc d'arquitectures hexagonals hi apareixen explícitament ports i adaptadors. [to calmat, explicatiu]
 
-Per tant, aquesta no és una sessió afegida artificialment al temari. És una classe versemblant dins l'assignatura. [pausa breu]
 
 ### Diapositiva 3. Objectiu de la sessió - 0:55
 
 Abans d'entrar en el cas, deixo formulat l'objectiu de la sessió. [pausa breu]
 
-El principi de treball és aquest: el cas d'ús necessita una capacitat, no una tecnologia. [mirar el tribunal]
+El principi de treball és aquest: el cas d'ús necessita una capacitat, no una tecnologia específica. [mirar el tribunal]
 
-Per tant, el que aprendrem és a fer tres operacions: identificar una necessitat externa del cas d'ús, expressar-la com a port de sortida i implementar-la mitjançant adaptadors substituïbles. [assenyalar les tres caixes]
+La sessió d'avui s’organitza al voltant de tres decisions de disseny: identificar una necessitat externa del cas d'ús, expressar-la com a port de sortida i implementar-la mitjançant adaptadors substituïbles. [assenyalar les tres caixes]
 
 No desenvoluparé encara tota l'abstracció. Primer veurem el problema en un cas real d'administració pública, i a partir d'aquí formularem la decisió arquitectònica. [pausa breu]
 
@@ -62,7 +61,7 @@ En un procediment de beca, una sol·licitud dona lloc a un expedient. Aquest exp
 
 La part que ens interessa és l'avaluació econòmica. En aquest punt es comproven aspectes com la renda familiar i el patrimoni. Quan no s'acredita el compliment dels requisits econòmics, l'expedient no obté una valoració favorable en aquesta fase. [pausa breu]
 
-La idea docent important és que aquí encara no hem parlat de SOAP, ni de REST, ni de PICA, ni de cap base de dades. Estem parlant de la necessitat funcional del procediment: per poder aplicar uns criteris econòmics, el sistema necessita dades fiables sobre renda i patrimoni.
+La idea docent important és que aquí encara no hem parlat de SOAP, ni de REST, ni de cap base de dades. Estem parlant de la necessitat funcional del procediment: per poder aplicar uns criteris econòmics, el sistema necessita dades fiables sobre renda i patrimoni.
 
 Aquest pas és essencial. Si comencem directament per la tecnologia, correm el risc de construir el cas d'ús al voltant de la integració. En canvi, si comencem pel procediment, podem distingir entre la decisió administrativa que volem modelar i el mecanisme tècnic que ens proporciona la informació.
 
@@ -78,7 +77,7 @@ La distinció clau és aquesta: el procediment necessita informació administrat
 
 Això no vol dir que el mecanisme tècnic concret no sigui important. Ho és, i molt. Però encara no som en aquest nivell de decisió. En aquest moment, el que volem destacar és que el cas d'ús ha d'expressar una necessitat del procediment, no una dependència tecnològica concreta.
 
-El cas d'ús hauria de poder formular-se així: `necessito informació patrimonial avaluable`. Encara no estem decidint si aquesta informació arribarà a través de PICA, d'un servei SOAP, d'una API REST, d'una base de dades corporativa o d'un altre mecanisme futur.
+El cas d'ús hauria de poder formular-se així: `necessito informació patrimonial d'un ciutadà`. Encara no estem decidint si aquesta informació arribarà a través de PICA, d'un servei SOAP, d'una API REST, d'una base de dades corporativa o d'un altre mecanisme futur.
 
 Quan aquesta separació no es respecta, apareix el problema arquitectònic que veurem ara.
 
@@ -108,7 +107,7 @@ Una altra cosa és la dependència de codi: el cas d'ús depèn del port, i l'ad
 
 Per situar bé el concepte, quan aquí parlem d'un port no estem parlant d'un element físic ni d'un detall d'infraestructura. En termes de Java, aquest port s'expressa com una interfície.
 
-És a dir, el cas d'ús no depèn directament d'una base de dades, d'una API externa o d'un client concret. El cas d'ús depèn d'una interfície que defineix què necessita: per exemple, obtenir una determinada informació, consultar un expedient o recuperar unes dades administratives.
+És a dir, el cas d'ús no depèn directament d'una base de dades, d'una API externa o d'un client concret. El cas d'ús depèn d'una interfície que defineix què necessita: per exemple, obtenir una determinada informació econòmica, consultar un expedient o recuperar unes dades administratives.
 
 Després, l'adaptador és la peça que implementa aquesta interfície i sap com anar realment a buscar aquella informació al sistema extern corresponent.
 
@@ -138,8 +137,6 @@ Aquesta mateixa estructura la podem transferir ara a un domini diferent: una apl
 ### Diapositiva 9. Transferència a domini financer - 1:35
 
 Ara fem un canvi de domini. Ja no parlem d'una sol·licitud de beca, sinó d'una aplicació de gestió d'una cartera d'inversió personal. [assenyalar el títol]
-
-El diagrama que veiem correspon a HexaStock. Ara, però, no em centraré en els noms concrets; el que m'interessa és reconèixer el mateix patró: cas d'ús, port de sortida i adaptadors substituïbles.
 
 Imaginem un cas d'ús molt concret: vendre accions d'una cartera. Per executar aquesta operació correctament, l'aplicació pot necessitar consultar el preu actual de l'acció que l'usuari vol vendre.
 
