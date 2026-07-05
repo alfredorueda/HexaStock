@@ -31,27 +31,31 @@ En aquests deu minuts no voldria fer una lectura cronològica del currículum. E
 
 La meva trajectòria neix en la indústria del software, creix a través de la docència i la formació, madura amb la recerca doctoral i troba al TecnoCampus un espai molt coherent per continuar desenvolupant-se.
 
-Aquest és el recorregut que presentaré: primer, la base professional en enginyeria i consultoria; després, el descobriment clar de la vocació docent; a continuació, el pas a la universitat i al TecnoCampus; i finalment, la internacionalització, el doctorat i el projecte de futur que voldria consolidar.
+Aquest és el recorregut que presentaré: primer, la base professional en enginyeria i consultoria; després, el descobriment clar de la vocació docent; a continuació, el pas a la universitat i al TecnoCampus; i finalment, la consultoria i la formació internacional, el doctorat i el projecte de futur que voldria consolidar.
 
 ### Diapositiva 2. Primera etapa: enginyeria de software i consultoria - 1:40
 
 La primera etapa de la meva trajectòria és una etapa d'indústria del software. [to calmat]
 
-A Vida Software vaig treballar en un component del sistema operatiu Symbian orientat a incorporar interacció per veu en aplicacions mòbils. És a dir, no era una aplicació final, sinó un component que permetia que aplicacions Nokia/Symbian poguessin utilitzar funcionalitats de veu.
+A Vida Software vaig viure una etapa tècnicament molt profunda, molt de laboratori i producte. Treballava en un component del sistema operatiu Symbian orientat a incorporar interacció per veu en aplicacions mòbils. És a dir, no era una aplicació final, sinó una peça que permetia que aplicacions Nokia/Symbian poguessin utilitzar funcionalitats de veu.
 
 Era un context anterior a l'smartphone actual, desenvolupat en C/C++, amb restriccions fortes de rendiment, memòria i dispositiu. Aquesta tecnologia es va presentar en entorns internacionals com el 3GSM / Mobile World Congress, a Cannes i Barcelona, i formava part d'un context d'innovació vinculat també a una patent internacional de Vida Software sobre interfícies d'usuari.
 
-No cal entrar ara en el detall tècnic. El que és important és que va ser una etapa molt formativa: producte, sistema operatiu, restriccions tècniques fortes i innovació aplicada.
+Aquesta etapa em va confirmar una cosa important: tècnicament podia treballar en entorns exigents. Però també em va fer prendre consciència d'una altra necessitat. Era una feina molt centrada en laboratori, producte i resolució tècnica, i jo trobava a faltar una dimensió més comunicativa, més relacional, més vinculada a explicar, compartir coneixement i treballar amb persones.
 
-Després, a openTrends, vaig fer un pas cap a la consultoria, Java, els sistemes d'informació, els clients i els equips. Allà el repte ja no era només resoldre bé un problema tècnic, sinó entendre una necessitat, comunicar-la, documentar-la i treballar amb altres perfils. [pausa breu]
+El pas a openTrends va néixer d'aquesta presa de consciència. Una persona amb qui havia treballat a Vida Software i que coneixia bé aquesta inquietud em va obrir la porta a un entorn més orientat a consultoria, clients, equips i sistemes d'informació. Va ser una evolució natural: mantenir la base tècnica, però començar a desenvolupar amb més força la comunicació i el treball col·laboratiu. [pausa breu]
 
-Amb el temps, vaig anar veient que una part del meu treball que m'interessava especialment era formar persones més joves, acompanyar perfils més junior i ajudar a fer comprensible allò que, al principi, sembla complex.
+En aquell entorn em vaig sentir més a prop d'aquesta dimensió comunicativa: entendre necessitats, explicar decisions tècniques, parlar amb clients i treballar amb altres perfils. Però el punt més clar va aparèixer quan tenia l'oportunitat de formar perfils més junior.
 
-Aquesta intuïció és la que obriria la porta a la següent etapa.
+Aquells moments eren els que més gaudia: compartir coneixement tècnic, ordenar-lo perquè fos comprensible, acompanyar algú que començava i veure com guanyava autonomia. Aquí la comunicació ja no era només una eina professional; començava a convertir-se en una pràctica docent.
+
+Mirat amb perspectiva, aquest patró s'ha repetit en altres moments de la meva trajectòria: els canvis importants han estat possibles gràcies a relacions professionals de confiança.
+
+Aquesta presa de consciència és la que em va portar a estudiar el Màster de Formació del Professorat i, després, a exercir com a docent en l'àmbit de la Formació Professional.
 
 ### Diapositiva 3. Formació Professional: el descobriment clar de la vocació docent - 1:30
 
-El pas a la docència no va ser improvisat. Va venir acompanyat del Màster de Formació del Professorat i d'una decisió vocacional. [pausa breu]
+Per això, el pas a la docència no va ser improvisat. Va venir d'una inquietud que ja havia anat apareixent dins la indústria: explicar millor, compartir coneixement i acompanyar persones en el seu procés d'aprenentatge. [pausa breu]
 
 A la Formació Professional vaig trobar una dimensió que buscava des de feia temps: l'aula, la relació directa amb l'alumnat i la responsabilitat d'acompanyar processos d'aprenentatge.
 
@@ -67,9 +71,11 @@ La Salle em va permetre entrar en un entorn universitari tècnicament exigent. [
 
 Allà vaig poder fer docència en assignatures vinculades a l'enginyeria de software, sistemes operatius i desenvolupament d'aplicacions. Va ser una etapa molt enriquidora, perquè em va permetre portar a l'aula coneixement tècnic avançat i experiència professional prèvia.
 
-Al mateix temps, també es va obrir una necessitat de coherència vital i professional. Amb el trasllat familiar a Llavaneres i amb dos fills, la conciliació va passar a ser un element molt rellevant. No ho plantejo com una queixa, sinó com una realitat: una trajectòria acadèmica sostenible també ha de poder encaixar amb la vida familiar. [mirada al tribunal]
+Al cap d'un temps, també es va obrir una necessitat de coherència vital i professional. Amb el trasllat familiar a Llavaneres i amb dos fills, era important poder construir una trajectòria acadèmica sostenible i, alhora, cuidar una bona conciliació familiar. [mirada al tribunal]
 
-En aquest context, el contacte amb l'Ester Bernadó va ser un pont acadèmic molt important cap al TecnoCampus. Ester representava una figura de referència per la seva trajectòria acadèmica a La Salle i pel seu paper de direcció acadèmica al TecnoCampus.
+Ho vaig parlar amb el meu coordinador i amb el meu director a La Salle. Els vaig plantejar aquesta necessitat: continuar creixent acadèmicament, però en un entorn que també fos sostenible des del punt de vista vital i familiar.
+
+Va ser en aquestes converses que em van parlar de l'Ester Bernadó. En aquell moment era directora acadèmica de l'Escola Politècnica del TecnoCampus, i me'n van destacar tant la trajectòria acadèmica com la feina que havia fet a La Salle. Per això, el contacte amb l'Ester no apareix de manera casual: va ser un pont acadèmic molt concret cap al TecnoCampus.
 
 Després d'aquell contacte, al cap d'un temps vaig començar com a professor associat al TecnoCampus. I des del primer moment vaig percebre que allà podien confluir dimensions que fins aleshores havien avançat una mica separades: docència universitària, enginyeria de software, proximitat territorial i projecte vital.
 
@@ -91,9 +97,9 @@ Projectes com l'ABP a Laboratori d'Aplicacions d'Internet, el projecte SQAI o He
 
 I això connecta directament amb la segona part de la defensa: la classe magistral sobre ports de sortida en arquitectura hexagonal no és una peça aïllada, sinó una mostra d'aquest punt de trobada entre docència universitària, enginyeria de software i transferència.
 
-### Diapositiva 6. Internacionalització, recerca doctoral i projecte de futur - 2:05
+### Diapositiva 6. Consultoria i formació internacional, recerca doctoral i projecte de futur - 2:05
 
-En paral·lel, Neueda ha obert una etapa d'internacionalització professional. [transició]
+En paral·lel, Neueda ha obert una etapa de consultoria i formació internacional. [transició]
 
 La formació tècnica en anglès, en programes vinculats a institucions financeres internacionals, m'ha ajudat a consolidar maduresa com a instructor, capacitat de comunicació tècnica i connexió amb necessitats reals de la indústria.
 
@@ -129,9 +135,10 @@ Moltes gràcies.
 * No era una app final: permetia que aplicacions Nokia/Symbian incorporessin veu.
 * C/C++, rendiment, memòria i dispositiu com a senyals de profunditat tècnica.
 * 3GSM / Mobile World Congress i patent com a context d'innovació.
-* openTrends: Java, sistemes d'informació, clients, equips.
-* Idea clau: de competència tècnica a comunicació i acompanyament.
-* Transició: aquesta intuïció porta a la docència.
+* openTrends: consultoria, clients, equips i sistemes d'informació.
+* Punt clau: el que més gaudia era formar perfils més junior.
+* La comunicació passa de ser eina professional a pràctica docent.
+* Transició: Màster de Professorat i entrada a la Formació Professional.
 
 ### 3. Stucom - 1:30
 
@@ -144,8 +151,10 @@ Moltes gràcies.
 ### 4. La Salle i pont cap al TecnoCampus - 1:45
 
 * La Salle: universitat i exigència tècnica.
-* Conciliació: Llavaneres, família, sostenibilitat vital.
-* Ester Bernadó com a pont acadèmic.
+* Trajectòria acadèmica sostenible i bona conciliació familiar.
+* Conversa amb coordinador i director a La Salle.
+* Ester Bernadó: directora acadèmica de l'Escola Politècnica del TecnoCampus.
+* Ester com a pont acadèmic concret, no com a aparició casual.
 * TecnoCampus: docència universitària, proximitat i projecte vital.
 * Frase clau: el desig de consolidar-se ve de lluny.
 
@@ -160,7 +169,7 @@ Moltes gràcies.
 
 ### 6. Neueda, doctorat i futur - 2:05
 
-* Neueda: internacionalització, anglès, formació tècnica i indústria.
+* Neueda: consultoria i formació internacional, anglès tècnic i indústria.
 * Doctorat UDIMA: Educació i Tecnologia.
 * Tesi: empatia, escolta activa i comunicació assertiva en Enginyeria de Software amb ABP.
 * Futur: docència, recerca, innovació, transferència i acompanyament.
