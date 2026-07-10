@@ -156,7 +156,7 @@ No depèn de proveïdors concrets
 ```
 
 Imatge:
-`assets/hexastock-sellstocks-arquitectura-vpd.png`
+`assets/hexastock-hexagonal-code-dependencies.png`
 
 Funció oral:
 Traslladar el patró del cas AGAUR a un domini financer: el cas d'ús necessita un preu, no un proveïdor concret.

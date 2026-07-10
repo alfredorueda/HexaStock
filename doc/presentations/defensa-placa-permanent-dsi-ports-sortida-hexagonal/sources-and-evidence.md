@@ -143,7 +143,7 @@ No s'ha de formular com una afirmació sobre endpoints interns, protocols exacte
 - Domini ric: `Portfolio`, `Holding`, `Lot`, `SellResult`, `Price`, `Ticker`, `ShareQuantity`, `StockPrice`.
 - Wiring: `bootstrap/src/main/java/cat/gencat/agaur/hexastock/config/SpringAppConfig.java`.
 - Perfils documentats: `finhub`, `alphaVantage`, `mockfinhub`, combinables amb `jpa` o `mongodb`.
-- Diagrama d'arquitectura del tutorial Sell Stocks incorporat a la presentació: `assets/hexastock-sellstocks-arquitectura-vpd.png`.
+- Diagrama de dependències de codi del tutorial Sell Stocks incorporat a la presentació: `assets/hexastock-hexagonal-code-dependencies.png`.
 
 **Flux confirmat**
 `PortfolioStockOperationsService.sellStock(...)` recupera el portfolio, consulta `StockPriceProviderPort.fetchStockPrice(ticker)`, extreu `Price`, invoca `portfolio.sell(ticker, quantity, price)`, desa el portfolio i registra la transacció.
@@ -156,13 +156,13 @@ No s'ha de formular com una afirmació sobre endpoints interns, protocols exacte
 
 **Imatge incorporada**
 
-`https://raw.githubusercontent.com/alfredorueda/HexaStock/refs/heads/main/doc/tutorial/sellStocks/diagrams/Rendered/HexaStock_SellStocks.vpd.png`
+`https://raw.githubusercontent.com/alfredorueda/HexaStock/refs/heads/main/doc/tutorial/sellStocks/diagrams/Rendered/HexaStock_Hexagonal_Diagram_Code_Dependencies.png`
 
 **Informació utilitzada**
 - El tutorial de venda d'accions traça el cas d'ús de punta a punta.
 - Documenta el paper del controller, port d'entrada, servei d'aplicació, ports de sortida, domini i adaptadors.
 - Presenta el cas de venda com a exemple de DDD, arquitectura hexagonal i especificació executable.
-- El diagrama `HexaStock_SellStocks.vpd.png` s'utilitza com a visual principal per mostrar la separació entre adaptadors, ports, servei d'aplicació, domini i APIs externes de preus.
+- El diagrama `HexaStock_Hexagonal_Diagram_Code_Dependencies.png` s'utilitza com a visual principal per mostrar les dependències de codi, la independència del domini i la implementació dels ports per part dels adaptadors.
 
 **Nota**
 El codi local s'ha prioritzat com a font principal perquè pot contenir canvis més recents.

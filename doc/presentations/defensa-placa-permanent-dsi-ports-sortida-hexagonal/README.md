@@ -28,7 +28,7 @@ Subtítol:
 - `assets/evidencies/informe-acreditatiu-agaur-arquitectura-hexagonal.pdf`: informe AGAUR incorporat com a evidència documental.
 - `assets/evidencies/pla-docent-dsi-103322-2025-26.pdf`: guia docent oficial de Disseny de Sistemes d'Informació 2025/26.
 - `assets/logotip-oficial-tecnocampus-upf-horitzontal-color.png`: logotip descarregat de la pàgina oficial d'imatge corporativa del TecnoCampus.
-- `assets/hexastock-sellstocks-arquitectura-vpd.png`: diagrama del tutorial HexaStock Sell Stocks incorporat com a visual principal de la diapositiva HexaStock.
+- `assets/hexastock-hexagonal-code-dependencies.png`: diagrama de dependències de codi del tutorial HexaStock Sell Stocks incorporat com a visual principal de la diapositiva HexaStock.
 
 ## Com regenerar els diagrames
 

@@ -5,7 +5,7 @@ Fonts canòniques utilitzades:
 * `IMPORTANTE_MANUAL_defensa-dsi-ports-sortida-hexagonal.pptx`
 * `informe-acreditatiu-agaur-arquitectura-hexagonal.pdf`
 * `pla-docent-dsi-103322-2025-26.pdf`
-* `HexaStock_SellStocks.vpd` i el seu render PNG equivalent
+* `HexaStock_Hexagonal_Diagram_Code_Dependencies.png` i la seva còpia d'assets per a la presentació
 * `Get Your Hands Dirty on Clean Architecture.pdf`
 
 Documents antics ignorats com a font: `outline.md`, `slide-by-slide.md`, `guió-oral-20-minuts.md` i altres esborranys previs.

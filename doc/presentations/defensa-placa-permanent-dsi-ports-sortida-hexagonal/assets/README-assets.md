@@ -36,13 +36,13 @@ S'utilitza per ancorar la microlliçó dins l'assignatura oficial 103322 - Disse
 
 Fitxer incorporat:
 
-`hexastock-sellstocks-arquitectura-vpd.png`
+`hexastock-hexagonal-code-dependencies.png`
 
 Origen:
 
-`https://raw.githubusercontent.com/alfredorueda/HexaStock/refs/heads/main/doc/tutorial/sellStocks/diagrams/Rendered/HexaStock_SellStocks.vpd.png`
+`https://raw.githubusercontent.com/alfredorueda/HexaStock/refs/heads/main/doc/tutorial/sellStocks/diagrams/Rendered/HexaStock_Hexagonal_Diagram_Code_Dependencies.png`
 
-S'utilitza com a visual principal de la diapositiva 8 per representar l'arquitectura hexagonal del cas Sell Stocks i el port de sortida `StockPriceProviderPort`.
+S'utilitza com a visual principal de la diapositiva 8 per representar les dependències de codi del cas Sell Stocks, la independència del domini i el port de sortida `StockPriceProviderPort`.
 
 ## Marcador
 
