@@ -83,7 +83,7 @@ Before tracing the sell-stock flow through code, this section introduces the lay
 
 The following diagram shows HexaStock's hexagonal architecture for the sell-stock use case, mapping each Maven module to its architectural role:
 
-![HexaStock Hexagonal Architecture](https://github.com/alfredorueda/HexaStock/blob/main/doc/tutorial/sellStocks/diagrams/Rendered/HexaStock_SellStocks.vpd.png?raw=true)
+[![HexaStock Hexagonal Architecture Code Dependencies](../../../.gitbook/assets/hexastock-hexagonal-code-dependencies.png)](https://github.com/alfredorueda/HexaStock/blob/main/doc/tutorial/sellStocks/diagrams/Rendered/HexaStock_Hexagonal_Diagram_Code_Dependencies.png)
 
 > **📚 Reference sources and diagrams:** For the original 2005 article by Alistair Cockburn, who introduced Hexagonal Architecture (Ports and Adapters), together with widely cited community diagrams by Tom Hombergs and Herberto Graça, see the companion document [**Hexagonal Architecture — Reference Sources and Diagrams**](https://github.com/alfredorueda/HexaStock/blob/main/doc/tutorial/sellStocks/HEXAGONAL-ARCHITECTURE-REFERENCE-DIAGRAMS.md).
 
