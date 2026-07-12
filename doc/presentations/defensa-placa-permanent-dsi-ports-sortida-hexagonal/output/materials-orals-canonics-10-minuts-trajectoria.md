@@ -27,9 +27,7 @@ Temps total previst d'assaig: 9:00-9:20 aproximadament, amb pauses reals.
 
 Bon dia, membres del tribunal. Moltes gràcies per l'oportunitat de presentar aquesta trajectòria. [mirada al tribunal]
 
-En aquests deu minuts explicaré el fil conductor d'una trajectòria iniciada el 2004: la indústria del software, la docència universitària i la recerca, tres eixos que convergeixen al TecnoCampus com a projecte docent i acadèmic. [pausa breu]
-
-La meva trajectòria neix en la indústria del software, s'amplia cap a la docència universitària en software i troba al TecnoCampus un espai coherent per consolidar un projecte acadèmic.
+La meva trajectòria comença el 2004 i té un sol fil conductor: l'enginyeria del software. Primer, com a enginyer a la indústria. Després, com a professor universitari. I avui, també com a investigador: estudio com s'ensenya l'enginyeria del software. [pausa breu]
 
 Aquest és el recorregut que presentaré: base professional, vocació docent, pas a la universitat, consolidació al TecnoCampus i projecte de futur.
 
@@ -113,7 +111,7 @@ Moltes gràcies.
 
 * Obrir amb agraïment breu.
 * No llegir CV: explicar fil conductor.
-* 2004 -> indústria, docència universitària, innovació, transferència, recerca i TecnoCampus.
+* 2004 -> un sol fil conductor: enginyer a la indústria, professor universitari, investigador en com s'ensenya l'enginyeria del software.
 * Missatge: trajectòria coherent amb la plaça.
 * Transició: base professional en indústria.
 
@@ -180,7 +178,7 @@ Moltes gràcies.
 
 | Diapositiva | Missatge central                                                     | Paraules clau                                      | Transició       |
 | ----------- | -------------------------------------------------------------------- | -------------------------------------------------- | ---------------- |
-| 1           | La trajectòria té un fil conductor                                 | 2004, software, docència, transferència, recerca | Base industrial  |
+| 1           | La trajectòria té un sol fil conductor                             | 2004, enginyer, professor, investigador          | Base industrial  |
 | 2           | La indústria dona profunditat tècnica i desperta comunicació      | Symbian, C/C++, MWC, openTrends, Java              | Vocació docent  |
 | 3           | Stucom materialitza la vocació docent                               | FP, aula, escolta, acompanyament                   | Universitat      |
 | 4           | La Salle obre la universitat i TecnoCampus dona alineació           | La Salle, software, sistemes, Ester Bernadó       | Casa acadèmica  |
