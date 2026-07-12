@@ -59,7 +59,7 @@ Això va orientar la mirada cap a la universitat per poder situar aquesta experi
 
 ### Diapositiva 4. La Salle i el pont cap al TecnoCampus - 1:45
 
-La Salle em va permetre entrar en un entorn universitari tècnicament exigent. [transició]
+Em vaig incorporar a La Salle, un entorn universitari d'alt nivell tècnic. [transició]
 
 Allà vaig impartir assignatures vinculades a l'enginyeria del software, sistemes operatius i desenvolupament d'aplicacions. També vaig participar en una experiència ABP a Projectes de Programació II, vinculada a Sallefy. És una etapa que valoro molt: em va obrir la docència universitària i em va permetre portar a l'aula coneixement tècnic avançat.
 
@@ -140,7 +140,7 @@ Moltes gràcies.
 
 ### 4. La Salle i pont cap al TecnoCampus - 1:45
 
-* La Salle: universitat i exigència tècnica.
+* La Salle: incorporació a un entorn universitari d'alt nivell tècnic.
 * La Salle és etapa valuosa; evitar comparacions jeràrquiques.
 * Motiu principal: encaix acadèmic més directe amb enginyeria del software i sistemes d'informació.
 * Conciliació com a factor complementari de sostenibilitat.
