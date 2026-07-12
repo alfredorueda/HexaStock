@@ -27,9 +27,9 @@ Temps total previst d'assaig: 9:00-9:20 aproximadament, amb pauses reals.
 
 Bon dia, membres del tribunal. Moltes gràcies per l'oportunitat de presentar aquesta trajectòria. [mirada al tribunal]
 
-En aquests deu minuts no faré una lectura cronològica del currículum. Voldria explicar el fil conductor d'una trajectòria iniciada el 2004 i articulada al voltant de cinc dimensions: enginyeria del software, docència universitària, innovació educativa, transferència i recerca. [pausa breu]
+En aquests deu minuts explicaré el fil conductor d'una trajectòria iniciada el 2004: la indústria del software, la docència universitària i la recerca, tres eixos que convergeixen al TecnoCampus com a projecte docent i acadèmic. [pausa breu]
 
-La idea central és senzilla: la meva trajectòria neix en la indústria del software, s'amplia cap a la docència universitària en software i troba al TecnoCampus un espai coherent per consolidar un projecte acadèmic.
+La meva trajectòria neix en la indústria del software, s'amplia cap a la docència universitària en software i troba al TecnoCampus un espai coherent per consolidar un projecte acadèmic.
 
 Aquest és el recorregut que presentaré: base professional, vocació docent, pas a la universitat, consolidació al TecnoCampus i projecte de futur.
 
@@ -37,11 +37,11 @@ Aquest és el recorregut que presentaré: base professional, vocació docent, pa
 
 La primera etapa és una etapa d'indústria del software. [to calmat]
 
-A Vida Software vaig treballar en un component del sistema operatiu Symbian orientat a incorporar interacció per veu en aplicacions mòbils. Era una peça de plataforma en C/C++, amb restriccions fortes de rendiment i memòria, presentada en entorns com el 3GSM / Mobile World Congress i vinculada al context d'innovació d'una patent de Vida Software sobre interfícies d'usuari.
+A Vida Software vaig treballar en un component del sistema operatiu Symbian orientat a incorporar interacció per veu en aplicacions mòbils. Era una peça de plataforma en C/C++, amb restriccions fortes de memòria, cpu i xarxa. Es va presentar en entorns com el 3GSM / Mobile World Congress i vinculada al context d'innovació d'una patent de Vida Software sobre interfícies d'usuari.
 
-El pas a openTrends va ampliar aquesta base cap a Java, Linux, Spring, sistemes d'informació, clients i equips. Allà la comunicació tècnica va guanyar pes: entendre necessitats, explicar decisions i formar enginyers júniors.
+El pas a openTrends va ampliar aquesta base cap a Java, Linux, Spring, sistemes d'informació, clients i equips. Allà la comunicació tècnica va guanyar pes: entendre necessitats, explicar decisions i mentoria d´enginyers júniors.
 
-Mirat amb perspectiva, aquesta etapa em va donar dues coses: solvència tècnica en entorns exigents i la descoberta d'una inclinació clara cap a explicar, ordenar coneixement i acompanyar l'aprenentatge d'altres persones.
+Mirat amb perspectiva, aquesta etapa em va donar dues coses: solvència tècnica en entorns exigents i la descoberta d'una inclinació clara cap a la comunicació, compartir coneixement i acompanyar l'aprenentatge d'altres persones.
 
 Per això la transició cap a la docència no va ser una ruptura, sinó una evolució natural de la mateixa trajectòria professional.
 
@@ -49,7 +49,7 @@ Per això la transició cap a la docència no va ser una ruptura, sinó una evol
 
 Per donar consistència a aquesta decisió vaig cursar el màster en Formació del Professorat i vaig iniciar una etapa docent en Formació Professional, en l'àmbit de DAW i DAM. [pausa breu]
 
-A la Formació Professional vaig trobar una dimensió que buscava des de feia temps: l'aula, la relació directa amb l'alumnat i la responsabilitat d'acompanyar processos d'aprenentatge.
+A la Formació Professional vaig trobar allò que buscava des de feia temps: l'aula, la relació directa amb l'alumnat i la responsabilitat d'acompanyar processos d'aprenentatge.
 
 Va ser una etapa molt valuosa. Em va ajudar a aprendre a ensenyar, a escoltar millor i a entendre que la docència no és només transmetre contingut tècnic. També és crear condicions perquè l'estudiant pugui avançar, equivocar-se, recuperar confiança i construir criteri.
 
@@ -69,7 +69,7 @@ La proximitat geogràfica va reforçar aquesta decisió, perquè facilitava una 
 
 En aquest procés, la Dra. Ester Bernadó va facilitar el contacte acadèmic amb el TecnoCampus i el coneixement mutu.
 
-Després d'aquell contacte vaig començar com a professor associat al TecnoCampus. I des del primer moment vaig percebre que hi podien confluir dimensions que fins aleshores havien avançat separades: docència universitària, enginyeria del software, sistemes d'informació i sostenibilitat personal.
+Després d'aquell contacte vaig començar com a professor associat al TecnoCampus. I des del primer moment vaig percebre que hi podien confluir camins que fins aleshores havien avançat separats: docència universitària, enginyeria del software, sistemes d'informació i sostenibilitat personal.
 
 El desig de consolidar una plaça al TecnoCampus, per tant, no neix ara. Ve de lluny.
 

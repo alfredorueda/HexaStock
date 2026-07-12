@@ -28,11 +28,11 @@ La classe que presento porta per títol `Disseny de ports de sortida en arquitec
 
 Abans d'entrar en el contingut tècnic, voldria fer una precisió de context. A la documentació de la convocatòria he incorporat un informe acreditatiu de la meva activitat de consultoria especialitzada per a la Generalitat de Catalunya, concretament l'Agència de Gestió d'Ajuts Universitaris i de Recerca. [pausa breu]
 
-Ho explico perquè em sembla molt enriquidor plantejar aquesta sessió com una trobada entre dues dimensions.
+Ho explico perquè em sembla molt enriquidor plantejar aquesta sessió com una trobada entre dos mons.
 
-D'una banda, la dimensió acadèmica: l'assignatura de Disseny de Sistemes d'Informació, on treballem conceptes com arquitectura hexagonal, ports, adaptadors i inversió de dependències.
+D'una banda, l'acadèmic: l'assignatura de Disseny de Sistemes d'Informació, on treballem conceptes com arquitectura hexagonal, ports, adaptadors i inversió de dependències.
 
-I de l'altra, la dimensió professional: un cas real que ens permet veure com aquests conceptes s'aterren en reptes concrets d'arquitectura de software. [mirada al tribunal]
+I de l'altra, el professional: un cas real que ens permet veure com aquests conceptes s'aterren en reptes concrets d'arquitectura de software. [mirada al tribunal]
 
 En vint minuts no seria rigorós intentar explicar tota l'arquitectura hexagonal. Per això em centraré en una decisió concreta: com dissenyar un port de sortida quan un cas d'ús necessita informació que es troba fora de l'aplicació.
 
@@ -192,7 +192,7 @@ Això no vol dir que l'arquitectura elimini el canvi. El canvi continua existint
 
 * Classe de DSI, no explicació completa d'arquitectura hexagonal.
 * Informe incorporat a la documentació de la convocatòria: consultoria especialitzada per a la Generalitat/AGAUR.
-* Trobada entre dimensió acadèmica i dimensió professional.
+* Trobada entre el món acadèmic i el professional.
 * Cas real com a base docent, sense entrar en detalls interns.
 * Transició: ens centrarem en una decisió concreta, el port de sortida.
 
