@@ -21,25 +21,27 @@ Nota de versió: aquests materials són independents de la classe magistral de 2
 
 ## 1. Guió oral complet imprimible
 
-Temps total previst d'assaig: 9:00-9:20 aproximadament, amb pauses reals.
+Temps total previst d'assaig: 9:40-10:00 aproximadament, amb pauses reals.
 
 ### Diapositiva 1. Trajectòria professional, acadèmica i científica - 0:50
 
 Bon dia, membres del tribunal. Moltes gràcies per l'oportunitat de presentar aquesta trajectòria. [mirada al tribunal]
 
-La meva trajectòria comença el 2004 i té un sol fil conductor: l'enginyeria del software. Primer, com a enginyer a la indústria. Després, com a professor universitari. I avui, també com a investigador: estudio com s'ensenya l'enginyeria del software. [pausa breu]
+La meva trajectòria comença el 2004 i té un fil conductor: l'enginyeria del software. Primer, com a enginyer a la indústria. Després, com a professor universitari. I avui, també com a investigador: estudio com s'ensenya l'enginyeria del software. [pausa breu]
 
 Aquest és el recorregut que presentaré: base professional, vocació docent, pas a la universitat, consolidació al TecnoCampus i projecte de futur.
 
-### Diapositiva 2. Primera etapa: enginyeria del software i consultoria - 1:10
+### Diapositiva 2. Primera etapa: enginyeria del software i consultoria - 1:50
 
 La primera etapa és una etapa d'indústria del software. [to calmat]
 
-A Vida Software vaig treballar en un component del sistema operatiu Symbian orientat a incorporar interacció per veu en aplicacions mòbils. Era una peça de plataforma en C/C++, amb restriccions fortes de memòria, cpu i xarxa. Es va presentar en entorns com el 3GSM / Mobile World Congress i vinculada al context d'innovació d'una patent de Vida Software sobre interfícies d'usuari.
+A Vida Software vaig treballar en un component del sistema operatiu Symbian orientat a incorporar interacció per veu en aplicacions mòbils. Era una peça de plataforma desenvolupada a baix nivell en C++, amb restriccions fortes de memòria, CPU i xarxa. La feina tenia un caràcter molt proper a l'R+D de laboratori: treballàvem sobre la pila de comunicacions IP, amb senyalització SIP, transport de veu mitjançant RTP sobre UDP i còdecs com l'AMR. El component es va presentar en entorns com el 3GSM / Mobile World Congress i estava vinculat al context d'innovació d'una patent de Vida Software sobre interfícies d'usuari.
 
-El pas a openTrends va ampliar aquesta base cap a Java, Linux, Spring, sistemes d'informació, clients i equips. Allà la comunicació tècnica va guanyar pes: entendre necessitats, explicar decisions i mentoria d´enginyers júniors.
+Va ser una etapa tècnicament molt exigent i estimulant, que em va donar una base sòlida en sistemes i comunicacions. Al mateix temps, em va ajudar a identificar una altra dimensió que volia desenvolupar: el treball amb les persones, la comunicació i la construcció compartida de coneixement. Per tant, el pas a la consultoria no va representar una renúncia a la profunditat tècnica, sinó la voluntat d'ampliar-la amb una dimensió més relacional i col·laborativa, que amb el temps ha esdevingut un fil conductor de la meva trajectòria.
 
-Mirat amb perspectiva, aquesta etapa em va donar dues coses: solvència tècnica en entorns exigents i la descoberta d'una inclinació clara cap a la comunicació, compartir coneixement i acompanyar l'aprenentatge d'altres persones.
+El pas a openTrends va ampliar aquesta base cap a Java, Linux, Spring, sistemes d'informació, clients i equips. Allà la comunicació tècnica va guanyar pes: entendre necessitats, explicar decisions i fer mentoria a enginyers júniors.
+
+Mirat amb perspectiva, la combinació de solvència tècnica, comunicació i acompanyament va acabar definint el meu perfil professional.
 
 Per això la transició cap a la docència no va ser una ruptura, sinó una evolució natural de la mateixa trajectòria professional.
 
