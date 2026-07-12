@@ -77,23 +77,21 @@ El desig de consolidar una plaça al TecnoCampus, per tant, no neix ara. Ve de l
 
 El TecnoCampus ha estat el lloc on aquesta trajectòria ha trobat més coherència. [pausa breu]
 
-Des de 2021 hi he desenvolupat docència universitària continuada en assignatures vinculades a programació, estructures de dades, aplicacions d'Internet, enginyeria del software i disseny de sistemes d'informació.
+Des de 2021 hi he desenvolupat docència universitària continuada en assignatures vinculades a programació, estructures de dades, aplicacions d'Internet i disseny de sistemes d'informació.
 
 Aquesta continuïtat no és només temporal. El certificat institucional recull quinze registres oficials d'avaluació docent, entre els cursos 2021-2022 i 2025-2026, amb una mitjana aritmètica simple de 8,75 sobre 10. I els quatre registres dels dos darrers cursos presenten una mitjana aritmètica simple de 9,03 sobre 10.
-
-Ho esmento no com una valoració personal, sinó com un indicador documentat de treball docent sostingut, capacitat d'adaptació i voluntat de millora. [pausa breu]
 
 També ha estat molt important el treball amb l'equip. Voldria destacar especialment el Dr. Josep Roure, amb qui he compartit docència i aprenentatge en arquitectura de software, Domain-Driven Design, Clean Architecture i arquitectura hexagonal.
 
 La participació acreditada en el projecte SQAI d'Aprenentatge Basat en Projectes a Laboratori d'Aplicacions Internet, m'ha permès integrar docència, arquitectura de software i millora educativa.
 
-I això connecta directament amb la segona part de la defensa: la classe magistral sobre ports de sortida en arquitectura hexagonal no és una peça aïllada, sinó una mostra d'aquest punt de trobada entre docència universitària, enginyeria del software i transferència.
+I això connecta directament amb la segona part de la defensa: la classe magistral sobre ports de sortida en arquitectura hexagonal no és una peça aïllada, sinó una mostra d'aquest punt de trobada entre docència universitària, enginyeria del software i transferència universitat i empresa.
 
 ### Diapositiva 6. Consultoria i formació internacional, recerca doctoral i projecte de futur - 2:20
 
 En paral·lel, he mantingut una línia de transferència universitat-empresa i formació internacional. [transició]
 
-Disposo del C1 Advanced de Cambridge, amb una puntuació global de 185, i l'anglès és una llengua de treball real. En el marc de Neueda he impartit formació internacional d'enginyeria del software en anglès, vinculada a Java, Spring, arquitectura i qualitat.
+Disposo del C1 Advanced de Cambridge i l'anglès és una llengua de treball real. En el marc de Neueda he impartit formació internacional d'enginyeria del software en anglès, vinculada a Java, Spring, arquitectura i qualitat.
 
 També he desenvolupat activitats de transferència, com les 60 hores acreditades amb AGAUR sobre serveis REST, arquitectura hexagonal i modernització de sistemes d'informació.
 
@@ -101,7 +99,7 @@ El doctorat a la UDIMA representa l'articulació científica d'aquest recorregut
 
 La tesi se situa en aquest espai mitjançant un disseny mixt i quasiexperimental, integrat en dues assignatures reals amb ABP, amb pretest, posttest, seguiment diferit i component qualitatiu. No pretén substituir la formació tècnica; pretén estudiar com complementar-la amb competències vinculades a requisits, usuaris, parts interessades, col·laboració i disseny responsable.
 
-Per això, entenc aquesta plaça com la possibilitat de consolidar un projecte acadèmic ja vinculat al TecnoCampus: docència rigorosa, innovació educativa, transferència, recerca viable i acompanyament de l'alumnat. [mirada al tribunal]
+Per això, entenc aquesta plaça com la possibilitat de consolidar un projecte acadèmic ja vinculat al TecnoCampus: docència rigorosa, innovació educativa, transferència, recerca i acompanyament de l'alumnat. [mirada al tribunal]
 
 Des d'aquest recorregut, la classe magistral que presentaré a continuació se situa precisament en aquest punt de trobada entre docència universitària, arquitectura de software i transferència professional.
 
