@@ -11,7 +11,7 @@ skinparam rectangle {
 
 top to bottom direction
 
-rectangle "Sol·licitud de beca\n\nautoritza consulta\nde renda i patrimoni" as SOL #E9F2F8
+rectangle "Sol·licitud de beca\n\nconsulta d'acord amb\nla base jurídica aplicable" as SOL #E9F2F8
 rectangle "Expedient\nAGAUR / BOGA" as EXP #E9F2F8
 rectangle "Avaluació econòmica\n\nrenda familiar\n+\npatrimoni" as EVAL #F8E9E9
 rectangle "PICA\nplataforma corporativa\nd'interoperabilitat" as PICA #FFF3D6

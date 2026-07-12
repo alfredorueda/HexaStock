@@ -114,7 +114,7 @@ S'utilitza com a motivació conceptual del problema arquitectònic: procediments
 - AGAUR descriu una fase de requisits econòmics de renda i patrimoni.
 - Si no es compleixen aquests requisits econòmics, l'expedient no avança a la revisió acadèmica.
 - Els límits patrimonials poden incloure finques urbanes i rústiques, valorades amb valors cadastrals.
-- La sol·licitud autoritza AGAUR a consultar dades de renda i patrimoni de la unitat familiar.
+- La consulta de dades de renda i patrimoni de la unitat familiar es realitza d'acord amb la base jurídica aplicable.
 - L'addenda pública AGAUR-Departament d'Educació documenta BOGA i processos d'interoperabilitat a través de PICA; el catàleg AOC tracta les dades tributàries de l'AEAT i les dades cadastrals de la Direcció General del Cadastre com a serveis diferenciats.
 
 **Formulació prudent**
