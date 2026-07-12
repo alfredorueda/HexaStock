@@ -10,11 +10,11 @@ skinparam componentStyle rectangle
 skinparam packageStyle rectangle
 skinparam ArrowColor #444444
 
-package "Inbound adapter" as IN #FFF7E6 {
+package "Adaptador d'entrada" as IN #FFF7E6 {
   component "PortfolioRestController" as REST
 }
 
-package "Application" as APP #EEF4FA {
+package "Aplicació" as APP #EEF4FA {
   interface "PortfolioStockOperationsUseCase\n<<port d'entrada>>" as INPORT
   component "PortfolioStockOperationsService\n<<servei d'aplicació>>" as SERVICE
   interface "StockPriceProviderPort\n<<port de sortida>>" as PRICEPORT
@@ -22,8 +22,8 @@ package "Application" as APP #EEF4FA {
   interface "TransactionPort" as TXPORT
 }
 
-package "Domain" as DOM #EEF6F2 {
-  component "Portfolio\naggregate root" as PORTFOLIO
+package "Domini" as DOM #EEF6F2 {
+  component "Portfolio\narrel d'agregat" as PORTFOLIO
   component "Holding" as HOLDING
   component "Lot" as LOT
   component "SellResult" as SELLRESULT
@@ -32,11 +32,11 @@ package "Domain" as DOM #EEF6F2 {
   component "Price" as PRICE
 }
 
-package "Outbound adapters" as OUT #F7F7F7 {
+package "Adaptadors de sortida" as OUT #F7F7F7 {
   component "FinhubStockPriceAdapter\nperfil: finhub" as FINHUB
   component "AlphaVantageStockPriceAdapter\nperfil: alphaVantage" as ALPHA
   component "MockFinhubStockPriceAdapter\nperfil: mockfinhub" as MOCK
-  cloud "APIs externes de preus" as API
+  cloud "Serveis externs de preus" as API
 }
 
 REST --> INPORT : invoca

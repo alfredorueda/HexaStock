@@ -15,15 +15,15 @@ rectangle "Sol·licitud de beca\n\nautoritza consulta\nde renda i patrimoni" as 
 rectangle "Expedient\nAGAUR / BOGA" as EXP #E9F2F8
 rectangle "Avaluació econòmica\n\nrenda familiar\n+\npatrimoni" as EVAL #F8E9E9
 rectangle "PICA\nplataforma corporativa\nd'interoperabilitat" as PICA #FFF3D6
-rectangle "Administració tributària\nrenda i patrimoni" as AEAT #F4F4F4
+rectangle "AEAT\nAgència Tributària\nrenda / dades tributàries" as AEAT #F4F4F4
 rectangle "Cadastre / Catastro\nregistre de béns immobles\nvalors cadastrals" as CAD #F4F4F4
 rectangle "Resultat funcional\n\ncompleix / no compleix\nrequisits econòmics" as RESULT #EEF6F2
 
 SOL --> EXP : obre expedient
 EXP --> EVAL : instrueix
 EVAL --> PICA : necessita dades externes
-PICA --> AEAT : consulta / certificats
-AEAT --> CAD : dades cadastrals
+PICA --> AEAT : renda / dades tributàries
+PICA --> CAD : dades cadastrals
 EVAL --> RESULT : aplica llindars
 
 @enduml

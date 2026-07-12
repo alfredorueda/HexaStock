@@ -3,7 +3,7 @@
 Carpeta de treball per a una classe magistral reduïda de 20 minuts dins l'assignatura Disseny de Sistemes d'Informació.
 
 Títol:
-**Disseny de ports de sortida en arquitectura hexagonal: desacoblament entre casos d'ús, domini i APIs externes**
+**Disseny de ports de sortida en arquitectura hexagonal: desacoblament entre casos d'ús, domini i serveis externs**
 
 Subtítol:
 **Una microlliçó de Disseny de Sistemes d'Informació a partir d'un cas real de consultoria i del projecte HexaStock**

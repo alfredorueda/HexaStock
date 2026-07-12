@@ -35,7 +35,7 @@ La diapositiva 2 cita aquesta guia docent per mostrar que la microlliçó no és
 `/Users/alfre/Library/CloudStorage/OneDrive-TecnocampusMataro-Maresme/Doctorat/Tesis Doctoral/RepositorioGitHub/Preparación documentación Plaza Profesor TecnoCampus/CV TecnoCampus/Consultoria Empresarial/Informe acreditatiu AGAUR arquitectura hexagonal.pdf`
 
 **Metadades observades**
-- Títol: informe acreditatiu d'activitat de formació i consultoria especialitzada en enginyeria del programari.
+- Títol normalitzat per a la defensa: informe acreditatiu d'activitat de formació i consultoria especialitzada en enginyeria del software.
 - Autor: Agència de Gestió d'Ajuts Universitaris i de Recerca.
 - Data del document: Barcelona, 15 de juny de 2026.
 - Signatura digital indicada al PDF: 16 de juny de 2026.
@@ -63,7 +63,7 @@ La presentació utilitza aquesta font per acreditar la realitat de l'activitat p
 - Integració amb PICA com a plataforma d'interoperabilitat.
 - Possibilitat de consultar informació administrativa externa, inclosa informació catastral rellevant per condicions patrimonials.
 - Existència d'integracions basades en SOAP i XML en el context treballat.
-- Motiu professional de la consultoria: desacoblar la lògica administrativa i els casos d'ús dels detalls concrets de PICA, SOAP/XML, DTOs, mapping i errors tècnics, i preparar l'evolució cap a serveis REST sense arrossegar els casos d'ús.
+- Motiu professional de la consultoria: desacoblar la lògica administrativa i els casos d'ús dels detalls concrets de PICA, SOAP/XML, DTO, mapping i errors tècnics, i preparar l'evolució cap a serveis REST sense arrossegar els casos d'ús.
 
 **Ús en la presentació**
 S'utilitza com a motivació conceptual del problema arquitectònic: procediments administratius que necessiten informació externa sense dependre directament dels detalls tècnics d'aquesta integració.
@@ -115,10 +115,10 @@ S'utilitza com a motivació conceptual del problema arquitectònic: procediments
 - Si no es compleixen aquests requisits econòmics, l'expedient no avança a la revisió acadèmica.
 - Els límits patrimonials poden incloure finques urbanes i rústiques, valorades amb valors cadastrals.
 - La sol·licitud autoritza AGAUR a consultar dades de renda i patrimoni de la unitat familiar.
-- L'addenda pública AGAUR-Departament d'Educació documenta BOGA, processos d'interoperabilitat a través de PICA i certificat de dades de cadastre disponibles per AEAT.
+- L'addenda pública AGAUR-Departament d'Educació documenta BOGA i processos d'interoperabilitat a través de PICA; el catàleg AOC tracta les dades tributàries de l'AEAT i les dades cadastrals de la Direcció General del Cadastre com a serveis diferenciats.
 
 **Formulació prudent**
-Es pot afirmar que el procediment de beca necessita informació administrativa externa per avaluar renda i patrimoni, incloent-hi informació patrimonial relacionada amb valors cadastrals. També es pot afirmar que hi ha documentació pública que vincula BOGA, PICA i certificats de dades de cadastre disponibles per AEAT.
+Es pot afirmar que el procediment de beca necessita informació administrativa externa per avaluar renda i patrimoni, incloent-hi informació patrimonial relacionada amb valors cadastrals. També es pot afirmar que hi ha documentació pública que vincula BOGA i PICA, i que el catàleg d'interoperabilitat distingeix les dades tributàries de l'AEAT de les dades cadastrals de la Direcció General del Cadastre.
 
 No s'ha de formular com una afirmació sobre endpoints interns, protocols exactes en producció o captures dels sistemes d'AGAUR.
 
@@ -146,7 +146,7 @@ No s'ha de formular com una afirmació sobre endpoints interns, protocols exacte
 - Diagrama de dependències de codi del tutorial Sell Stocks incorporat a la presentació: `assets/hexastock-hexagonal-code-dependencies.png`.
 
 **Flux confirmat**
-`PortfolioStockOperationsService.sellStock(...)` recupera el portfolio, consulta `StockPriceProviderPort.fetchStockPrice(ticker)`, extreu `Price`, invoca `portfolio.sell(ticker, quantity, price)`, desa el portfolio i registra la transacció.
+`PortfolioStockOperationsService.sellStock(...)` recupera la cartera, consulta `StockPriceProviderPort.fetchStockPrice(ticker)`, extreu `Price`, invoca `portfolio.sell(ticker, quantity, price)`, desa la cartera i registra la transacció.
 
 ## 6. Informació extreta del repositori GitHub HexaStock
 

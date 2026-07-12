@@ -21,97 +21,89 @@ Nota de versió: aquests materials són independents de la classe magistral de 2
 
 ## 1. Guió oral complet imprimible
 
-Temps total previst: 10:00 aproximadament.
+Temps total previst d'assaig: 9:00-9:20 aproximadament, amb pauses reals.
 
-### Diapositiva 1. Trajectòria professional, acadèmica i científica - 1:00
+### Diapositiva 1. Trajectòria professional, acadèmica i científica - 0:50
 
 Bon dia, membres del tribunal. Moltes gràcies per l'oportunitat de presentar aquesta trajectòria. [mirada al tribunal]
 
-En aquests deu minuts no voldria fer una lectura cronològica del currículum. El que voldria és explicar el fil conductor d'una trajectòria que comença l'any 2004 i que, amb el temps, ha anat unint quatre dimensions: l'enginyeria de software, la docència, la recerca i el compromís amb el TecnoCampus. [pausa breu]
+En aquests deu minuts no faré una lectura cronològica del currículum. Voldria explicar el fil conductor d'una trajectòria iniciada el 2004 i articulada al voltant de cinc dimensions: enginyeria del software, docència universitària, innovació educativa, transferència i recerca. [pausa breu]
 
-La meva trajectòria neix en la indústria del software, creix a través de la docència i la formació, madura amb la recerca doctoral i troba al TecnoCampus un espai molt coherent per continuar desenvolupant-se.
+La idea central és senzilla: la meva trajectòria neix en la indústria del software, s'amplia cap a la docència universitària en software i troba al TecnoCampus un espai coherent per consolidar un projecte acadèmic.
 
-Aquest és el recorregut que presentaré: primer, la base professional en enginyeria i consultoria; després, el descobriment clar de la vocació docent; a continuació, el pas a la universitat i al TecnoCampus; i finalment, la consultoria i la formació internacional, el doctorat i el projecte de futur que voldria consolidar.
+Aquest és el recorregut que presentaré: base professional, vocació docent, pas a la universitat, consolidació al TecnoCampus i projecte de futur.
 
-### Diapositiva 2. Primera etapa: enginyeria de software i consultoria - 1:40
+### Diapositiva 2. Primera etapa: enginyeria del software i consultoria - 1:10
 
-La primera etapa de la meva trajectòria és una etapa d'indústria del software. [to calmat]
+La primera etapa és una etapa d'indústria del software. [to calmat]
 
-A Vida Software vaig viure una etapa tècnicament molt profunda, molt de laboratori i producte. Treballava en un component del sistema operatiu Symbian orientat a incorporar interacció per veu en aplicacions mòbils. És a dir, no era una aplicació final, sinó una peça que permetia que aplicacions Nokia/Symbian poguessin utilitzar funcionalitats de veu.
+A Vida Software vaig treballar en un component del sistema operatiu Symbian orientat a incorporar interacció per veu en aplicacions mòbils. Era una peça de plataforma en C/C++, amb restriccions fortes de rendiment i memòria, presentada en entorns com el 3GSM / Mobile World Congress i vinculada al context d'innovació d'una patent de Vida Software sobre interfícies d'usuari.
 
-Era un context anterior a l'smartphone actual, desenvolupat en C/C++, amb restriccions fortes de rendiment, memòria i dispositiu. Aquesta tecnologia es va presentar en entorns internacionals com el 3GSM / Mobile World Congress, a Cannes i Barcelona, i formava part d'un context d'innovació vinculat també a una patent internacional de Vida Software sobre interfícies d'usuari.
+El pas a openTrends va ampliar aquesta base cap a Java, Linux, Spring, sistemes d'informació, clients i equips. Allà la comunicació tècnica va guanyar pes: entendre necessitats, explicar decisions i formar enginyers júniors.
 
-Aquesta etapa em va confirmar una cosa important: tècnicament podia treballar en entorns exigents. Però també em va fer prendre consciència d'una altra necessitat. Era una feina molt centrada en laboratori, producte i resolució tècnica, i jo trobava a faltar una dimensió més comunicativa, més relacional, més vinculada a explicar, compartir coneixement i treballar amb persones.
+Mirat amb perspectiva, aquesta etapa em va donar dues coses: solvència tècnica en entorns exigents i la descoberta d'una inclinació clara cap a explicar, ordenar coneixement i acompanyar l'aprenentatge d'altres persones.
 
-El pas a openTrends va néixer d'aquesta presa de consciència. Una persona amb qui havia treballat a Vida Software i que coneixia bé aquesta inquietud em va obrir la porta a un entorn més orientat a consultoria, clients, equips i sistemes d'informació. Va ser una evolució natural: mantenir la base tècnica, però començar a desenvolupar amb més força la comunicació i el treball col·laboratiu. [pausa breu]
+Per això la transició cap a la docència no va ser una ruptura, sinó una evolució natural de la mateixa trajectòria professional.
 
-En aquell entorn em vaig sentir més a prop d'aquesta dimensió comunicativa: entendre necessitats, explicar decisions tècniques, parlar amb clients i treballar amb altres perfils. Però el punt més clar va aparèixer quan tenia l'oportunitat de formar perfils més junior.
+### Diapositiva 3. Formació Professional: el descobriment clar de la vocació docent - 1:10
 
-Aquells moments eren els que més gaudia: compartir coneixement tècnic, ordenar-lo perquè fos comprensible, acompanyar algú que començava i veure com guanyava autonomia. Aquí la comunicació ja no era només una eina professional; començava a convertir-se en una pràctica docent.
-
-Mirat amb perspectiva, aquest patró s'ha repetit en altres moments de la meva trajectòria: els canvis importants han estat possibles gràcies a relacions professionals de confiança.
-
-Aquesta presa de consciència és la que em va portar a estudiar el Màster de Formació del Professorat i, després, a exercir com a docent en l'àmbit de la Formació Professional.
-
-### Diapositiva 3. Formació Professional: el descobriment clar de la vocació docent - 1:30
-
-Per això, el pas a la docència no va ser improvisat. Va venir d'una inquietud que ja havia anat apareixent dins la indústria: explicar millor, compartir coneixement i acompanyar persones en el seu procés d'aprenentatge. [pausa breu]
+Per donar consistència a aquesta decisió vaig cursar el màster en Formació del Professorat i vaig iniciar una etapa docent en Formació Professional, en l'àmbit de DAW i DAM. [pausa breu]
 
 A la Formació Professional vaig trobar una dimensió que buscava des de feia temps: l'aula, la relació directa amb l'alumnat i la responsabilitat d'acompanyar processos d'aprenentatge.
 
-Va ser una etapa important i molt agraïda. Em va ajudar a aprendre a ensenyar, a escoltar millor i a entendre que la docència no és només transmetre contingut tècnic. També és crear condicions perquè l'estudiant pugui avançar, equivocar-se, recuperar confiança i construir criteri.
+Va ser una etapa molt valuosa. Em va ajudar a aprendre a ensenyar, a escoltar millor i a entendre que la docència no és només transmetre contingut tècnic. També és crear condicions perquè l'estudiant pugui avançar, equivocar-se, recuperar confiança i construir criteri.
 
-Amb el temps, però, vaig percebre un límit natural de l'etapa. No un límit de valor de la Formació Professional, que per a mi va ser molt valuosa, sinó un límit en relació amb el tipus de continguts tècnics que jo volia desenvolupar: enginyeria de software, arquitectura, disseny de sistemes i experiència avançada d'indústria.
+Amb el temps, aquesta etapa va evolucionar cap a continguts universitaris més avançats: enginyeria del software, arquitectura de software, disseny de sistemes d'informació i experiència professional aplicada.
 
-Això va orientar la mirada cap a la universitat.
+Això va orientar la mirada cap a la universitat per poder situar aquesta experiència tècnica i docent en assignatures d'enginyeria amb més profunditat conceptual.
 
 ### Diapositiva 4. La Salle i el pont cap al TecnoCampus - 1:45
 
 La Salle em va permetre entrar en un entorn universitari tècnicament exigent. [transició]
 
-Allà vaig poder fer docència en assignatures vinculades a l'enginyeria de software, sistemes operatius i desenvolupament d'aplicacions. Va ser una etapa molt enriquidora, perquè em va permetre portar a l'aula coneixement tècnic avançat i experiència professional prèvia.
+Allà vaig impartir assignatures vinculades a l'enginyeria del software, sistemes operatius i desenvolupament d'aplicacions. També vaig participar en una experiència ABP a Projectes de Programació II, vinculada a Sallefy. És una etapa que valoro molt: em va obrir la docència universitària i em va permetre portar a l'aula coneixement tècnic avançat.
 
-Al cap d'un temps, també es va obrir una necessitat de coherència vital i professional. Amb el trasllat familiar a Llavaneres i amb dos fills, era important poder construir una trajectòria acadèmica sostenible i, alhora, cuidar una bona conciliació familiar. [mirada al tribunal]
+El pas cap al TecnoCampus va ser una decisió reflexionada, valorada amb la direcció i la coordinació acadèmica. La Salle té una tradició d'enginyeria sòlida i una forta tradició específicament en l'enginyeria de telecomunicacions. Amb el temps, vaig considerar que la meva especialització en enginyeria del software, arquitectura d'aplicacions, backend i sistemes d'informació podia tenir un encaix més directe al TecnoCampus. [mirada al tribunal]
 
-Ho vaig parlar amb el meu coordinador i amb el meu director a La Salle. Els vaig plantejar aquesta necessitat: continuar creixent acadèmicament, però en un entorn que també fos sostenible des del punt de vista vital i familiar.
+La proximitat geogràfica va reforçar aquesta decisió, perquè facilitava una trajectòria acadèmica sostenible i compatible amb les responsabilitats familiars.
 
-Va ser en aquestes converses que em van parlar de l'Ester Bernadó. En aquell moment era directora acadèmica de l'Escola Politècnica del TecnoCampus, i me'n van destacar tant la trajectòria acadèmica com la feina que havia fet a La Salle. Per això, el contacte amb l'Ester no apareix de manera casual: va ser un pont acadèmic molt concret cap al TecnoCampus.
+En aquest procés, la Dra. Ester Bernadó va facilitar el contacte acadèmic amb el TecnoCampus i el coneixement mutu.
 
-Després d'aquell contacte, al cap d'un temps vaig començar com a professor associat al TecnoCampus. I des del primer moment vaig percebre que allà podien confluir dimensions que fins aleshores havien avançat una mica separades: docència universitària, enginyeria de software, proximitat territorial i projecte vital.
+Després d'aquell contacte vaig començar com a professor associat al TecnoCampus. I des del primer moment vaig percebre que hi podien confluir dimensions que fins aleshores havien avançat separades: docència universitària, enginyeria del software, sistemes d'informació i sostenibilitat personal.
 
 El desig de consolidar una plaça al TecnoCampus, per tant, no neix ara. Ve de lluny.
 
-### Diapositiva 5. TecnoCampus: docència, equip i arquitectura de software - 2:00
+### Diapositiva 5. TecnoCampus: docència, equip i arquitectura de software - 2:05
 
 El TecnoCampus ha estat el lloc on aquesta trajectòria ha trobat més coherència. [pausa breu]
 
-Des de 2021 hi he desenvolupat docència universitària continuada en assignatures vinculades a programació, estructures de dades, aplicacions d'Internet, enginyeria de software i disseny de sistemes d'informació.
+Des de 2021 hi he desenvolupat docència universitària continuada en assignatures vinculades a programació, estructures de dades, aplicacions d'Internet, enginyeria del software i disseny de sistemes d'informació.
 
-Aquí he pogut unir tres coses que per a mi són essencials: el rigor tècnic de l'enginyeria de software, la proximitat docent amb l'alumnat i la possibilitat de construir projectes acadèmics amb sentit. En aquest sentit, puc dir, amb sobrietat però també amb sinceritat, que al TecnoCampus m'he sentit com a casa.
+Aquesta continuïtat no és només temporal. El certificat institucional recull quinze registres oficials d'avaluació docent, entre els cursos 2021-2022 i 2025-2026, amb una mitjana aritmètica simple de 8,75 sobre 10. I els quatre registres dels dos darrers cursos presenten una mitjana aritmètica simple de 9,03 sobre 10.
+
+Ho esmento no com una valoració personal, sinó com un indicador documentat de treball docent sostingut, capacitat d'adaptació i voluntat de millora. [pausa breu]
 
 També ha estat molt important el treball amb l'equip. Voldria destacar especialment el Dr. Josep Roure, amb qui he compartit docència i aprenentatge en arquitectura de software, Domain-Driven Design, Clean Architecture i arquitectura hexagonal.
 
-Aquesta línia no és només una línia docent. Té una connexió clara amb la transferència professional, perquè moltes empreses i institucions necessiten precisament millorar la manera com estructuren, mantenen i fan evolucionar els seus sistemes software.
+La participació acreditada en el projecte SQAI d'Aprenentatge Basat en Projectes a Laboratori d'Aplicacions Internet, m'ha permès integrar docència, arquitectura de software i millora educativa.
 
-Projectes com l'ABP a Laboratori d'Aplicacions d'Internet, el projecte SQAI o HexaStock m'han permès integrar docència, arquitectura, pràctica professional i millora educativa.
+I això connecta directament amb la segona part de la defensa: la classe magistral sobre ports de sortida en arquitectura hexagonal no és una peça aïllada, sinó una mostra d'aquest punt de trobada entre docència universitària, enginyeria del software i transferència.
 
-I això connecta directament amb la segona part de la defensa: la classe magistral sobre ports de sortida en arquitectura hexagonal no és una peça aïllada, sinó una mostra d'aquest punt de trobada entre docència universitària, enginyeria de software i transferència.
+### Diapositiva 6. Consultoria i formació internacional, recerca doctoral i projecte de futur - 2:20
 
-### Diapositiva 6. Consultoria i formació internacional, recerca doctoral i projecte de futur - 2:05
+En paral·lel, he mantingut una línia de transferència universitat-empresa i formació internacional. [transició]
 
-En paral·lel, Neueda ha obert una etapa de consultoria i formació internacional. [transició]
+Disposo del C1 Advanced de Cambridge, amb una puntuació global de 185, i l'anglès és una llengua de treball real. En el marc de Neueda he impartit formació internacional d'enginyeria del software en anglès, vinculada a Java, Spring, arquitectura i qualitat.
 
-La formació tècnica en anglès, en programes vinculats a institucions financeres internacionals, m'ha ajudat a consolidar maduresa com a instructor, capacitat de comunicació tècnica i connexió amb necessitats reals de la indústria.
+També he desenvolupat activitats de transferència, com les 60 hores acreditades amb AGAUR sobre serveis REST, arquitectura hexagonal i modernització de sistemes d'informació.
 
-Aquesta experiència també ha reforçat una idea que per a mi és central: la universitat no pot quedar separada del món professional, però tampoc pot limitar-se a reproduir-lo. Ha d'ajudar l'estudiant a entendre'l críticament, amb fonaments, amb criteri i amb responsabilitat.
+El doctorat a la UDIMA és la maduració científica d'aquest recorregut. Però no el presentaria com una recerca genèrica sobre empatia. La meva recerca s'inscriu en l'Educació en Enginyeria del Software. [pausa breu]
 
-El doctorat a la UDIMA, en Educació i Tecnologia, és la maduració científica d'una inquietud que ja apareixia des de l'inici de la trajectòria: la dimensió humana de l'enginyeria de software. [pausa breu]
+No parteix d'una intuïció aïllada. La literatura internacional recent identifica mancances en la integració curricular, la mesura i els estudis longitudinals d'aquestes competències dins la formació dels futurs enginyers i enginyeres del software.
 
-La tesi estudia el cultiu de l'empatia, l'escolta activa i la comunicació assertiva en estudiants universitaris d'Enginyeria de Software mitjançant Aprenentatge Basat en Projectes.
+La tesi se situa en aquest espai mitjançant un disseny mixt i quasiexperimental, integrat en dues assignatures reals amb ABP, amb pretest, posttest, seguiment diferit i component qualitatiu. No pretén substituir la formació tècnica; pretén estudiar com complementar-la amb competències vinculades a requisits, usuaris, parts interessades, col·laboració i disseny responsable.
 
-Per tant, la recerca no se situa al marge de la docència ni de l'enginyeria. Respon a una pregunta molt concreta: com podem formar enginyers i enginyeres tècnicament solvents, però també capaços de comunicar, escoltar, col·laborar i assumir responsabilitat sobre el software que construeixen?
-
-Per això, entenc aquesta plaça no només com una continuïtat contractual, sinó com la possibilitat de consolidar un projecte acadèmic que ja sento profundament vinculat al TecnoCampus: seguir aportant en docència, recerca, innovació educativa, transferència i acompanyament de l'alumnat. [mirada al tribunal]
+Per això, entenc aquesta plaça com la possibilitat de consolidar un projecte acadèmic ja vinculat al TecnoCampus: docència rigorosa, innovació educativa, transferència, recerca viable i acompanyament de l'alumnat. [mirada al tribunal]
 
 Des d'aquest recorregut, la classe magistral que presentaré a continuació se situa precisament en aquest punt de trobada entre docència universitària, arquitectura de software i transferència professional.
 
@@ -121,57 +113,66 @@ Moltes gràcies.
 
 ## 2. Notes del presentador per diapositiva
 
-### 1. Trajectòria - 1:00
+### 1. Trajectòria - 0:50
 
 * Obrir amb agraïment breu.
 * No llegir CV: explicar fil conductor.
-* 2004 -> indústria, docència, recerca, TecnoCampus.
+* 2004 -> indústria, docència universitària, innovació, transferència, recerca i TecnoCampus.
 * Missatge: trajectòria coherent amb la plaça.
 * Transició: base professional en indústria.
 
-### 2. Indústria i consultoria - 1:40
+### 2. Indústria i consultoria - 1:10
 
 * Vida Software: component del sistema operatiu Symbian per a interacció per veu.
 * No era una app final: permetia que aplicacions Nokia/Symbian incorporessin veu.
 * C/C++, rendiment, memòria i dispositiu com a senyals de profunditat tècnica.
-* 3GSM / Mobile World Congress i patent com a context d'innovació.
+* 3GSM / Mobile World Congress i patent com a context d'innovació; no presentar la patent com a pròpia.
 * openTrends: consultoria, clients, equips i sistemes d'informació.
-* Punt clau: el que més gaudia era formar perfils més junior.
+* Punt clau: el que més gaudia era formar perfils més júniors.
 * La comunicació passa de ser eina professional a pràctica docent.
-* Transició: Màster de Professorat i entrada a la Formació Professional.
+* Transició: màster en Formació del Professorat i entrada a la Formació Professional.
 
-### 3. Stucom - 1:30
+### 3. Stucom - 1:10
 
 * Decisió vocacional, no improvisació.
-* Màster de Professorat + FP DAW/DAM.
+* Màster en Formació del Professorat + FP DAW/DAM.
 * Aula, relació amb alumnat, escolta i acompanyament.
-* Agraïment a la FP; no minusvalorar-la.
-* Límit natural: voler desenvolupar continguts tècnics universitaris.
+* Agraïment a l'FP; no menysvalorar-la.
+* Evolució cap a continguts tècnics universitaris més avançats.
 
 ### 4. La Salle i pont cap al TecnoCampus - 1:45
 
 * La Salle: universitat i exigència tècnica.
-* Trajectòria acadèmica sostenible i bona conciliació familiar.
+* La Salle és etapa valuosa; evitar comparacions jeràrquiques.
+* Motiu principal: encaix acadèmic més directe amb enginyeria del software i sistemes d'informació.
+* Conciliació com a factor complementari de sostenibilitat.
 * Conversa amb coordinador i director a La Salle.
-* Ester Bernadó: directora acadèmica de l'Escola Politècnica del TecnoCampus.
-* Ester com a pont acadèmic concret, no com a aparició casual.
-* TecnoCampus: docència universitària, proximitat i projecte vital.
+* La Dra. Ester Bernadó va facilitar el contacte acadèmic amb el TecnoCampus.
+* TecnoCampus: docència universitària, software, sistemes d'informació, transferència i projecte sostenible.
 * Frase clau: el desig de consolidar-se ve de lluny.
 
-### 5. TecnoCampus - 2:00
+### 5. TecnoCampus - 2:05
 
 * Docència continuada des de 2021.
 * Assignatures: programació, dades, Internet, enginyeria, DSI.
-* Sentir-se com a casa, amb to sobri.
+* 15 registres oficials d'avaluació docent: mitjana aritmètica simple de 8,75/10.
+* Quatre registres dels dos darrers cursos: mitjana aritmètica simple de 9,03/10.
+* No dir mitjana ponderada ni percentatge de satisfacció.
 * Josep Roure: arquitectura, DDD, Clean Architecture, hexagonal.
-* ABP, SQAI, HexaStock com a integració de docència, pràctica i transferència.
+* Participació acreditada al projecte SQAI d'ABP a Laboratori d'Aplicacions Internet.
+* HexaStock com a integració de docència, pràctica i transferència.
 * Transició explícita a la classe magistral.
 
-### 6. Neueda, doctorat i futur - 2:05
+### 6. Neueda, doctorat i futur - 2:20
 
-* Neueda: consultoria i formació internacional, anglès tècnic i indústria.
-* Doctorat UDIMA: Educació i Tecnologia.
-* Tesi: empatia, escolta activa i comunicació assertiva en Enginyeria de Software amb ABP.
+* Cambridge C1 Advanced: 185, Pass at Grade C, C1 MECR.
+* Neueda: formació internacional en anglès en enginyeria del software.
+* AGAUR: 60 hores de formació i consultoria especialitzada en REST, arquitectura hexagonal i sistemes d'informació.
+* HUB4T: Java Backend Web Developer, 120 h per curs durant tres cursos acadèmics.
+* Doctorat UDIMA: Educació en Enginyeria del Software.
+* No presentar-lo com a psicologia genèrica ni com a resultats ja assolits.
+* Tesi: problema obert identificat per la literatura recent; integració curricular, mesura i estudis longitudinals.
+* Disseny mixt i quasiexperimental, dues assignatures reals amb ABP, pretest, posttest, seguiment diferit i component qualitatiu.
 * Futur: docència, recerca, innovació, transferència i acompanyament.
 * Tancar amb la plaça com a consolidació d'un projecte acadèmic.
 * Enllaçar amb la classe magistral següent.
@@ -181,20 +182,20 @@ Moltes gràcies.
 ## 3. Esquema de memorització
 
 
-| Diapositiva | Missatge central                                                    | Paraules clau                                     | Transició       |
-| ----------- | ------------------------------------------------------------------- | ------------------------------------------------- | ---------------- |
-| 1           | La trajectòria té un fil conductor                                | 2004, enginyeria, docència, recerca, TecnoCampus | Base industrial  |
-| 2           | La indústria dona profunditat tècnica i desperta comunicació     | Symbian, veu, C/C++, MWC, openTrends, Java        | Vocació docent  |
-| 3           | Stucom materialitza la vocació docent                              | FP, aula, escolta, acompanyament                  | Universitat      |
-| 4           | La Salle obre la universitat i TecnoCampus dona coherència vital   | universitat, conciliació, Ester Bernadó         | Casa acadèmica  |
-| 5           | TecnoCampus integra docència, equip, arquitectura i transferència | Josep Roure, ABP, SQAI, HexaStock                 | Recerca i futur  |
-| 6           | Doctorat i futur consoliden la dimensió humana de l'enginyeria     | Neueda, UDIMA, empatia, escolta, comunicació     | Classe magistral |
+| Diapositiva | Missatge central                                                     | Paraules clau                                      | Transició       |
+| ----------- | -------------------------------------------------------------------- | -------------------------------------------------- | ---------------- |
+| 1           | La trajectòria té un fil conductor                                 | 2004, software, docència, transferència, recerca | Base industrial  |
+| 2           | La indústria dona profunditat tècnica i desperta comunicació      | Symbian, C/C++, MWC, openTrends, Java              | Vocació docent  |
+| 3           | Stucom materialitza la vocació docent                               | FP, aula, escolta, acompanyament                   | Universitat      |
+| 4           | La Salle obre la universitat i TecnoCampus dona alineació           | La Salle, software, sistemes, Ester Bernadó       | Casa acadèmica  |
+| 5           | TecnoCampus integra docència, evidència, equip i transferència    | 2021, 15 registres, 8,75, 9,03, SQAI               | Recerca i futur  |
+| 6           | Doctorat i futur se situen en l'Educació en Enginyeria del Software | C1, Neueda, AGAUR, HUB4T, buit de recerca          | Classe magistral |
 
-Mantra de memòria: `indústria -> docència -> universitat -> TecnoCampus -> recerca -> futur`.
+Mantra de memòria: `indústria del software -> docència universitària en software -> TecnoCampus -> recerca -> futur`.
 
 Frase de tancament que convé memoritzar gairebé literalment:
 
-> formar bons enginyers i enginyeres, tècnicament solvents, però també capaços de comunicar, escoltar, col·laborar i assumir responsabilitat sobre el software que construeixen.
+> una recerca en Educació en Enginyeria del Software, integrada en assignatures reals, que vol contribuir a formar enginyers i enginyeres tècnicament solvents i professionalment responsables.
 
 ---
 
@@ -202,31 +203,32 @@ Frase de tancament que convé memoritzar gairebé literalment:
 
 ### Ritme
 
-La presentació està pensada per a 10 minuts amb un ritme pausat. Les diapositives 5 i 6 són les més importants i poden ocupar una mica més de temps. Si cal retallar durant l'assaig, retalla detall tècnic de la diapositiva 2; no retallis el tancament final.
+La presentació està pensada per a 9:00-9:20 amb un ritme pausat i marge real. Les diapositives 5 i 6 són les més importants i poden ocupar una mica més de temps. Si cal retallar durant l'assaig, retalla detall tècnic de la diapositiva 2 o una evidència de transferència de la diapositiva 6; no retallis les xifres docents del TecnoCampus.
 
 ### Veu
 
-Mantén un to acadèmic, però no burocràtic. Les frases personals han de sonar naturals i sobries: `m'he sentit com a casa`, `el desig de consolidar-me ve de lluny`, `projecte acadèmic vinculat al TecnoCampus`. No cal intensificar-les; la força està en dir-les amb calma.
+Mantén un to acadèmic, però no burocràtic. Les frases personals han de sonar naturals i sòbries: `el desig de consolidar-me ve de lluny`, `projecte acadèmic vinculat al TecnoCampus`. No cal intensificar-les; la força està a dir-les amb calma i amb evidència.
 
 ### Cos i mirada
 
-Mira el tribunal en tres moments: inici, explicació de la coherència TecnoCampus i tancament final. Mira la pantalla només quan la diapositiva ajudi a ordenar una etapa o una transició. A la diapositiva 5, atura't una mica abans de mencionar Josep Roure i la connexió amb la classe magistral.
+Mira el tribunal en tres moments: inici, explicació de l'alineació TecnoCampus i tancament final. Mira la pantalla només quan la diapositiva ajudi a ordenar una etapa o una transició. A la diapositiva 5, atura't una mica abans de dir les xifres d'avaluació docent.
 
 ### Control del temps
 
-* Diapositiva 1: no superar 1:10.
-* Diapositiva 2: no explicar massa Vida Software; màxim 35-40 segons.
+* Diapositiva 1: no superar 0:55.
+* Diapositiva 2: no explicar massa Vida Software; màxim 30 segons.
 * Diapositiva 3: evitar convertir-la en una història llarga sobre FP.
-* Diapositiva 4: conciliació amb naturalitat, sense dramatitzar.
+* Diapositiva 4: alineació acadèmica com a motiu principal; conciliació només com a sostenibilitat complementària.
 * Diapositiva 5: és el centre docent i institucional; donar-li aire.
-* Diapositiva 6: tancar amb seguretat i enllaçar amb la classe magistral.
+* Diapositiva 6: recerca com a Educació en Enginyeria del Software; tancar amb seguretat i enllaçar amb la classe magistral.
 
 ### Versió curta d'emergència
 
 Si durant la defensa veus que falta temps, elimina aquestes frases:
 
-* A la diapositiva 2, no enumeris protocols; digues només `component de Symbian per incorporar veu en aplicacions mòbils`.
+* A la diapositiva 2, digues només `component de Symbian per incorporar veu en aplicacions mòbils`.
 * A la diapositiva 3, redueix la reflexió sobre FP a una frase d'agraïment.
-* A la diapositiva 4, resumeix la conciliació en `calia una trajectòria acadèmica sostenible i coherent amb la vida familiar`.
+* A la diapositiva 4, resumeix la conciliació en `la proximitat reforçava una trajectòria acadèmica sostenible`.
+* A la diapositiva 6, si vas tard, elimina HUB4T i deixa només Cambridge, Neueda, AGAUR i doctorat.
 
 No eliminis la connexió final amb la classe magistral.

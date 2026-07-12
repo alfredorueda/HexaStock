@@ -10,18 +10,18 @@ skinparam componentStyle rectangle
 skinparam packageStyle rectangle
 skinparam ArrowColor #444444
 
-package "Application" as APP #EEF4FA {
-  component "Application Service\ncoordina el cas d'ús" as SERVICE #DDEAF7
-  interface "Output Port\ncapacitat requerida" as PORT #FFFFFF
+package "Aplicació" as APP #EEF4FA {
+  component "Servei d'aplicació\ncoordina el cas d'ús" as SERVICE #DDEAF7
+  interface "Port de sortida\ncapacitat requerida" as PORT #FFFFFF
 }
 
-package "Domain" as DOM #EEF6F2 {
-  component "Domain Model\ninvariants i regles" as DOMAIN #DDEFE6
+package "Domini" as DOM #EEF6F2 {
+  component "Model de domini\ninvariants i regles" as DOMAIN #DDEFE6
 }
 
-package "Infrastructure" as INFRA #F7F7F7 {
-  component "Adapter\ntecnologia concreta" as ADAPTER #FFF3D6
-  cloud "External API\nproveïdor extern" as API #F4F4F4
+package "Infraestructura" as INFRA #F7F7F7 {
+  component "Adaptador\ntecnologia concreta" as ADAPTER #FFF3D6
+  cloud "Servei extern\nproveïdor extern" as API #F4F4F4
 }
 
 SERVICE --> DOMAIN : delega decisions

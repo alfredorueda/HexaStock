@@ -36,19 +36,19 @@ Afirmacions verificades principalment amb el CV acadèmic v4:
 * Trajectòria professional iniciada l'any 2004.
 * Etapa a Vida Software com a R&D Product Engineer.
 * Etapa a openTrends com a Senior Developer / Java-Linux Engineer.
-* Màster de Formació del Professorat.
+* Màster en Formació del Professorat.
 * Docència universitària a La Salle entre 2017 i 2020.
 * Docència continuada al TecnoCampus des de 2021.
-* Assignatures vinculades a programació, aplicacions d'Internet, enginyeria de software i disseny de sistemes d'informació.
+* Assignatures vinculades a programació, aplicacions d'Internet, enginyeria del software i disseny de sistemes d'informació.
 * Participació en ABP, SQAI i HexaStock.
 * Activitat a Neueda com a Software Engineering Instructor.
 * Doctorat UDIMA en Educació i Tecnologia.
 
 Afirmacions verificades principalment amb el pla de recerca doctoral:
 
-* Tema doctoral: cultiu de l'empatia, l'escolta activa i la comunicació assertiva en estudiants universitaris d'Enginyeria de Software mitjançant Aprenentatge Basat en Projectes.
+* Tema doctoral: recerca en Educació en Enginyeria del Software sobre competències sociotècniques integrades en assignatures reals amb ABP.
 * Marc d'Educació i Tecnologia.
-* Connexió entre enginyeria de software, factors humans, competències comunicatives i ABP.
+* Connexió entre enginyeria del software, factors humans, competències comunicatives i ABP.
 
 Afirmacions contrastades amb fonts públiques sobre Vida Software:
 
@@ -86,7 +86,7 @@ S'han incorporat logos o identificadors visuals només quan hi havia una font ra
 
 La connexió queda situada a les diapositives 5 i 6. La trajectòria explica per què la classe magistral posterior no és una peça tècnica aïllada, sinó el resultat natural de tres línies que conflueixen:
 
-* docència universitària en enginyeria de software i sistemes d'informació;
+* docència universitària en enginyeria del software i sistemes d'informació;
 * aprenentatge compartit amb el Dr. Josep Roure en arquitectura, DDD, Clean Architecture i arquitectura hexagonal;
 * transferència professional cap a empreses i institucions que necessiten millorar sistemes software reals.
 
@@ -101,5 +101,5 @@ La frase de transició final proposada és:
 * Cada diapositiva té una idea principal.
 * El to busca equilibri entre rigor acadèmic i dimensió humana.
 * No es converteix en una lectura de currículum.
-* Connecta amb Enginyeria del Software, Bases de Dades i Sistemes d'Informació a través de docència, arquitectura, sistemes d'informació, transferència i recerca educativa aplicada a Enginyeria de Software.
+* Connecta amb Enginyeria del Software, Bases de Dades i Sistemes d'Informació a través de docència, arquitectura, sistemes d'informació, transferència i recerca educativa aplicada a l'Enginyeria del Software.
 * Connecta amb el TecnoCampus com a projecte acadèmic sense utilitzar un to promocional.

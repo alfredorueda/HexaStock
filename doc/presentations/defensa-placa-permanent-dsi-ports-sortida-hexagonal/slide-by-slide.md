@@ -8,7 +8,7 @@ Títol:
 `Disseny de ports de sortida en arquitectura hexagonal`
 
 Subtítol:
-`desacoblament entre casos d'ús, domini i APIs externes`
+`desacoblament entre casos d'ús, domini i serveis externs`
 
 Funció oral:
 Presentar que es tracta d'una microlliçó dins Disseny de Sistemes d'Informació, no d'una explicació completa de tota l'arquitectura hexagonal.
@@ -70,14 +70,16 @@ Explicar primer el cas funcional AGAUR: el procediment avalua requisits econòmi
 Text visible:
 
 ```text
-NECESSITAT
+NECESSITATS
 - Renda familiar
 - Patrimoni
 - Béns immobles
 
-FONTS
+FONTS ADMINISTRATIVES
 - AEAT
 - Cadastre
+
+CANAL D'INTEROPERABILITAT
 - PICA
 
 El procediment necessita informació administrativa,
@@ -95,7 +97,7 @@ Definir breument PICA, Cadastre, AEAT i SOAP/XML, i explicar que la necessitat �
 Text visible:
 
 ```text
-Cas d'ús → SOAP/XML → PICA → AEAT
+Cas d'ús → SOAP/XML → PICA → AEAT / Cadastre
 
 El cas d'ús coneix la infraestructura
 El canvi tecnològic impacta massa

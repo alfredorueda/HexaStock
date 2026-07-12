@@ -8,14 +8,14 @@ skinparam defaultFontSize 15
 skinparam titleFontSize 20
 skinparam ArrowColor #444444
 
-actor "Client / controller" as Client
+actor "Client / controlador" as Client
 participant "PortfolioStockOperationsUseCase\nport d'entrada" as InPort
 participant "PortfolioStockOperationsService\nservei d'aplicació" as Service
 participant "PortfolioPort" as PortfolioPort
 participant "StockPriceProviderPort\nport de sortida" as PricePort
 participant "Adaptador de preus\nFinnhub / Alpha Vantage / mock" as Adapter
-participant "API externa de preus" as ExternalApi
-participant "Portfolio\naggregate root" as Portfolio
+participant "Servei extern de preus" as ExternalApi
+participant "Portfolio\narrel d'agregat" as Portfolio
 
 Client -> InPort : sellStock(portfolioId, ticker, quantity)
 InPort -> Service : sellStock(...)
