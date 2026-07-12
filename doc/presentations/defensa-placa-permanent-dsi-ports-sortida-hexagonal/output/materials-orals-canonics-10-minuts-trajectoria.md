@@ -97,9 +97,7 @@ Disposo del C1 Advanced de Cambridge, amb una puntuació global de 185, i l'angl
 
 També he desenvolupat activitats de transferència, com les 60 hores acreditades amb AGAUR sobre serveis REST, arquitectura hexagonal i modernització de sistemes d'informació.
 
-El doctorat a la UDIMA és la maduració científica d'aquest recorregut. Però no el presentaria com una recerca genèrica sobre empatia. La meva recerca s'inscriu en l'Educació en Enginyeria del Software. [pausa breu]
-
-No parteix d'una intuïció aïllada. La literatura internacional recent identifica mancances en la integració curricular, la mesura i els estudis longitudinals d'aquestes competències dins la formació dels futurs enginyers i enginyeres del software.
+El doctorat a la UDIMA representa l'articulació científica d'aquest recorregut. La recerca s'inscriu en l'àmbit de l'Educació en Enginyeria del Software i no parteix d'una intuïció aïllada. La literatura internacional recent identifica mancances en la integració curricular, la mesura i els estudis longitudinals d'aquestes competències dins la formació dels futurs enginyers i enginyeres del software.
 
 La tesi se situa en aquest espai mitjançant un disseny mixt i quasiexperimental, integrat en dues assignatures reals amb ABP, amb pretest, posttest, seguiment diferit i component qualitatiu. No pretén substituir la formació tècnica; pretén estudiar com complementar-la amb competències vinculades a requisits, usuaris, parts interessades, col·laboració i disseny responsable.
 
