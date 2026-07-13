@@ -21,7 +21,7 @@ Nota de versió: aquests materials són independents de la classe magistral de 2
 
 ## 1. Guió oral complet imprimible
 
-Temps total previst d'assaig: 9:40-10:00 aproximadament, amb pauses reals.
+Temps total previst d'assaig: 9:50-10:10 aproximadament, amb pauses reals. Si l'assaig supera els 10:00, aplica la versió curta d'emergència de la diapositiva 4.
 
 ### Diapositiva 1. Trajectòria professional, acadèmica i científica - 0:50
 
@@ -57,19 +57,21 @@ Amb el temps, aquesta etapa va evolucionar cap a continguts universitaris més a
 
 Això va orientar la mirada cap a la universitat per poder situar aquesta experiència tècnica i docent en assignatures d'enginyeria amb més profunditat conceptual.
 
-### Diapositiva 4. La Salle i el pont cap al TecnoCampus - 1:45
+### Diapositiva 4. La Salle i el pont cap al TecnoCampus - 1:55
 
 Em vaig incorporar a La Salle, un entorn universitari d'alt nivell tècnic. [transició]
 
 Allà vaig impartir assignatures vinculades a l'enginyeria del software, sistemes operatius i desenvolupament d'aplicacions. També vaig participar en una experiència ABP a Projectes de Programació II, vinculada a Sallefy. És una etapa que valoro molt: em va obrir la docència universitària i em va permetre portar a l'aula coneixement tècnic avançat.
 
-El pas cap al TecnoCampus va ser una decisió reflexionada, valorada amb la direcció i la coordinació acadèmica. La Salle té una tradició d'enginyeria sòlida i una forta tradició específicament en l'enginyeria de telecomunicacions. Amb el temps, vaig considerar que la meva especialització en enginyeria del software, arquitectura d'aplicacions, backend i sistemes d'informació podia tenir un encaix més directe al TecnoCampus. [mirada al tribunal]
+El pas cap al TecnoCampus va ser una decisió reflexionada, valorada amb la direcció i la coordinació acadèmica. [pausa breu]
 
-La proximitat geogràfica va reforçar aquesta decisió, perquè facilitava una trajectòria acadèmica sostenible i compatible amb les responsabilitats familiars.
+La Salle té una tradició d'enginyeria sòlida, amb una identitat històrica molt forta en telecomunicacions, xarxes i electrònica. La meva docència allà se centrava en els fonaments: el disseny i la programació orientats a objectes, i el desenvolupament d'aplicacions mòbils. Són la llavor de l'enginyeria del software, i em va agradar molt ensenyar-los. Però el meu territori professional és el tram següent d'aquest mateix camí: l'arquitectura de software, el backend empresarial i els sistemes d'informació. [mirada al tribunal]
 
-En aquest procés, la Dra. Ester Bernadó va facilitar el contacte acadèmic amb el TecnoCampus i el coneixement mutu.
+I aquest tram tenia un encaix curricular directe al TecnoCampus: el grau porta la gestió i els sistemes d'informació al seu propi nom, amb una línia completa d'enginyeria del software i de disseny de sistemes d'informació. Era l'espai natural on la meva especialització podia créixer com a docència universitària.
 
-Després d'aquell contacte vaig començar com a professor associat al TecnoCampus. I des del primer moment vaig percebre que hi podien confluir camins que fins aleshores havien avançat separats: docència universitària, enginyeria del software, sistemes d'informació i sostenibilitat personal.
+La proximitat geogràfica va reforçar la decisió, perquè feia la trajectòria acadèmica sostenible i compatible amb les responsabilitats familiars.
+
+Vaig establir contacte acadèmic amb el TecnoCampus i vaig començar-hi com a professor associat. I des del primer moment vaig percebre que hi podien confluir camins que fins aleshores havien avançat separats: docència universitària, enginyeria del software, sistemes d'informació i sostenibilitat personal.
 
 El desig de consolidar una plaça al TecnoCampus, per tant, no neix ara. Ve de lluny.
 
@@ -136,14 +138,17 @@ Moltes gràcies.
 * Agraïment a l'FP; no menysvalorar-la.
 * Evolució cap a continguts tècnics universitaris més avançats.
 
-### 4. La Salle i pont cap al TecnoCampus - 1:45
+### 4. La Salle i pont cap al TecnoCampus - 1:55
 
 * La Salle: incorporació a un entorn universitari d'alt nivell tècnic.
 * La Salle és etapa valuosa; evitar comparacions jeràrquiques.
 * Motiu principal: encaix acadèmic més directe amb enginyeria del software i sistemes d'informació.
 * Conciliació com a factor complementari de sostenibilitat.
 * Conversa amb coordinador i director a La Salle.
-* La Dra. Ester Bernadó va facilitar el contacte acadèmic amb el TecnoCampus.
+* Fonaments a La Salle: disseny i programació orientats a objectes i aplicacions mòbils; la llavor de l'enginyeria del software.
+* Territori professional propi: arquitectura de software, backend empresarial i sistemes d'informació; el tram següent del mateix camí.
+* Encaix curricular al TecnoCampus: el grau porta la gestió i els sistemes d'informació al seu propi nom.
+* No esmentar persones concretes; el contacte acadèmic es formula en genèric.
 * TecnoCampus: docència universitària, software, sistemes d'informació, transferència i projecte sostenible.
 * Frase clau: el desig de consolidar-se ve de lluny.
 
@@ -183,7 +188,7 @@ Moltes gràcies.
 | 1           | La trajectòria té un sol fil conductor                             | 2004, enginyer, professor, investigador          | Base industrial  |
 | 2           | La indústria dona profunditat tècnica i desperta comunicació      | Symbian, C/C++, MWC, openTrends, Java              | Vocació docent  |
 | 3           | Stucom materialitza la vocació docent                               | FP, aula, escolta, acompanyament                   | Universitat      |
-| 4           | La Salle obre la universitat i TecnoCampus dona alineació           | La Salle, software, sistemes, Ester Bernadó       | Casa acadèmica  |
+| 4           | La Salle dona els fonaments; el TecnoCampus, l'encaix curricular    | La Salle, fonaments, llavor, tram següent, encaix | Casa acadèmica  |
 | 5           | TecnoCampus integra docència, evidència, equip i transferència    | 2021, 15 registres, 8,75, 9,03, SQAI               | Recerca i futur  |
 | 6           | Doctorat i futur se situen en l'Educació en Enginyeria del Software | C1, Neueda, AGAUR, HUB4T, buit de recerca          | Classe magistral |
 
@@ -214,7 +219,7 @@ Mira el tribunal en tres moments: inici, explicació de l'alineació TecnoCampus
 * Diapositiva 1: no superar 0:55.
 * Diapositiva 2: no explicar massa Vida Software; màxim 30 segons.
 * Diapositiva 3: evitar convertir-la en una història llarga sobre FP.
-* Diapositiva 4: alineació acadèmica com a motiu principal; conciliació només com a sostenibilitat complementària.
+* Diapositiva 4: encaix curricular com a motiu principal (fonaments a La Salle, tram següent al TecnoCampus); conciliació només com a sostenibilitat complementària; cap menció de persones concretes.
 * Diapositiva 5: és el centre docent i institucional; donar-li aire.
 * Diapositiva 6: recerca com a Educació en Enginyeria del Software; tancar amb seguretat i enllaçar amb la classe magistral.
 
@@ -225,6 +230,7 @@ Si durant la defensa veus que falta temps, elimina aquestes frases:
 * A la diapositiva 2, digues només `component de Symbian per incorporar veu en aplicacions mòbils`.
 * A la diapositiva 3, redueix la reflexió sobre FP a una frase d'agraïment.
 * A la diapositiva 4, resumeix la conciliació en `la proximitat reforçava una trajectòria acadèmica sostenible`.
+* A la diapositiva 4, si encara vas tard, redueix el bloc d'encaix a `la meva especialització tenia un encaix curricular directe al TecnoCampus` i elimina `i em va agradar molt ensenyar-los`.
 * A la diapositiva 6, si vas tard, elimina HUB4T i deixa només Cambridge, Neueda, AGAUR i doctorat.
 
 No eliminis la connexió final amb la classe magistral.

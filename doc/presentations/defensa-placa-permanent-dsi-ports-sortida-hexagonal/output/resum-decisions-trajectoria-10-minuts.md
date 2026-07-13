@@ -60,7 +60,7 @@ Afirmacions contrastades amb fonts públiques sobre Vida Software:
 Afirmacions que depenen de font oral del candidat i convé validar abans de la defensa final:
 
 * El trasllat familiar a Llavaneres i la necessitat de conciliació amb dos fills.
-* El contacte amb Ester Bernadó com a pont acadèmic cap al TecnoCampus.
+* La docència a La Salle centrada en fonaments: Disseny i Programació Orientats a Objectes i Projectes de Programació II (aplicacions mòbils Android).
 * La formulació `m'he sentit com a casa` aplicada al TecnoCampus.
 * La lectura personal de la plaça com a consolidació d'un projecte acadèmic iniciat abans de la convocatòria actual.
 
@@ -70,7 +70,21 @@ Afirmacions que depenen de font oral del candidat i convé validar abans de la d
 * W3C, `Natural Interaction for Multimodal Mobile Devices`: https://www.w3.org/2004/02/mmi-workshop/campos-vida.pdf
 * Forum Nokia Consumer Applications, referència a Natural Interaction Platform: https://www.yumpu.com/en/document/view/394198/forum-nokia-consumer-applications
 * Google Patents, `WO2007141498A1 - User interfaces for electronic devices`: https://patents.google.com/patent/WO2007141498A1/en
-* Perfil de TecnoCampus d'Ester Bernadó: https://www.tecnocampus.cat/es/professorat/ester-bernado-mansilla-0
+* Pla d'estudis del Grau en Enginyeria Informàtica de La Salle URL: https://www.salleurl.edu/ca/estudis/grau-en-enginyeria-informatica/pla-estudis
+* Grau en Enginyeria Informàtica de Gestió i Sistemes d'Informació del TecnoCampus: https://www.tecnocampus.cat/grau/grau-en-enginyeria-informatica-de-gestio-i-sistemes-dinformacio
+
+## Decisió sobre la transició de La Salle al TecnoCampus
+
+La versió inicial esmentava una persona concreta com a pont acadèmic cap al TecnoCampus. S'ha decidit despersonalitzar la transició per evitar dependre de la relació que cada membre del tribunal pugui tenir amb persones concretes.
+
+La transició es fonamenta ara en un argument d'encaix curricular verificable:
+
+* A La Salle la docència pròpia se centrava en fonaments: `Disseny i Programació Orientats a Objectes` i `Projectes de Programació II` (aplicacions mòbils Android). Són la llavor de l'enginyeria del software.
+* El territori professional propi (arquitectura de software, backend empresarial, sistemes d'informació) és el tram següent del mateix camí.
+* El grau del TecnoCampus porta la gestió i els sistemes d'informació al seu propi nom i articula una línia completa d'Enginyeria del Software I-III, Disseny de Sistemes d'Informació i laboratoris de software i d'aplicacions Internet.
+* La identitat històrica de La Salle en telecomunicacions, xarxes i electrònica es formula sempre com a reconeixement, mai com a crítica.
+
+Criteri de defensa davant preguntes: no afirmar que a La Salle `no s'ensenyava` cap contingut concret; formular-ho sempre com a espai on la pròpia especialització podia créixer com a docència universitària. Les dades de contrast dels plans d'estudis es reserven per al torn de preguntes.
 
 ## Decisió sobre logos
 
