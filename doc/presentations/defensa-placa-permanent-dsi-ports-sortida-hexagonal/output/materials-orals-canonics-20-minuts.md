@@ -10,13 +10,13 @@ Fonts canòniques utilitzades:
 
 Documents antics ignorats com a font: `outline.md`, `slide-by-slide.md`, `guió-oral-20-minuts.md` i altres esborranys previs.
 
-Nota de versió: la demo queda fora del cos principal de la classe. El tancament formal és la diapositiva `Idea clau i tancament`. La demo es conserva com a annex opcional, només per activar-la si el tribunal la demana o si hi ha temps explícitament disponible després del tancament.
+Nota de versió: la demo queda fora del cos principal de la classe. El tancament conceptual és la diapositiva `Idea clau i tancament` i el tancament protocol·lari és la diapositiva `Agraïment`. La demo es conserva com a annex opcional, només per activar-la si el tribunal la demana o si hi ha temps explícitament disponible després del tancament.
 
 ---
 
 ## 1. Guió oral complet imprimible
 
-Temps total previst d'assaig del cos principal: aproximadament 16:00-17:15, sense demo en viu. La lectura neta del text queda al voltant de 12:00-13:00 segons el ritme; la validació definitiva s'ha de fer amb assaig oral real.
+Temps total previst d'assaig del cos principal: aproximadament 16:20-17:45, sense demo en viu. La lectura neta del text queda al voltant de 12:00-13:00 segons el ritme; la validació definitiva s'ha de fer amb assaig oral real.
 
 La demo no forma part del temps canònic de la classe. S'ha de considerar un annex opcional posterior al tancament.
 
@@ -150,15 +150,21 @@ La substitució és viable mentre es mantinguin el contracte funcional i la sem�
 
 Amb això podem tancar la classe recuperant les tres decisions essencials.
 
-### Diapositiva 10. Idea clau i tancament - 0:55
+### Diapositiva 10. Idea clau i tancament - 0:45
 
-Per tancar, voldria recuperar les tres decisions que hem treballat.
+Per tancar el contingut tècnic, voldria recuperar les tres decisions que hem treballat.
 
 Primer, el cas d'ús expressa una necessitat funcional, no una tecnologia concreta. Segon, el port defineix el contracte que necessita l'aplicació. I tercer, l'adaptador encapsula la integració amb el sistema extern.
 
 L'arquitectura hexagonal no elimina la dependència del món exterior ni evita tots els canvis. El que ens permet és situar aquesta dependència en una frontera explícita i localitzar millor l'impacte de l'evolució tecnològica.
 
-Vull expressar el meu agraïment al TecnoCampus per aquest entorn docent i acadèmic, i al Dr. Josep Roure pel treball compartit en arquitectura de software i metodologies actives.
+Dit de manera sintètica: l'arquitectura no elimina el canvi; el localitza.
+
+### Diapositiva 11. Agraïment - 0:25
+
+Vull expressar el meu agraïment al TecnoCampus per un entorn que m'encoratja a créixer, al costat d'un equip del qual aprenc i amb qui comparteixo coneixement, responsabilitat i compromís amb la formació universitària.
+
+[pausa natural]
 
 Moltes gràcies.
 
@@ -268,15 +274,22 @@ Això no vol dir que l'arquitectura elimini el canvi. El canvi continua existint
 * Domini decideix; adaptador integra.
 * Transició: conclusió tècnica.
 
-### 10. Idea clau i tancament - 0:55
+### 10. Idea clau i tancament - 0:45
 
 * Tres decisions: necessitat funcional, port i adaptador.
 * El cas d'ús expressa una necessitat funcional.
 * El port defineix el contracte de l'aplicació.
 * L'adaptador encapsula la integració externa.
-* Frase clau: l'arquitectura no elimina el canvi; el localitza.
-* Agraïment breu al TecnoCampus i al Dr. Josep Roure.
+* Frase clau amb màxima jerarquia visual: l'arquitectura no elimina el canvi; el localitza.
+* Cap agraïment en aquesta diapositiva: donar pas a la diapositiva 11.
+
+### 11. Agraïment - 0:25
+
+* Frase d'agraïment literal: no resumir-la ni canviar cap paraula.
+* Cap nom de persona i cap altre agraïment.
+* Pausa natural abans de `Moltes gràcies`.
 * Tancar mirant el tribunal: `Moltes gràcies`.
+* Després de `Moltes gràcies`, la classe queda formalment tancada.
 * No obrir la demo després del tancament si el tribunal no la demana o si no hi ha temps clar.
 
 ### Annex A. Demo opcional - 1:30 a 2:30
@@ -307,10 +320,11 @@ Això no vol dir que l'arquitectura elimini el canvi. El canvi continua existint
 | 7           | Port diu què; adaptador diu com                 | Contracte, interfície, inversió  | Problema                 | Aplicació al cas patrimonial     |
 | 8           | AGAUR: contracte d'aplicació, no detall tècnic | Adaptador implementa port          | Port genèric            | Transferència al domini financer |
 | 9           | Mateix patró en domini financer                 | Necessitat, port i adaptador       | Cas AGAUR                | Conclusió                         |
-| 10          | L'arquitectura localitza el canvi                | Frontera explícita                 | Domini financer          | Tancament                         |
+| 10          | L'arquitectura localitza el canvi                | Frontera explícita                 | Domini financer          | Agraïment                         |
+| 11          | Agraïment institucional i tancament formal       | Cap contingut tècnic nou           | Idea clau                | Preguntes / annex si escau        |
 | Annex A     | Demostració opcional del canvi d'adaptador      | Adaptador substituïble            | Només si escau          | Preguntes / discussió            |
 
-Mantra de memòria del cos principal: `context -> assignatura -> objectiu -> procediment -> informació externa -> acoblament -> port -> cas patrimonial -> domini financer -> conclusió`.
+Mantra de memòria del cos principal: `context -> assignatura -> objectiu -> procediment -> informació externa -> acoblament -> port -> cas patrimonial -> domini financer -> conclusió -> agraïment`.
 
 Mantra de l'annex opcional: `mateix cas d'ús -> mateix servei -> mateix domini -> canvia l'adaptador`.
 
@@ -331,10 +345,11 @@ La taula següent calcula només el cos principal. No inclou la demo opcional. L
 | 7 | Port de sortida i adaptador | 263 | 2:06 | 2:01 | 1:57 | 8:50 |
 | 8 | Port patrimonial | 196 | 1:34 | 1:30 | 1:27 | 10:20 |
 | 9 | Domini financer | 158 | 1:16 | 1:13 | 1:10 | 11:33 |
-| 10 | Idea clau i tancament | 104 | 0:50 | 0:48 | 0:46 | 12:21 |
-| **Total** | **Cos principal** | **1.606** | **12:51** | **12:21** | **11:54** | **12:21** |
+| 10 | Idea clau i tancament | 88 | 0:42 | 0:41 | 0:39 | 12:14 |
+| 11 | Agraïment | 35 | 0:17 | 0:16 | 0:16 | 12:30 |
+| **Total** | **Cos principal** | **1.625** | **13:00** | **12:30** | **12:02** | **12:30** |
 
-Estimació anterior de treball: 18:15-19:00. Temps eliminat del cos principal: una diapositiva prevista d'1:25. Nova estimació prudent amb pauses reals: 16:00-17:15. Marge respecte dels 20 minuts: aproximadament 2:45-4:00, pendent de validació amb assaig oral real.
+Estimació anterior de treball: 18:15-19:00. Temps eliminat del cos principal: una diapositiva prevista d'1:25. La separació de la síntesi tècnica i l'agraïment en dues diapositives afegeix aproximadament 0:20-0:30 (canvi de diapositiva i pausa protocol·lària), sense contingut tècnic nou. Nova estimació prudent amb pauses reals: 16:20-17:45. Marge respecte dels 20 minuts: aproximadament 2:15-3:40, pendent de validació amb assaig oral real.
 
 ---
 
@@ -354,7 +369,7 @@ Practica per blocs, no tota la presentació sempre sencera:
 
 * Bloc 1: diapositives 1-3, context, assignatura i objectiu breu.
 * Bloc 2: diapositives 4-8, cas AGAUR, problema i port de sortida.
-* Bloc 3: diapositives 9-10, domini financer, conclusió i agraïment.
+* Bloc 3: diapositives 9-11, domini financer, conclusió tècnica i agraïment.
 * Annex: demo opcional, en una versió de màxim 2 minuts.
 
 En cada bloc, treballa tres coses: mirada, pausa i gest. La mirada ha d'anar al tribunal en les frases conceptuals; a la pantalla només quan assenyales una part concreta. Les mans han d'ajudar a separar conceptes: una mà per `necessitat funcional`, l'altra per `tecnologia concreta`. Evita caminar mentre expliques una distinció fina; atura't, formula-la i continua.

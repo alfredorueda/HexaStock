@@ -15,7 +15,7 @@ Fonts públiques de contrast per a Vida Software:
 * Forum Nokia Consumer Applications: referència a `Natural Interaction Platform`, J2ME i Symbian OS.
 * Google Patents: patent internacional `WO2007141498A1`, `User interfaces for electronic devices`, assignada a Vida Software S.L.
 
-Nota de versió: aquests materials són independents de la classe magistral de 20 minuts. La seva funció és donar suport a la primera part de la defensa de la plaça: trajectòria professional, acadèmica i científica. La presentació està limitada a 6 diapositives i a una durada aproximada de 10 minuts.
+Nota de versió: aquests materials són independents de la classe magistral de 20 minuts. La seva funció és donar suport a la primera part de la defensa de la plaça: trajectòria professional, acadèmica i científica. La presentació està limitada a 6 diapositives i a una durada aproximada de 10 minuts. Després del tancament hi ha una diapositiva d'annex, `Annex A. Contrast d'orientació curricular`, que no forma part de la numeració 1-6 ni del temps principal: és material de reserva exclusiu per al torn de preguntes.
 
 ---
 
@@ -109,6 +109,22 @@ Moltes gràcies.
 
 ---
 
+## Annex A. Contrast d'orientació curricular (només per al torn de preguntes)
+
+Aquest annex no forma part del cos principal de deu minuts ni de la numeració 1-6. Només s'ha de mostrar si el tribunal pregunta pel pas de La Salle al TecnoCampus, qüestiona l'encaix acadèmic o demana concretar la diferència d'orientació entre les titulacions. No s'ha de mostrar sense una pregunta o una necessitat clara, ni utilitzar-lo com a defensa preventiva.
+
+### Resposta oral de reserva - 30-45 segons
+
+El canvi no va respondre a una valoració jeràrquica entre institucions. La Salle em va permetre entrar en la docència universitària dins d'un entorn d'enginyeria molt sòlid, i hi vaig impartir assignatures directament vinculades a la informàtica i al software.
+
+El contrast entre els plans mostra, però, orientacions curriculars diferents. La Salle manté un pes més marcat en telecomunicacions, electrònica, hardware i xarxes, coherent amb la seva tradició històrica. El grau del TecnoCampus concentra de manera més explícita l'Enginyeria del Software i els Sistemes d'Informació.
+
+Per això vaig considerar que la meva experiència professional en arquitectura de software, backend, Java i sistemes d'informació podia tenir-hi un encaix més directe. No es tracta que una institució sigui millor que l'altra, sinó d'una major alineació entre especialització professional i projecte acadèmic.
+
+Quan es mostri l'annex, no llegir tota la taula: assenyalar una diferència d'Enginyeria del Software o Sistemes d'Informació, una de hardware o xarxes, i concloure amb l'encaix acadèmic.
+
+---
+
 ## 2. Notes del presentador per diapositiva
 
 ### 1. Trajectòria - 0:50
@@ -178,6 +194,16 @@ Moltes gràcies.
 * Tancar amb la plaça com a consolidació d'un projecte acadèmic.
 * Enllaçar amb la classe magistral següent.
 
+### Annex A. Contrast d'orientació curricular - només si el tribunal pregunta
+
+* Fora dels deu minuts i de la numeració 1-6; no mostrar sense pregunta o necessitat clara.
+* Missatge: diferències d'èmfasi i d'orientació curricular, mai de qualitat ni de jerarquia entre institucions.
+* Taula: Enginyeria del Software, Sistemes d'Informació i arquitectura, electrònica i hardware, xarxes i telecomunicacions, identitat del grau.
+* Sense noms de persones ni relacions personals; justificació estrictament acadèmica, curricular i institucional.
+* Fonts (consulta: 13 de juliol de 2026): pla d'estudis del Grau en Enginyeria Informàtica de La Salle URL (https://www.salleurl.edu/ca/estudis/grau-en-enginyeria-informatica/pla-estudis) i Grau en Enginyeria Informàtica de Gestió i Sistemes d'Informació del TecnoCampus (https://www.tecnocampus.cat/grau/grau-en-enginyeria-informatica-de-gestio-i-sistemes-dinformacio).
+* Criteri: només assignatures amb nom verificat als plans vigents, amb obligatòries i optatives diferenciades; no es projecten sumes agregades d'ECTS perquè la classificació obligatòria/optativa de La Salle no va resultar estable entre consultes, i per això la diapositiva usa formulacions qualitatives.
+* Resposta oral de reserva: vegeu la secció Annex A del guió.
+
 ---
 
 ## 3. Esquema de memorització
@@ -191,6 +217,7 @@ Moltes gràcies.
 | 4           | La Salle dona els fonaments; el TecnoCampus, l'encaix curricular    | La Salle, fonaments, llavor, tram següent, encaix | Casa acadèmica  |
 | 5           | TecnoCampus integra docència, evidència, equip i transferència    | 2021, 15 registres, 8,75, 9,03, SQAI               | Recerca i futur  |
 | 6           | Doctorat i futur se situen en l'Educació en Enginyeria del Software | C1, Neueda, AGAUR, HUB4T, buit de recerca          | Classe magistral |
+| Annex A     | Diferències d'èmfasi curricular, no de qualitat (només preguntes)   | encaix, orientació, fonts oficials                 | Fora dels 10 min |
 
 Mantra de memòria: `indústria del software -> docència universitària en software -> TecnoCampus -> recerca -> futur`.
 
