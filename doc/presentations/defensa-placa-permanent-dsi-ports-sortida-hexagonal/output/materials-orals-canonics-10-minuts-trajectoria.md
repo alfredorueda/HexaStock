@@ -27,7 +27,7 @@ Temps total previst d'assaig: 9:00-9:20 aproximadament, amb pauses reals. Si l'a
 
 Bon dia, membres del tribunal. Moltes gràcies per l'oportunitat de presentar aquesta trajectòria. [mirada al tribunal]
 
-La meva trajectòria comença el 2004 i té un fil conductor: l'enginyeria del software. Primer, com a enginyer a la indústria. Després, com a professor universitari. I avui, també com a investigador: estudio com s'ensenya l'enginyeria del software. [pausa breu]
+La meva trajectòria comença el 2004 i té un fil conductor: l'enginyeria del software. Primer, com a enginyer a la indústria. Després, com a professor. I avui, també com a investigador: faig recerca en Educació en Enginyeria del Software. [pausa breu]
 
 Aquest és el recorregut que presentaré: base professional, vocació docent, pas a la universitat, consolidació al TecnoCampus i projecte de futur.
 
@@ -69,8 +69,6 @@ La proximitat geogràfica va reforçar la decisió, perquè feia la trajectòria
 
 Vaig establir contacte acadèmic amb el TecnoCampus i vaig començar-hi com a professor associat.
 
-El desig de consolidar una plaça al TecnoCampus, per tant, no neix ara. Ve de lluny.
-
 ### Diapositiva 5. TecnoCampus: docència, equip i arquitectura de software - 1:20
 
 El TecnoCampus ha estat el lloc on aquesta trajectòria ha trobat més coherència. [pausa breu]
@@ -79,7 +77,7 @@ Des de 2021 hi he desenvolupat docència universitària continuada en assignatur
 
 Aquesta continuïtat no és només temporal. El certificat institucional recull quinze registres oficials d'avaluació docent, entre els cursos 2021-2022 i 2025-2026, amb una mitjana aritmètica simple de 8,75 sobre 10. I els quatre registres dels dos darrers cursos presenten una mitjana aritmètica simple de 9,03 sobre 10.
 
-També ha estat molt important el treball amb l'equip. Voldria destacar especialment el Dr. Josep Roure, amb qui he compartit docència i aprenentatge en arquitectura de software, Domain-Driven Design, Clean Architecture i arquitectura hexagonal.
+També ha estat molt important el treball amb l'equip. Voldria destacar especialment el Dr. Josep Roure, amb qui he compartit docència i aprenentatge en arquitectura de software.
 
 La participació acreditada en el projecte SQAI d'Aprenentatge Basat en Projectes a Laboratori d'Aplicacions Internet m'ha permès integrar docència, arquitectura de software i millora educativa.
 
@@ -162,7 +160,6 @@ Quan es mostri l'annex, no llegir tota la taula: assenyalar una diferència d'En
 * Encaix curricular al TecnoCampus: la gestió i els sistemes d'informació formen part de la mateixa denominació del grau.
 * No esmentar persones concretes; el contacte acadèmic es formula en genèric.
 * TecnoCampus: docència universitària, software, sistemes d'informació, transferència i projecte sostenible.
-* Frase clau: el desig de consolidar-se ve de lluny.
 
 ### 5. TecnoCampus - 1:20
 
@@ -231,7 +228,7 @@ La presentació està pensada per a 9:00-9:20 amb un ritme pausat i marge real. 
 
 ### Veu
 
-Mantén un to acadèmic, però no burocràtic. Les frases personals han de sonar naturals i sòbries: `el desig de consolidar-me ve de lluny`, `projecte acadèmic vinculat al TecnoCampus`. No cal intensificar-les; la força està a dir-les amb calma i amb evidència.
+Mantén un to acadèmic, però no burocràtic. Les frases personals han de sonar naturals i sòbries: `projecte acadèmic vinculat al TecnoCampus`. No cal intensificar-les; la força està a dir-les amb calma i amb evidència.
 
 ### Cos i mirada
 
