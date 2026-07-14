@@ -49,11 +49,9 @@ Per donar consistència a aquesta decisió vaig cursar el màster en Formació d
 
 A la Formació Professional vaig trobar allò que buscava des de feia temps: l'aula, la relació directa amb l'alumnat i la responsabilitat d'acompanyar processos d'aprenentatge.
 
-Va ser una etapa molt valuosa. Em va ajudar a aprendre a ensenyar, a escoltar millor i a entendre que la docència no és només transmetre contingut tècnic. També és crear condicions perquè l'estudiant pugui avançar, equivocar-se, recuperar confiança i construir criteri.
+Va ser una etapa molt valuosa. Em va ajudar a aprendre a ensenyar, a escoltar millor i a entendre que la docència no és només transmetre contingut tècnic. També és crear condicions perquè l'estudiant pugui avançar, equivocar-se, recuperar confiança i aprendre a treballar en equip.
 
-Amb el temps, aquesta etapa va evolucionar cap a continguts universitaris més avançats: enginyeria del software, arquitectura de software, disseny de sistemes d'informació i experiència professional aplicada.
-
-Això va orientar la mirada cap a la universitat per poder situar aquesta experiència tècnica i docent en assignatures d'enginyeria amb més profunditat conceptual.
+Amb el temps, volia portar a l'aula continguts més avançats: enginyeria del software, arquitectura de software i disseny de sistemes d'informació, recolzats en la meva experiència professional. El lloc natural d'aquests continguts és la universitat, i cap allà vaig orientar la mirada.
 
 ### Diapositiva 4. De La Salle al TecnoCampus - 1:55
 
@@ -63,9 +61,9 @@ Allà vaig impartir assignatures de programació, sistemes operatius i vaig diss
 
 El pas cap al TecnoCampus va ser una decisió reflexionada, valorada amb la direcció i la coordinació acadèmica. [pausa breu]
 
-La Salle té una tradició d'enginyeria sòlida, amb una identitat històrica molt forta en telecomunicacions, xarxes i electrònica. La meva docència allà se centrava en els fonaments: el disseny i la programació orientats a objectes, i el desenvolupament d'aplicacions mòbils. Són la llavor de l'enginyeria del software, i em va agradar molt ensenyar-los. Però el meu territori professional és el tram següent d'aquest mateix camí: l'arquitectura de software, el backend empresarial i els sistemes d'informació. [mirada al tribunal]
+La Salle té una tradició d'enginyeria sòlida, amb una identitat històrica molt forta en telecomunicacions i electrònica. La meva docència allà se centrava en els fonaments: el disseny i la programació orientats a objectes, i el desenvolupament d'aplicacions mòbils. Són la llavor de l'enginyeria del software, i em va agradar molt ensenyar-los. Però el meu territori professional és el tram següent d'aquest mateix camí: l'arquitectura de software, el backend empresarial i els sistemes d'informació. [mirada al tribunal]
 
-I aquest tram tenia un encaix curricular directe al TecnoCampus: la gestió i els sistemes d'informació formen part de la mateixa denominació del grau, amb una línia completa d'enginyeria del software i de disseny de sistemes d'informació. Era un entorn especialment alineat amb el desenvolupament de la meva especialització docent.
+I aquest tram tenia un encaix curricular directe al TecnoCampus: la gestió i els sistemes d'informació formen part de la mateixa denominació del grau, amb una línia completa d'enginyeria del software i de disseny de sistemes d'informació. És un entorn especialment alineat amb el desenvolupament de la meva especialització docent.
 
 La proximitat geogràfica va reforçar la decisió, perquè feia la trajectòria acadèmica sostenible i compatible amb les responsabilitats familiars.
 
