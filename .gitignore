@@ -43,3 +43,7 @@ build/
 .env.*.local
 application-local.properties
 
+
+### Office lock files ###
+~$*
+**/~$*

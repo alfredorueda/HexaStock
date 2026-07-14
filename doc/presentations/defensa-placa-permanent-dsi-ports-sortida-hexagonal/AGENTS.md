@@ -22,8 +22,11 @@ Do not treat rendered PDFs, DOCX files, reMarkable exports, generated images, ol
 
 Derived materials must be generated only through these project scripts when Alfredo explicitly asks for derived generation:
 
+- `src/generate_ALL_derived_materials.sh` (preferred: runs both scripts below sequentially and refuses to start if LibreOffice is open)
 - `src/generate_derived_materials_trajectoria.sh`
 - `src/generate_derived_materials.sh`
+
+Never run the two individual scripts in parallel: they share headless LibreOffice and the second one aborts halfway, leaving stale PDFs.
 
 Do not manually regenerate derived artefacts with ad hoc commands when these scripts cover the requested output.
 

@@ -21,7 +21,7 @@ Nota de versió: aquests materials són independents de la classe magistral de 2
 
 ## 1. Guió oral complet imprimible
 
-Temps total previst d'assaig: 9:50-10:10 aproximadament, amb pauses reals. Si l'assaig supera els 10:00, aplica la versió curta d'emergència de la diapositiva 4.
+Temps total previst d'assaig: 9:00-9:20 aproximadament, amb pauses reals. Si l'assaig supera els 10:00, aplica la versió curta d'emergència de la diapositiva 4.
 
 ### Diapositiva 1. Trajectòria professional, acadèmica i científica - 0:50
 
@@ -31,19 +31,17 @@ La meva trajectòria comença el 2004 i té un fil conductor: l'enginyeria del s
 
 Aquest és el recorregut que presentaré: base professional, vocació docent, pas a la universitat, consolidació al TecnoCampus i projecte de futur.
 
-### Diapositiva 2. Primera etapa: enginyeria del software i consultoria - 1:50
+### Diapositiva 2. Primera etapa: enginyeria del software i consultoria - 1:30
 
 La primera etapa transcorre en la indústria del software. [to calmat]
 
-A Vida Software vaig treballar en un component del sistema operatiu Symbian orientat a incorporar interacció per veu en aplicacions mòbils. Era una peça de plataforma desenvolupada a baix nivell en C++, amb restriccions fortes de memòria, CPU i xarxa. La feina tenia un caràcter molt proper a l'R+D de laboratori: treballàvem sobre la pila de comunicacions IP, amb senyalització SIP, transport de veu mitjançant RTP sobre UDP i còdecs com l'AMR. El component es va presentar en entorns com el 3GSM / Mobile World Congress i estava vinculat al context d'innovació d'una patent de Vida Software sobre interfícies d'usuari.
+A Vida Software vaig treballar en un component del sistema operatiu Symbian orientat a incorporar interacció per veu en aplicacions mòbils. Era una peça de plataforma desenvolupada a baix nivell en C++, amb restriccions fortes de memòria, CPU i xarxa. El component es va presentar en entorns com el 3GSM/Mobile World Congress i estava vinculat al context d'innovació d'una patent de Vida Software sobre interfícies d'usuari.
 
-Va ser una etapa tècnicament molt exigent i estimulant, que em va donar una base sòlida en sistemes i comunicacions. Al mateix temps, em va ajudar a identificar una altra dimensió que volia desenvolupar: el treball amb les persones, la comunicació i la construcció compartida de coneixement. Per tant, el pas a la consultoria no va representar una renúncia a la profunditat tècnica, sinó la voluntat d'ampliar-la amb una dimensió més relacional i col·laborativa, que amb el temps ha esdevingut un fil conductor de la meva trajectòria.
+Va ser una etapa tècnicament molt exigent i estimulant, que em va donar una base sòlida en sistemes i comunicacions. Al mateix temps, em va ajudar a identificar una altra dimensió que volia desenvolupar: el treball amb les persones, la comunicació i la construcció compartida de coneixement.
 
-El pas a openTrends va ampliar aquesta base cap a Java, Linux, Spring, sistemes d'informació, clients i equips. Allà la comunicació tècnica va guanyar pes: entendre necessitats, explicar decisions i fer mentoria a enginyers júniors.
+Per això vaig fer el pas a la consultoria, a openTrends, on vaig ampliar aquesta base cap a Java, Linux, Spring, sistemes d'informació, clients i equips. Allà la comunicació tècnica va guanyar pes: entendre necessitats, explicar decisions i fer mentoria a enginyers júniors.
 
-Mirat amb perspectiva, la combinació de solvència tècnica, comunicació i acompanyament va acabar definint el meu perfil professional.
-
-Per això la transició cap a la docència no va ser una ruptura, sinó una evolució natural de la mateixa trajectòria professional.
+La transició cap a la docència va ser, doncs, una evolució natural d'aquesta mateixa trajectòria professional.
 
 ### Diapositiva 3. Formació Professional: el descobriment clar de la vocació docent - 1:10
 
@@ -61,7 +59,7 @@ Això va orientar la mirada cap a la universitat per poder situar aquesta experi
 
 Em vaig incorporar a La Salle, un entorn universitari d'alt nivell tècnic. [transició]
 
-Allà vaig impartir assignatures vinculades a l'enginyeria del software, sistemes operatius i desenvolupament d'aplicacions. També vaig participar en una experiència ABP a Projectes de Programació II, vinculada a Sallefy. És una etapa que valoro molt: em va obrir la docència universitària i em va permetre portar a l'aula coneixement tècnic avançat.
+Allà vaig impartir assignatures de programació, sistemes operatius i vaig dissenyar una experiència ABP a Projectes de Programació II. És una etapa que valoro molt: em va obrir la docència universitària i em va permetre portar a l'aula coneixement tècnic avançat.
 
 El pas cap al TecnoCampus va ser una decisió reflexionada, valorada amb la direcció i la coordinació acadèmica. [pausa breu]
 
@@ -71,11 +69,11 @@ I aquest tram tenia un encaix curricular directe al TecnoCampus: la gestió i el
 
 La proximitat geogràfica va reforçar la decisió, perquè feia la trajectòria acadèmica sostenible i compatible amb les responsabilitats familiars.
 
-Vaig establir contacte acadèmic amb el TecnoCampus i vaig començar-hi com a professor associat. I des del primer moment vaig percebre que hi podien confluir camins que fins aleshores havien avançat separats: docència universitària, enginyeria del software, sistemes d'informació i sostenibilitat personal.
+Vaig establir contacte acadèmic amb el TecnoCampus i vaig començar-hi com a professor associat.
 
 El desig de consolidar una plaça al TecnoCampus, per tant, no neix ara. Ve de lluny.
 
-### Diapositiva 5. TecnoCampus: docència, equip i arquitectura de software - 2:05
+### Diapositiva 5. TecnoCampus: docència, equip i arquitectura de software - 1:20
 
 El TecnoCampus ha estat el lloc on aquesta trajectòria ha trobat més coherència. [pausa breu]
 
@@ -87,9 +85,9 @@ També ha estat molt important el treball amb l'equip. Voldria destacar especial
 
 La participació acreditada en el projecte SQAI d'Aprenentatge Basat en Projectes a Laboratori d'Aplicacions Internet m'ha permès integrar docència, arquitectura de software i millora educativa.
 
-I això connecta directament amb la segona part de la defensa: la classe magistral sobre ports de sortida en arquitectura hexagonal no és una peça aïllada, sinó una mostra d'aquest punt de trobada entre docència universitària, enginyeria del software i transferència universitat-empresa.
+D'aquest punt de trobada neix precisament la classe magistral de la segona part.
 
-### Diapositiva 6. Consultoria i formació internacional, recerca doctoral i projecte de futur - 2:20
+### Diapositiva 6. Consultoria i formació internacional, recerca doctoral i projecte de futur - 2:00
 
 En paral·lel, he mantingut una línia de transferència universitat-empresa i formació internacional. [transició]
 
@@ -97,7 +95,7 @@ Disposo del C1 Advanced de Cambridge i l'anglès és una llengua de treball real
 
 També he desenvolupat activitats de transferència, com les 60 hores acreditades amb AGAUR sobre serveis REST, arquitectura hexagonal i modernització de sistemes d'informació.
 
-El doctorat a la UDIMA representa l'articulació científica d'aquest recorregut. La recerca s'inscriu en l'àmbit de l'Educació en Enginyeria del Software i no parteix d'una intuïció aïllada. La literatura internacional recent identifica mancances en la integració curricular, la mesura i els estudis longitudinals d'aquestes competències dins la formació dels futurs enginyers i enginyeres del software.
+El doctorat a la UDIMA representa l'articulació científica d'aquest recorregut. La recerca s'inscriu en l'àmbit de l'Educació en Enginyeria del Software. La literatura internacional recent hi identifica un buit: la integració curricular, la mesura i els estudis longitudinals d'aquestes competències.
 
 La tesi se situa en aquest espai mitjançant un disseny mixt i quasiexperimental, integrat en dues assignatures reals amb ABP, amb pretest, posttest, seguiment diferit i component qualitatiu. No pretén substituir la formació tècnica; pretén estudiar com complementar-la amb competències vinculades a requisits, usuaris, parts interessades, col·laboració i disseny responsable.
 
@@ -135,12 +133,12 @@ Quan es mostri l'annex, no llegir tota la taula: assenyalar una diferència d'En
 * Missatge: trajectòria coherent amb la plaça.
 * Transició: base professional en indústria.
 
-### 2. Indústria i consultoria - 1:10
+### 2. Indústria i consultoria - 1:30
 
 * Vida Software: component del sistema operatiu Symbian per a interacció per veu.
 * No era una app final: permetia que aplicacions Nokia/Symbian incorporessin veu.
 * C/C++, rendiment, memòria i dispositiu com a senyals de profunditat tècnica.
-* 3GSM / Mobile World Congress i patent com a context d'innovació; no presentar la patent com a pròpia.
+* 3GSM/Mobile World Congress i patent com a context d'innovació; no presentar la patent com a pròpia.
 * openTrends: consultoria, clients, equips i sistemes d'informació.
 * Punt clau: el que més gaudia era formar perfils més júniors.
 * La comunicació passa de ser eina professional a pràctica docent.
@@ -168,7 +166,7 @@ Quan es mostri l'annex, no llegir tota la taula: assenyalar una diferència d'En
 * TecnoCampus: docència universitària, software, sistemes d'informació, transferència i projecte sostenible.
 * Frase clau: el desig de consolidar-se ve de lluny.
 
-### 5. TecnoCampus - 2:05
+### 5. TecnoCampus - 1:20
 
 * Docència continuada des de 2021.
 * Assignatures: programació, dades, Internet, enginyeria, DSI.
@@ -180,7 +178,7 @@ Quan es mostri l'annex, no llegir tota la taula: assenyalar una diferència d'En
 * HexaStock com a integració de docència, pràctica i transferència.
 * Transició explícita a la classe magistral.
 
-### 6. Neueda, doctorat i futur - 2:20
+### 6. Neueda, doctorat i futur - 2:00
 
 * Cambridge C1 Advanced: 185, Pass at Grade C, C1 MECR.
 * Neueda: formació internacional en anglès en enginyeria del software.
@@ -211,13 +209,13 @@ Quan es mostri l'annex, no llegir tota la taula: assenyalar una diferència d'En
 
 | Diapositiva | Missatge central                                                     | Paraules clau                                      | Transició       |
 | ----------- | -------------------------------------------------------------------- | -------------------------------------------------- | ---------------- |
-| 1           | La trajectòria té un sol fil conductor                             | 2004, enginyer, professor, investigador          | Base industrial  |
+| 1           | La trajectòria té un sol fil conductor                             | 2004, enginyer, professor, investigador            | Base industrial  |
 | 2           | La indústria dona profunditat tècnica i desperta comunicació      | Symbian, C/C++, MWC, openTrends, Java              | Vocació docent  |
 | 3           | Stucom materialitza la vocació docent                               | FP, aula, escolta, acompanyament                   | Universitat      |
-| 4           | La Salle dona els fonaments; el TecnoCampus, l'encaix curricular    | La Salle, fonaments, llavor, tram següent, encaix | Casa acadèmica  |
+| 4           | La Salle dona els fonaments; el TecnoCampus, l'encaix curricular     | La Salle, fonaments, llavor, tram següent, encaix | Casa acadèmica  |
 | 5           | TecnoCampus integra docència, evidència, equip i transferència    | 2021, 15 registres, 8,75, 9,03, SQAI               | Recerca i futur  |
 | 6           | Doctorat i futur se situen en l'Educació en Enginyeria del Software | C1, Neueda, AGAUR, HUB4T, buit de recerca          | Classe magistral |
-| Annex A     | Diferències d'èmfasi curricular, no de qualitat (només preguntes)   | encaix, orientació, fonts oficials                 | Fora dels 10 min |
+| Annex A     | Diferències d'èmfasi curricular, no de qualitat (només preguntes) | encaix, orientació, fonts oficials                | Fora dels 10 min |
 
 Mantra de memòria: `indústria del software -> docència universitària en software -> TecnoCampus -> recerca -> futur`.
 
@@ -231,7 +229,7 @@ Frase de tancament que convé memoritzar gairebé literalment:
 
 ### Ritme
 
-La presentació està pensada per a 9:00-9:20 amb un ritme pausat i marge real. Les diapositives 5 i 6 són les més importants i poden ocupar una mica més de temps. Si cal retallar durant l'assaig, retalla detall tècnic de la diapositiva 2 o una evidència de transferència de la diapositiva 6; no retallis les xifres docents del TecnoCampus.
+La presentació està pensada per a 9:00-9:20 amb un ritme pausat i marge real. Les diapositives 5 i 6 són les més importants i poden ocupar una mica més de temps. Si cal retallar durant l'assaig, aplica la versió curta d'emergència; no retallis les xifres docents del TecnoCampus.
 
 ### Veu
 
