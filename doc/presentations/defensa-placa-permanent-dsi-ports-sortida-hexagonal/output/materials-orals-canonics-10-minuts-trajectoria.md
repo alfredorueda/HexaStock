@@ -33,7 +33,7 @@ Aquest és el recorregut que presentaré: base professional, vocació docent, pa
 
 ### Diapositiva 2. Primera etapa: enginyeria del software i consultoria - 1:50
 
-La primera etapa és una etapa d'indústria del software. [to calmat]
+La primera etapa transcorre en la indústria del software. [to calmat]
 
 A Vida Software vaig treballar en un component del sistema operatiu Symbian orientat a incorporar interacció per veu en aplicacions mòbils. Era una peça de plataforma desenvolupada a baix nivell en C++, amb restriccions fortes de memòria, CPU i xarxa. La feina tenia un caràcter molt proper a l'R+D de laboratori: treballàvem sobre la pila de comunicacions IP, amb senyalització SIP, transport de veu mitjançant RTP sobre UDP i còdecs com l'AMR. El component es va presentar en entorns com el 3GSM / Mobile World Congress i estava vinculat al context d'innovació d'una patent de Vida Software sobre interfícies d'usuari.
 
@@ -57,7 +57,7 @@ Amb el temps, aquesta etapa va evolucionar cap a continguts universitaris més a
 
 Això va orientar la mirada cap a la universitat per poder situar aquesta experiència tècnica i docent en assignatures d'enginyeria amb més profunditat conceptual.
 
-### Diapositiva 4. La Salle i el pont cap al TecnoCampus - 1:55
+### Diapositiva 4. De La Salle al TecnoCampus - 1:55
 
 Em vaig incorporar a La Salle, un entorn universitari d'alt nivell tècnic. [transició]
 
@@ -67,7 +67,7 @@ El pas cap al TecnoCampus va ser una decisió reflexionada, valorada amb la dire
 
 La Salle té una tradició d'enginyeria sòlida, amb una identitat històrica molt forta en telecomunicacions, xarxes i electrònica. La meva docència allà se centrava en els fonaments: el disseny i la programació orientats a objectes, i el desenvolupament d'aplicacions mòbils. Són la llavor de l'enginyeria del software, i em va agradar molt ensenyar-los. Però el meu territori professional és el tram següent d'aquest mateix camí: l'arquitectura de software, el backend empresarial i els sistemes d'informació. [mirada al tribunal]
 
-I aquest tram tenia un encaix curricular directe al TecnoCampus: el grau porta la gestió i els sistemes d'informació al seu propi nom, amb una línia completa d'enginyeria del software i de disseny de sistemes d'informació. Era l'espai natural on la meva especialització podia créixer com a docència universitària.
+I aquest tram tenia un encaix curricular directe al TecnoCampus: la gestió i els sistemes d'informació formen part de la mateixa denominació del grau, amb una línia completa d'enginyeria del software i de disseny de sistemes d'informació. Era un entorn especialment alineat amb el desenvolupament de la meva especialització docent.
 
 La proximitat geogràfica va reforçar la decisió, perquè feia la trajectòria acadèmica sostenible i compatible amb les responsabilitats familiars.
 
@@ -85,15 +85,15 @@ Aquesta continuïtat no és només temporal. El certificat institucional recull 
 
 També ha estat molt important el treball amb l'equip. Voldria destacar especialment el Dr. Josep Roure, amb qui he compartit docència i aprenentatge en arquitectura de software, Domain-Driven Design, Clean Architecture i arquitectura hexagonal.
 
-La participació acreditada en el projecte SQAI d'Aprenentatge Basat en Projectes a Laboratori d'Aplicacions Internet, m'ha permès integrar docència, arquitectura de software i millora educativa.
+La participació acreditada en el projecte SQAI d'Aprenentatge Basat en Projectes a Laboratori d'Aplicacions Internet m'ha permès integrar docència, arquitectura de software i millora educativa.
 
-I això connecta directament amb la segona part de la defensa: la classe magistral sobre ports de sortida en arquitectura hexagonal no és una peça aïllada, sinó una mostra d'aquest punt de trobada entre docència universitària, enginyeria del software i transferència universitat i empresa.
+I això connecta directament amb la segona part de la defensa: la classe magistral sobre ports de sortida en arquitectura hexagonal no és una peça aïllada, sinó una mostra d'aquest punt de trobada entre docència universitària, enginyeria del software i transferència universitat-empresa.
 
 ### Diapositiva 6. Consultoria i formació internacional, recerca doctoral i projecte de futur - 2:20
 
 En paral·lel, he mantingut una línia de transferència universitat-empresa i formació internacional. [transició]
 
-Disposo del C1 Advanced de Cambridge i l'anglès és una llengua de treball real. En el marc de Neueda he impartit formació internacional d'enginyeria del software en anglès, vinculada a Java, Spring, arquitectura i qualitat.
+Disposo del C1 Advanced de Cambridge i l'anglès és una llengua de treball real. En el marc de Neueda he impartit, en anglès, formació internacional sobre enginyeria del software, vinculada a Java, Spring, arquitectura i qualitat.
 
 També he desenvolupat activitats de transferència, com les 60 hores acreditades amb AGAUR sobre serveis REST, arquitectura hexagonal i modernització de sistemes d'informació.
 
@@ -103,7 +103,7 @@ La tesi se situa en aquest espai mitjançant un disseny mixt i quasiexperimental
 
 Per això, entenc aquesta plaça com la possibilitat de consolidar un projecte acadèmic ja vinculat al TecnoCampus: docència rigorosa, innovació educativa, transferència, recerca i acompanyament de l'alumnat. [mirada al tribunal]
 
-Des d'aquest recorregut, la classe magistral que presentaré a continuació se situa precisament en aquest punt de trobada entre docència universitària, arquitectura de software i transferència professional.
+Com a continuació d'aquest recorregut, la classe magistral que presentaré a continuació se situa precisament en aquest punt de trobada entre docència universitària, arquitectura de software i transferència professional.
 
 Moltes gràcies.
 
@@ -154,7 +154,7 @@ Quan es mostri l'annex, no llegir tota la taula: assenyalar una diferència d'En
 * Agraïment a l'FP; no menysvalorar-la.
 * Evolució cap a continguts tècnics universitaris més avançats.
 
-### 4. La Salle i pont cap al TecnoCampus - 1:55
+### 4. De La Salle al TecnoCampus - 1:55
 
 * La Salle: incorporació a un entorn universitari d'alt nivell tècnic.
 * La Salle és etapa valuosa; evitar comparacions jeràrquiques.
@@ -163,7 +163,7 @@ Quan es mostri l'annex, no llegir tota la taula: assenyalar una diferència d'En
 * Conversa amb coordinador i director a La Salle.
 * Fonaments a La Salle: disseny i programació orientats a objectes i aplicacions mòbils; la llavor de l'enginyeria del software.
 * Territori professional propi: arquitectura de software, backend empresarial i sistemes d'informació; el tram següent del mateix camí.
-* Encaix curricular al TecnoCampus: el grau porta la gestió i els sistemes d'informació al seu propi nom.
+* Encaix curricular al TecnoCampus: la gestió i els sistemes d'informació formen part de la mateixa denominació del grau.
 * No esmentar persones concretes; el contacte acadèmic es formula en genèric.
 * TecnoCampus: docència universitària, software, sistemes d'informació, transferència i projecte sostenible.
 * Frase clau: el desig de consolidar-se ve de lluny.
