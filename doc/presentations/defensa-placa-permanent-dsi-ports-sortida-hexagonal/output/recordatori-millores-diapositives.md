@@ -17,6 +17,7 @@ En cada assaig, cal comprovar que l'explicació oral incorpora aquestes idees:
 - Si la fletxa representa flux d'execució, pot anar del servei cap al port i cap a l'adaptador.
 - Si la fletxa representa dependència de codi o implementació, ha d'anar de l'adaptador cap al port.
 - El servei usa el port; l'adaptador implementa el port.
+- A la diapositiva 7, el requadre «Concreció en Java» és ara un mini-diagrama UML: targeta «interface» Port de sortida (el contracte) a dalt, targeta Adaptador a sota, i fletxa discontínua «implements» de l'adaptador cap a la interfície (triangle buit de realització UML). Cal preservar aquesta representació i assenyalar-la en explicar la concreció en Java.
 - El domini no ha de dependre de la implementació concreta.
 - La demo ha de reforçar que canvia la infraestructura, però el cas d'ús i el domini romanen estables.
 

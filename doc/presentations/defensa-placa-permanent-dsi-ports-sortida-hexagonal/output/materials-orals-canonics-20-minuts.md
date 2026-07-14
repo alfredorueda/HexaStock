@@ -106,10 +106,12 @@ Una altra cosa és la dependència de codi: el cas d'ús depèn del port, i l'ad
 [assenyalar la segona línia]
 
 Per situar bé el concepte, quan aquí parlem d'un port no estem parlant d'un element físic ni d'un detall d'infraestructura. Conceptualment, el port és un contracte; en aquesta implementació Java, el representem amb una interfície.
+[assenyalar el requadre «Concreció en Java»: la targeta superior és la interfície, el contracte]
 
 És a dir, el cas d'ús no depèn directament d'una base de dades, d'una API externa o d'un client concret. El cas d'ús depèn d'una interfície que defineix què necessita: per exemple, obtenir una determinada informació econòmica, consultar un expedient o recuperar unes dades administratives.
 
 Després, l'adaptador és la peça que implementa aquesta interfície i sap com anar realment a buscar aquella informació al sistema extern corresponent.
+[assenyalar la fletxa discontínua «implements», de l'adaptador cap a la interfície]
 
 Això ens ajuda a entendre el valor arquitectònic de la interfície en aquest context. Defineix un contracte estable: què es necessita i què es retorna, però sense obligar el cas d'ús a conèixer com es resol tècnicament aquesta necessitat.
 
