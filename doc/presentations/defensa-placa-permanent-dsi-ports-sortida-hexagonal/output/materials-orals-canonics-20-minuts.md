@@ -87,7 +87,7 @@ Imaginem una situació en què el cas d'ús queda vinculat directament a la cade
 
 El problema no és consumir PICA. Ho remarco perquè és important. PICA, en aquest context, és una plataforma corporativa d'interoperabilitat. El problema arquitectònic apareix quan la lògica del procediment administratiu depèn directament dels detalls de la integració: estructures XML, clients SOAP, codis d'error tècnics o convencions d'una API concreta. [pausa breu]
 
-Quan això passa, l'evolució tecnològica travessa la frontera del cas d'ús. Si un servei evoluciona, si canvia el contracte tècnic o si el mecanisme d'integració es transforma, el canvi pot impactar codi que hauria d'estar expressant criteris del procediment.
+Quan això passa, l'evolució tecnològica travessa la frontera del cas d'ús. Si un servei evoluciona, si canvia el contracte tècnic o si el mecanisme d'integració es transforma, el canvi impactarà codi que hauria d'estar expressant exclusivament criteris administratius del procediment.
 
 Les tres caixes no representen tres riscos independents. Són tres moments correlacionats d'una mateixa cadena causal. [assenyalar d'esquerra a dreta]
 
