@@ -73,7 +73,7 @@ En termes funcionals, podem parlar de renda familiar, patrimoni i béns immobles
 
 PICA és la Plataforma d'Integració i Col·laboració Administrativa de la Generalitat de Catalunya. A efectes docents, el que ens interessa és que actua com a mecanisme corporatiu per consultar o intercanviar informació entre administracions.
 
-La distinció clau és aquesta: el procediment necessita informació administrativa; no necessita, en el seu llenguatge propi, una API concreta. [pausa llarga; mirar el tribunal]
+La distinció clau és aquesta: el procediment necessita informació administrativa; no necessita, en el seu llenguatge propi, una API concreta, un protocol de comunicació o un format de dades específic. [pausa llarga; mirar el tribunal]
 
 Això no vol dir que el mecanisme tècnic concret no sigui important. Ho és, i molt. Però encara no som en aquest nivell de decisió. En aquest moment, el que volem destacar és que el cas d'ús ha d'expressar una necessitat del procediment, no una dependència tecnològica concreta.
 
