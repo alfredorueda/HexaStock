@@ -136,7 +136,7 @@ Portem aquesta idea al cas administratiu. [assenyalar el diagrama]
 
 El servei d'aplicació que avalua econòmicament una beca no hauria de conèixer directament els detalls de PICA, SOAP/XML, REST o JDBC. Hauria de dependre d'un contracte expressat en el llenguatge de l'aplicació. Per exemple: obtenir informació patrimonial, recuperar dades de renda o carregar l'expedient administratiu.
 
-En el diagrama, el nucli de l'aplicació conté el servei d'aplicació i el model de domini. Al voltant hi ha ports de sortida que representen necessitats de l'aplicació. Fora del nucli hi ha adaptadors que resolen persistència, interoperabilitat amb PICA o altres mecanismes concrets.
+En el diagrama, el nucli de l'aplicació conté el servei d'aplicació i el model de domini. A la dreta hi ha ports de sortida que representen necessitats de l'aplicació. Fora del nucli hi ha adaptadors que resolen persistència, interoperabilitat amb PICA o altres mecanismes concrets.
 
 El punt tècnic més important és que l'adaptador de PICA o l'adaptador JDBC no són el centre de l'arquitectura. Són detalls externs que poden evolucionar. El que volem mantenir estable és el contracte que el cas d'ús necessita. [pausa breu]
 
