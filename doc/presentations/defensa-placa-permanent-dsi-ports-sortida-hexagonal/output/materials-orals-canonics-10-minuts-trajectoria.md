@@ -25,7 +25,7 @@ Temps total previst d'assaig: 9:00-9:20 aproximadament, amb pauses reals. Si l'a
 
 ### Diapositiva 1. Trajectòria professional, acadèmica i científica - 0:50
 
-Bon dia, membres del tribunal. Moltes gràcies per l'oportunitat de presentar aquesta trajectòria. [mirada al tribunal]
+Bon dia, membres del tribunal. Moltes gràcies per l'oportunitat de oferir aquesta presentació. [mirada al tribunal]
 
 La meva trajectòria comença el 2004 i té un fil conductor: l'enginyeria del software. Primer, com a enginyer a la indústria. Després, com a professor. I avui, també com a investigador: faig recerca en Educació en Enginyeria del Software. [pausa breu]
 
@@ -91,9 +91,9 @@ Disposo del C1 Advanced de Cambridge i l'anglès és una llengua de treball real
 
 També he desenvolupat activitats de transferència, com les 60 hores acreditades amb AGAUR sobre serveis REST, arquitectura hexagonal i modernització de sistemes d'informació.
 
-El doctorat a la UDIMA representa l'articulació científica d'aquest recorregut. La recerca s'inscriu en l'àmbit de l'Educació en Enginyeria del Software. La literatura internacional recent hi identifica un buit: la integració curricular, la mesura i els estudis longitudinals d'aquestes competències.
+El doctorat a la UDIMA representa l'articulació científica d'aquest recorregut. La recerca s'inscriu en l'àmbit de l'Educació en Enginyeria del Software. La literatura internacional recent hi identifica un buit: la integració curricular, la mesura i els estudis longitudinals de les competències socioemocionals.
 
-La tesi se situa en aquest espai mitjançant un disseny mixt i quasiexperimental, integrat en dues assignatures reals amb ABP, amb pretest, posttest, seguiment diferit i component qualitatiu. No pretén substituir la formació tècnica; pretén estudiar com complementar-la amb competències vinculades a requisits, usuaris, parts interessades, col·laboració i disseny responsable.
+La tesi se situa en aquest espai mitjançant un disseny mixt i quasiexperimental, integrat en dues assignatures reals amb ABP, amb pretest, posttest, seguiment diferit i component qualitatiu. No pretén substituir la formació tècnica; pretén estudiar com complementar-la amb competències vinculades a requisits, usuaris, comunicació, col·laboració i disseny responsable.
 
 Per això, entenc aquesta plaça com la possibilitat de consolidar un projecte acadèmic ja vinculat al TecnoCampus: docència rigorosa, innovació educativa, transferència, recerca i acompanyament de l'alumnat. [mirada al tribunal]
 
