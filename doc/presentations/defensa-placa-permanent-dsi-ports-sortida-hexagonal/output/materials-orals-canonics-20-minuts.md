@@ -20,30 +20,34 @@ Temps total previst d'assaig del cos principal: aproximadament 17:05-18:30, sens
 
 La demo no forma part del temps canònic de la classe. S'ha de considerar un annex opcional posterior al tancament.
 
-### Diapositiva 1. Portada - 1:35
+### Diapositiva 1. Portada - 0:20
 
 Bon dia, membres del tribunal. [pausa breu, mirada al tribunal]
 
 La classe que presento porta per títol `Disseny de ports de sortida en arquitectura hexagonal`, i se centra en el desacoblament entre casos d'ús, domini i serveis externs. [assenyalar el títol]
 
+[avançar a la diapositiva 2]
+
+### Diapositiva 2. Una trobada entre dos mons - 1:15
+
 Abans d'entrar en el contingut tècnic, voldria fer una precisió de context. A la documentació de la convocatòria he incorporat un informe acreditatiu de la meva activitat de consultoria especialitzada per a la Generalitat de Catalunya, concretament l'Agència de Gestió d'Ajuts Universitaris i de Recerca. [pausa breu]
 
 Ho explico perquè em sembla molt enriquidor plantejar aquesta sessió com una trobada entre dos mons.
 
-D'una banda, l'acadèmic: l'assignatura de Disseny de Sistemes d'Informació, on treballem conceptes com arquitectura hexagonal, ports, adaptadors i inversió de dependències.
+D'una banda, l'acadèmic: l'assignatura de Disseny de Sistemes d'Informació, on treballem conceptes com arquitectura hexagonal, ports, adaptadors i inversió de dependències. [assenyalar la caixa esquerra]
 
-I de l'altra, el professional: un cas real que ens permet veure com aquests conceptes s'aterren en reptes concrets d'arquitectura de software. [mirada al tribunal]
+I de l'altra, el professional: un cas real que ens permet veure com aquests conceptes s'aterren en reptes concrets d'arquitectura de software. [assenyalar la caixa dreta; mirada al tribunal]
 
-En vint minuts no seria rigorós intentar explicar tota l'arquitectura hexagonal. Per això em centraré en una decisió concreta: com dissenyar un port de sortida quan un cas d'ús necessita informació que es troba fora de l'aplicació.
+En vint minuts no seria rigorós intentar explicar tota l'arquitectura hexagonal. Per això em centraré en una decisió concreta: com dissenyar un port de sortida quan un cas d'ús necessita informació que es troba fora de l'aplicació. [assenyalar la frase de focus]
 
-### Diapositiva 2. On som dins l'assignatura - 1:05
+### Diapositiva 3. On som dins l'assignatura - 1:05
 
 La sessió se situa dins Disseny de Sistemes d'Informació, una assignatura de tercer curs, de 6 ECTS. [assenyalar la part esquerra]
 
 El pla docent de l'assignatura treballa una visió global d'arquitectures de sistemes d'informació: arquitectures per capes, Clean Architecture, arquitectura hexagonal, ports i adaptadors, mapping, modularització i Domain-Driven Design. [to calmat, explicatiu]
 
 
-### Diapositiva 3. Objectiu de la sessió - 0:55
+### Diapositiva 4. Objectiu de la sessió - 0:55
 
 Abans d'entrar en el cas, deixo formulat l'objectiu de la sessió. [pausa breu]
 
@@ -53,7 +57,7 @@ La sessió d'avui s’organitza al voltant de tres decisions de disseny: identif
 
 No desenvoluparé encara tota l'abstracció. Primer veurem el problema en un cas real d'administració pública, i a partir d'aquí formularem la decisió arquitectònica. [pausa breu]
 
-### Diapositiva 4. Avaluació econòmica d'una beca - 1:45
+### Diapositiva 5. Avaluació econòmica d'una beca - 1:45
 
 Abans de parlar d'arquitectura de software, cal entendre mínimament el procediment administratiu. [to més lent]
 
@@ -65,7 +69,7 @@ La idea docent important és que aquí encara no hem parlat de SOAP, ni de REST,
 
 Aquest pas és essencial. Si comencem directament per la tecnologia, correm el risc de construir el cas d'ús al voltant de la integració. En canvi, si comencem pel procediment, podem distingir entre la decisió administrativa que volem modelar i el mecanisme tècnic que ens proporciona la informació.
 
-### Diapositiva 5. Quina informació externa necessita el procediment? - 1:45
+### Diapositiva 6. Quina informació externa necessita el procediment? - 1:45
 
 Per avaluar renda i patrimoni, el procediment pot necessitar informació que no neix dins l'aplicació. [assenyalar la columna de necessitats]
 
@@ -81,7 +85,7 @@ El cas d'ús hauria de poder formular-se així: `necessito informació patrimoni
 
 Quan aquesta separació no es respecta, apareix el problema arquitectònic que veurem ara.
 
-### Diapositiva 6. Dependència directa entre procediment i integració - 2:20
+### Diapositiva 7. Dependència directa entre procediment i integració - 2:20
 
 Imaginem una situació en què el cas d'ús queda vinculat directament a la cadena tècnica: SOAP/XML, PICA i serveis externs diferenciats com l'AEAT o el Cadastre. Això no és la solució proposada; és el problema que volem corregir. [assenyalar la cadena central]
 
@@ -103,7 +107,7 @@ La pregunta docent, per tant, és: com podem permetre que el cas d'ús necessiti
 
 La resposta és introduir un port de sortida.
 
-### Diapositiva 7. Port de sortida i adaptador - 2:20
+### Diapositiva 8. Port de sortida i adaptador - 2:20
 
 Abans d'aplicar-ho al cas patrimonial, fixem una distinció important.
 
@@ -130,7 +134,7 @@ Aquesta és la inversió de dependències: la infraestructura depèn del port de
 
 Amb aquesta idea clara, ara podem portar el patró al cas administratiu.
 
-### Diapositiva 8. Port de sortida per a informació patrimonial - 1:45
+### Diapositiva 9. Port de sortida per a informació patrimonial - 1:45
 
 Portem aquesta idea al cas administratiu. [assenyalar el diagrama]
 
@@ -144,7 +148,7 @@ Aquesta distinció queda reflectida en la direcció de les fletxes. Quan indique
 
 Aquesta mateixa estructura la podem transferir ara al domini financer: una aplicació de gestió d'una cartera d'inversió personal.
 
-### Diapositiva 9. Transferència al domini financer - 1:25
+### Diapositiva 10. Transferència al domini financer - 1:25
 
 Ara transferim la mateixa decisió arquitectònica a un domini diferent: una aplicació de gestió d'una cartera d'inversió.
 
@@ -160,7 +164,7 @@ La substitució és viable mentre es mantinguin el contracte funcional i la sem�
 
 Amb això podem tancar la classe recuperant les tres decisions essencials.
 
-### Diapositiva 10. Idea clau i tancament - 0:45
+### Diapositiva 11. Idea clau i tancament - 0:45
 
 Per tancar el contingut tècnic, voldria recuperar les tres decisions que hem treballat.
 
@@ -170,7 +174,7 @@ L'arquitectura hexagonal no elimina la dependència del món exterior ni evita t
 
 Dit de manera sintètica: l'arquitectura no elimina el canvi; el localitza.
 
-### Diapositiva 11. Agraïment - 0:25
+### Diapositiva 12. Agraïment - 0:25
 
 Vull expressar el meu agraïment al TecnoCampus per un entorn que m'encoratja a créixer, al costat d'un equip del qual aprenc i amb qui comparteixo coneixement, responsabilitat i compromís amb la formació universitària.
 
@@ -204,16 +208,22 @@ Això no vol dir que l'arquitectura elimini el canvi. El canvi continua existint
 
 ## 2. Notes del presentador per diapositiva
 
-### 1. Portada - 1:35
+### 1. Portada - 0:20
 
-* Funció: obrir la microlliçó i delimitar-ne el focus.
+* Funció: obrir la microlliçó amb la salutació i el títol de la classe.
+* Assenyalar el títol; el context s'explica amb la diapositiva 2.
+* Transició: avançar a la diapositiva `Una trobada entre dos mons`.
+
+### 2. Una trobada entre dos mons - 1:15
+
+* Funció: contextualitzar la sessió i delimitar-ne el focus.
 * Context: classe de DSI i cas real acreditat de consultoria per a la Generalitat/AGAUR.
 * Missatge: trobada entre dimensió acadèmica i professional, sense entrar en detalls interns.
 * No oblidar: no és una panoràmica completa de l'arquitectura hexagonal.
 * Frase de focus: dissenyar un port de sortida quan el cas d'ús necessita informació externa.
 * Transició: `Situem primer la sessió dins l'assignatura.`
 
-### 2. On som dins l'assignatura - 1:05
+### 3. On som dins l'assignatura - 1:05
 
 * Funció: justificar l'encaix de la sessió en el pla docent.
 * Assenyalar: DSI, 3r curs i 6 ECTS.
@@ -221,7 +231,7 @@ Això no vol dir que l'arquitectura elimini el canvi. El canvi continua existint
 * No convertir la diapositiva en una enumeració llarga del temari: el focus és una decisió concreta sobre ports de sortida.
 * Transició: `Amb aquest context, formulem l'objectiu mínim de la sessió.`
 
-### 3. Objectiu de la sessió - 0:55
+### 4. Objectiu de la sessió - 0:55
 
 * Funció: diapositiva pont; passar-hi ràpid i no anticipar tota la teoria.
 * Frase clau, mirant el tribunal: `El cas d'ús necessita una capacitat, no una tecnologia.`
@@ -229,7 +239,7 @@ Això no vol dir que l'arquitectura elimini el canvi. El canvi continua existint
 * Metodologia: primer el cas real; després, l'abstracció arquitectònica.
 * Transició: `Comencem, per tant, pel procediment de beca.`
 
-### 4. Avaluació econòmica - 1:45
+### 5. Avaluació econòmica - 1:45
 
 * Funció: establir el problema funcional abans de parlar de tecnologia.
 * Assenyalar la seqüència: sol·licitud, expedient, requisits, revisió i resolució.
@@ -238,7 +248,7 @@ Això no vol dir que l'arquitectura elimini el canvi. El canvi continua existint
 * Evitar encara SOAP, REST, PICA o bases de dades.
 * Transició: `Quina informació externa necessita el procediment per prendre aquesta decisió?`
 
-### 5. Informació externa - 1:45
+### 6. Informació externa - 1:45
 
 * Funció: separar necessitat funcional, font administrativa i canal d'interoperabilitat.
 * Necessitats: renda, patrimoni i béns immobles.
@@ -247,7 +257,7 @@ Això no vol dir que l'arquitectura elimini el canvi. El canvi continua existint
 * Frase clau, amb pausa: `El procediment necessita informació administrativa, no una API concreta.`
 * Transició: `Quan aquesta separació no es respecta, apareix el problema arquitectònic.`
 
-### 6. Dependència directa - 2:20
+### 7. Dependència directa - 2:20
 
 * Funció: diagnosticar una cadena causal, no enumerar tres riscos independents.
 * Assenyalar d'esquerra a dreta: causa (acoblament) -> propagació (el canvi travessa la frontera) -> conseqüència (més codi afectat i manteniment més fràgil).
@@ -256,7 +266,7 @@ Això no vol dir que l'arquitectura elimini el canvi. El canvi continua existint
 * Pregunta docent, literal: `Com podem permetre que el cas d'ús necessiti dades externes, però sense dependre directament de la tecnologia que les proporciona?`
 * Fer una pausa. Transició: `La resposta és introduir un port de sortida.`
 
-### 7. Port i adaptador - 2:20
+### 8. Port i adaptador - 2:20
 
 * Funció: frontissa conceptual forta; baixar el ritme.
 * Primera línia: flux d'execució, del cas d'ús cap al sistema extern.
@@ -266,7 +276,7 @@ Això no vol dir que l'arquitectura elimini el canvi. El canvi continua existint
 * Inversió: la infraestructura depèn del port definit per l'aplicació.
 * Transició: `Apliquem ara aquesta distinció a la informació patrimonial.`
 
-### 8. Port patrimonial - 1:45
+### 9. Port patrimonial - 1:45
 
 * Funció: aplicar la distinció al cas administratiu.
 * Nucli: servei d'aplicació i domini; el servei depèn de contractes propis.
@@ -275,7 +285,7 @@ Això no vol dir que l'arquitectura elimini el canvi. El canvi continua existint
 * No oblidar: el domini no coneix ni PICA ni els adaptadors.
 * Transició: `Transferim la mateixa decisió arquitectònica a un domini financer.`
 
-### 9. Domini financer - 1:25
+### 10. Domini financer - 1:25
 
 * Funció: demostrar que la decisió es transfereix entre dominis.
 * Canvi explícit: beca -> cartera d'inversió personal.
@@ -285,15 +295,15 @@ Això no vol dir que l'arquitectura elimini el canvi. El canvi continua existint
 * No afirmar substituïbilitat màgica: cal preservar el contracte funcional i la semàntica.
 * Transició: `Canvia el domini, però es manté la decisió arquitectònica.`
 
-### 10. Idea clau i tancament - 0:45
+### 11. Idea clau i tancament - 0:45
 
 * Funció: tancar el contingut tècnic, sense introduir res de nou.
 * Recuperar les tres decisions: necessitat funcional, port i adaptador.
 * Matís: l'arquitectura no elimina la dependència externa ni tots els canvis; en localitza l'impacte.
 * Frase final, amb pausa i mirant el tribunal: `L'arquitectura no elimina el canvi; el localitza.`
-* No fer encara l'agraïment: donar pas net a la diapositiva 11.
+* No fer encara l'agraïment: donar pas net a la diapositiva 12.
 
-### 11. Agraïment - 0:25
+### 12. Agraïment - 0:25
 
 * Funció: tancament institucional i protocol·lari.
 * Llegir la frase d'agraïment literal; no resumir-la ni canviar-ne cap paraula.
@@ -319,17 +329,18 @@ Això no vol dir que l'arquitectura elimini el canvi. El canvi continua existint
 
 | Diapositiva | Missatge central                                 | Concepte tècnic imprescindible    | Connexió anterior       | Connexió següent                |
 | ----------- | ------------------------------------------------ | ---------------------------------- | ------------------------ | --------------------------------- |
-| 1           | Classe des d'un cas real acreditat               | Ports de sortida com a focus       | Inici                    | Situar dins DSI                   |
-| 2           | La classe encaixa en el pla docent               | Clean Architecture, ports, adaptadors | Cas real + docència     | Objectiu breu                     |
-| 3           | Objectiu: necessitat, port, adaptador            | Capacitat, no tecnologia           | Assignatura              | Cas funcional                     |
-| 4           | Primer procediment, després tecnologia          | Necessitat funcional               | Objectiu                 | Fonts externes                    |
-| 5           | El procediment necessita dades, no API           | Fonts administratives i interoperabilitat | Procediment              | Risc d'acoblament                 |
-| 6           | Un acoblament es propaga fins al procediment | Causa, propagació i conseqüència  | Dades externes           | Port de sortida                   |
-| 7           | Port diu què; adaptador diu com                 | Contracte, interfície, inversió  | Problema                 | Aplicació al cas patrimonial     |
-| 8           | AGAUR: contracte d'aplicació, no detall tècnic | Adaptador implementa port          | Port genèric            | Transferència al domini financer |
-| 9           | Mateix patró en domini financer                 | Necessitat, port i adaptador       | Cas AGAUR                | Conclusió                         |
-| 10          | L'arquitectura localitza el canvi                | Frontera explícita                 | Domini financer          | Agraïment                         |
-| 11          | Agraïment institucional i tancament formal       | Cap contingut tècnic nou           | Idea clau                | Preguntes / annex si escau        |
+| 1           | Portada: salutació i títol de la classe          | Cap contingut tècnic nou           | Inici                    | Context de la sessió              |
+| 2           | Classe des d'un cas real acreditat               | Ports de sortida com a focus       | Portada                  | Situar dins DSI                   |
+| 3           | La classe encaixa en el pla docent               | Clean Architecture, ports, adaptadors | Cas real + docència     | Objectiu breu                     |
+| 4           | Objectiu: necessitat, port, adaptador            | Capacitat, no tecnologia           | Assignatura              | Cas funcional                     |
+| 5           | Primer procediment, després tecnologia          | Necessitat funcional               | Objectiu                 | Fonts externes                    |
+| 6           | El procediment necessita dades, no API           | Fonts administratives i interoperabilitat | Procediment              | Risc d'acoblament                 |
+| 7           | Un acoblament es propaga fins al procediment | Causa, propagació i conseqüència  | Dades externes           | Port de sortida                   |
+| 8           | Port diu què; adaptador diu com                 | Contracte, interfície, inversió  | Problema                 | Aplicació al cas patrimonial     |
+| 9           | AGAUR: contracte d'aplicació, no detall tècnic | Adaptador implementa port          | Port genèric            | Transferència al domini financer |
+| 10          | Mateix patró en domini financer                 | Necessitat, port i adaptador       | Cas AGAUR                | Conclusió                         |
+| 11          | L'arquitectura localitza el canvi                | Frontera explícita                 | Domini financer          | Agraïment                         |
+| 12          | Agraïment institucional i tancament formal       | Cap contingut tècnic nou           | Idea clau                | Preguntes / annex si escau        |
 | Annex A     | Demostració opcional del canvi d'adaptador      | Adaptador substituïble            | Només si escau          | Preguntes / discussió            |
 
 Mantra de memòria del cos principal: `context -> assignatura -> objectiu -> procediment -> informació externa -> acoblament -> port -> cas patrimonial -> domini financer -> conclusió -> agraïment`.
@@ -344,20 +355,21 @@ La taula següent calcula només el cos principal. No inclou la demo opcional. L
 
 | Diapositiva | Bloc | Paraules | 125 ppm | 130 ppm | 135 ppm | Acumulat a 130 ppm |
 | ----------- | ---- | -------- | ------- | ------- | ------- | ------------------ |
-| 1 | Portada | 177 | 1:25 | 1:22 | 1:19 | 1:22 |
-| 2 | On som dins l'assignatura | 45 | 0:22 | 0:21 | 0:20 | 1:43 |
-| 3 | Objectiu de la sessió | 80 | 0:38 | 0:37 | 0:36 | 2:20 |
-| 4 | Avaluació econòmica d'una beca | 168 | 1:21 | 1:18 | 1:15 | 3:38 |
-| 5 | Informació externa | 211 | 1:41 | 1:37 | 1:34 | 5:15 |
-| 6 | Dependència directa | 299 | 2:24 | 2:18 | 2:13 | 7:33 |
-| 7 | Port de sortida i adaptador | 263 | 2:06 | 2:01 | 1:57 | 9:34 |
-| 8 | Port patrimonial | 196 | 1:34 | 1:30 | 1:27 | 11:04 |
-| 9 | Domini financer | 158 | 1:16 | 1:13 | 1:10 | 12:17 |
-| 10 | Idea clau i tancament | 88 | 0:42 | 0:41 | 0:39 | 12:58 |
-| 11 | Agraïment | 35 | 0:17 | 0:16 | 0:16 | 13:14 |
+| 1 | Portada | 34 | 0:16 | 0:16 | 0:15 | 0:16 |
+| 2 | Una trobada entre dos mons | 143 | 1:09 | 1:06 | 1:04 | 1:22 |
+| 3 | On som dins l'assignatura | 45 | 0:22 | 0:21 | 0:20 | 1:43 |
+| 4 | Objectiu de la sessió | 80 | 0:38 | 0:37 | 0:36 | 2:20 |
+| 5 | Avaluació econòmica d'una beca | 168 | 1:21 | 1:18 | 1:15 | 3:38 |
+| 6 | Informació externa | 211 | 1:41 | 1:37 | 1:34 | 5:15 |
+| 7 | Dependència directa | 299 | 2:24 | 2:18 | 2:13 | 7:33 |
+| 8 | Port de sortida i adaptador | 263 | 2:06 | 2:01 | 1:57 | 9:34 |
+| 9 | Port patrimonial | 196 | 1:34 | 1:30 | 1:27 | 11:04 |
+| 10 | Domini financer | 158 | 1:16 | 1:13 | 1:10 | 12:17 |
+| 11 | Idea clau i tancament | 88 | 0:42 | 0:41 | 0:39 | 12:58 |
+| 12 | Agraïment | 35 | 0:17 | 0:16 | 0:16 | 13:14 |
 | **Total** | **Cos principal** | **1.720** | **13:46** | **13:14** | **12:44** | **13:14** |
 
-Estimació anterior de treball: 18:15-19:00. Temps eliminat del cos principal: una diapositiva prevista d'1:25. La separació de la síntesi tècnica i l'agraïment en dues diapositives afegeix aproximadament 0:20-0:30 (canvi de diapositiva i pausa protocol·lària), sense contingut tècnic nou. La nova explicació causal de la diapositiva 6 afegeix aproximadament 0:45 respecte de la versió anterior. Nova estimació prudent amb pauses reals: 17:05-18:30. Marge respecte dels 20 minuts: aproximadament 1:30-2:55, pendent de validació amb assaig oral real.
+Estimació anterior de treball: 18:15-19:00. Temps eliminat del cos principal: una diapositiva prevista d'1:25. La separació de la síntesi tècnica i l'agraïment en dues diapositives afegeix aproximadament 0:20-0:30 (canvi de diapositiva i pausa protocol·lària), sense contingut tècnic nou. La nova explicació causal de la diapositiva 7 afegeix aproximadament 0:45 respecte de la versió anterior. La separació de la portada i el context en dues diapositives reparteix les mateixes 177 paraules i afegeix només un canvi de diapositiva, sense impacte apreciable en el temps total. Nova estimació prudent amb pauses reals: 17:05-18:30. Marge respecte dels 20 minuts: aproximadament 1:30-2:55, pendent de validació amb assaig oral real.
 
 ---
 
@@ -375,9 +387,9 @@ La demo opcional s'ha d'assajar per separat. No s'ha d'incloure en el cronòmetr
 
 Practica per blocs, no tota la presentació sempre sencera:
 
-* Bloc 1: diapositives 1-3, context, assignatura i objectiu breu.
-* Bloc 2: diapositives 4-8, cas AGAUR, problema i port de sortida.
-* Bloc 3: diapositives 9-11, domini financer, conclusió tècnica i agraïment.
+* Bloc 1: diapositives 1-4, portada, context, assignatura i objectiu breu.
+* Bloc 2: diapositives 5-9, cas AGAUR, problema i port de sortida.
+* Bloc 3: diapositives 10-12, domini financer, conclusió tècnica i agraïment.
 * Annex: demo opcional, en una versió de màxim 2 minuts.
 
 En cada bloc, treballa tres coses: mirada, pausa i gest. La mirada ha d'anar al tribunal en les frases conceptuals; a la pantalla només quan assenyales una part concreta. Les mans han d'ajudar a separar conceptes: una mà per `necessitat funcional`, l'altra per `tecnologia concreta`. Evita caminar mentre expliques una distinció fina; atura't, formula-la i continua.
@@ -390,13 +402,13 @@ Fes com a mínim tres passades completes del cos principal:
 * Segona passada: només amb notes del presentador.
 * Tercera passada: només amb l'esquema de memorització.
 
-Grava una passada en vídeo. Revisa només quatre indicadors: si mires massa la pantalla, si acceleres a les diapositives 6-9, si les pauses existeixen de veritat, i si la frase `flux d'execució no és dependència de codi` queda clara.
+Grava una passada en vídeo. Revisa només quatre indicadors: si mires massa la pantalla, si acceleres a les diapositives 7-10, si les pauses existeixen de veritat, i si la frase `flux d'execució no és dependència de codi` queda clara.
 
 Després grava una passada independent de l'annex opcional. La demo ha de poder explicar-se sense reobrir tota la classe. Ha de sonar com una verificació pràctica del que ja s'ha explicat, no com una secció nova.
 
 ### Ritme, veu i cos
 
-Mantingues un to més lent a les diapositives 3, 6, 7 i 8, perquè són les conceptualment més importants. Fes pauses llargues després de: `capacitat, no tecnologia`; `això és el problema, no la solució`; `el problema no és consumir PICA`; `el port és un contracte`; `l'adaptador implementa el port`; `l'arquitectura situa la dependència externa en una frontera explícita`.
+Mantingues un to més lent a les diapositives 4, 7, 8 i 9, perquè són les conceptualment més importants. Fes pauses llargues després de: `capacitat, no tecnologia`; `això és el problema, no la solució`; `el problema no és consumir PICA`; `el port és un contracte`; `l'adaptador implementa el port`; `l'arquitectura situa la dependència externa en una frontera explícita`.
 
 La postura ha de ser estable, amb els peus oberts a amplada d'espatlles. Usa les mans per marcar fronteres: dins/fora, port/adaptador, flux/dependència. Si et perds, torna al mantra: necessitat, port, adaptador. Aquesta triada recupera tota la presentació.
 
@@ -404,7 +416,7 @@ La postura ha de ser estable, amb els peus oberts a amplada d'espatlles. Usa les
 
 ## 6. Advertiments finals
 
-Risc de temps: les diapositives 4-9 poden allargar-se fàcilment. Si vas tard, no retallis la conclusió tècnica; retalla detall del cas AGAUR o de la transferència al domini financer.
+Risc de temps: les diapositives 5-10 poden allargar-se fàcilment. Si vas tard, no retallis la conclusió tècnica; retalla detall del cas AGAUR o de la transferència al domini financer.
 
 Risc de demo: la demo no forma part del cos principal. No s'ha d'obrir abans del tancament. Després de `Moltes gràcies`, només s'ha d'activar si el tribunal ho demana o si explícitament hi ha marge per fer-ho. Si no, la classe ja està tancada correctament.
 

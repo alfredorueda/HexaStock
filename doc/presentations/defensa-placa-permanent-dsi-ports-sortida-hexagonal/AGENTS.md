@@ -44,7 +44,7 @@ Key reminders:
 - Do not use old drafts as authoritative sources if they conflict with the canonical PowerPoints or canonical Markdown oral scripts.
 - Static images or embedded diagrams already placed in the presentation may remain in English when they show software engineering/code artifacts. Do not replace static images in the presentation without Alfredo's explicit permission.
 - During rehearsal or presentation-improvement work, actively remind Alfredo to preserve and explain the slide improvements recorded in `recordatori-millores-diapositives.md`.
-- Pay special attention to slides 7, 8, and 9: distinguish execution flow from code dependency and architectural dependency.
+- Pay special attention to slides 8, 9, and 10 of the 20-minute deck (Port de sortida i adaptador, Port patrimonial, Domini financer): distinguish execution flow from code dependency and architectural dependency.
 - For output ports, if an arrow represents code dependency or implementation, it should point from the adapter to the port.
 - This arrow-direction improvement is already applied in the current canonical presentation; do not reintroduce it as a pending task.
 - The core message to preserve is: the application service needs a capability, not a technology.
