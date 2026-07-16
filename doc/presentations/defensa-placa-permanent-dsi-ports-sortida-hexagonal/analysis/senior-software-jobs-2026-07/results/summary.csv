@@ -1,0 +1,12 @@
+variable,count,n,percent,ci95_low,ci95_high
+any_socioemotional,188,222,84.7,79.4,88.8
+two_or_more,135,222,60.8,54.3,67.0
+communication,67,222,30.2,24.5,36.5
+collaboration,142,222,64.0,57.5,70.0
+stakeholder_alignment,33,222,14.9,10.8,20.1
+mentoring,64,222,28.8,23.3,35.1
+leadership_influence,87,222,39.2,33.0,45.7
+feedback_review,82,222,36.9,30.9,43.5
+learning_adaptability,35,222,15.8,11.6,21.1
+conflict_negotiation,2,222,0.9,0.2,3.2
+empathy_listening,4,222,1.8,0.7,4.5

@@ -1,0 +1,36 @@
+{
+  "snapshot_date": "2026-07-16",
+  "window_start": "2026-04-17",
+  "records_loaded": 2610,
+  "included_unique_offers": 222,
+  "unique_companies": 102,
+  "largest_company_cluster": 37,
+  "sensitivity_cap_three_per_company": {
+    "offers": 138,
+    "any_socioemotional_percent": 83.3,
+    "two_or_more_percent": 70.3
+  },
+  "rejections": {
+    "not_senior": 1009,
+    "not_software_role": 212,
+    "adjacent_or_management_role": 24,
+    "insufficient_senior_evidence": 221,
+    "outside_window": 498,
+    "source_title_guard": 398,
+    "duplicate": 26
+  },
+  "by_source": {
+    "Arbeitnow": 24,
+    "Himalayas": 51,
+    "Jobicy": 23,
+    "Remote OK": 1,
+    "Remotive": 8,
+    "The Muse": 115
+  },
+  "by_seniority_tier": {
+    "Lead": 10,
+    "Senior": 160,
+    "Staff/Principal": 52
+  },
+  "maximum_95pct_margin_pp": 6.6
+}

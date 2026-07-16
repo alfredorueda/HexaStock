@@ -1,0 +1,104 @@
+@page {
+  size: A4;
+  background: #ffffff;
+  margin: 18mm 19mm 19mm 19mm;
+  @bottom-right {
+    content: counter(page) " / " counter(pages);
+    color: #667085;
+    font-size: 8pt;
+  }
+}
+
+html {
+  font-family: Arial, Helvetica, sans-serif;
+  color: #172b4d;
+  font-size: 10.25pt;
+  line-height: 1.42;
+  background: #ffffff !important;
+}
+
+body {
+  margin: 0;
+  background: #ffffff !important;
+  color: #172b4d !important;
+}
+
+h1, h2, h3 {
+  color: #143a66;
+  page-break-after: avoid;
+}
+
+h1 {
+  margin-top: 1.35em;
+  border-bottom: 1.5px solid #8fb3d9;
+  padding-bottom: 0.18em;
+  font-size: 18pt;
+}
+
+h2 { font-size: 13.5pt; }
+h3 { font-size: 11.5pt; }
+
+p, li { orphans: 3; widows: 3; }
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 0.8em 0 1.15em;
+  font-size: 8.7pt;
+  page-break-inside: avoid;
+}
+
+th {
+  background: #143a66;
+  color: #ffffff;
+  text-align: left;
+}
+
+th, td {
+  border: 1px solid #b7c7d9;
+  padding: 0.38em 0.48em;
+  vertical-align: top;
+}
+
+tr:nth-child(even) td { background: #f3f7fb; }
+
+blockquote {
+  border-left: 4px solid #2e75b6;
+  background: #eef5fb;
+  margin: 1em 0;
+  padding: 0.55em 0.9em;
+}
+
+code {
+  font-family: "SFMono-Regular", Consolas, monospace;
+  font-size: 8.5pt;
+}
+
+#title-block-header {
+  margin-top: 48mm;
+  margin-bottom: 28mm;
+  text-align: left;
+  page-break-after: always;
+}
+
+#title-block-header .title {
+  border: 0;
+  font-size: 27pt;
+  line-height: 1.1;
+  margin-bottom: 0.35em;
+}
+
+#title-block-header .subtitle {
+  color: #2e75b6;
+  font-size: 15pt;
+  margin: 0 0 2.2em;
+}
+
+#TOC {
+  page-break-after: always;
+}
+
+#TOC a {
+  color: #143a66;
+  text-decoration: none;
+}
