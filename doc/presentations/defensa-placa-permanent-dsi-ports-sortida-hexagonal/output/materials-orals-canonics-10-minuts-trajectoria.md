@@ -15,27 +15,23 @@ Fonts públiques de contrast per a Vida Software:
 * Forum Nokia Consumer Applications: referència a `Natural Interaction Platform`, J2ME i Symbian OS.
 * Google Patents: patent internacional `WO2007141498A1`, `User interfaces for electronic devices`, assignada a Vida Software S.L.
 
-Nota de versió: aquests materials són independents de la classe magistral de 20 minuts. La seva funció és donar suport a la primera part de la defensa de la plaça: trajectòria professional, acadèmica i científica. La presentació està limitada a 7 diapositives (portada, introducció i cinc diapositives de contingut) i a una durada aproximada de 10 minuts. Després del tancament hi ha una diapositiva d'annex, `Annex A. Contrast d'orientació curricular`, que no forma part de la numeració 1-7 ni del temps principal: és material de reserva exclusiu per al torn de preguntes.
+Nota de versió: aquests materials són independents de la classe magistral de 20 minuts. La seva funció és donar suport a la primera part de la defensa de la plaça: trajectòria professional, acadèmica i científica. La presentació està limitada a 6 diapositives i a una durada aproximada de 10 minuts. Després del tancament hi ha una diapositiva d'annex, `Annex A. Contrast d'orientació curricular`, que no forma part de la numeració 1-6 ni del temps principal: és material de reserva exclusiu per al torn de preguntes.
 
 ---
 
 ## 1. Guió oral complet imprimible
 
-Temps total previst d'assaig: 9:00-9:20 aproximadament, amb pauses reals. Si l'assaig supera els 10:00, aplica la versió curta d'emergència de la diapositiva 5.
+Temps total previst d'assaig: 9:00-9:20 aproximadament, amb pauses reals. Si l'assaig supera els 10:00, aplica la versió curta d'emergència de la diapositiva 4.
 
-### Diapositiva 1. Portada. Trajectòria professional, acadèmica i científica - 0:15
+### Diapositiva 1. Trajectòria professional, acadèmica i científica - 0:50
 
-Bon dia, membres del tribunal. Moltes gràcies per l'oportunitat d'oferir aquesta presentació. [mirada al tribunal]
-
-[avançar a la diapositiva 2]
-
-### Diapositiva 2. Un fil conductor: l'enginyeria del software - 0:35
+Bon dia, membres del tribunal. Moltes gràcies per l'oportunitat de oferir aquesta presentació. [mirada al tribunal]
 
 La meva trajectòria comença el 2004 i té un fil conductor: l'enginyeria del software. Primer, com a enginyer a la indústria. Després, com a professor. I avui, també com a investigador: faig recerca en Educació en Enginyeria del Software. [pausa breu]
 
 Aquest és el recorregut que presentaré: base professional, vocació docent, pas a la universitat, consolidació al TecnoCampus i projecte de futur.
 
-### Diapositiva 3. Primera etapa: enginyeria del software i consultoria - 1:30
+### Diapositiva 2. Primera etapa: enginyeria del software i consultoria - 1:30
 
 La primera etapa transcorre en la indústria del software. [to calmat]
 
@@ -47,7 +43,7 @@ Per això vaig fer el pas a la consultoria, a openTrends, on vaig ampliar aquest
 
 La transició cap a la docència va ser, doncs, una evolució natural d'aquesta mateixa trajectòria professional.
 
-### Diapositiva 4. Formació Professional: el descobriment clar de la vocació docent - 1:10
+### Diapositiva 3. Formació Professional: el descobriment clar de la vocació docent - 1:10
 
 Per donar consistència a aquesta decisió vaig cursar el màster en Formació del Professorat i vaig iniciar una etapa docent en Formació Professional, en l'àmbit de DAW i DAM. [pausa breu]
 
@@ -57,7 +53,7 @@ Va ser una etapa molt valuosa. Em va ajudar a aprendre a ensenyar, a escoltar mi
 
 Amb el temps, volia portar a l'aula continguts més avançats: enginyeria del software, arquitectura de software i disseny de sistemes d'informació, recolzats en la meva experiència professional. El lloc natural d'aquests continguts és la universitat, i cap allà vaig orientar la mirada.
 
-### Diapositiva 5. De La Salle al TecnoCampus - 1:55
+### Diapositiva 4. De La Salle al TecnoCampus - 1:55
 
 Em vaig incorporar a La Salle, un entorn universitari d'alt nivell tècnic. [transició]
 
@@ -73,7 +69,7 @@ La proximitat geogràfica va reforçar la decisió, perquè feia la trajectòria
 
 Vaig establir contacte acadèmic amb el TecnoCampus i vaig començar-hi com a professor associat.
 
-### Diapositiva 6. TecnoCampus: docència, equip i arquitectura de software - 1:20
+### Diapositiva 5. TecnoCampus: docència, equip i arquitectura de software - 1:20
 
 El TecnoCampus ha estat el lloc on aquesta trajectòria ha trobat més coherència. [pausa breu]
 
@@ -87,7 +83,7 @@ La participació acreditada en el projecte SQAI d'Aprenentatge Basat en Projecte
 
 D'aquest punt de trobada neix precisament la classe magistral de la segona part.
 
-### Diapositiva 7. Consultoria i formació internacional, recerca doctoral i projecte de futur - 2:00
+### Diapositiva 6. Consultoria i formació internacional, recerca doctoral i projecte de futur - 2:00
 
 En paral·lel, he mantingut una línia de transferència universitat-empresa i formació internacional. [transició]
 
@@ -109,7 +105,7 @@ Moltes gràcies.
 
 ## Annex A. Contrast d'orientació curricular (només per al torn de preguntes)
 
-Aquest annex no forma part del cos principal de deu minuts ni de la numeració 1-7. Només s'ha de mostrar si el tribunal pregunta pel pas de La Salle al TecnoCampus, qüestiona l'encaix acadèmic o demana concretar la diferència d'orientació entre les titulacions. No s'ha de mostrar sense una pregunta o una necessitat clara, ni utilitzar-lo com a defensa preventiva.
+Aquest annex no forma part del cos principal de deu minuts ni de la numeració 1-6. Només s'ha de mostrar si el tribunal pregunta pel pas de La Salle al TecnoCampus, qüestiona l'encaix acadèmic o demana concretar la diferència d'orientació entre les titulacions. No s'ha de mostrar sense una pregunta o una necessitat clara, ni utilitzar-lo com a defensa preventiva.
 
 ### Resposta oral de reserva - 30-45 segons
 
@@ -125,22 +121,15 @@ Quan es mostri l'annex, no llegir tota la taula: assenyalar una diferència d'En
 
 ## 2. Notes del presentador per diapositiva
 
-### 1. Portada - 0:15
+### 1. Trajectòria - 0:50
 
-* Obrir amb agraïment breu i salutació al tribunal.
-* Només benvinguda: la introducció s'explica amb la diapositiva 2.
-* Transició: avançar a la diapositiva del fil conductor.
-
-### 2. Fil conductor i recorregut - 0:35
-
+* Obrir amb agraïment breu.
 * No llegir CV: explicar fil conductor.
 * 2004 -> un sol fil conductor: enginyer a la indústria, professor universitari, investigador en com s'ensenya l'enginyeria del software.
-* Recorregut: base professional, vocació docent, pas a la universitat, consolidació al TecnoCampus i projecte de futur.
 * Missatge: trajectòria coherent amb la plaça.
-* És suport visual de la introducció, no un bloc nou: no allargar.
 * Transició: base professional en indústria.
 
-### 3. Indústria i consultoria - 1:30
+### 2. Indústria i consultoria - 1:30
 
 * Vida Software: component del sistema operatiu Symbian per a interacció per veu.
 * No era una app final: permetia que aplicacions Nokia/Symbian incorporessin veu.
@@ -151,7 +140,7 @@ Quan es mostri l'annex, no llegir tota la taula: assenyalar una diferència d'En
 * La comunicació passa de ser eina professional a pràctica docent.
 * Transició: màster en Formació del Professorat i entrada a la Formació Professional.
 
-### 4. Stucom - 1:10
+### 3. Stucom - 1:10
 
 * Decisió vocacional, no improvisació.
 * Màster en Formació del Professorat + FP DAW/DAM.
@@ -159,7 +148,7 @@ Quan es mostri l'annex, no llegir tota la taula: assenyalar una diferència d'En
 * Agraïment a l'FP; no menysvalorar-la.
 * Evolució cap a continguts tècnics universitaris més avançats.
 
-### 5. De La Salle al TecnoCampus - 1:55
+### 4. De La Salle al TecnoCampus - 1:55
 
 * La Salle: incorporació a un entorn universitari d'alt nivell tècnic.
 * La Salle és etapa valuosa; evitar comparacions jeràrquiques.
@@ -172,7 +161,7 @@ Quan es mostri l'annex, no llegir tota la taula: assenyalar una diferència d'En
 * No esmentar persones concretes; el contacte acadèmic es formula en genèric.
 * TecnoCampus: docència universitària, software, sistemes d'informació, transferència i projecte sostenible.
 
-### 6. TecnoCampus - 1:20
+### 5. TecnoCampus - 1:20
 
 * Docència continuada des de 2021.
 * Assignatures: programació, dades, Internet, enginyeria, DSI.
@@ -184,7 +173,7 @@ Quan es mostri l'annex, no llegir tota la taula: assenyalar una diferència d'En
 * HexaStock com a integració de docència, pràctica i transferència.
 * Transició explícita a la classe magistral.
 
-### 7. Neueda, doctorat i futur - 2:00
+### 6. Neueda, doctorat i futur - 2:00
 
 * Cambridge C1 Advanced: 185, Pass at Grade C, C1 MECR.
 * Neueda: formació internacional en anglès en enginyeria del software.
@@ -200,7 +189,7 @@ Quan es mostri l'annex, no llegir tota la taula: assenyalar una diferència d'En
 
 ### Annex A. Contrast d'orientació curricular - només si el tribunal pregunta
 
-* Fora dels deu minuts i de la numeració 1-7; no mostrar sense pregunta o necessitat clara.
+* Fora dels deu minuts i de la numeració 1-6; no mostrar sense pregunta o necessitat clara.
 * Missatge: diferències d'èmfasi i d'orientació curricular, mai de qualitat ni de jerarquia entre institucions.
 * Taula: Enginyeria del Software, Sistemes d'Informació i arquitectura, electrònica i hardware, xarxes i telecomunicacions, identitat del grau.
 * Sense noms de persones ni relacions personals; justificació estrictament acadèmica, curricular i institucional.
@@ -215,13 +204,12 @@ Quan es mostri l'annex, no llegir tota la taula: assenyalar una diferència d'En
 
 | Diapositiva | Missatge central                                                     | Paraules clau                                      | Transició       |
 | ----------- | -------------------------------------------------------------------- | -------------------------------------------------- | ---------------- |
-| 1           | Portada: benvinguda i agraïment al tribunal                        | salutació, tribunal                                | Fil conductor    |
-| 2           | La trajectòria té un sol fil conductor                             | 2004, enginyer, professor, investigador, recorregut | Base industrial  |
-| 3           | La indústria dona profunditat tècnica i desperta comunicació      | Symbian, C/C++, MWC, openTrends, Java              | Vocació docent  |
-| 4           | Stucom materialitza la vocació docent                               | FP, aula, escolta, acompanyament                   | Universitat      |
-| 5           | La Salle dona els fonaments; el TecnoCampus, l'encaix curricular     | La Salle, fonaments, llavor, tram següent, encaix | Casa acadèmica  |
-| 6           | TecnoCampus integra docència, evidència, equip i transferència    | 2021, 15 registres, 8,75, 9,03, SQAI               | Recerca i futur  |
-| 7           | Doctorat i futur se situen en l'Educació en Enginyeria del Software | C1, Neueda, AGAUR, HUB4T, buit de recerca          | Classe magistral |
+| 1           | La trajectòria té un sol fil conductor                             | 2004, enginyer, professor, investigador            | Base industrial  |
+| 2           | La indústria dona profunditat tècnica i desperta comunicació      | Symbian, C/C++, MWC, openTrends, Java              | Vocació docent  |
+| 3           | Stucom materialitza la vocació docent                               | FP, aula, escolta, acompanyament                   | Universitat      |
+| 4           | La Salle dona els fonaments; el TecnoCampus, l'encaix curricular     | La Salle, fonaments, llavor, tram següent, encaix | Casa acadèmica  |
+| 5           | TecnoCampus integra docència, evidència, equip i transferència    | 2021, 15 registres, 8,75, 9,03, SQAI               | Recerca i futur  |
+| 6           | Doctorat i futur se situen en l'Educació en Enginyeria del Software | C1, Neueda, AGAUR, HUB4T, buit de recerca          | Classe magistral |
 | Annex A     | Diferències d'èmfasi curricular, no de qualitat (només preguntes) | encaix, orientació, fonts oficials                | Fora dels 10 min |
 
 Mantra de memòria: `indústria del software -> docència universitària en software -> TecnoCampus -> recerca -> futur`.
@@ -236,7 +224,7 @@ Frase de tancament que convé memoritzar gairebé literalment:
 
 ### Ritme
 
-La presentació està pensada per a 9:00-9:20 amb un ritme pausat i marge real. Les diapositives 6 i 7 són les més importants i poden ocupar una mica més de temps. Si cal retallar durant l'assaig, aplica la versió curta d'emergència; no retallis les xifres docents del TecnoCampus.
+La presentació està pensada per a 9:00-9:20 amb un ritme pausat i marge real. Les diapositives 5 i 6 són les més importants i poden ocupar una mica més de temps. Si cal retallar durant l'assaig, aplica la versió curta d'emergència; no retallis les xifres docents del TecnoCampus.
 
 ### Veu
 
@@ -244,26 +232,25 @@ Mantén un to acadèmic, però no burocràtic. Les frases personals han de sonar
 
 ### Cos i mirada
 
-Mira el tribunal en tres moments: inici, explicació de l'alineació TecnoCampus i tancament final. Mira la pantalla només quan la diapositiva ajudi a ordenar una etapa o una transició. A la diapositiva 6, atura't una mica abans de dir les xifres d'avaluació docent.
+Mira el tribunal en tres moments: inici, explicació de l'alineació TecnoCampus i tancament final. Mira la pantalla només quan la diapositiva ajudi a ordenar una etapa o una transició. A la diapositiva 5, atura't una mica abans de dir les xifres d'avaluació docent.
 
 ### Control del temps
 
-* Diapositiva 1: només salutació i agraïment; no superar 0:15.
-* Diapositiva 2: fil conductor i recorregut; no superar 0:40. Entre les diapositives 1 i 2 no s'ha de superar el temps de l'antiga introducció (0:55).
-* Diapositiva 3: no explicar massa Vida Software; màxim 30 segons.
-* Diapositiva 4: evitar convertir-la en una història llarga sobre FP.
-* Diapositiva 5: encaix curricular com a motiu principal (fonaments a La Salle, tram següent al TecnoCampus); conciliació només com a sostenibilitat complementària; cap menció de persones concretes.
-* Diapositiva 6: és el centre docent i institucional; donar-li aire.
-* Diapositiva 7: recerca com a Educació en Enginyeria del Software; tancar amb seguretat i enllaçar amb la classe magistral.
+* Diapositiva 1: no superar 0:55.
+* Diapositiva 2: no explicar massa Vida Software; màxim 30 segons.
+* Diapositiva 3: evitar convertir-la en una història llarga sobre FP.
+* Diapositiva 4: encaix curricular com a motiu principal (fonaments a La Salle, tram següent al TecnoCampus); conciliació només com a sostenibilitat complementària; cap menció de persones concretes.
+* Diapositiva 5: és el centre docent i institucional; donar-li aire.
+* Diapositiva 6: recerca com a Educació en Enginyeria del Software; tancar amb seguretat i enllaçar amb la classe magistral.
 
 ### Versió curta d'emergència
 
 Si durant la defensa veus que falta temps, elimina aquestes frases:
 
-* A la diapositiva 3, digues només `component de Symbian per incorporar veu en aplicacions mòbils`.
-* A la diapositiva 4, redueix la reflexió sobre FP a una frase d'agraïment.
-* A la diapositiva 5, resumeix la conciliació en `la proximitat reforçava una trajectòria acadèmica sostenible`.
-* A la diapositiva 5, si encara vas tard, redueix el bloc d'encaix a `la meva especialització tenia un encaix curricular directe al TecnoCampus` i elimina `i em va agradar molt ensenyar-los`.
-* A la diapositiva 7, si vas tard, elimina HUB4T i deixa només Cambridge, Neueda, AGAUR i doctorat.
+* A la diapositiva 2, digues només `component de Symbian per incorporar veu en aplicacions mòbils`.
+* A la diapositiva 3, redueix la reflexió sobre FP a una frase d'agraïment.
+* A la diapositiva 4, resumeix la conciliació en `la proximitat reforçava una trajectòria acadèmica sostenible`.
+* A la diapositiva 4, si encara vas tard, redueix el bloc d'encaix a `la meva especialització tenia un encaix curricular directe al TecnoCampus` i elimina `i em va agradar molt ensenyar-los`.
+* A la diapositiva 6, si vas tard, elimina HUB4T i deixa només Cambridge, Neueda, AGAUR i doctorat.
 
 No eliminis la connexió final amb la classe magistral.
