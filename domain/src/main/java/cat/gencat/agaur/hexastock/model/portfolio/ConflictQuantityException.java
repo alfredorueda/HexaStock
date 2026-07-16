@@ -1,5 +1,7 @@
 package cat.gencat.agaur.hexastock.model.portfolio;
 
+import cat.gencat.agaur.hexastock.model.DomainException;
+
 /**
  * ConflictQuantityException indicates that a stock operation was attempted with a quantity
  * that conflicts with available shares.
@@ -17,7 +19,7 @@ package cat.gencat.agaur.hexastock.model.portfolio;
  * <p>It enforces the business rule that you cannot sell or reduce more shares than you own,
  * maintaining the integrity of the portfolio's holdings.</p>
  */
-public class ConflictQuantityException extends RuntimeException {
+public class ConflictQuantityException extends DomainException {
 
     /**
      * Constructs a new ConflictQuantityException with the specified detail message.
