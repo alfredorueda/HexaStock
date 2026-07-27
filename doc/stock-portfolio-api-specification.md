@@ -1408,3 +1408,102 @@ Already fixed in the current codebase
 * No `/performance` mapping exists in any controller
 
 ***
+
+## 9. Open Specification Questions (Training Discussion) — US-07 Sell Stocks
+
+The seven acceptance criteria in section 2.7 (US-07 — Sell Stocks) are internally
+consistent and the FIFO cost-basis examples check out arithmetically. A closer
+review, however, surfaces two points that section 2.7 leaves not absolutely
+specified. These are not implementation bugs — they are gaps in the contract
+itself, useful as a training exercise in spotting silent ambiguity before it
+becomes a production bug.
+
+### 9.1 Invalid Ticker Format Is Not Covered by Any Acceptance Criterion
+
+Precondition #2 in section 2.7 states: "Ticker must be valid: 1–5 uppercase
+letters." Yet none of the 7 acceptance criteria test a violation of this rule —
+they cover the happy path, FIFO, insufficient shares, zero quantity, negative
+quantity, unknown holding, and unknown portfolio, but never a malformed ticker
+(e.g. "aapl", "TOOLONG", "123", "").
+
+By contrast, the quantity preconditions (positive, non-zero) are each backed by
+an explicit AC (#4, #5) with a defined status code (400 Bad Request) and title
+("Invalid Quantity"). The equivalent for ticker format is simply missing.
+
+### 9.2 Holding Lifecycle When Fully Liquidated Is Ambiguous
+
+The FIFO scenarios in section 2.7 show lots being partially consumed — e.g. Lot
+#1 is fully depleted and removed while Lot #2 still holds 3 shares. No scenario
+shows what happens when a sell order consumes every lot of a holding, leaving
+zero shares of that ticker.
+
+The FIFO rule text states: "If the lot reaches zero remaining shares, it
+becomes empty and is removed" — but this is about lots, not about the holding
+itself. Two designs are equally consistent with the stated preconditions:
+
+* (a) The Holding is removed from the portfolio once it has zero lots — in
+  which case a subsequent sell of the same ticker would presumably hit
+  precondition #4 ("Portfolio must hold the specified ticker") and return 404
+  Holding Not Found (per AC #6), even though moments earlier the portfolio
+  legitimately held that stock.
+* (b) The Holding remains with an empty lot list / zero total shares — in which
+  case a subsequent sell would instead hit precondition #5 ("must hold ≥
+  requested quantity") and return 409 Conflict.
+
+The spec does not state which applies, and the choice also affects at least one
+other endpoint: would GET /api/portfolios/{id}/holdings still list the ticker
+(with quantity 0) after full liquidation, or would it disappear from the
+response entirely?
+
+### Suggested Exercise for Students
+
+Context for students: You are reviewing a BDD specification for a stock
+portfolio API (US-07 — Sell Stocks, section 2.7). The spec is well-written and
+its FIFO cost-basis examples check out mathematically, but two aspects of the
+contract were left underspecified. Your job is to close those gaps the way a
+real BA/QA/dev would before implementation starts.
+
+Part A — Invalid Ticker Format
+
+1. Write 1–3 new acceptance criteria, in the same Given/When/Then table style
+   as section 2.7's existing ones, covering invalid ticker format on a sell
+   request.
+2. Decide and justify: what HTTP status code and title should the API return?
+   Look at how the spec handles the other validation failure (invalid
+   quantity) for a consistent pattern to reuse.
+3. Bonus: should ticker validation happen before or after checking that the
+   portfolio exists? Justify your ordering.
+
+Hints: Compare with AC #4/#5 (quantity 0 / negative) — they return 400 Bad
+Request with a specific title. Is there a reason ticker format shouldn't follow
+the same convention? Also consider SaleRequestDTO(String ticker, int quantity)
+in the Implementation Pointers table — is validation likely to happen at the
+DTO/controller boundary (before touching the domain) or inside
+Portfolio.sell()? That affects whether a non-existent portfolio would ever even
+be checked first.
+
+Part B — Selling a Holding Down to Zero
+
+1. Propose what should happen to the Holding object once its last lot is
+   emptied: (a) removed entirely, or (b) kept with zero shares.
+2. For your chosen design, write the acceptance criterion for this follow-up
+   scenario: "Given a portfolio holding exactly 15 shares of AAPL across two
+   lots, when I sell all 15 shares, and then I try to sell 1 more share of
+   AAPL, then I receive ___."
+3. Explain how your answer affects GET /api/portfolios/{id}/holdings — would
+   AAPL still appear in the list with quantity 0, or disappear?
+
+Hints: Re-read precondition #4 — a violation of it returns 404 Holding Not
+Found per AC #6. If design (a) is correct, does that mean re-selling the same
+ticker after full liquidation returns 404 instead of 409? Does that feel
+right? Also think about round-trip consistency: if a trainee buys AAPL again
+after fully selling it, should that create a new Holding or reuse an existing
+empty one? Either answer is defensible — the exercise is to notice the
+ambiguity and pick one, not to find "the" official answer.
+
+Deliverable: A short write-up (half a page) with the added acceptance criteria
+for both parts, plus 2–3 sentences justifying each design decision. There is
+no single graded "correct" answer — the goal is to practice spotting silent
+gaps in a specification before they become production bugs.
+
+***
