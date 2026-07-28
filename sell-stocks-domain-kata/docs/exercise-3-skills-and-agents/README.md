@@ -1,5 +1,9 @@
 # Exercise 3 — Build it with skills and specialised agents
 
+> **Student tool policy:** use GitHub Copilot in VS Code for this exercise. Codex and Claude
+> adapters are maintained separately for instructor rehearsal and portability checks; they are not
+> alternative student paths during the lab.
+
 You will build exactly the same domain as Exercise 2 from exactly the same two specifications.
 This time, the prompt is not the workflow. The workflow is versioned as project instructions, an
 agent skill, specialised agents, reusable prompt files, a plan, and deterministic checks.
@@ -101,12 +105,11 @@ Your generated student workspace contains:
 - `AGENTS.md` — shared project rules;
 - `.github/` — GitHub Copilot instructions, prompt files, and custom agents;
 - `.agents/skills/implement-sell-stocks/` — the canonical open-standard skill;
-- `.codex/agents/` — Codex custom-agent adapters;
-- `.claude/` and `CLAUDE.md` — Claude Code adapters;
 - `plan.md` — the durable planning and approval checkpoint; and
 - `evidence/session-notes.md` — the observation log you will submit.
 
-No implementation, build file, or test code is provided.
+No implementation, build file, test code, Codex configuration, or Claude configuration is provided
+in the student workspace.
 
 ## Prepare a student workspace
 
@@ -213,15 +216,19 @@ git status --short
 
 Complete `evidence/session-notes.md` and review the entire diff.
 
-## Codex and Claude Code
+## Instructor-only Codex and Claude support
 
-The domain inputs, shared rules, skill, plan, and verifier are portable. Agent manifests and
-handoffs need adapters because the tools use different configuration formats. Follow the exact
-commands and limitations in [`compatibility.md`](compatibility.md).
+Students do not use Codex or Claude during this exercise. The repository retains adapters for the
+instructor to rehearse and validate the workflow without changing the student tool policy. Those
+adapters are included only when the instructor generates a portability workspace with:
 
-For a fair class comparison, all pairs should use the same primary tool during the timed run.
-Codex and Claude are valuable repeatability checks after the Copilot run, not silent substitutions
-halfway through it.
+```bash
+./docs/exercise-3-skills-and-agents/scripts/prepare-student-workspace.sh \
+  --include-instructor-adapters /path/to/instructor-workspace
+```
+
+The instructor follows [`compatibility.md`](compatibility.md). An instructor replay is not part of
+the student lab and does not replace the required Copilot preflight before course delivery.
 
 ## Deliverables
 
@@ -256,7 +263,7 @@ outside the approved training materials.
 4. Did the reviewer find anything the implementer and its tests missed?
 5. Which agent boundary was genuine, and which was only a persona change?
 6. What would you keep for a production repository? What would you simplify?
-7. Which artefacts worked unchanged in Copilot, Codex, and Claude?
+7. Which artefacts are Copilot-specific, and which appear portable in principle?
 
 The goal is not to prove that more configuration is always better. It is to learn which reusable
 context earns its maintenance cost.

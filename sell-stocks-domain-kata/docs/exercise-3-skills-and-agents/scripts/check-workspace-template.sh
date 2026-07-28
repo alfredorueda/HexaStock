@@ -5,6 +5,8 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 EXERCISE_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"
 TEMPLATE="$EXERCISE_DIR/workspace-template"
 FAILURES=0
+CHECK_DIR="$(mktemp -d)"
+trap 'rm -rf "$CHECK_DIR"' EXIT
 
 check() {
   if [[ -f "$TEMPLATE/$1" ]]; then
@@ -44,6 +46,32 @@ if grep -R -n '\[TODO' "$TEMPLATE" --exclude-dir=.git; then
   FAILURES=$((FAILURES + 1))
 else
   printf 'PASS  no unresolved scaffold TODOs\n'
+fi
+
+"$SCRIPT_DIR/prepare-student-workspace.sh" "$CHECK_DIR/student" >/dev/null
+if [[ -d "$CHECK_DIR/student/.github" ]] \
+  && [[ -d "$CHECK_DIR/student/.agents/skills/implement-sell-stocks" ]] \
+  && [[ ! -e "$CHECK_DIR/student/.codex" ]] \
+  && [[ ! -e "$CHECK_DIR/student/.claude" ]] \
+  && [[ ! -e "$CHECK_DIR/student/CLAUDE.md" ]] \
+  && [[ ! -e "$CHECK_DIR/student/.agents/skills/implement-sell-stocks/agents/openai.yaml" ]]; then
+  printf 'PASS  default workspace is Copilot-only\n'
+else
+  printf 'FAIL  default workspace leaked instructor adapters or missed Copilot files\n' >&2
+  FAILURES=$((FAILURES + 1))
+fi
+
+"$SCRIPT_DIR/prepare-student-workspace.sh" --include-instructor-adapters \
+  "$CHECK_DIR/instructor" >/dev/null
+if [[ -d "$CHECK_DIR/instructor/.github" ]] \
+  && [[ -d "$CHECK_DIR/instructor/.codex" ]] \
+  && [[ -d "$CHECK_DIR/instructor/.claude" ]] \
+  && [[ -f "$CHECK_DIR/instructor/CLAUDE.md" ]] \
+  && [[ -f "$CHECK_DIR/instructor/.agents/skills/implement-sell-stocks/agents/openai.yaml" ]]; then
+  printf 'PASS  instructor workspace includes portability adapters\n'
+else
+  printf 'FAIL  instructor workspace is missing portability adapters\n' >&2
+  FAILURES=$((FAILURES + 1))
 fi
 
 if [[ "$FAILURES" -gt 0 ]]; then

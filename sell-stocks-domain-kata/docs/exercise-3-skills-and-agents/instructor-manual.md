@@ -3,6 +3,10 @@
 > Students regenerate the Exercise 2 domain from the same specifications, but the working method
 > is now encoded as skills, specialised agents, permissions, checkpoints, and durable evidence.
 
+> **Delivery boundary:** students use GitHub Copilot in VS Code only. Codex and Claude adapters
+> are instructor tools for rehearsal while Copilot is unavailable and for optional portability
+> checks. Do not distribute those adapters as alternative student workflows.
+
 **Recommended duration: 120 minutes.** Run Exercise 2 first. Exercise 3 is a controlled comparison,
 not an introduction to the domain.
 
@@ -102,6 +106,20 @@ confirm:
 Run at least the planning phase before class. Run a complete pilot whenever the Copilot extension
 or organisation policy changes.
 
+If the instructor Copilot licence is not active yet, an instructor-only rehearsal can be generated
+with:
+
+```bash
+PILOT_DIR="$(mktemp -d)"
+./docs/exercise-3-skills-and-agents/scripts/prepare-student-workspace.sh \
+  --include-instructor-adapters "$PILOT_DIR/workspace"
+```
+
+Use Codex or Claude according to [`compatibility.md`](compatibility.md). This checks the portable
+workflow, specifications, and verification contract. It does **not** validate Copilot discovery,
+slash commands, permissions, or handoffs. Complete the Copilot pilot after activating the licence
+and before teaching the course.
+
 ### 5. Prepare distribution
 
 Generate one fresh workspace per pair, or generate one clean archive for learners to copy. Do not
@@ -112,8 +130,10 @@ give students access to the module root while they work: it contains the Exercis
 Release only:
 
 - the generated Exercise 3 workspace;
-- the student [`README.md`](README.md); and
-- the tool-specific [`compatibility.md`](compatibility.md) when needed.
+- the student [`README.md`](README.md).
+
+The default generator intentionally excludes `.codex/`, `.claude/`, `CLAUDE.md`, and Codex UI
+metadata. Keep [`compatibility.md`](compatibility.md) with the instructor materials.
 
 Do not release:
 
@@ -308,8 +328,9 @@ contents into the domain specification.
 
 ### Codex or Claude replay
 
-Use [`compatibility.md`](compatibility.md). Keep the same generated input and record that the replay
-is a portability check, not part of the primary timed comparison.
+Generate a separate workspace with `--include-instructor-adapters` and use
+[`compatibility.md`](compatibility.md). Record that the replay is an instructor portability check,
+not part of the student exercise and not evidence that Copilot-specific integration works.
 
 ## Citibank-oriented safety discussion
 

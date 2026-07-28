@@ -42,7 +42,8 @@ implementation conversation with versioned context engineering:
 * an open-standard skill with a reference and verification script
 * separate planner, implementer and conformance-reviewer agents
 * a human-approved `plan.md` and durable evidence log
-* native adapters for GitHub Copilot, Codex and Claude Code
+* GitHub Copilot configuration for students, plus separate Codex and Claude Code adapters for
+  instructor rehearsal
 
 The student guide is supported by an
 [`instructor manual`](exercise-3-skills-and-agents/instructor-manual.md), a

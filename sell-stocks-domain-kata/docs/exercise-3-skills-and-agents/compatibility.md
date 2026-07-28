@@ -1,8 +1,18 @@
-# Copilot, Codex, and Claude Code compatibility
+# Instructor guide — Copilot, Codex, and Claude Code compatibility
 
-This exercise is designed for GitHub Copilot in VS Code first because the course slides teach that
-surface. The domain inputs and most context-engineering artefacts are portable. Agent manifests,
-tool identifiers, permissions, prompt commands, and handoffs are product-specific.
+> **Instructor-only material.** Students use GitHub Copilot in VS Code exclusively. Codex and
+> Claude support exists so the instructor can rehearse and validate the exercise without Copilot;
+> it is not a student choice or a fallback during the timed lab.
+
+Generate a workspace containing all instructor adapters with:
+
+```bash
+./docs/exercise-3-skills-and-agents/scripts/prepare-student-workspace.sh \
+  --include-instructor-adapters /path/to/instructor-workspace
+```
+
+The domain inputs and most context-engineering artefacts are portable. Agent manifests, tool
+identifiers, permissions, prompt commands, and handoffs are product-specific.
 
 This guide records the differences instead of hiding them behind a false common denominator.
 
@@ -209,14 +219,15 @@ The absence of MCP is a least-privilege decision, not an unfinished configuratio
 
 For the timed classroom comparison with Exercise 2:
 
-- use one agreed primary tool and model policy across all pairs;
+- require GitHub Copilot in VS Code for every student pair;
 - use fresh generated workspaces;
 - do not switch tools after seeing a result;
 - record tool/version/permission information;
 - preserve plan and review evidence; and
 - compare outcomes against specifications, not against model reputation.
 
-After the timed run, replaying the exercise in the other two tools is useful portability testing.
+Codex and Claude replays are instructor preparation activities. They help validate the portable
+core but do not prove that Copilot-specific discovery, permissions, prompts, or handoffs work.
 
 ## Maintenance rule
 
