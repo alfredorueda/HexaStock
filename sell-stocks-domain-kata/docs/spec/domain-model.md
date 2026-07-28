@@ -21,7 +21,8 @@ is not held), `buy(Ticker, ShareQuantity, Price)`, `getHolding(Ticker)` (throws
 All state changes to `Holding` and `Lot` must pass through `Portfolio`.
 
 **Holding** *(entity)* — `id: HoldingId`, `ticker: Ticker`, `lots: List<Lot>` ordered by
-purchase date.
+purchase date. A holding reachable from a portfolio always has at least one lot: the portfolio
+drops it when a sale consumes the last one.
 Key methods: `sell(ShareQuantity, Price) -> SellResult` (FIFO accounting; throws
 `ConflictQuantityException` if there are not enough shares; removes empty lots),
 `buy(ShareQuantity, Price)`, `getTotalShares()`, `getLots()`.
@@ -42,7 +43,7 @@ has to defend against one.
 | `Money`         | `BigDecimal` (scale 2, HALF_UP) | Not null                                                            | Monetary amounts                                |
 | `Price`         | `BigDecimal` (scale 2, HALF_UP) | Must be > 0 (`InvalidAmountException`)                              | Per-share price                                 |
 | `ShareQuantity` | `int`                           | Must be ≥ 0 (`InvalidQuantityException`); selling requires > 0      | Number of shares                                |
-| `Ticker`        | `String`                        | Must match `^[A-Z]{1,5}$` (`InvalidTickerException`) — see §6.1 of [`sell-stocks-spec.md`](sell-stocks-spec.md) | Stock symbol           |
+| `Ticker`        | `String`                        | Must match `^[A-Z]{1,5}$` (`InvalidTickerException`)                 | Stock symbol                                    |
 | `PortfolioId`   | `String`                        | Not null, not blank                                                 | Portfolio identity                              |
 | `HoldingId`     | `String`                        | Not null, not blank                                                 | Holding identity                                |
 | `LotId`         | `String`                        | Not null, not blank                                                 | Lot identity                                    |
@@ -52,7 +53,8 @@ Money is always `BigDecimal` at scale 2, `HALF_UP` — never `double` or `float`
 
 ## Relationships
 
-* A **Portfolio** contains 0..* **Holdings**, indexed by `Ticker`.
+* A **Portfolio** contains 0..* **Holdings**, indexed by `Ticker` — one per ticker actually
+  owned, and none for a ticker sold down to zero.
 * A **Holding** contains **Lots**, ordered chronologically; FIFO consumes the oldest first.
 
 The exceptions named above are described in [`error-contract.md`](error-contract.md).

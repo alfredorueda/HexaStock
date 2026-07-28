@@ -1,7 +1,7 @@
 # US-07 — Sell Stocks (domain specification)
 
-> **Scope.** Domain only. The original spec describes an HTTP API; failure
-> outcomes are restated here as **domain exceptions** instead of HTTP status codes.
+> **Scope.** This specification defines the **domain** behaviour of selling stocks. Failure
+> outcomes are domain exceptions — see [`error-contract.md`](error-contract.md).
 
 This file describes **what selling does**. Two companion files describe the rest:
 
@@ -22,8 +22,7 @@ This file describes **what selling does**. Two companion files describe the rest
 ## 2. Preconditions
 
 1. The portfolio must exist.
-2. The ticker must be valid: 1–5 uppercase letters. *(format validation itself is an open
-   question — see section 6)*
+2. The ticker must be valid: 1–5 uppercase letters, matching `^[A-Z]{1,5}$`.
 3. The quantity must be positive (> 0).
 4. The portfolio must hold the specified ticker.
 5. The portfolio must hold at least the requested quantity of shares for that ticker.
@@ -45,6 +44,10 @@ shares from each lot until the requested quantity is fulfilled:
    purchase price.
 5. If the lot reaches **zero remaining shares**, it becomes empty and is removed.
 6. Move to the **next oldest lot** and repeat until all requested shares are sold.
+7. If that consumed the holding's **last lot**, remove the holding from the portfolio.
+
+A portfolio therefore holds a ticker exactly when it owns at least one share of it. Selling a
+position down to zero removes it; buying that ticker again starts a new holding.
 
 ---
 
@@ -88,7 +91,7 @@ This starting context is referred to below as **the baseline holding**.
 | 15       | 150.00     | 10 @ 100.00, then 5 @ 120.00      | 2250.00  | 1600.00    | 650.00  | none — 0 shares held      |
 | 8        | 90.00      | 8 from Lot #1 @ 100.00            | 720.00   | 800.00     | −80.00  | 2 @ 100.00, 5 @ 120.00    |
 
-Calculation breakdown for the two scenarios the original spec spelled out:
+Calculation breakdown for two of them:
 
 *Selling 8 shares.* Lot #1 has 10 remaining, so take `min(10, 8) = 8` shares; cost-basis
 contribution `8 × 100.00 = 800.00`; Lot #1 remaining `10 − 8 = 2`. The request is fulfilled.
@@ -109,7 +112,7 @@ fulfilled. `proceeds = 12 × 150.00 = 1800.00`;
 | **AC-02** | Sale consumed across multiple lots, emptied lot removed | The baseline holding | Sell 12 shares of AAPL at 150.00 | The sale reports quantity 12, proceeds 1800.00, cost basis 1240.00 and profit 560.00. FIFO took 10 shares from Lot #1 at 100.00 and then 2 shares from Lot #2 at 120.00. Lot #1 is fully depleted and removed from the holding. One lot remains: Lot #2 with 3 of its 5 initial shares at 120.00. |
 | **AC-03** | Smallest possible sale | The baseline holding | Sell 1 share of AAPL at 150.00 | Proceeds 150.00, cost basis 100.00, profit 50.00. Both lots remain: 9 @ 100.00 and 5 @ 120.00. |
 | **AC-04** | Boundary — the sale exactly exhausts the oldest lot | The baseline holding | Sell 10 shares of AAPL at 150.00 | Proceeds 1500.00, cost basis 1000.00, profit 500.00. Lot #1 is emptied and removed; exactly one lot remains, 5 @ 120.00. No shares are taken from Lot #2. |
-| **AC-05** | Boundary — the sale liquidates the entire position | The baseline holding | Sell all 15 shares of AAPL at 150.00 | Proceeds 2250.00, cost basis 1600.00, profit 650.00. The holding's total shares become 0. *(What happens to the holding object itself is an open question — see section 6. This criterion asserts the amounts and the zero share count only.)* |
+| **AC-05** | Boundary — the sale liquidates the entire position | The baseline holding | Sell all 15 shares of AAPL at 150.00 | Proceeds 2250.00, cost basis 1600.00, profit 650.00. Every lot is consumed and the holding is removed from the portfolio — see AC-22. |
 | **AC-06** | Loss — sale price below the purchase price | The baseline holding | Sell 8 shares of AAPL at 90.00 | Proceeds 720.00, cost basis 800.00, profit −80.00. A negative profit is a valid, expected outcome; the sale succeeds. |
 | **AC-07** | FIFO consumes the oldest lot first | The baseline holding | Sell 8 shares of AAPL at 150.00 | The shares are taken from the oldest lot (purchased earliest) before any newer lot is touched: the cost basis is 800.00, computed at 100.00 per share, not at 120.00 and not at a blended average. The newer lot still has all 5 of its shares. |
 | **AC-08** | Proceeds are credited to the portfolio's cash balance | The baseline holding, cash balance 0.00 | Sell 8 shares of AAPL at 150.00 | The cash balance increases by the proceeds, from 0.00 to 1200.00. |
@@ -124,36 +127,7 @@ fulfilled. `proceeds = 12 × 150.00 = 1800.00`;
 | **AC-17** | A rejected sale of an unheld ticker leaves the portfolio untouched | The baseline holding, cash balance 0.00 | Attempt to sell 5 shares of MSFT (rejected per AC-13) | The cash balance is still 0.00 and the AAPL holding is unchanged, with 15 shares in two lots. |
 | **AC-18** | A lot cannot be reduced below zero | A single lot of 10 shares at 100.00 | Reduce the lot by 11 shares | The reduction is rejected with the conflict/insufficient-shares exception (`ConflictQuantityException`), and the lot still has 10 remaining shares. |
 | **AC-19** | A lot cannot be created with a non-positive share count | — | Create a lot with 0 shares (or a negative number) at 100.00 | Creation is rejected with the invalid-quantity exception (`InvalidQuantityException`). |
-
----
-
-## 6. Open questions (not yet specified)
-
-These two points are gaps in the contract itself, carried over from section 9 of the original
-spec. They are **not** acceptance criteria, they are **not** implemented, and they have **no**
-tests. They are marked `// TODO (open spec question)` in the code.
-
-### 6.1 Invalid ticker format is not covered by any acceptance criterion
-
-Precondition 2 states that a ticker must be 1–5 uppercase letters, yet none of the original
-acceptance criteria exercise a violation of it — not `"aapl"`, not `"TOOLONG"`, not `"123"`,
-not `""`. By contrast the quantity preconditions each have an explicit criterion with a
-defined outcome. The equivalent for ticker format is simply missing, so the failure mode is
-undefined: which exception, and validated where — at the request boundary or inside
-`Portfolio.sell()`, before or after the portfolio is located?
-
-### 6.2 Holding lifecycle when fully liquidated is ambiguous
-
-The FIFO rule says an emptied **lot** is removed. It says nothing about the **holding** once
-its last lot is gone. Two designs are equally consistent with the stated preconditions:
-
-* **(a)** The holding is removed from the portfolio once it has zero lots — so a subsequent
-  sell of the same ticker violates precondition 4 and raises `HoldingNotFoundException`, even
-  though the portfolio legitimately held that stock moments earlier.
-* **(b)** The holding remains with an empty lot list and zero total shares — so a subsequent
-  sell instead violates precondition 5 and raises `ConflictQuantityException`.
-
-The choice also affects reporting: after full liquidation, would a holdings listing still show
-the ticker with quantity 0, or would it disappear? And would buying that ticker again create a
-new holding or reuse the empty one? The spec does not say. AC-05 therefore stops at asserting
-the amounts and the zero share count, and says nothing about a *subsequent* sale.
+| **AC-20** | Rejected — malformed ticker | — | Build a ticker from `"aapl"`, `"Aapl"`, `"TOOLONG"`, `"123"`, `"AA1"`, `"A-B"`, `""`, a blank string, or null | Each one is rejected with the invalid-ticker exception (`InvalidTickerException`). An empty or blank symbol reports "Ticker cannot be empty"; any other malformed symbol reports "Invalid ticker: &lt;value&gt;". A malformed ticker can never reach a sale. |
+| **AC-21** | Boundary — well-formed ticker | — | Build a ticker from `"A"`, `"AA"`, `"AAPL"` or `"GOOGL"` | Each is accepted and keeps its symbol unchanged. One letter and five letters are both inside the range. |
+| **AC-22** | Selling the whole position removes the holding | The baseline holding (15 shares), cash balance 0.00 | Sell all 15 shares of AAPL at 150.00, then attempt to sell 1 more | The first sale succeeds and credits 2250.00. The holding is then gone from the portfolio, so the second sale is rejected with the holding-not-found exception (`HoldingNotFoundException`), not a quantity conflict. A *partial* sale, by contrast, keeps the holding: selling 14 of 15 leaves a holding with 1 share. |
+| **AC-23** | Buying again after full liquidation starts a fresh holding | A portfolio whose AAPL position was just fully sold (per AC-22) | Buy 4 shares of AAPL at 130.00 | A new holding is created — not the emptied one revived. It has exactly one lot, 4 shares at 130.00, with no leftover lots from the previous position. |

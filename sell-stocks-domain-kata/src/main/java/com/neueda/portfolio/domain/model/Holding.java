@@ -88,12 +88,8 @@ public class Holding {
             }
         }
 
-        // TODO (open spec question — see docs/spec/sell-stocks-spec.md §6.2)
-        //  When the last lot is consumed this holding is left with zero lots and zero
-        //  shares. The spec does not say whether the holding should then be removed from
-        //  the portfolio (a later sell would be Holding Not Found) or kept as an empty
-        //  holding (a later sell would be a quantity conflict). Neither behaviour is
-        //  implemented, and there is no test for a sale after full liquidation.
+        // If that consumed the last lot, this holding is now empty. Discarding it is
+        // Portfolio's job — it owns the holdings map. See Portfolio.sell (AC-22).
 
         return SellResult.of(price.multiply(quantity), costBasis);
     }

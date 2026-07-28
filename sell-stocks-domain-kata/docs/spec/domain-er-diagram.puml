@@ -29,6 +29,7 @@ entity "holding" as holding {
   * ticker : VARCHAR(5)
   --
   UNIQUE (portfolio_id, ticker)
+  CHECK (ticker matches ^[A-Z]{1,5}$)
 }
 
 entity "lot" as lot {
@@ -48,7 +49,7 @@ entity "lot" as lot {
 }
 
 portfolio ||--o{ holding : "owns"
-holding   ||--o{ lot     : "was bought as"
+holding   ||--|{ lot     : "was bought as"
 
 note right of portfolio
   A portfolio owns **zero or more** holdings.
@@ -102,13 +103,10 @@ note as NotModelled
   be a separate `transaction` table, which is out of
   scope for US-07.
 
-  **3. A ticker-format constraint.** There is no
-  CHECK (ticker ~ '^[A-Z]{1,5}$') — open spec question,
-  see sell-stocks-spec.md §6.1.
-
-  **4. A "holding must have lots" rule.** The relation
-  is zero-or-many, so a fully liquidated holding with
-  no lots is allowed — open spec question, see §6.2.
+  **3. Why the holding relation is one-or-many.**
+  A sale that consumes the last lot also removes the
+  holding, so a stored holding always has at least
+  one lot. See sell-stocks-spec.md §6.2.
 end note
 
 ValueObjects .. lot

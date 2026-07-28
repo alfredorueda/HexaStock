@@ -66,6 +66,9 @@ package "Domain Model (pure Java — no infrastructure)" {
   note right of Holding
     Lots are ordered by **purchasedAt**.
     FIFO consumes oldest lots first.
+    A sale that empties the last lot also
+    removes the Holding from its Portfolio,
+    which is why the multiplicity is 1..*.
   end note
 }
 

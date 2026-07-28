@@ -4,6 +4,7 @@ import com.neueda.portfolio.domain.exception.ConflictQuantityException;
 import com.neueda.portfolio.domain.exception.HoldingNotFoundException;
 import com.neueda.portfolio.domain.exception.InvalidAmountException;
 import com.neueda.portfolio.domain.exception.InvalidQuantityException;
+import com.neueda.portfolio.domain.exception.InvalidTickerException;
 import com.neueda.portfolio.domain.model.Holding;
 import com.neueda.portfolio.domain.model.Lot;
 import com.neueda.portfolio.domain.model.Portfolio;
@@ -16,11 +17,15 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.NullAndEmptySource;
+import org.junit.jupiter.params.provider.ValueSource;
 
 import java.time.LocalDateTime;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotSame;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -126,9 +131,8 @@ class SellStocksAcceptanceTest {
             assertMoney("1600.00", result.costBasis());
             assertMoney("650.00", result.profit());
 
-            assertEquals(0, totalSharesOfAapl(), "no shares remain");
-            // Deliberately no assertion about a SUBSEQUENT sell: the holding's lifecycle
-            // after full liquidation is an open spec question (spec §6.2).
+            // The holding is gone, so ask the result rather than the portfolio.
+            assertThrows(HoldingNotFoundException.class, () -> portfolio.getHolding(AAPL));
         }
 
         @Test
@@ -318,6 +322,71 @@ class SellStocksAcceptanceTest {
                     () -> Lot.create(ShareQuantity.of(0), price, now));
             assertThrows(InvalidQuantityException.class,
                     () -> Lot.create(ShareQuantity.of(-1), price, now));
+        }
+    }
+
+    // ---------------------------------------------------------------------
+    // Ticker format, and the holding lifecycle after full liquidation
+    // ---------------------------------------------------------------------
+
+    @Nested
+    @DisplayName("Ticker format")
+    class TickerFormat {
+
+        @ParameterizedTest(name = "\"{0}\" is rejected")
+        @NullAndEmptySource
+        @ValueSource(strings = {"   ", "aapl", "Aapl", "TOOLONG", "123", "AA1", "A-B"})
+        @DisplayName("AC-20: a malformed ticker is rejected")
+        void ac20_malformedTickerIsRejected(String symbol) {
+            assertThrows(InvalidTickerException.class, () -> Ticker.of(symbol));
+        }
+
+        @ParameterizedTest(name = "\"{0}\" is accepted")
+        @ValueSource(strings = {"A", "AA", "AAPL", "GOOGL"})
+        @DisplayName("AC-21: one to five uppercase letters is accepted")
+        void ac21_wellFormedTickerIsAccepted(String symbol) {
+            assertEquals(symbol, Ticker.of(symbol).symbol());
+        }
+    }
+
+    @Nested
+    @DisplayName("Holding lifecycle")
+    class HoldingLifecycle {
+
+        @Test
+        @DisplayName("AC-22: selling the whole position removes the holding")
+        void ac22_fullLiquidationRemovesTheHolding() {
+            portfolio.sell(AAPL, ShareQuantity.of(15), MARKET_PRICE);
+
+            assertThrows(HoldingNotFoundException.class, () -> portfolio.getHolding(AAPL));
+            // A further sell is now a missing holding, not a quantity conflict.
+            assertThrows(HoldingNotFoundException.class,
+                    () -> portfolio.sell(AAPL, ShareQuantity.of(1), MARKET_PRICE));
+            // The sale that emptied it still stands.
+            assertMoney("2250.00", portfolio.getBalance());
+        }
+
+        @Test
+        @DisplayName("AC-23: buying the ticker again starts a fresh holding")
+        void ac23_buyingAgainAfterLiquidationStartsAFreshHolding() {
+            Holding original = portfolio.getHolding(AAPL);
+            portfolio.sell(AAPL, ShareQuantity.of(15), MARKET_PRICE);
+
+            portfolio.buy(AAPL, ShareQuantity.of(4), Price.of("130.00"));
+
+            Holding reopened = portfolio.getHolding(AAPL);
+            assertNotSame(original, reopened, "a new holding, not the emptied one revived");
+            List<Lot> lots = reopened.getLots();
+            assertEquals(1, lots.size(), "only the new purchase, no ghost lots");
+            assertLot(lots.get(0), 4, 4, "130.00");
+        }
+
+        @Test
+        @DisplayName("AC-22 (converse): a partial sale keeps the holding")
+        void ac22_partialSaleKeepsTheHolding() {
+            portfolio.sell(AAPL, ShareQuantity.of(14), MARKET_PRICE);
+
+            assertEquals(1, totalSharesOfAapl(), "one share left, so the holding survives");
         }
     }
 

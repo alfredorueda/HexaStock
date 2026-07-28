@@ -29,6 +29,7 @@ Because there is no HTTP layer, the specification's failure outcomes are express
 | Quantity is zero or negative           | `InvalidQuantityException`  | 400 Bad Request                         |
 | Selling more shares than are held      | `ConflictQuantityException` | 409 Conflict                            |
 | Ticker is not held by the portfolio    | `HoldingNotFoundException`  | 404 Not Found                           |
+| Ticker is not 1–5 uppercase letters    | `InvalidTickerException`    | 400 Bad Request                         |
 | Sale price is not positive             | `InvalidAmountException`    | 400 Bad Request                         |
 
 All monetary values are `BigDecimal` at scale 2, `HALF_UP` — never `double` or `float`.
@@ -39,22 +40,20 @@ They all live inside this project, so it depends on no other module and no file 
 the workspace. One topic per file:
 
 * [`docs/spec/sell-stocks-spec.md`](docs/spec/sell-stocks-spec.md) — the **behaviour**:
-  preconditions, the FIFO rule, the money definitions, and the 19 acceptance criteria
-  (AC-01 … AC-19) that each map to exactly one test. **Start here.**
+  preconditions, the FIFO rule, the money definitions, and the 23 acceptance criteria
+  (AC-01 … AC-23) that each map to exactly one test. **Start here.**
 * [`docs/spec/domain-model.md`](docs/spec/domain-model.md) — the **structure** in prose:
   entities, value objects, and what validates what.
 * [`docs/spec/domain-class-diagram.puml`](docs/spec/domain-class-diagram.puml) — the same
   structure as a class diagram.
 * [`docs/spec/domain-er-diagram.puml`](docs/spec/domain-er-diagram.puml) — and again as an
   entity-relationship diagram, for anyone more at home with tables than with objects.
+* [`docs/spec/domain-diagrams.md`](docs/spec/domain-diagrams.md) — both diagrams in **Mermaid**,
+  which renders inline on GitHub and in most IDEs, with rendered PNGs in `docs/spec/png/`.
 * [`docs/spec/er-model-limitations.md`](docs/spec/er-model-limitations.md) — what the ER view
   cannot express, and why. Written for students, with a discussion guide for instructors.
 * [`docs/spec/error-contract.md`](docs/spec/error-contract.md) — which **exception** each
   failure raises, and with what message.
-
-The original spec wrote its scenarios in Gherkin. The local copy converts them to plain-language
-acceptance criteria — every number preserved, and expanded to cover boundaries, the loss case
-and each error path.
 
 ## The FIFO rule
 
@@ -87,25 +86,21 @@ Baseline: AAPL held as two lots in purchase order, **10 @ 100.00** then **5 @ 12
 | 8        | 150.00     | 8 @ 100.00                   | 1200.00  | 800.00     | 400.00  | 2 @ 100.00, 5 @ 120.00      |
 | 10       | 150.00     | 10 @ 100.00                  | 1500.00  | 1000.00    | 500.00  | 5 @ 120.00 (first lot gone) |
 | 12       | 150.00     | 10 @ 100.00, then 2 @ 120.00 | 1800.00  | 1240.00    | 560.00  | 3 @ 120.00 (first lot gone) |
-| 15       | 150.00     | 10 @ 100.00, then 5 @ 120.00 | 2250.00  | 1600.00    | 650.00  | none — 0 shares held        |
+| 15       | 150.00     | 10 @ 100.00, then 5 @ 120.00 | 2250.00  | 1600.00    | 650.00  | none — the holding is removed |
 | 8        | 90.00      | 8 @ 100.00                   | 720.00   | 800.00     | −80.00  | 2 @ 100.00, 5 @ 120.00      |
 
 Proceeds are credited to the portfolio's cash balance: after selling 8 at 150.00 the balance
 goes from 0.00 to 1200.00.
 
-## Deliberately not implemented
+## Two rules worth knowing
 
-The specification leaves two things open, so this project leaves them open too. Both are
-marked `// TODO (open spec question)` in the code and written up in
-[§6 of the local spec](docs/spec/sell-stocks-spec.md):
-
-* **Ticker format validation.** The spec says a ticker is 1–5 uppercase letters but defines
-  no acceptance criterion for a malformed one — no exception, no validation point.
-* **Holding lifecycle after full liquidation.** Emptied *lots* are removed; the spec never
-  says whether the *holding* is removed once its last lot is gone, so it is unspecified what
-  a subsequent sale of that ticker should do.
-
-Neither has a test. Closing the spec gap comes first; the code follows.
+* **A ticker is 1–5 uppercase letters**, validated by the `Ticker` value object and rejected
+  with `InvalidTickerException`. Validation happens at construction, so a malformed ticker
+  cannot exist anywhere in the program (AC-20, AC-21).
+* **A position sold down to zero disappears.** When a sale consumes the last lot, the holding
+  is removed from the portfolio: a later sale of that ticker is `HoldingNotFoundException`, and
+  buying it again starts a fresh holding (AC-22, AC-23). The portfolio holds a ticker exactly
+  when it owns at least one share of it.
 
 ## Roadmap (documented only — not built here)
 
@@ -130,7 +125,7 @@ Right now the quality of this project sits in a long prompt. That does not scale
 written once, reviewed by nobody, and thrown away. The direction of travel is that **the
 prompt gets smaller while the quality moves into versioned specifications**:
 
-* User stories and acceptance criteria in **plain language** (no Gherkin), versioned as files.
+* User stories and acceptance criteria in **plain language**, versioned as files.
 * Entity-relationship and **class diagrams** as the source of truth for structure.
 * **ADRs** recording the chosen tech stack and the technical rules to enforce.
 * Whatever other artifacts the project needs — glossaries, API contracts, test data.

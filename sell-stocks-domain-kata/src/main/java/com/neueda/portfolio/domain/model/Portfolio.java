@@ -48,6 +48,9 @@ public class Portfolio {
      * ticker that is not held is an invalid-quantity failure, not a missing-holding one
      * (spec AC-15). Nothing is mutated unless the whole sale succeeds (AC-16, AC-17).
      *
+     * <p>A sale that consumes the whole position drops the holding, so the portfolio only
+     * ever contains tickers it actually owns shares of (AC-22).
+     *
      * @throws InvalidQuantityException  if the quantity is not positive (AC-10, AC-11)
      * @throws HoldingNotFoundException  if the portfolio does not hold the ticker (AC-13)
      */
@@ -60,6 +63,10 @@ public class Portfolio {
         Holding holding = getHolding(ticker);
         SellResult result = holding.sell(quantity, price);
         balance = balance.add(result.proceeds());
+
+        if (holding.getTotalShares().isZero()) {
+            holdings.remove(ticker);
+        }
         return result;
     }
 

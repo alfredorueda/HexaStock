@@ -107,7 +107,7 @@ classDiagram
     }
 
     Portfolio "1" *-- "0..*" Holding : contains
-    Holding "1" *-- "0..*" Lot : contains, ordered FIFO
+    Holding "1" *-- "1..*" Lot : contains, ordered FIFO
 
     Portfolio ..> SellResult : returns
     Holding ..> SellResult : returns
@@ -122,9 +122,9 @@ classDiagram
 > dependency arrows are left out — only the two relationships you cannot read off a field
 > are drawn: what a sale *returns*, and what multiplying a price *produces*.
 
-> **Note on one relationship.** `Holding *-- "0..*" Lot` is drawn as *zero* or more, not
-> `1..*` as in the PlantUML class diagram. Selling an entire position empties every lot, and
-> what should happen to the holding then is an open question — see
+> **Note on one relationship.** `Holding *-- "1..*" Lot` really is *one* or more. Selling an
+> entire position consumes every lot, and the portfolio then drops the holding altogether — so
+> a holding you can reach from a portfolio always has at least one lot. See
 > [`sell-stocks-spec.md`](sell-stocks-spec.md) §6.2.
 
 ---
@@ -136,7 +136,7 @@ classDiagram
 ```mermaid
 erDiagram
     PORTFOLIO ||--o{ HOLDING : "owns"
-    HOLDING   ||--o{ LOT     : "was bought as"
+    HOLDING   ||--|{ LOT     : "was bought as"
 
     PORTFOLIO {
         char portfolio_id PK "CHAR(36)"

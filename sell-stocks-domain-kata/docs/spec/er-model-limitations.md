@@ -104,7 +104,7 @@ exactly why it is here.
 ### Why this file exists
 
 Students who are fluent in SQL but not in OO tend to read the ER diagram, feel that they have
-understood the domain, and then be genuinely surprised that the kata is 19 tests long. The
+understood the domain, and then be genuinely surprised that the test suite is 35 tests long. The
 schema looks like the whole story; it is perhaps a fifth of it. Naming that gap early prevents
 the misreading, and it sets up the architectural argument later in the course.
 
@@ -132,7 +132,7 @@ noticing that a `CHECK` failing mid-sale is exactly the partial-mutation scenari
 
 **"Could we put the FIFO logic in a stored procedure?"**
 Yes, technically — and this is the productive argument, not a wrong answer to shut down. Ask what
-it would cost: unit-testing it needs a live database, the 19 tests stop running in milliseconds,
+it would cost: unit-testing it needs a live database, the tests stop running in milliseconds,
 the rule becomes invisible to anyone reading the Java, and it is now written in a language with
 different tooling. Then ask the reverse: what does a stored procedure buy? Enforcement that no
 other client can bypass. That trade is real, and it is the same trade that appears at Roadmap A

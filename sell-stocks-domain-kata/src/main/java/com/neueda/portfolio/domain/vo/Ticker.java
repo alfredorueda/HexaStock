@@ -1,23 +1,27 @@
 package com.neueda.portfolio.domain.vo;
 
-import java.util.Objects;
+import com.neueda.portfolio.domain.exception.InvalidTickerException;
+
+import java.util.regex.Pattern;
 
 /**
- * A stock symbol. Used as the key of the portfolio's holdings map, so its
- * {@code equals}/{@code hashCode} matter — a record gives both.
+ * A stock symbol: 1 to 5 uppercase letters, validated at construction so a
+ * malformed ticker can never reach a sale (spec AC-20, AC-21).
+ *
+ * <p>Used as the key of the portfolio's holdings map, so its {@code equals} and
+ * {@code hashCode} matter — a record gives both.
  */
 public record Ticker(String symbol) {
 
-    // TODO (open spec question — see docs/spec/sell-stocks-spec.md §6.1)
-    //  The spec states tickers must match ^[A-Z]{1,5}$, but US-07 defines no
-    //  acceptance criterion for a malformed ticker: neither which exception is
-    //  raised nor where validation happens (request boundary vs. Portfolio.sell,
-    //  before or after the portfolio is located). Format validation is therefore
-    //  deliberately NOT implemented here, and has no tests. Close the gap in the
-    //  spec first, then add it here with its acceptance criteria.
+    private static final Pattern VALID_SYMBOL = Pattern.compile("^[A-Z]{1,5}$");
 
     public Ticker {
-        Objects.requireNonNull(symbol, "Ticker symbol cannot be null");
+        if (symbol == null || symbol.isBlank()) {
+            throw new InvalidTickerException("Ticker cannot be empty");
+        }
+        if (!VALID_SYMBOL.matcher(symbol).matches()) {
+            throw new InvalidTickerException("Invalid ticker: " + symbol);
+        }
     }
 
     public static Ticker of(String symbol) {
