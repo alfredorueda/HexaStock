@@ -1,22 +1,23 @@
 # Sell Stocks — Domain Kata (US-07)
 
-A standalone training project: the **domain model only** for selling stocks with FIFO lot
-consumption, and the JUnit 5 tests that prove it correct.
+A standalone training module for selling stocks with FIFO lot consumption. It contains four
+exercises, their specifications and instructor material, plus the worked domain solution for
+Exercise 2.
 
-## How to run
+## Run the Exercise 2 reference solution
 
 ```bash
-cd sell-stocks-domain-kata
+cd sell-stocks-domain-kata/docs/exercise-2-specification-driven/reference-solution
 mvn test
 ```
 
-Java 21, Maven, and **JUnit 5 as the only dependency** (test scope). This project is not
-part of the HexaStock reactor — it has no parent POM and no module entry anywhere else, so
-it builds entirely on its own.
+The reference solution uses Java 21, Maven, and **JUnit 5 as the only dependency** (test scope).
+It is not part of the HexaStock reactor: it has no parent POM and no module entry elsewhere, so it
+builds entirely on its own.
 
 ## What this step is (and is not)
 
-This step implements the **domain and nothing else**. There is no REST API, no Spring, no
+The Exercise 2 reference solution implements the **domain and nothing else**. There is no REST API, no Spring, no
 database, no DTOs, no controllers, no logging framework — just plain Java classes and tests.
 The point is to get the *domain* right first, and to be able to prove it with tests that run
 in milliseconds and need no infrastructure to start.
@@ -57,11 +58,13 @@ the workspace. One topic per file:
 
 ## Building it yourself
 
-This project is the worked result of **Exercise 2**. See [`docs/`](docs/README.md) for both
-exercises — Exercise 1 builds the same domain from a prompt alone, so the two can be compared —
-and
+The [`reference-solution/`](docs/exercise-2-specification-driven/reference-solution/) directory is
+the worked result of **Exercise 2**. See [`docs/`](docs/README.md) for the complete
+four-exercise sequence. Exercise 1 builds the same domain from a prompt alone; Exercise 2 builds it
+from specifications; Exercise 3 repeats Exercise 2 with versioned skills and specialised agents;
+and Exercise 4 adds REST and persistence. See
 [`docs/exercise-2-specification-driven/README.md`](docs/exercise-2-specification-driven/README.md)
-for the prompt that regenerates this project from its two specifications, what to check in the
+for the prompt that regenerates that solution from its two specifications, what to check in the
 result, and what to try next. That prompt is about thirty lines — the behaviour it would
 otherwise have to spell out lives in the specifications instead.
 
@@ -125,7 +128,7 @@ The same domain, unchanged, gets progressively more stack around it:
 3. **Database as the data layer** — repositories persisting portfolios, holdings and lots.
 
 Steps 2 and 3 are planned as
-[Exercise 3](docs/exercise-3-rest-and-persistence/README.md).
+[Exercise 4](docs/exercise-4-rest-and-persistence/README.md).
 
 A simple **3-layer** architecture (presentation → service → data), *not* hexagonal. The
 hexagonal version is what the surrounding HexaStock workspace already demonstrates; the point
@@ -145,3 +148,8 @@ prompt gets smaller while the quality moves into versioned specifications**:
 
 The context then lives in the repository: diffable, reviewable in a pull request, and owned by
 the team rather than by whoever typed the prompt.
+
+Exercise 3 applies the same argument to the **way the assistant works**. Project instructions,
+skills, specialised agent roles, plans, and verification helpers become versioned context rather
+than conventions remembered by one developer. See
+[`docs/exercise-3-skills-and-agents/`](docs/exercise-3-skills-and-agents/README.md).

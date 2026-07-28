@@ -1,6 +1,8 @@
 # Exercises
 
-Two ways of building the same thing. The point is the contrast between them.
+Four steps that progressively make behaviour, workflow, and architecture explicit. The first
+three build the same domain so their working methods can be compared; the fourth puts application
+infrastructure around that domain.
 
 ## [Exercise 1 — Build it from a prompt](exercise-1-prompt-only/README.md)
 
@@ -24,12 +26,30 @@ The same domain, but the behaviour lives in versioned files instead of in a conv
   behaviour, as acceptance criteria AC-01 … AC-24
 * [`spec/domain-class-diagram.puml`](exercise-2-specification-driven/spec/domain-class-diagram.puml)
   — the structure
+* [`reference-solution/`](exercise-2-specification-driven/reference-solution/) — the standalone
+  Maven result; keep it hidden until students have completed their own implementation
 
 The prompt shrinks to about thirty lines, and most of what remains is the technology stack. The
 specifications carry everything else — which means they can be reviewed, diffed, corrected and
 reused without anyone reading the conversation that produced the code.
 
-## [Exercise 3 — REST API and persistence](exercise-3-rest-and-persistence/README.md)
+## [Exercise 3 — Build it with skills and specialised agents](exercise-3-skills-and-agents/README.md)
+
+Repeat Exercise 2 from the same two authoritative specifications, but replace the one-off
+implementation conversation with versioned context engineering:
+
+* project and path-specific instructions
+* an open-standard skill with a reference and verification script
+* separate planner, implementer and conformance-reviewer agents
+* a human-approved `plan.md` and durable evidence log
+* native adapters for GitHub Copilot, Codex and Claude Code
+
+The student guide is supported by an
+[`instructor manual`](exercise-3-skills-and-agents/instructor-manual.md), a
+[`compatibility guide`](exercise-3-skills-and-agents/compatibility.md), and explicit
+[`slide traceability`](exercise-3-skills-and-agents/slide-alignment.md).
+
+## [Exercise 4 — REST API and persistence](exercise-4-rest-and-persistence/README.md)
 
 **Planned, not built.** The same domain, unchanged, wrapped in Spring Boot, a small REST API and
 a database through JPA — no authentication, still specification-driven. It is where the error
@@ -38,6 +58,16 @@ domain gets to prove it survives infrastructure without being edited.
 
 ## Running them together
 
-Exercise 1 first, and do not preview Exercise 2. The argument for specifications is not
-persuasive as a claim; it is obvious as an experience, and only after Phase 4 of Exercise 1,
-when a student is holding somebody else's code with no idea what it was supposed to do.
+Run them in order:
+
+1. Do not preview Exercise 2 before Exercise 1. The argument for specifications is learned through
+   the divergence and code-swap experience.
+2. Use Exercise 2 to establish a specification-driven baseline.
+3. Use Exercise 3 with the same specifications and completion criteria. Change only the AI
+   collaboration workflow so the comparison remains meaningful.
+4. Use Exercise 4 after the domain is stable, when the class is ready to test whether it survives
+   contact with infrastructure.
+
+For the planned Copilot delivery, activate and verify the licences before the course, then run all
+exercises with the approved Copilot setup and record tool versions, policy constraints, and any
+compatibility adjustments.

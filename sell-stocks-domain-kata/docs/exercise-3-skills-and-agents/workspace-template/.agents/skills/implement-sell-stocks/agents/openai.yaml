@@ -1,0 +1,4 @@
+interface:
+  display_name: "Implement Sell Stocks"
+  short_description: "Build the FIFO domain from specifications"
+  default_prompt: "Use $implement-sell-stocks to plan, implement, and verify the specified FIFO sell-stocks domain."

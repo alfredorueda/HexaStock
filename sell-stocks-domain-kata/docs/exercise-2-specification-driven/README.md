@@ -12,6 +12,10 @@ result against the specification rather than against your own memory of what you
 
 Everything the program must do is in those two files. Nothing else is needed.
 
+> **Student warning:** `reference-solution/` contains the completed result for instructors and
+> later comparison. Do not inspect it before finishing your own implementation; doing so removes
+> the regeneration experiment this exercise is designed to run.
+
 ## The prompt
 
 Start an empty folder, put the two specification files in `docs/spec/`, and give your assistant
@@ -75,6 +79,19 @@ Do not accept a green build as proof. Check these, in this order:
    `Transaction` class, a repository interface, a `profit` field cached on the holding — none of
    that is in the specification, and none of it should appear.
 
+## Instructor reference solution
+
+After the student implementation has been assessed, run the worked result with:
+
+```bash
+cd reference-solution
+mvn test
+```
+
+It is a standalone Maven project containing `pom.xml` and `src/`. It should execute exactly 36
+tests. Its location is deliberately inside Exercise 2 so the code, prompt, specifications, and
+worked result have one clear owner.
+
 ## Things worth trying afterwards
 
 * **Delete the class diagram and regenerate from the behaviour spec alone.** What does the model
@@ -100,3 +117,10 @@ Notice which details stayed in the prompt: the language, the build tool, the tes
 package name, the ban on frameworks. Those are technology decisions, not domain rules — and they
 belong in a versioned decision record rather than in a prompt, for exactly the same reason. That
 is the next step described under Roadmap B in the [README](../../README.md).
+
+## Next: make the working method reusable
+
+[Exercise 3](../exercise-3-skills-and-agents/README.md) rebuilds the same result from the same two
+specifications, but packages the repeated Explore → Plan → Implement → Review method as project
+instructions, a skill, specialised agents, a durable plan, and deterministic verification. Keep
+this Exercise 2 result as the baseline for that comparison.
