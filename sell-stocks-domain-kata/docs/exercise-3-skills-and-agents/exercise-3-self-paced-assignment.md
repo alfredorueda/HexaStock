@@ -1,9 +1,9 @@
 # Exercise 3 — Build it with a durable working method
 
-> Stand-alone version of Exercise 3, for working on your own with any AI chat assistant. The
-> classroom version runs entirely inside GitHub Copilot, with a skill and three agents
-> pre-installed by an instructor script. This version teaches the same four ideas without any of
-> that: three plain prompts, pasted into fresh conversations, in order.
+> Stand-alone version of Exercise 3, for working on your own with **real GitHub Copilot custom
+> agents** — not a simulation. The workspace bundled alongside this document already has the
+> skill and the three agents configured as files; there is nothing to install or paste, only to
+> open and confirm.
 
 ## What you are building
 
@@ -12,14 +12,27 @@ software changes. What changes is the *process*: instead of one long conversatio
 the assistant becomes something you can inspect, approve, and reuse, not just something that
 happened once in a chat window.
 
-## The specifications
+## Before you start
 
-Same two files as Exercise 2, in the same place: `docs/spec/` inside an empty project folder.
+1. Unzip the accompanying `exercise-3-copilot-workspace` folder and open **the whole folder** in
+   VS Code — not a single file.
+2. Confirm Java 21, Maven, Git, and your GitHub Copilot licence are available.
+3. Open Copilot Chat and run **Chat: Open Customizations**. Confirm you can see:
+   - `Specification Planner`, `Domain Implementer`, `Conformance Reviewer`;
+   - `/create-plan`, `/implement-approved-plan`, `/verify-conformance`; and
+   - the `implement-sell-stocks` skill.
 
-- **[`sell-stocks-spec.md`](spec/sell-stocks-spec.md)** — behaviour: preconditions, the FIFO rule,
-  the money definitions, and acceptance criteria AC-01 … AC-24.
-- **[`domain-class-diagram.puml`](spec/domain-class-diagram.puml)** — structure: classes, fields,
-  methods, visibility, and relationships.
+If any item is missing, your Copilot licence or organisation policy does not currently support
+custom agents or skills — check that before continuing; nothing later in this document works
+without it.
+
+The two specifications are already in `docs/spec/` inside the workspace — you do not need to
+place them yourself:
+
+- **`sell-stocks-spec.md`** — behaviour: preconditions, the FIFO rule, the money definitions, and
+  acceptance criteria AC-01 … AC-24.
+- **`domain-class-diagram.puml`** — structure: classes, fields, methods, visibility, and
+  relationships.
 
 ## Why this exercise exists
 
@@ -31,7 +44,8 @@ happened once, inside one conversation, and vanished the moment the chat ended.
 This exercise does for the *working method* what Exercise 2 did for the *domain*: it takes
 something that used to live only in a conversation and turns it into something you can read,
 review, and reuse — a **skill** for the repeatable method, and **role-scoped agents** for who is
-allowed to do what.
+allowed to do what. Here, both are real, checked-in files: `.agents/skills/implement-sell-stocks/`
+and `.github/agents/*.agent.md`, already in the workspace you opened.
 
 ### A concrete failure this catches
 
@@ -42,14 +56,17 @@ write a test that agrees with the code it just wrote — and you would very like
 the same reason Exercise 1's self-graded tests never failed: the actor that made the decision and
 the actor that checked it were the same conversation, with the same blind spot.
 
-Exercise 3 puts two structural obstacles in that path:
+Exercise 3 puts two structural obstacles in that path, and here they are enforced by Copilot
+itself, not just by discipline:
 
-1. **The planner has to write the assumption down, before any code exists.** If it silently invents
-   behaviour, it shows up as a line in `plan.md` you are explicitly asked to approve — not as a
-   fait accompli buried in a diff you skim past.
-2. **The reviewer is a separate conversation that never saw the implementer's reasoning.** It checks
-   the code against the specification and the diagram directly, not against "does this look like
-   what I would have written" — because it never wrote anything.
+1. **The Specification Planner agent has no edit tool.** It is configured to read and propose
+   only — it cannot touch a file even if it tried. If it silently invents behaviour, that
+   invention shows up as a line in `plan.md` you are explicitly asked to approve, not as a fait
+   accompli buried in a diff you skim past.
+2. **The Conformance Reviewer agent has no edit tool either**, and is selected as an independent
+   pass over the finished implementation. It checks the code against the specification and the
+   diagram directly, not against "does this look like what I would have written" — because
+   Copilot never let it write anything in the first place.
 
 Neither obstacle *guarantees* the assumption gets caught. What they guarantee is that it has to
 surface somewhere reviewable, instead of staying invisible inside one uninterrupted train of
@@ -60,34 +77,36 @@ thought.
 | Dimension | Exercise 2 | Exercise 3 |
 | --------- | ---------- | ---------- |
 | Domain inputs | Two specifications | The same two specifications |
-| Process | One conversation, start to finish | Three role-scoped conversations, in order |
+| Process | One conversation, start to finish | Three role-scoped agents, invoked in order |
 | Planning evidence | Whatever you remember from the chat | `plan.md` — written, dated, approved |
-| Who checks the result | Often the same conversation that built it | An independent conversation that never wrote the code |
-| Reuse next time | Retype the prompt | Paste the same Method block again, unchanged |
+| Who checks the result | Often the same conversation that built it | The Conformance Reviewer agent, which has no edit tool at all |
+| Reuse next time | Retype the prompt | The skill and agent files stay in the repository, discovered automatically |
 
 ### Is it worth the overhead? Be honest about this
 
-At this kata's size, Exercise 3 is genuinely more work than Exercise 2's thirty-line prompt — three
-prompts and a written approval instead of one. That overhead does not pay for itself on a task this
-small, and "Worth trying afterwards" at the end asks you to feel that directly.
+At this kata's size, Exercise 3 is genuinely more work than Exercise 2's thirty-line prompt —
+three agent invocations and a written approval instead of one. That overhead does not pay for
+itself on a task this small, and "Worth trying afterwards" at the end asks you to feel that
+directly.
 
 It starts paying off at a different scale than this kata: when a change is large or risky enough
 that you need to *prove*, after the fact, who approved what before it was built — closer to how a
 bank already treats a pull-request approval or a change record than it might first appear. It also
-pays off across time: a skill written once gets reused on the next feature; a prompt typed once
-gets forgotten.
+pays off across time: a skill and a set of agents, written once, get reused on the next feature; a
+prompt typed once gets forgotten.
 
 Hold both of those in mind as you work through the rest of this document — the four ideas below
 are what carries that value, not the paperwork itself.
 
 ## The four ideas — and why each one matters
 
-1. **A skill is a versioned, repeatable method** — not a one-off prompt you retype each time. Write
-   it once, review it like any other file in the repository, and reuse it unchanged on the next
-   feature instead of reconstructing it from memory in a fresh conversation.
-2. **Role separation is a permission boundary, not a suggestion.** A planner that cannot edit files
-   cannot quietly start implementing before you've approved anything; a reviewer that cannot edit
-   cannot "fix while reviewing" and blur checking into doing.
+1. **A skill is a versioned, repeatable method** — not a one-off prompt you retype each time. It
+   lives in `.agents/skills/implement-sell-stocks/SKILL.md`, reviewable like any other file in the
+   repository, and Copilot loads it automatically when it's relevant.
+2. **Role separation is a permission boundary, not a suggestion.** The Specification Planner has
+   no edit tool at all, so it cannot quietly start implementing before you've approved anything;
+   the Conformance Reviewer has no edit tool either, so it cannot "fix while reviewing" and blur
+   checking into doing.
 3. **A human checkpoint gates planning → implementation.** Nothing gets built until you've read the
    plan, changed at least one thing yourself, and written down that you approve it — turning
    approval into a real decision instead of a reflexive "looks good."
@@ -102,153 +121,66 @@ are what carries that value, not the paperwork itself.
 - Package root: `com.neueda.portfolio.domain`.
 - Every monetary amount as `BigDecimal`, scale 2, `HALF_UP` — never `double` or `float`.
 
-The classroom version of this exercise targets Java specifically. If you'd rather work in another
-language, adapt this block the same way Exercises 1 and 2 do — the method below (skill, role
-separation, checkpoint) transfers regardless of language; only these bullets change.
+These are already encoded in `AGENTS.md` and the agent files — you don't need to repeat them
+yourself; they're here so you know what to check for while reviewing.
 
-## The shared Method block
+## Step 1 — Plan
 
-This is the "skill" for this exercise — a fixed, reusable description of *how* to work, independent
-of *what* gets built. In a tool with a skills feature, it lives in a file your assistant loads by
-itself. Here, you're the loader: paste this block, unchanged, at the top of all three role prompts
-below.
+Run this in Copilot Chat:
 
 ```text
-Method: Explore, Plan, Implement, Review.
-
-Explore — read both specification files completely before proposing anything. Report missing
-inputs or conflicts between them instead of resolving them silently.
-
-Plan — produce a complete proposal for a plan.md file (template supplied separately). Map every
-planned class to the class diagram. Map every acceptance criterion, AC-01 to AC-24, to a named
-test. Do not create or edit any implementation file in this phase.
-
-Implement — follow an approved plan, in dependency order: build configuration, value objects,
-entities, exceptions, aggregate behaviour, then acceptance tests. Implement only what the diagram
-and specification actually describe. Keep the domain pure — no framework, no persistence, no REST
-layer. Run the tests as you go, then the full suite.
-
-Review — read the specifications and the plan again, independently. Trace every acceptance
-criterion to executable evidence. Compare the implemented structure with the diagram. Check
-rejected operations for partial mutation, not only their return value. Report findings before
-proposing any fix.
+/create-plan
 ```
 
-## The plan.md template
+The Specification Planner reads both specifications but cannot edit your files — it has no edit
+tool. When it returns a proposed plan:
 
-Create this file in your project now, before starting the Planner prompt. Its status stays `draft`
-until you personally change it to `approved`.
-
-```text
-# Sell Stocks implementation plan
-
-Status: draft
-
-## Goal
-[what must exist when the exercise is complete]
-
-## Inputs reviewed
-- [ ] sell-stocks-spec.md
-- [ ] domain-class-diagram.puml
-
-## Scope boundaries
-In scope: [domain and test work required by the specifications]
-Out of scope: [infrastructure and invented behaviour that must not be added]
-
-## Specification questions or conflicts
-[write "None found" only after reading both files completely]
-
-## Ordered implementation tasks
-- [ ] Task 1: ...
-- [ ] Task 2: ...
-
-## Acceptance-criterion coverage
-One row per criterion, AC-01 through AC-24:
-| Criterion | Planned test name | State/result evidence |
-| --- | --- | --- |
-| AC-01 | | |
-...
-
-## Verification plan
-- [ ] Focused tests during implementation
-- [ ] Full test run, exactly 36 tests
-- [ ] Independent structure and behaviour review
-- [ ] Full diff review
-
-## Risks and assumptions
-[without inventing decisions that belong to the specifications]
-
-## Human checkpoint
-- Decision: pending
-- Approved by:
-- Date/time:
-- Conditions or requested changes:
-```
-
-## Role prompt 1 — Planner
-
-Start a **fresh conversation**. Paste the Method block, then this:
-
-```text
-Using only the Explore and Plan phases of the method above, read the attached specifications and
-return a complete proposal for plan.md, following the template exactly. Do not create or edit any
-implementation file — return the proposed content only, for me to review.
-
-[ Attach or paste sell-stocks-spec.md and domain-class-diagram.puml here. ]
-```
-
-## The human checkpoint
-
-Copy the returned proposal into your own `plan.md`. Then, before touching anything else:
-
-1. change or refine **at least one item yourself** — a split task, an added risk, a corrected
+1. copy the proposal into `plan.md`;
+2. change or refine **at least one item yourself** — a split task, an added risk, a corrected
    dependency order, a criterion the proposal under-specified;
-2. confirm AC-01 through AC-24 all appear in the coverage table; and
-3. fill in the Human checkpoint block: `Decision: approved`, your name, the date.
+3. confirm AC-01 through AC-24 all appear in the coverage table;
+4. change the plan status to `approved`; and
+5. fill in the Human checkpoint block: `Decision: approved`, your name, the date.
 
 Do not continue until this file says `approved` in your own words, not the assistant's. This step
 is the point of the exercise — it is what makes approval a review act instead of a rubber stamp.
 
-## Role prompt 2 — Implementer
+## Step 2 — Implement
 
-Start **another fresh conversation**. Paste the Method block, then this:
-
-```text
-Using only the Implement phase of the method above, execute this approved plan exactly. If you
-need to deviate from it, stop and tell me why instead of silently continuing.
-
-[ Paste your approved plan.md in full. ]
-
-[ Paste the technical constraints block from this document. ]
-```
-
-Run `mvn test` yourself once it reports done — don't take "the tests pass" on trust from the
-transcript.
-
-## Role prompt 3 — Reviewer
-
-Start a **third fresh conversation** — not the implementer's. This matters: a reviewer that already
-wrote the code will tend to agree with itself, for the same reason Exercise 1's tests did.
+Run:
 
 ```text
-Using only the Review phase of the method above, perform an independent review. Report findings
-before proposing any fix — do not edit or rewrite code in this conversation.
-
-Check: whether every criterion from AC-01 to AC-24 has executable evidence; whether the exact
-numbers match the specification; whether rejected operations leave state completely untouched, not
-only their return value; whether the implemented classes, fields and methods match the diagram
-exactly, with nothing extra invented; and whether the project stays free of any framework or
-infrastructure code.
-
-[ Attach or paste both specifications, your approved plan.md, and the implementer's final code. ]
+/implement-approved-plan
 ```
 
-## Closing the loop
+This generates `pom.xml`, `src/main`, and `src/test` following the approved plan. Review each
+checkpoint and proposed diff — do not approve everything automatically. Run `mvn test` yourself
+once it reports done; don't take "the tests pass" on trust from the transcript.
 
-Read the reviewer's findings and classify each one: a verified defect, a suspected risk needing
-more evidence, an optional improvement outside the specification, or a false positive. Only
-findings **you** accept go back — and they go to the *implementer's* conversation, not the
-reviewer's.
+## Step 3 — Independent review
+
+Run:
+
+```text
+/verify-conformance
+```
+
+The Conformance Reviewer has no edit tool, so it can only report findings, not fix them. Read the
+findings and classify each one: a verified defect, a suspected risk needing more evidence, an
+optional improvement outside the specification, or a false positive. Only findings **you** accept
+go back to the implementer.
+
+## Step 4 — Final check
+
+Run this yourself from the workspace root:
+
+```bash
+mvn test
+```
+
+Expected result: exactly **36 tests**, no failures or errors. If Bash is available, you can also
+run `.agents/skills/implement-sell-stocks/scripts/verify-workspace.sh` for an additional
+mechanical check.
 
 ## Completion contract
 
@@ -258,7 +190,7 @@ reviewer's.
 | 2 | AC-01 through AC-24 are traceable in test names or display names |
 | 3 | The implementation matches the class diagram — nothing extra, nothing missing |
 | 4 | `plan.md` was approved, in your own words, before any implementation started |
-| 5 | The reviewer ran in an independent conversation and reported before any fix |
+| 5 | The Conformance Reviewer ran and reported before any fix |
 | 6 | Only findings you accepted were sent back for correction |
 | 7 | `plan.md` still accurately describes what was actually built |
 
@@ -267,14 +199,15 @@ and nothing in the code proves they happened.
 
 ## Worth trying afterwards
 
-- **Run the reviewer in the implementer's own conversation** instead of a fresh one, and watch it
-  agree with itself. It's the same blind spot as Exercise 1's self-written tests, wearing a
-  different costume — an evaluator that already committed to an answer rarely reverses itself.
-- **Approve a plan with a task deliberately left out**, then run the implementer. Does it notice
-  the gap and ask, or build past it silently?
+- **Ask the Domain Implementer to also review its own work**, instead of switching to the
+  Conformance Reviewer agent, and watch it agree with itself. It's the same blind spot as
+  Exercise 1's self-written tests, wearing a different costume — an evaluator that already
+  committed to an answer rarely reverses itself.
+- **Approve a plan with a task deliberately left out**, then run `/implement-approved-plan`. Does
+  it notice the gap and ask, or build past it silently?
 - **Count the overhead.** Exercise 2 was one prompt of about thirty lines. This exercise was three
-  role prompts plus a written, human-approved checkpoint. Was that worth it at this kata's size?
-  At what size would it be?
+  agent invocations plus a written, human-approved checkpoint. Was that worth it at this kata's
+  size? At what size would it be?
 
 ## What's next
 
