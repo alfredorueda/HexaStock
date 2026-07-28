@@ -1,10 +1,5 @@
 # Exercise 4 — REST API and persistence
 
-> Stand-alone version of Exercise 4, for working on your own. The full design brief leaves several
-> architecture questions open on purpose, for a classroom debate. This version settles them into
-> concrete defaults so you can build alone in one session — and lists them at the end for you to
-> argue with afterwards.
-
 ## What you are building
 
 Take Exercise 2's domain and put a real application around it: Spring Boot, a small REST API, and

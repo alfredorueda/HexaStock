@@ -1,9 +1,5 @@
 # Exercise 2 — Build it from specifications
 
-> Companion handout for working on your own. Same domain as Exercise 1 — selling stock from a
-> portfolio — but this time nothing is left to a conversation. Everything the program must do is
-> written down, before any code exists.
-
 ## What you are building
 
 The same small piece of financial software as before: an investor sells shares, and the system

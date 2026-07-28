@@ -1,8 +1,4 @@
-# Exercise 1 (self-paced) — Build it from a prompt
-
-> Stand-alone version of Exercise 1, for working on your own. The classroom version (see
-> [`README.md`](README.md)) saves its punchline for a live discussion; this version explains the
-> point up front, since nobody is in the room to reveal it for you.
+# Exercise 1 — Build it from a prompt
 
 ## What you are building
 

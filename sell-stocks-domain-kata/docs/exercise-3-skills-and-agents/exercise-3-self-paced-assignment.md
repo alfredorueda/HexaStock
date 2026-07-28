@@ -1,10 +1,5 @@
 # Exercise 3 — Build it with a durable working method
 
-> Stand-alone version of Exercise 3, for working on your own with **real GitHub Copilot custom
-> agents** — not a simulation. The workspace bundled alongside this document already has the
-> skill and the three agents configured as files; there is nothing to install or paste, only to
-> open and confirm.
-
 ## What you are building
 
 The exact same domain as Exercise 2, from the exact same two specifications — nothing about the
