@@ -46,8 +46,8 @@ the workspace. One topic per file:
   entities, value objects, and what validates what.
 * [`docs/spec/domain-class-diagram.puml`](docs/spec/domain-class-diagram.puml) — the same
   structure as a class diagram.
-* [`docs/spec/domain-er-diagram.puml`](docs/spec/domain-er-diagram.puml) — and again as an
-  entity-relationship diagram, for anyone more at home with tables than with objects.
+* [`docs/spec/schema.sql`](docs/spec/schema.sql) — the same model as **tables**: runnable DDL
+  with the constraints made real, for anyone more at home with SQL than with objects.
 * [`docs/spec/domain-diagrams.md`](docs/spec/domain-diagrams.md) — both diagrams in **Mermaid**,
   which renders inline on GitHub and in most IDEs, with rendered PNGs in `docs/spec/png/`.
 * [`docs/spec/er-model-limitations.md`](docs/spec/er-model-limitations.md) — what the ER view

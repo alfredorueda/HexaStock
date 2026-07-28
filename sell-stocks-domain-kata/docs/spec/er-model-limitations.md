@@ -1,8 +1,8 @@
 # What an ER diagram cannot tell you
 
-[`domain-er-diagram.puml`](domain-er-diagram.puml) shows this domain as three tables. It is a
-faithful picture of the **data**. It is not a picture of the **behaviour** — and US-07 is almost
-entirely behaviour.
+[`schema.sql`](schema.sql) defines this domain as three tables. It is a faithful description of
+the **data**. It is not a description of the **behaviour** — and US-07 is almost entirely
+behaviour.
 
 This file is the bridge between the two views. The structural mapping between them is in
 [`domain-model.md`](domain-model.md); this one is about what falls through the gap.
@@ -13,8 +13,7 @@ This file is the bridge between the two views. The structural mapping between th
 
 ### The test: could you rebuild US-07 from the schema alone?
 
-Open [`domain-er-diagram.puml`](domain-er-diagram.puml) and pretend it is all you were given.
-You can answer:
+Open [`schema.sql`](schema.sql) and pretend it is all you were given. You can answer:
 
 * How many holdings can a portfolio have? *Zero or more.*
 * Can two holdings in one portfolio have the same ticker? *No —* `UNIQUE (portfolio_id, ticker)`.

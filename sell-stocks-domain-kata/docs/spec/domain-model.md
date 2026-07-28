@@ -6,9 +6,10 @@ what they can do. The behaviour itself is in [`sell-stocks-spec.md`](sell-stocks
 The same model is drawn two ways — pick whichever you read more fluently:
 
 * [`domain-class-diagram.puml`](domain-class-diagram.puml) — object-oriented classes.
-* [`domain-er-diagram.puml`](domain-er-diagram.puml) — the same thing as database tables.
-  See [Reading the model as tables](#reading-the-model-as-tables) below for what changes
-  between the two.
+* [`schema.sql`](schema.sql) — the same thing as database tables, as runnable DDL (drawn as a
+  diagram in [`domain-diagrams.md`](domain-diagrams.md)). See
+  [Reading the model as tables](#reading-the-model-as-tables) below for what changes between
+  the two.
 
 ## Entities
 
@@ -63,8 +64,8 @@ The exceptions named above are described in [`error-contract.md`](error-contract
 
 ## Reading the model as tables
 
-If class diagrams are not your native language, [`domain-er-diagram.puml`](domain-er-diagram.puml)
-shows the same model as three tables. The structure maps over almost directly:
+If class diagrams are not your native language, [`schema.sql`](schema.sql) defines the same
+model as three tables — real DDL you can run. The structure maps over almost directly:
 
 | Class diagram                       | ER diagram                                            |
 | ----------------------------------- | ----------------------------------------------------- |

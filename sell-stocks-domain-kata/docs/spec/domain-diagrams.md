@@ -1,8 +1,9 @@
 # Domain diagrams (Mermaid)
 
-The same model as [`domain-class-diagram.puml`](domain-class-diagram.puml) and
-[`domain-er-diagram.puml`](domain-er-diagram.puml), written in Mermaid so it renders inline
-on GitHub, in most IDE markdown previews, and anywhere else that will not run PlantUML.
+The model drawn in Mermaid, so it renders inline on GitHub, in most IDE markdown previews, and
+anywhere else that will not run PlantUML. The class view mirrors
+[`domain-class-diagram.puml`](domain-class-diagram.puml); the table view mirrors
+[`schema.sql`](schema.sql), which is the authoritative definition of the tables.
 
 Rendered images are in [`png/`](png/) if your viewer shows neither.
 
@@ -148,7 +149,7 @@ erDiagram
     HOLDING {
         char holding_id PK "CHAR(36)"
         char portfolio_id FK "CHAR(36), NOT NULL"
-        varchar ticker "VARCHAR(5), NOT NULL"
+        varchar ticker "VARCHAR(5), NOT NULL, 1-5 uppercase letters"
         constraint unique_ticker_per_portfolio "UNIQUE (portfolio_id, ticker)"
     }
 
