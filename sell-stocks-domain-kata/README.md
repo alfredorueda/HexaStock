@@ -55,6 +55,12 @@ the workspace. One topic per file:
 * [`docs/spec/error-contract.md`](docs/spec/error-contract.md) — which **exception** each
   failure raises, and with what message.
 
+## Building it yourself
+
+[`docs/exercise.md`](docs/exercise.md) has the prompt that regenerates this project from its two
+specifications, what to check in the result, and what to try next. The prompt is about thirty
+lines — the behaviour it would otherwise have to describe lives in the specifications instead.
+
 ## The FIFO rule
 
 A sale consumes lots **oldest first**:
