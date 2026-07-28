@@ -10,7 +10,8 @@
 -- the limits of a schema can be demonstrated rather than asserted —
 -- see er-model-limitations.md.
 --
--- Written in portable SQL: it runs as-is on SQLite and PostgreSQL.
+-- Portable SQL. Verified by executing this file unchanged on SQLite 3 and
+-- PostgreSQL 16.
 -- =====================================================================
 
 

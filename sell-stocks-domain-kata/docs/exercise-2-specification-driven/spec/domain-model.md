@@ -19,7 +19,10 @@ Key methods: `sell(Ticker, ShareQuantity, Price) -> SellResult` (throws
 `InvalidQuantityException` if the quantity is ≤ 0, `HoldingNotFoundException` if the ticker
 is not held), `buy(Ticker, ShareQuantity, Price)`, `getHolding(Ticker)` (throws
 `HoldingNotFoundException` if absent), `getBalance()`.
-All state changes to `Holding` and `Lot` must pass through `Portfolio`.
+State changes to `Holding` and `Lot` are meant to go through `Portfolio` — that is the aggregate
+rule. Note that nothing enforces it: the class diagram makes `Holding.sell` and `Lot.reduce`
+public, so calling them directly compiles and mutates the position without the portfolio's cash
+balance ever being credited. The rule is a convention here, not a guarantee.
 
 **Holding** *(entity)* — `id: HoldingId`, `ticker: Ticker`, `lots: List<Lot>` ordered by
 purchase date. A holding reachable from a portfolio always has at least one lot: the portfolio

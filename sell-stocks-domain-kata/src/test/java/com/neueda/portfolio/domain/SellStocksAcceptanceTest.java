@@ -382,6 +382,18 @@ class SellStocksAcceptanceTest {
         }
 
         @Test
+        @DisplayName("AC-24: a rejected purchase leaves no holding behind")
+        void ac24_rejectedPurchaseLeavesNoHolding() {
+            assertThrows(InvalidQuantityException.class,
+                    () -> portfolio.buy(MSFT, ShareQuantity.of(0), Price.of("100.00")));
+
+            // Not an empty MSFT holding: a ticker never acquired is a ticker not held.
+            assertThrows(HoldingNotFoundException.class, () -> portfolio.getHolding(MSFT));
+            assertThrows(HoldingNotFoundException.class,
+                    () -> portfolio.sell(MSFT, ShareQuantity.of(1), MARKET_PRICE));
+        }
+
+        @Test
         @DisplayName("AC-22 (converse): a partial sale keeps the holding")
         void ac22_partialSaleKeepsTheHolding() {
             portfolio.sell(AAPL, ShareQuantity.of(14), MARKET_PRICE);

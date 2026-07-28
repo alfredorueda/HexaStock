@@ -32,8 +32,9 @@ assistant chose a different accounting method — and it chose it without tellin
 | Weighted average cost | 1280.00 | 520.00 |
 | LIFO — newest shares first | 1300.00 | 500.00 |
 
-All three are respectable accounting methods. Two of them are the wrong answer here, and the
-brief never said which was which.
+All three are recognised cost-basis methods. Which of them you are *allowed* to use depends on
+the jurisdiction, the instrument and the account type — that is a question for a tax specialist,
+not for this exercise. Two of them are the wrong answer *here*, and the brief never said which.
 
 ## Part B — The refusals
 
@@ -67,14 +68,15 @@ it failed halfway through and left the portfolio in a state that never should ha
 
 ### On D1 and D2
 
-An implementation that uses `double` and weighted-average cost reports the profit on an 8-share
-sale as:
+The reference implementation in `flawed-reference-solution/` uses `double` and weighted-average
+cost. Computing the profit on an 8-share sale as `proceeds - averageCost * 8`, it produces:
 
 ```
 346.66666666666663
 ```
 
-That is what an investor sees on their tax statement.
+That is what an investor would see on their statement. The exact digits depend on the order of
+operations, so yours may differ — what matters is whether the value is exact at all.
 
 Now look at the test your assistant wrote for that number. It almost certainly reads something
 like `assertEquals(346.67, profit, 0.01)` — with a tolerance. The tolerance is there because

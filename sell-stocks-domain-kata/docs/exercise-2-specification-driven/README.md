@@ -7,7 +7,7 @@ result against the specification rather than against your own memory of what you
 
 | File | What it settles |
 | ---- | ---------------- |
-| [`spec/sell-stocks-spec.md`](spec/sell-stocks-spec.md) | **Behaviour** — preconditions, the FIFO rule, the money definitions, and acceptance criteria AC-01 … AC-23 |
+| [`spec/sell-stocks-spec.md`](spec/sell-stocks-spec.md) | **Behaviour** — preconditions, the FIFO rule, the money definitions, and acceptance criteria AC-01 … AC-24 |
 | [`spec/domain-class-diagram.puml`](spec/domain-class-diagram.puml) | **Structure** — classes, fields, methods, visibility, relationships |
 
 Everything the program must do is in those two files. Nothing else is needed.
@@ -22,7 +22,7 @@ Implement the domain model described by the two specifications in this project:
 
   docs/spec/sell-stocks-spec.md      the behaviour: preconditions, the FIFO
                                      rule, the money definitions, and the
-                                     acceptance criteria AC-01 to AC-23
+                                     acceptance criteria AC-01 to AC-24
   docs/spec/domain-class-diagram.puml the structure: classes, fields, methods,
                                      visibility and relationships
 
@@ -61,9 +61,9 @@ because the hard part, the behaviour, already lives in the specifications.
 
 Do not accept a green build as proof. Check these, in this order:
 
-1. **`mvn test` is green.** It should report **35 tests** from 23 criteria — two criteria are
+1. **`mvn test` is green.** It should report **36 tests** from 24 criteria — two criteria are
    checked against a list of inputs each, and one has an extra case for the converse.
-2. **Every criterion has a test.** Walk AC-01 to AC-23 and find the test for each one. A missing
+2. **Every criterion has a test.** Walk AC-01 to AC-24 and find the test for each one. A missing
    criterion is the most common failure, and a green build will not reveal it.
 3. **The numbers are right.** Selling 12 shares of the baseline holding must give proceeds
    1800.00, cost basis 1240.00, profit 560.00 — and must leave one lot of 3 shares at 120.00.

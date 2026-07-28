@@ -4,7 +4,8 @@ How a failed operation reports itself.
 
 Every failure is a **domain exception** — this is a domain model, with no HTTP layer to return
 a status code. The last column records the HTTP status a later API layer should map each
-exception to, via an RFC 7807 problem detail, so that layer stays consistent when it arrives.
+exception to, via a problem detail (RFC 9457, which obsoletes RFC 7807), so that layer stays
+consistent when it arrives.
 Nothing in this project enforces it.
 
 | Exception                   | Domain meaning                                       | Typical message                                             | HTTP status (later API layer)  |
@@ -15,7 +16,7 @@ Nothing in this project enforces it.
 | `InvalidTickerException`    | The ticker is not 1–5 uppercase letters              | `Invalid ticker: <value>` / `Ticker cannot be empty`         | 400 Bad Request                |
 | `HoldingNotFoundException`  | The portfolio does not hold the requested ticker     | `Holding not found in portfolio: <ticker>`                   | 404 Not Found                  |
 
-The exception messages matter beyond the domain: in RFC 7807 the `detail` field of the error
+The exception messages matter beyond the domain: in a problem detail the `detail` field of the error
 response is taken from the exception message, so keeping these strings exact means a future API
 layer already produces the right payload. The tests assert on them.
 

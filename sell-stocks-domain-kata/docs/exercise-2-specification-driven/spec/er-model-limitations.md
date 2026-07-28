@@ -53,10 +53,15 @@ being things and become types plus `CHECK` constraints. Two real consequences:
   to confuse them. In the schema both are `VARCHAR` — swap them in a query and everything runs.
 
 **4. The aggregate root stops existing.** The class diagram says every change to a `Holding` or
-`Lot` must pass through `Portfolio`. There is no way to express that in a schema. `UPDATE lot SET
-remaining_shares = 0` is a perfectly legal statement that no constraint will stop. The aggregate
-boundary is a rule in the code, enforced by `private` fields and by `getLots()` returning an
-unmodifiable list — and it is enforced by nothing here.
+`Lot` should pass through `Portfolio`. No declarative constraint expresses that: `UPDATE lot SET
+remaining_shares = 0` is legal SQL that nothing will refuse.
+
+Worth being honest about — the Java version does not enforce it either. `Holding.sell` and
+`Lot.reduce` are public in the class diagram, so `portfolio.getHolding(t).sell(...)` compiles and
+drains the position without ever crediting the cash balance. In both models the aggregate
+boundary is a rule people follow, not a rule the machine imposes. A database can get closer than
+the schema alone suggests — with triggers, or by revoking write access and exposing only stored
+procedures — but neither model gets it for free.
 
 **5. Derived results are not storable state.** `SellResult` is not a table. `proceeds`,
 `costBasis` and `profit` are computed by a sale and handed back to the caller; this kata never
@@ -103,7 +108,7 @@ exactly why it is here.
 ### Why this file exists
 
 Students who are fluent in SQL but not in OO tend to read the ER diagram, feel that they have
-understood the domain, and then be genuinely surprised that the test suite is 35 tests long. The
+understood the domain, and then be genuinely surprised that the test suite is 36 tests long. The
 schema looks like the whole story; it is perhaps a fifth of it. Naming that gap early prevents
 the misreading, and it sets up the architectural argument later in the course.
 

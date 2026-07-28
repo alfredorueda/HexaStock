@@ -80,7 +80,17 @@ public class Portfolio {
      */
     public void buy(Ticker ticker, ShareQuantity quantity, Price price) {
         Objects.requireNonNull(ticker, "ticker cannot be null");
-        holdings.computeIfAbsent(ticker, Holding::create).buy(quantity, price);
+
+        Holding holding = holdings.get(ticker);
+        if (holding != null) {
+            holding.buy(quantity, price);
+            return;
+        }
+        // Buy into the new holding first: if the purchase is rejected, the map must
+        // not be left with an empty holding for a ticker that was never acquired.
+        Holding created = Holding.create(ticker);
+        created.buy(quantity, price);
+        holdings.put(ticker, created);
     }
 
     /**

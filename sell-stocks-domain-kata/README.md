@@ -40,8 +40,8 @@ They all live inside this project, so it depends on no other module and no file 
 the workspace. One topic per file:
 
 * [`spec/sell-stocks-spec.md`](docs/exercise-2-specification-driven/spec/sell-stocks-spec.md) — the **behaviour**:
-  preconditions, the FIFO rule, the money definitions, and the 23 acceptance criteria
-  (AC-01 … AC-23) that each map to exactly one test. **Start here.**
+  preconditions, the FIFO rule, the money definitions, and the 24 acceptance criteria
+  (AC-01 … AC-24) that each map to exactly one test. **Start here.**
 * [`spec/domain-model.md`](docs/exercise-2-specification-driven/spec/domain-model.md) — the **structure** in prose:
   entities, value objects, and what validates what.
 * [`spec/domain-class-diagram.puml`](docs/exercise-2-specification-driven/spec/domain-class-diagram.puml) — the same

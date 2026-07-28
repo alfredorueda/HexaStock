@@ -21,7 +21,7 @@ something, and discover that the only record of what you asked for was a chat lo
 The same domain, but the behaviour lives in versioned files instead of in a conversation:
 
 * [`spec/sell-stocks-spec.md`](exercise-2-specification-driven/spec/sell-stocks-spec.md) — the
-  behaviour, as acceptance criteria AC-01 … AC-23
+  behaviour, as acceptance criteria AC-01 … AC-24
 * [`spec/domain-class-diagram.puml`](exercise-2-specification-driven/spec/domain-class-diagram.puml)
   — the structure
 

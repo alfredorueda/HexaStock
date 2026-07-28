@@ -2,7 +2,7 @@
 
 > **This code is wrong on purpose.** It is a teaching artifact: what a prompt-only session
 > typically produces from [`../brief.md`](../brief.md). It compiles, it runs, and all of its
-> tests pass. It scores **6 out of 20** on [`../conformance.md`](../conformance.md).
+> tests pass. It scores **5 out of 20** on [`../conformance.md`](../conformance.md).
 >
 > The correct implementation is Exercise 2, in
 > [`../../exercise-2-specification-driven/`](../../exercise-2-specification-driven/).
@@ -95,8 +95,9 @@ After selling 8 shares the correct answer is "2 shares at 100.00 and 5 at 120.00
 implementation can only say "7 shares at an average of 106.67". The information needed to compute
 FIFO later was destroyed at purchase time — `Position.add` folds every buy into a running total.
 
-This is the defect that cannot be patched. Switching to FIFO later is not a change to `sell()`;
-it is a change to how purchases are stored, and any data already recorded is unrecoverable.
+Switching to FIFO later is not a change to `sell()` — it is a change to how purchases are
+stored. Within this program the per-purchase detail is gone for good; a real system could
+rebuild it from a trade log, if one happens to exist elsewhere.
 
 ### 8. A liquidated position lingers
 
@@ -119,14 +120,25 @@ distinguishable only by matching on the message text.
 
 Worth saying, because a strawman teaches nothing:
 
-* **A failed sale changes nothing.** Validation happens before any mutation, so the refused sale
-  of 16 shares leaves 15 shares and a 0.00 balance. That is conformance C1 and C2, passed.
-* **Selling the whole position** gives the right numbers (2250.00 / 1600.00 / 650.00) — because
-  when you sell everything, average cost and FIFO agree.
-* **Buying again after liquidation** starts from a clean cost basis.
+* **A failed sale changes nothing.** Validation runs before any mutation, so the refused sale of
+  16 shares leaves 15 shares and a 0.00 balance — conformance C1 and C2, passed.
+* **Selling the whole position** gives the right numbers (2250.00 / 1600.00 / 650.00), because
+  when you sell everything, average cost and FIFO agree by definition.
+* **Buying again after liquidation** starts from a clean cost basis (D4, passed).
 
-The structure is sound. The arithmetic is defensible. It is simply not the arithmetic the
-business needed, and nothing in the process was ever going to surface that.
+## Scoring, for marking
+
+| Part | Score | Passes |
+| ---- | ----- | ------ |
+| A — the money | 1 / 8 | A5 only: selling the entire position, where the method makes no difference |
+| B — the refusals | 1 / 6 | B4 only. B3 refuses, but without reporting available versus requested |
+| C — state after a refusal | 2 / 2 | both |
+| D — the unmentioned parts | 1 / 4 | D4 only |
+| **Total** | **5 / 20** | |
+
+B3 is the one judgement call: it does refuse the oversized sale, but the message is
+`"Not enough shares"` with no numbers, which is not what the check asks for. Score it either way
+— just score every student's the same way.
 
 ## The point
 

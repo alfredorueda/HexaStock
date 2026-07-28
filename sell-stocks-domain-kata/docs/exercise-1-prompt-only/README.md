@@ -39,8 +39,7 @@ look good; it just removes the only interesting thing that happens to you today.
 
 ## What is actually being measured
 
-Not whether your code works. Everyone's code will work — the assistant will make sure of it, and
-it will write tests that prove it.
+Not whether your code works. Most of it will work, and it will come with tests that pass.
 
 What is being measured is **whether your code does the same thing as everybody else's**, and
 whether the things it does are the things the business actually needed. Those are different
