@@ -58,20 +58,6 @@ is created: `Money` (an amount), `Price` (must be positive), `ShareQuantity` (ne
 `Ticker` (1–5 uppercase letters), and `SellResult`, the receipt a sale returns: proceeds, cost
 basis, and profit.
 
-## Where this way of working comes from: BDD
-
-What you are about to do has a name. Deriving tests directly from a precise, human-readable
-specification, then writing only the code that makes those tests pass, is the core idea of
-**Behaviour-Driven Development (BDD)**. In full-blown BDD teams write the specification in
-**Gherkin**, a small structured language (`Given` a context, `When` an action, `Then` an
-outcome) designed to be precise enough that each scenario maps to one deterministic test — while
-still reading as plain language a business stakeholder can review and approve.
-
-We are *not* using Gherkin here — wiring it up (Cucumber, Behave and friends) is a step beyond
-this exercise. But look at the acceptance criteria table in `sell-stocks-spec.md`: every row has
-a *starting context*, an *action*, and an *exact expected result*. That is Given/When/Then in
-disguise. If you ever join a team that practices BDD, you already know the shape.
-
 ## Part one — sell stocks: build from the given specification
 
 ### Pick a language
