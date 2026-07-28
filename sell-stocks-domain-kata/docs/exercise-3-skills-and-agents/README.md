@@ -16,6 +16,70 @@ The experiment changes one variable:
 Do not use the completed implementation elsewhere in this training repository. The point is to
 regenerate it from the inputs and compare the working method with Exercise 2.
 
+## Student quick start — GitHub Copilot
+
+There are three AI steps: **plan, implement, review**. Only the second step generates Java code.
+
+### 1. Create and open your workspace
+
+From the `sell-stocks-domain-kata` directory, run:
+
+```bash
+./docs/exercise-3-skills-and-agents/scripts/prepare-student-workspace.sh \
+  ~/workshops/sell-stocks-exercise-3
+cd ~/workshops/sell-stocks-exercise-3
+git init
+git add .
+git commit -m "chore: initialise exercise 3"
+code .
+```
+
+The script creates the exercise inputs and AI configuration. It deliberately creates **no**
+`pom.xml`, `src/main`, or `src/test` yet.
+
+### 2. Ask Copilot to plan
+
+Open Copilot Chat in VS Code and run:
+
+```text
+/create-plan
+```
+
+Copy the proposed plan into `plan.md`, review it, change at least one item yourself, and set both
+the status and Human checkpoint decision to `approved`.
+
+### 3. Generate the Java project
+
+Run:
+
+```text
+/implement-approved-plan
+```
+
+This is the step that creates `pom.xml`, production code, and JUnit tests. Review the proposed
+changes at each checkpoint instead of accepting every edit automatically.
+
+### 4. Review and verify
+
+Run the independent review:
+
+```text
+/verify-conformance
+```
+
+Then verify the result yourself:
+
+```bash
+mvn test
+.agents/skills/implement-sell-stocks/scripts/verify-workspace.sh
+```
+
+You are done when both commands pass and Maven reports exactly **36 tests**.
+
+> If a slash command is missing, do not improvise. Check **Chat: Open Customizations**, confirm
+> that the generated folder is the VS Code workspace root, and ask the instructor for the
+> compatibility fallback.
+
 ## Learning objectives
 
 By the end of the exercise, you should be able to:

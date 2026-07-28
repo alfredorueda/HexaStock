@@ -31,4 +31,12 @@ cp "$SPEC_DIR/sell-stocks-spec.md" "$TARGET/docs/spec/"
 cp "$SPEC_DIR/domain-class-diagram.puml" "$TARGET/docs/spec/"
 
 printf 'Student workspace prepared at %s\n' "$TARGET"
-printf 'Next: cd %s && git init\n' "$TARGET"
+printf '\nNext steps:\n'
+printf '  1. cd %s\n' "$TARGET"
+printf '  2. git init && git add . && git commit -m "chore: initialise exercise 3"\n'
+printf '  3. code .\n'
+printf '  4. In Copilot Chat, run /create-plan\n'
+printf '  5. Review and approve plan.md\n'
+printf '  6. In Copilot Chat, run /implement-approved-plan\n'
+printf '  7. In Copilot Chat, run /verify-conformance\n'
+printf '\nThe Java code is generated in step 6, not by this script.\n'
