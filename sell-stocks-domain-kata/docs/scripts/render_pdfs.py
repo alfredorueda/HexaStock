@@ -84,9 +84,9 @@ def base_css(*, pre_label: str, table_font_size: str = "9.5pt", extra: str = "",
   li {{ margin-bottom: 1.3mm; orphans: 3; widows: 3; }}
   code {{ font-family: {MONO}; font-size: 9.5pt; background: #f1ece0; padding: 0.5pt 1.8pt; border-radius: 2px; }}
   pre {{
-    background: #16233c; color: #eef1f6; padding: 3.8mm 6mm; border-radius: 3px;
-    font-size: 9.1pt; line-height: 1.48; white-space: pre-wrap; overflow-wrap: break-word;
-    page-break-inside: avoid; margin: 3mm 0 4mm;
+    background: #16233c; color: #eef1f6; padding: 3.2mm 5.5mm; border-radius: 3px;
+    font-size: 8.4pt; line-height: 1.4; white-space: pre-wrap; overflow-wrap: break-word;
+    page-break-inside: avoid; margin: 2.5mm 0 3.5mm;
   }}
   pre code {{ background: none; color: inherit; padding: 0; }}
   pre::before {{
