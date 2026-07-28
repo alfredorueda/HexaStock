@@ -122,18 +122,25 @@ and before teaching the course.
 
 ### 5. Prepare distribution
 
-Generate one fresh workspace per pair, or generate one clean archive for learners to copy. Do not
-give students access to the module root while they work: it contains the Exercise 2 result.
+Prefer one pre-created starter repository per pair, or a repository template that each pair can
+clone. Use an archive only after testing that its extracted folder has the expected files and a
+working Git baseline. Test the exact distributed artefact on a managed learner machine. Do not ask
+students to run the preparation script, and do not give them access to the module root while they
+work: it contains the Exercise 2 result.
 
 ## What students receive
 
 Release only:
 
 - the generated Exercise 3 workspace;
-- the student [`README.md`](README.md).
+- the concise [`student-guide.md`](student-guide.md), copied into that workspace as `README.md`.
 
 The default generator intentionally excludes `.codex/`, `.claude/`, `CLAUDE.md`, and Codex UI
 metadata. Keep [`compatibility.md`](compatibility.md) with the instructor materials.
+
+The learner's only mandatory terminal command is `mvn test`. The Bash verifier is a convenience
+for the reviewer or instructor. If Bash is unavailable, use the skill's review checklist and
+record the limitation; do not troubleshoot shells during the lab.
 
 Do not release:
 

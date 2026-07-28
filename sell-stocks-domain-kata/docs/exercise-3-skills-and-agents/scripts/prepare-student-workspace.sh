@@ -30,6 +30,7 @@ fi
 
 mkdir -p "$TARGET"
 cp "$TEMPLATE_DIR/AGENTS.md" "$TEMPLATE_DIR/plan.md" "$TEMPLATE_DIR/.gitignore" "$TARGET"/
+cp "$EXERCISE_DIR/student-guide.md" "$TARGET/README.md"
 cp -R "$TEMPLATE_DIR/.github" "$TARGET/"
 cp -R "$TEMPLATE_DIR/evidence" "$TARGET/"
 

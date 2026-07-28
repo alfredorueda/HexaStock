@@ -38,7 +38,8 @@ the review process and deliberately does not restate the domain answers.
 ## Evidence and reporting
 
 - Run the full test suite from a clean workspace.
-- Run the bundled verification script.
+- Run the bundled verification script when Bash is available; otherwise complete every item in
+  this checklist and record the environment limitation in `evidence/session-notes.md`.
 - Report findings with specification identifiers and file locations.
 - Do not edit during the review. Hand findings back to the learner and implementer.
 - Distinguish verified facts, suspected risks, and optional improvements.

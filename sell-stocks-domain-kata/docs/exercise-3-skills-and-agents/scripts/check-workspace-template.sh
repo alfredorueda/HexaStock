@@ -20,6 +20,12 @@ check() {
 check "AGENTS.md"
 check "CLAUDE.md"
 check "plan.md"
+if [[ -f "$EXERCISE_DIR/student-guide.md" ]]; then
+  printf 'PASS  student-guide.md\n'
+else
+  printf 'FAIL  student-guide.md\n' >&2
+  FAILURES=$((FAILURES + 1))
+fi
 check ".github/copilot-instructions.md"
 check ".github/instructions/domain.instructions.md"
 check ".github/instructions/tests.instructions.md"
@@ -51,6 +57,7 @@ fi
 "$SCRIPT_DIR/prepare-student-workspace.sh" "$CHECK_DIR/student" >/dev/null
 if [[ -d "$CHECK_DIR/student/.github" ]] \
   && [[ -d "$CHECK_DIR/student/.agents/skills/implement-sell-stocks" ]] \
+  && [[ -f "$CHECK_DIR/student/README.md" ]] \
   && [[ ! -e "$CHECK_DIR/student/.codex" ]] \
   && [[ ! -e "$CHECK_DIR/student/.claude" ]] \
   && [[ ! -e "$CHECK_DIR/student/CLAUDE.md" ]] \

@@ -45,8 +45,8 @@ implementation conversation with versioned context engineering:
 * GitHub Copilot configuration for students, plus separate Codex and Claude Code adapters for
   instructor rehearsal
 
-The student guide is supported by an
-[`instructor manual`](exercise-3-skills-and-agents/instructor-manual.md), a
+The concise [`student guide`](exercise-3-skills-and-agents/student-guide.md) is supported by an
+[`instructor manual`](exercise-3-skills-and-agents/instructor-manual.md), an instructor-only
 [`compatibility guide`](exercise-3-skills-and-agents/compatibility.md), and explicit
 [`slide traceability`](exercise-3-skills-and-agents/slide-alignment.md).
 

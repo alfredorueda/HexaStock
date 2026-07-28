@@ -50,7 +50,9 @@ review.
 2. Trace every acceptance criterion to executable evidence.
 3. Compare the implemented structure with the class diagram.
 4. Inspect rejected operations for partial mutation and verify FIFO state, not only return values.
-5. Run `scripts/verify-workspace.sh` from this skill directory.
+5. Run `scripts/verify-workspace.sh` from this skill directory when Bash is available. On a
+   managed workstation without Bash, perform the same checks from `references/review-checklist.md`
+   and record the environment limitation in `evidence/session-notes.md`.
 6. Report findings before fixes. Return to the implementer only after the learner chooses which
    findings to address.
 
@@ -61,7 +63,7 @@ Finish only when:
 - `mvn test` passes with 36 tests and no failures or errors;
 - AC-01 through AC-24 are visibly traceable in the test source;
 - the implementation matches the class diagram and contains no infrastructure;
-- the verification script passes;
+- the verification script passes, or its checklist fallback is completed when Bash is unavailable;
 - `plan.md` records completed tasks and any deliberate deviations; and
 - the final response lists changed files, verification performed, and unresolved concerns.
 

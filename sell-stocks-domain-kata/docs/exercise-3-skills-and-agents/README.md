@@ -26,20 +26,17 @@ There are three AI steps: **plan, implement, review**. Only the second step gene
 
 ### 1. Create and open your workspace
 
-From the `sell-stocks-domain-kata` directory, run:
+The instructor gives you a ready-to-use starter folder or repository. Do not run a preparation
+script. Open the supplied folder as the VS Code workspace root:
 
 ```bash
-./docs/exercise-3-skills-and-agents/scripts/prepare-student-workspace.sh \
-  ~/workshops/sell-stocks-exercise-3
 cd ~/workshops/sell-stocks-exercise-3
-git init
-git add .
-git commit -m "chore: initialise exercise 3"
 code .
 ```
 
-The script creates the exercise inputs and AI configuration. It deliberately creates **no**
-`pom.xml`, `src/main`, or `src/test` yet.
+The supplied folder already contains the exercise inputs and Copilot configuration, but
+deliberately contains no `pom.xml`, `src/main`, or `src/test` yet. Follow the concise `README.md`
+inside that folder.
 
 ### 2. Ask Copilot to plan
 
@@ -75,10 +72,11 @@ Then verify the result yourself:
 
 ```bash
 mvn test
-.agents/skills/implement-sell-stocks/scripts/verify-workspace.sh
 ```
 
-You are done when both commands pass and Maven reports exactly **36 tests**.
+You are done when Maven reports exactly **36 tests** and the independent review is complete. The
+reviewer or instructor may also use the bundled Bash verifier; a checklist fallback is documented
+for managed workstations without Bash.
 
 > If a slash command is missing, do not improvise. Check **Chat: Open Customizations**, confirm
 > that the generated folder is the VS Code workspace root, and ask the instructor for the
@@ -111,9 +109,9 @@ Your generated student workspace contains:
 No implementation, build file, test code, Codex configuration, or Claude configuration is provided
 in the student workspace.
 
-## Prepare a student workspace
+## Instructor preparation — not a student step
 
-From the training repository, choose an empty folder outside the kata module:
+Before class, generate a clean starter folder outside the kata module:
 
 ```bash
 ./docs/exercise-3-skills-and-agents/scripts/prepare-student-workspace.sh \
@@ -124,8 +122,9 @@ git add .
 git commit -m "chore: initialise skills and agents exercise"
 ```
 
-Open that generated folder as the workspace root. Opening only one file prevents the tools from
-discovering project customisations reliably.
+Distribute the generated folder as a repository or archive. Students open it as their workspace
+root; they do not run the preparation script themselves. Opening only one file prevents the tools
+from discovering project customisations reliably.
 
 ## Primary path — GitHub Copilot in VS Code
 
@@ -209,10 +208,13 @@ Run these yourself:
 
 ```bash
 mvn test
-.agents/skills/implement-sell-stocks/scripts/verify-workspace.sh
 git diff --check
 git status --short
 ```
+
+If Bash is supported, the reviewer or instructor also runs
+`.agents/skills/implement-sell-stocks/scripts/verify-workspace.sh`. Otherwise use the bundled
+review checklist and record the limitation in `evidence/session-notes.md`.
 
 Complete `evidence/session-notes.md` and review the entire diff.
 
@@ -251,7 +253,8 @@ outside the approved training materials.
 - rejected operations leave state untouched where specified;
 - the class structure matches the diagram;
 - no infrastructure or extra domain concepts were invented;
-- the bundled verification script passes;
+- the bundled verification script passes, or its documented checklist fallback is completed when
+  Bash is unavailable;
 - an independent reviewer completed a no-edit review; and
 - the human, not an agent, accepted the final result.
 

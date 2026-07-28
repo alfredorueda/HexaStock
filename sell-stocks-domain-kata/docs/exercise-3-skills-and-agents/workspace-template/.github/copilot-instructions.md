@@ -8,5 +8,6 @@
 - Do not edit code until `plan.md` has explicit human approval.
 - Use Java 21, standalone Maven, and JUnit 5 as the only test-scoped dependency.
 - Keep the project domain-only and use `BigDecimal` for all money.
-- Run the full test suite and the bundled verification script before completion.
+- Run the full test suite before completion. Run the bundled verifier when Bash is available;
+  otherwise use its documented review-checklist fallback.
 - Do not add MCP servers or access data outside this workspace.

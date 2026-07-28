@@ -66,7 +66,7 @@
 - [ ] Focused tests during implementation
 - [ ] Full `mvn test`
 - [ ] Exactly 36 executed tests
-- [ ] Bundled verification script
+- [ ] Bundled verification script, or documented checklist fallback when Bash is unavailable
 - [ ] Independent structure and behaviour review
 - [ ] Full diff review
 

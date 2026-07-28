@@ -40,7 +40,8 @@ Do not collapse planning, implementation, and review into one unreviewed agent r
 
 - Run `mvn test` and require exactly 36 passing tests.
 - Make AC-01 through AC-24 traceable in test names or display names.
-- Run `.agents/skills/implement-sell-stocks/scripts/verify-workspace.sh`.
+- Run `.agents/skills/implement-sell-stocks/scripts/verify-workspace.sh` when Bash is available.
+  Otherwise complete the bundled review checklist and record that fallback in the evidence log.
 - Review the full diff before declaring completion.
 
 ## Safety and scope
