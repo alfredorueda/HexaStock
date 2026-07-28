@@ -158,7 +158,7 @@ model is a lens, not the territory — and that choosing a lens hides something 
 
 ### Where this stops being theoretical
 
-At **Roadmap A step 3** (see the [README](../../README.md)), a real repository arrives and every
+At **Roadmap A step 3** (see the [README](../../../README.md)), a real repository arrives and every
 one of these limitations turns into a decision someone has to make: whether the ordering lives in
 the query or the code, whether `Money` maps to one column or to a `@Embeddable`, whether the
 aggregate is loaded whole or lazily, and where the transaction boundary sits. Students who have

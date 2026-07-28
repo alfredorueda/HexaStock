@@ -99,4 +99,4 @@ specification is what makes the work repeatable.
 Notice which details stayed in the prompt: the language, the build tool, the test framework, the
 package name, the ban on frameworks. Those are technology decisions, not domain rules — and they
 belong in a versioned decision record rather than in a prompt, for exactly the same reason. That
-is the next step described under Roadmap B in the [README](../README.md).
+is the next step described under Roadmap B in the [README](../../README.md).

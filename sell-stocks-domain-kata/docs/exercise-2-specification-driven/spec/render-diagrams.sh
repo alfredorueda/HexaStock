@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-# Renders the Mermaid diagrams in domain-diagrams.md to PNGs under docs/spec/png/.
+# Renders the Mermaid diagrams in domain-diagrams.md to PNGs under spec/png/.
 #
 # domain-diagrams.md is the single source: the fenced ```mermaid blocks in it are
 # extracted in order and rendered. Edit the Markdown, then re-run this script —

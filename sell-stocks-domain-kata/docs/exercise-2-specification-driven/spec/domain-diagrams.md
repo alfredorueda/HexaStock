@@ -177,7 +177,7 @@ source — edit the Mermaid here, never the images.
 
 ```bash
 cd sell-stocks-domain-kata
-./docs/spec/render-diagrams.sh
+./docs/exercise-2-specification-driven/spec/render-diagrams.sh
 ```
 
 The script needs Node and network access on first run (it fetches `@mermaid-js/mermaid-cli`

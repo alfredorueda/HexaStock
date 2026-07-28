@@ -39,27 +39,30 @@ All monetary values are `BigDecimal` at scale 2, `HALF_UP` — never `double` or
 They all live inside this project, so it depends on no other module and no file elsewhere in
 the workspace. One topic per file:
 
-* [`docs/spec/sell-stocks-spec.md`](docs/spec/sell-stocks-spec.md) — the **behaviour**:
+* [`spec/sell-stocks-spec.md`](docs/exercise-2-specification-driven/spec/sell-stocks-spec.md) — the **behaviour**:
   preconditions, the FIFO rule, the money definitions, and the 23 acceptance criteria
   (AC-01 … AC-23) that each map to exactly one test. **Start here.**
-* [`docs/spec/domain-model.md`](docs/spec/domain-model.md) — the **structure** in prose:
+* [`spec/domain-model.md`](docs/exercise-2-specification-driven/spec/domain-model.md) — the **structure** in prose:
   entities, value objects, and what validates what.
-* [`docs/spec/domain-class-diagram.puml`](docs/spec/domain-class-diagram.puml) — the same
+* [`spec/domain-class-diagram.puml`](docs/exercise-2-specification-driven/spec/domain-class-diagram.puml) — the same
   structure as a class diagram.
-* [`docs/spec/schema.sql`](docs/spec/schema.sql) — the same model as **tables**: runnable DDL
+* [`spec/schema.sql`](docs/exercise-2-specification-driven/spec/schema.sql) — the same model as **tables**: runnable DDL
   with the constraints made real, for anyone more at home with SQL than with objects.
-* [`docs/spec/domain-diagrams.md`](docs/spec/domain-diagrams.md) — both diagrams in **Mermaid**,
-  which renders inline on GitHub and in most IDEs, with rendered PNGs in `docs/spec/png/`.
-* [`docs/spec/er-model-limitations.md`](docs/spec/er-model-limitations.md) — what the ER view
+* [`spec/domain-diagrams.md`](docs/exercise-2-specification-driven/spec/domain-diagrams.md) — both diagrams in **Mermaid**,
+  which renders inline on GitHub and in most IDEs, with rendered PNGs in `docs/exercise-2-specification-driven/spec/png/`.
+* [`spec/er-model-limitations.md`](docs/exercise-2-specification-driven/spec/er-model-limitations.md) — what the ER view
   cannot express, and why. Written for students, with a discussion guide for instructors.
-* [`docs/spec/error-contract.md`](docs/spec/error-contract.md) — which **exception** each
+* [`spec/error-contract.md`](docs/exercise-2-specification-driven/spec/error-contract.md) — which **exception** each
   failure raises, and with what message.
 
 ## Building it yourself
 
-[`docs/exercise.md`](docs/exercise.md) has the prompt that regenerates this project from its two
-specifications, what to check in the result, and what to try next. The prompt is about thirty
-lines — the behaviour it would otherwise have to describe lives in the specifications instead.
+This project is the worked result of **exercise 2**. See [`docs/`](docs/README.md) for both
+exercises, and
+[`docs/exercise-2-specification-driven/README.md`](docs/exercise-2-specification-driven/README.md)
+for the prompt that regenerates this project from its two specifications, what to check in the
+result, and what to try next. That prompt is about thirty lines — the behaviour it would
+otherwise have to spell out lives in the specifications instead.
 
 ## The FIFO rule
 
