@@ -10,6 +10,10 @@
 **Recommended duration: 120 minutes.** Run Exercise 2 first. Exercise 3 is a controlled comparison,
 not an introduction to the domain.
 
+> Running the tool-agnostic self-paced version instead of the live Copilot session? See
+> [`exercise-3-self-paced-instructor-notes.md`](exercise-3-self-paced-instructor-notes.md) —
+> a separate, short set of notes for that document; this manual is about the live classroom flow.
+
 ## Teaching intent
 
 Exercise 1 showed that a vague prompt produces plausible divergence. Exercise 2 moved behaviour

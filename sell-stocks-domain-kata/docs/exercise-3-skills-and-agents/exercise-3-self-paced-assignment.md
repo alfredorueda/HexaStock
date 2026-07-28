@@ -21,16 +21,79 @@ Same two files as Exercise 2, in the same place: `docs/spec/` inside an empty pr
 - **[`domain-class-diagram.puml`](spec/domain-class-diagram.puml)** — structure: classes, fields,
   methods, visibility, and relationships.
 
-## Four ideas this exercise is about
+## Why this exercise exists
 
-1. **A skill is a versioned, repeatable method** — not a one-off prompt you retype each time.
-2. **Role separation is a permission boundary.** A planner that cannot edit, an implementer that
-   can, and a reviewer that cannot — enforced by discipline here, by tooling in the classroom
-   version.
-3. **A human checkpoint gates planning → implementation.** Nothing gets built until you've read,
-   changed, and approved the plan yourself.
-4. **Independent review happens before any fix.** The reviewer reports; you decide what goes back
-   to the implementer.
+Exercise 2 made the **behaviour** durable: it lives in a spec file instead of your memory of a
+conversation. But the **process** you used to turn that spec into code — the questions you asked
+first, the order you built things in, who checked the result and how — was still invisible. It
+happened once, inside one conversation, and vanished the moment the chat ended.
+
+This exercise does for the *working method* what Exercise 2 did for the *domain*: it takes
+something that used to live only in a conversation and turns it into something you can read,
+review, and reuse — a **skill** for the repeatable method, and **role-scoped agents** for who is
+allowed to do what.
+
+### A concrete failure this catches
+
+Picture Exercise 2 again. The specification never says what should happen at some edge case the
+acceptance criteria don't cover — say, a sale priced exactly at a lot's own purchase price. In one
+continuous conversation, the assistant can quietly pick an answer, write the code for it, then
+write a test that agrees with the code it just wrote — and you would very likely never notice, for
+the same reason Exercise 1's self-graded tests never failed: the actor that made the decision and
+the actor that checked it were the same conversation, with the same blind spot.
+
+Exercise 3 puts two structural obstacles in that path:
+
+1. **The planner has to write the assumption down, before any code exists.** If it silently invents
+   behaviour, it shows up as a line in `plan.md` you are explicitly asked to approve — not as a
+   fait accompli buried in a diff you skim past.
+2. **The reviewer is a separate conversation that never saw the implementer's reasoning.** It checks
+   the code against the specification and the diagram directly, not against "does this look like
+   what I would have written" — because it never wrote anything.
+
+Neither obstacle *guarantees* the assumption gets caught. What they guarantee is that it has to
+surface somewhere reviewable, instead of staying invisible inside one uninterrupted train of
+thought.
+
+### Exercise 2 vs. Exercise 3
+
+| Dimension | Exercise 2 | Exercise 3 |
+| --------- | ---------- | ---------- |
+| Domain inputs | Two specifications | The same two specifications |
+| Process | One conversation, start to finish | Three role-scoped conversations, in order |
+| Planning evidence | Whatever you remember from the chat | `plan.md` — written, dated, approved |
+| Who checks the result | Often the same conversation that built it | An independent conversation that never wrote the code |
+| Reuse next time | Retype the prompt | Paste the same Method block again, unchanged |
+
+### Is it worth the overhead? Be honest about this
+
+At this kata's size, Exercise 3 is genuinely more work than Exercise 2's thirty-line prompt — three
+prompts and a written approval instead of one. That overhead does not pay for itself on a task this
+small, and "Worth trying afterwards" at the end asks you to feel that directly.
+
+It starts paying off at a different scale than this kata: when a change is large or risky enough
+that you need to *prove*, after the fact, who approved what before it was built — closer to how a
+bank already treats a pull-request approval or a change record than it might first appear. It also
+pays off across time: a skill written once gets reused on the next feature; a prompt typed once
+gets forgotten.
+
+Hold both of those in mind as you work through the rest of this document — the four ideas below
+are what carries that value, not the paperwork itself.
+
+## The four ideas — and why each one matters
+
+1. **A skill is a versioned, repeatable method** — not a one-off prompt you retype each time. Write
+   it once, review it like any other file in the repository, and reuse it unchanged on the next
+   feature instead of reconstructing it from memory in a fresh conversation.
+2. **Role separation is a permission boundary, not a suggestion.** A planner that cannot edit files
+   cannot quietly start implementing before you've approved anything; a reviewer that cannot edit
+   cannot "fix while reviewing" and blur checking into doing.
+3. **A human checkpoint gates planning → implementation.** Nothing gets built until you've read the
+   plan, changed at least one thing yourself, and written down that you approve it — turning
+   approval into a real decision instead of a reflexive "looks good."
+4. **Independent review happens before any fix.** The reviewer reports findings first; you decide
+   what goes back to the implementer — keeping "did we build the right thing" separate from "do I
+   like what got built."
 
 ## Technical constraints
 

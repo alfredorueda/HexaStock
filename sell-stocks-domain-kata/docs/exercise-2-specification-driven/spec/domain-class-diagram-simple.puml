@@ -1,0 +1,82 @@
+@startuml domain-class-diagram-simple
+!theme plain
+skinparam backgroundColor #FEFEFE
+skinparam classAttributeIconSize 0
+skinparam class {
+  BackgroundColor White
+  BorderColor Black
+  ArrowColor Black
+}
+skinparam note {
+  BackgroundColor #FFFFF0
+  BorderColor #CCCCAA
+}
+skinparam ranksep 40
+skinparam nodesep 30
+
+title Portfolio Domain Model — simplified view
+
+class Portfolio <<aggregate root>> {
+  - owner: String
+  - balance: Money
+  - holdings: Map<Ticker, Holding>
+  __
+  + sell(ticker, quantity, price): SellResult
+  + buy(ticker, quantity, price): void
+  + getBalance(): Money
+}
+
+class Holding <<entity>> {
+  - ticker: Ticker
+  - lots: List<Lot> {ordered by purchase date}
+  __
+  + sell(quantity, price): SellResult
+  + buy(quantity, price): void
+  + getTotalShares(): ShareQuantity
+}
+
+class Lot <<entity>> {
+  - initialShares: ShareQuantity
+  - remainingShares: ShareQuantity
+  - unitPrice: Price
+  - purchasedAt: LocalDateTime
+  __
+  + reduce(quantity): void
+  + calculateCostBasis(quantity): Money
+}
+
+class SellResult <<value object>> {
+  - proceeds: Money
+  - costBasis: Money
+  - profit: Money
+  __
+  profit = proceeds − costBasis
+}
+
+Portfolio "1" *-- "0..*" Holding : contains\none per ticker >
+Holding "1" *-- "1..*" Lot : contains\n{ordered FIFO} >
+Portfolio .right.> SellResult : a sale\nreturns >
+
+note right of Portfolio
+  **The only entry point.**
+  All changes to holdings and lots
+  pass through the Portfolio.
+  Cash from sales is credited
+  to **balance**.
+end note
+
+note right of Lot
+  One purchase event.
+  Selling **reduces** lots,
+  oldest first (FIFO); an
+  emptied lot is removed.
+end note
+
+note bottom of Holding
+  Other value objects, validated at creation:
+  **Money** (an amount) · **Price** (> 0) ·
+  **ShareQuantity** (never negative) ·
+  **Ticker** (1–5 uppercase letters)
+end note
+
+@enduml

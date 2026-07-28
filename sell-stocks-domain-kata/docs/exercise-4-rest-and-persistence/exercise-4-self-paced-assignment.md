@@ -14,8 +14,12 @@ instead of a long conversation.
 
 ## Architecture
 
-A plain three-layer application. Deliberately **not hexagonal** — the point is to feel why that
-complexity earns its cost later, not to start there because it's the fashionable answer.
+A plain three-layer application, by default. This isn't a ban on hexagonal/ports-and-adapters —
+if you already have solid, comfortable experience with it, you're welcome to use it. But the
+default recommendation is the plain version below: the point of this exercise is to feel why that
+extra complexity earns its cost, not to start there because it's the more fashionable answer. If
+you're unsure which to pick, ask your instructor before committing — hexagonal is a bigger
+investment to get right in one sitting than the exercise assumes.
 
 ```text
 HTTP request
@@ -120,8 +124,11 @@ spring.sql.init.mode=always
 spring.sql.init.schema-locations=classpath:schema.sql
 ```
 
-A real project points this same code at Postgres or MySQL by changing the datasource URL and
-driver — nothing else. `schema.sql` was written to be portable for exactly this reason.
+H2 is a deliberate choice, not just a convenience: it needs nothing beyond a JAR on the classpath,
+so it sidesteps any dependency on Docker and Testcontainers, which this training environment may
+not have cleared for use yet. A real project points this same code at Postgres or MySQL later by
+changing the datasource URL and driver — nothing else. `schema.sql` was written to be portable for
+exactly this reason.
 
 ## The suggested prompt
 
@@ -132,7 +139,9 @@ Treat the attached domain source (Portfolio, Holding, Lot, the value objects, th
 immutable. If you find yourself wanting to edit one of them to make it fit Spring or JPA, stop and
 tell me why instead of doing it.
 
-Build a plain three-layer application — controller, service, repository — not hexagonal:
+Build a plain three-layer application by default — controller, service, repository. (Only reach
+for hexagonal/ports-and-adapters if you're already comfortable with it; ask your instructor first
+if you're unsure.)
 
   POST /api/portfolios                 create a portfolio
   GET  /api/portfolios/{id}             fetch one, with its holdings
@@ -172,11 +181,11 @@ wiring, mapping, and the error contract.
 | Controller | `@WebMvcTest` + mocked service | One happy path per endpoint, plus one representative 400 and one 404 from the exception handler | 6 |
 | End to end | `@SpringBootTest(webEnvironment = RANDOM_PORT)` + `TestRestTemplate`, real H2 | Full-stack wiring across all four endpoints in sequence, plus one full-stack 409 proving nothing persisted | 2 |
 
-**Do not add:** Testcontainers or a real Postgres/MySQL instance, RestAssured (`MockMvc` and
-`TestRestTemplate` already ship with `spring-boot-starter-test`), ArchUnit layering enforcement
-(the architecture is deliberately plain — not worth enforcing structurally at this size),
-optimistic-locking or retry/concurrency tests, or a performance test for aggregate-loading cost.
-Those are discussion items below, not test classes.
+**Do not add:** Testcontainers or a real Postgres/MySQL instance (H2 avoids the Docker dependency
+on purpose — see H2 setup above), RestAssured (`MockMvc` and `TestRestTemplate` already ship with
+`spring-boot-starter-test`), ArchUnit layering enforcement (the architecture is deliberately plain
+— not worth enforcing structurally at this size), optimistic-locking or retry/concurrency tests, or
+a performance test for aggregate-loading cost. Those are discussion items below, not test classes.
 
 ## Worth discussing afterwards
 
