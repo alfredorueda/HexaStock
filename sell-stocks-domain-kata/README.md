@@ -1,0 +1,139 @@
+# Sell Stocks — Domain Kata (US-07)
+
+A standalone training project: the **domain model only** for selling stocks with FIFO lot
+consumption, and the JUnit 5 tests that prove it correct.
+
+## How to run
+
+```bash
+cd sell-stocks-domain-kata
+mvn test
+```
+
+Java 21, Maven, and **JUnit 5 as the only dependency** (test scope). This project is not
+part of the HexaStock reactor — it has no parent POM and no module entry anywhere else, so
+it builds entirely on its own.
+
+## What this step is (and is not)
+
+This step implements the **domain and nothing else**. There is no REST API, no Spring, no
+database, no DTOs, no controllers, no logging framework — just plain Java classes and tests.
+The point is to get the *domain* right first, and to be able to prove it with tests that run
+in milliseconds and need no infrastructure to start.
+
+Because there is no HTTP layer, the specification's failure outcomes are expressed as
+**domain exceptions** rather than status codes:
+
+| Failure                                | Exception                   | (status a later API layer would return) |
+| -------------------------------------- | --------------------------- | --------------------------------------- |
+| Quantity is zero or negative           | `InvalidQuantityException`  | 400 Bad Request                         |
+| Selling more shares than are held      | `ConflictQuantityException` | 409 Conflict                            |
+| Ticker is not held by the portfolio    | `HoldingNotFoundException`  | 404 Not Found                           |
+| Sale price is not positive             | `InvalidAmountException`    | 400 Bad Request                         |
+
+All monetary values are `BigDecimal` at scale 2, `HALF_UP` — never `double` or `float`.
+
+## The specifications this was built from
+
+They all live inside this project, so it depends on no other module and no file elsewhere in
+the workspace. One topic per file:
+
+* [`docs/spec/sell-stocks-spec.md`](docs/spec/sell-stocks-spec.md) — the **behaviour**:
+  preconditions, the FIFO rule, the money definitions, and the 19 acceptance criteria
+  (AC-01 … AC-19) that each map to exactly one test. **Start here.**
+* [`docs/spec/domain-model.md`](docs/spec/domain-model.md) — the **structure** in prose:
+  entities, value objects, and what validates what.
+* [`docs/spec/domain-class-diagram.puml`](docs/spec/domain-class-diagram.puml) — the same
+  structure as a class diagram.
+* [`docs/spec/domain-er-diagram.puml`](docs/spec/domain-er-diagram.puml) — and again as an
+  entity-relationship diagram, for anyone more at home with tables than with objects.
+* [`docs/spec/er-model-limitations.md`](docs/spec/er-model-limitations.md) — what the ER view
+  cannot express, and why. Written for students, with a discussion guide for instructors.
+* [`docs/spec/error-contract.md`](docs/spec/error-contract.md) — which **exception** each
+  failure raises, and with what message.
+
+The original spec wrote its scenarios in Gherkin. The local copy converts them to plain-language
+acceptance criteria — every number preserved, and expanded to cover boundaries, the loss case
+and each error path.
+
+## The FIFO rule
+
+A sale consumes lots **oldest first**:
+
+1. Start with the oldest lot.
+2. Take `min(lot remaining shares, shares still to sell)`.
+3. Reduce that lot by the amount taken.
+4. Add `sharesTakenFromLot × lotPurchasePrice` to the cost basis.
+5. If the lot reaches zero, it is removed.
+6. Continue with the next-oldest lot until the requested quantity is filled.
+
+Money definitions:
+
+* `proceeds  = quantitySold × salePrice`
+* `costBasis = Σ (sharesFromLotᵢ × purchasePriceᵢ)` — following FIFO
+* `profit    = proceeds − costBasis` — negative is a valid result, it is a realized loss
+
+The whole sale is validated **before** any lot is touched, so a rejected sale leaves the
+holding and the cash balance exactly as they were.
+
+## Worked numbers
+
+Baseline: AAPL held as two lots in purchase order, **10 @ 100.00** then **5 @ 120.00**
+(15 shares), sale price **150.00**, starting cash balance 0.00.
+
+| Sell qty | Sale price | Lots consumed (FIFO)         | Proceeds | Cost basis | Profit  | Lots remaining              |
+| -------- | ---------- | ---------------------------- | -------- | ---------- | ------- | --------------------------- |
+| 1        | 150.00     | 1 @ 100.00                   | 150.00   | 100.00     | 50.00   | 9 @ 100.00, 5 @ 120.00      |
+| 8        | 150.00     | 8 @ 100.00                   | 1200.00  | 800.00     | 400.00  | 2 @ 100.00, 5 @ 120.00      |
+| 10       | 150.00     | 10 @ 100.00                  | 1500.00  | 1000.00    | 500.00  | 5 @ 120.00 (first lot gone) |
+| 12       | 150.00     | 10 @ 100.00, then 2 @ 120.00 | 1800.00  | 1240.00    | 560.00  | 3 @ 120.00 (first lot gone) |
+| 15       | 150.00     | 10 @ 100.00, then 5 @ 120.00 | 2250.00  | 1600.00    | 650.00  | none — 0 shares held        |
+| 8        | 90.00      | 8 @ 100.00                   | 720.00   | 800.00     | −80.00  | 2 @ 100.00, 5 @ 120.00      |
+
+Proceeds are credited to the portfolio's cash balance: after selling 8 at 150.00 the balance
+goes from 0.00 to 1200.00.
+
+## Deliberately not implemented
+
+The specification leaves two things open, so this project leaves them open too. Both are
+marked `// TODO (open spec question)` in the code and written up in
+[§6 of the local spec](docs/spec/sell-stocks-spec.md):
+
+* **Ticker format validation.** The spec says a ticker is 1–5 uppercase letters but defines
+  no acceptance criterion for a malformed one — no exception, no validation point.
+* **Holding lifecycle after full liquidation.** Emptied *lots* are removed; the spec never
+  says whether the *holding* is removed once its last lot is gone, so it is unspecified what
+  a subsequent sale of that ticker should do.
+
+Neither has a test. Closing the spec gap comes first; the code follows.
+
+## Roadmap (documented only — not built here)
+
+### Roadmap A — Stack growth
+
+The same domain, unchanged, gets progressively more stack around it:
+
+1. **Plain-Java CLI** — a `main` that reads commands from the console and calls the domain
+   directly. Proves the domain is usable without any framework.
+2. **Spring + REST API** — controllers and a service layer over the same domain classes, with
+   the exception-to-status mapping in the table above.
+3. **Database as the data layer** — repositories persisting portfolios, holdings and lots.
+
+A simple **3-layer** architecture (presentation → service → data), *not* hexagonal. The
+hexagonal version is what the surrounding HexaStock workspace already demonstrates; the point
+here is to arrive at that complexity deliberately, by feeling the limits of the simpler shape
+first.
+
+### Roadmap B — From prompting to specification-driven development
+
+Right now the quality of this project sits in a long prompt. That does not scale: a prompt is
+written once, reviewed by nobody, and thrown away. The direction of travel is that **the
+prompt gets smaller while the quality moves into versioned specifications**:
+
+* User stories and acceptance criteria in **plain language** (no Gherkin), versioned as files.
+* Entity-relationship and **class diagrams** as the source of truth for structure.
+* **ADRs** recording the chosen tech stack and the technical rules to enforce.
+* Whatever other artifacts the project needs — glossaries, API contracts, test data.
+
+The context then lives in the repository: diffable, reviewable in a pull request, and owned by
+the team rather than by whoever typed the prompt.
