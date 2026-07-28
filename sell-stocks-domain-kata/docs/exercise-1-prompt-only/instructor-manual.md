@@ -7,9 +7,19 @@ exercise is designed so that belief survives Phase 1 completely intact, and does
 Phase 3.
 
 The lesson is not "AI assistants are unreliable". They are not — they will produce clean,
-defensible, well-tested code from the brief. The lesson is that **a prompt cannot be reviewed,
-cannot be diffed, and cannot be handed to anyone else**, and that a test suite written by the
-same conversation that wrote the code proves only internal consistency.
+defensible, well-tested code from the brief.
+
+There are two lessons, and neither one is about the assistant. Both are about the *prompt*.
+
+**1. A prompt is not something a team can work with.** Nobody can read it and object before the
+code gets written. Nobody can see what changed between one version of the requirements and the
+next. Nobody can pick it up in six months and find out what was agreed. It is a conversation,
+and conversations disappear.
+
+**2. The tests do not rescue you.** The assistant read the brief, wrote the code from its own
+interpretation, and then wrote the tests from that same interpretation. Those tests were never
+going to fail. They prove that the assistant agreed with itself. They say nothing about whether
+the code does what the business actually needed.
 
 Do not tell them any of that. They will tell you, in Phase 5, if the session works.
 
