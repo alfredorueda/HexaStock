@@ -29,6 +29,13 @@ The prompt shrinks to about thirty lines, and most of what remains is the techno
 specifications carry everything else — which means they can be reviewed, diffed, corrected and
 reused without anyone reading the conversation that produced the code.
 
+## [Exercise 3 — REST API and persistence](exercise-3-rest-and-persistence/README.md)
+
+**Planned, not built.** The same domain, unchanged, wrapped in Spring Boot, a small REST API and
+a database through JPA — no authentication, still specification-driven. It is where the error
+contract and the SQL schema stop being documentation and become tested behaviour, and where the
+domain gets to prove it survives infrastructure without being edited.
+
 ## Running them together
 
 Exercise 1 first, and do not preview Exercise 2. The argument for specifications is not

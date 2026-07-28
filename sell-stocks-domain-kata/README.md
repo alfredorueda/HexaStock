@@ -124,6 +124,9 @@ The same domain, unchanged, gets progressively more stack around it:
    the exception-to-status mapping in the table above.
 3. **Database as the data layer** — repositories persisting portfolios, holdings and lots.
 
+Steps 2 and 3 are planned as
+[Exercise 3](docs/exercise-3-rest-and-persistence/README.md).
+
 A simple **3-layer** architecture (presentation → service → data), *not* hexagonal. The
 hexagonal version is what the surrounding HexaStock workspace already demonstrates; the point
 here is to arrive at that complexity deliberately, by feeling the limits of the simpler shape
