@@ -40,7 +40,9 @@ Java and Python both work; use whichever you prefer.
 
 **Python**
 
-- Python 3.11+, a standalone project, `pytest` only — no framework, no persistence layer.
+- Python 3.11+, a standalone project. Tests with the built-in `unittest` module, or whatever test
+  tooling is already approved and installable in your environment — don't assume a specific
+  third-party test library is available. No framework, no persistence layer.
 - Package root: `portfolio.domain` (or your project's equivalent).
 - Every monetary amount as `decimal.Decimal`, quantized to 2 places with `ROUND_HALF_UP` — never
   a plain `float`.

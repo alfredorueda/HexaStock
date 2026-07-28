@@ -1,0 +1,105 @@
+%% Portfolio domain model — class view, Mermaid edition
+%% Mirrors domain-class-diagram.puml. Source of truth for the rendered PNG in png/.
+classDiagram
+    direction TB
+
+    namespace DomainModel {
+        class Portfolio {
+            <<aggregate root>>
+            -PortfolioId id
+            -String owner
+            -Money balance
+            -Map~Ticker,Holding~ holdings
+            -LocalDateTime createdAt
+            +sell(Ticker, ShareQuantity, Price) SellResult
+            +buy(Ticker, ShareQuantity, Price) void
+            +getHolding(Ticker) Holding
+            +getBalance() Money
+        }
+
+        class Holding {
+            <<entity>>
+            -HoldingId id
+            -Ticker ticker
+            -List~Lot~ lots
+            +sell(ShareQuantity, Price) SellResult
+            +buy(ShareQuantity, Price) void
+            +getTotalShares() ShareQuantity
+            +getLots() List~Lot~
+        }
+
+        class Lot {
+            <<entity>>
+            -LotId id
+            -ShareQuantity initialShares
+            -ShareQuantity remainingShares
+            -Price unitPrice
+            -LocalDateTime purchasedAt
+            +reduce(ShareQuantity) void
+            +calculateCostBasis(ShareQuantity) Money
+            +getRemainingShares() ShareQuantity
+            +isEmpty() boolean
+        }
+    }
+
+    namespace ValueObjects {
+        class Money {
+            <<value object>>
+            -BigDecimal amount
+            +add(Money) Money
+            +subtract(Money) Money
+        }
+
+        class Price {
+            <<value object>>
+            -BigDecimal amount
+            +multiply(ShareQuantity) Money
+        }
+
+        class ShareQuantity {
+            <<value object>>
+            -int value
+            +min(ShareQuantity) ShareQuantity
+            +subtract(ShareQuantity) ShareQuantity
+            +isPositive() boolean
+            +isZero() boolean
+        }
+
+        class Ticker {
+            <<value object>>
+            -String symbol
+        }
+
+        class SellResult {
+            <<value object>>
+            -Money proceeds
+            -Money costBasis
+            -Money profit
+        }
+
+        class PortfolioId {
+            <<value object>>
+            -String value
+        }
+
+        class HoldingId {
+            <<value object>>
+            -String value
+        }
+
+        class LotId {
+            <<value object>>
+            -String value
+        }
+    }
+
+    Portfolio "1" *-- "0..*" Holding : contains
+    Holding "1" *-- "1..*" Lot : contains, ordered FIFO
+
+    Portfolio ..> SellResult : returns
+    Holding ..> SellResult : returns
+    Price ..> Money : multiply produces
+
+    note for Portfolio "Aggregate root. Every change to a Holding or a Lot passes through here."
+    note for Holding "Lots are kept in purchase order. FIFO consumes the oldest first."
+    note for SellResult "profit = proceeds - costBasis. Computed and returned, never stored."
