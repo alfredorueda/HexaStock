@@ -57,8 +57,9 @@ the workspace. One topic per file:
 
 ## Building it yourself
 
-This project is the worked result of **exercise 2**. See [`docs/`](docs/README.md) for both
-exercises, and
+This project is the worked result of **Exercise 2**. See [`docs/`](docs/README.md) for both
+exercises — Exercise 1 builds the same domain from a prompt alone, so the two can be compared —
+and
 [`docs/exercise-2-specification-driven/README.md`](docs/exercise-2-specification-driven/README.md)
 for the prompt that regenerates this project from its two specifications, what to check in the
 result, and what to try next. That prompt is about thirty lines — the behaviour it would
