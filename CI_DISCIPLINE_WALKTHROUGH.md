@@ -284,7 +284,32 @@ request instead.
 
 ---
 
-## 8. Related documents
+## 8. Possible future improvement: a two-job staged pipeline
+
+Section 2 shows that the Maven reactor already behaves like a staged
+pipeline in practice: a `domain`-level bug fails in under a minute, before
+the slower modules ever run, simply because of module build order. That
+behavior is real, but implicit — it falls out of how Maven happens to
+order the reactor, not from an explicit pipeline design.
+
+The next step in maturity would be to make that split explicit in
+`.github/workflows/build.yml`: a fast job running only
+`./mvnw -pl domain,application clean test`, and a second job — declared
+with `needs:` on the first — running the full `clean verify` across all
+modules. Every push would get feedback from the fast job within seconds;
+the slower, infrastructure-heavy job would only start once the fast one
+had already passed.
+
+This is intentionally left as a future improvement rather than done here.
+Splitting the job would change the required check's name, which this
+document and [CI_DEMO_SCRIPT.md](CI_DEMO_SCRIPT.md) currently cite
+precisely (`build-and-test`, with real log excerpts and timings) — a
+change worth making deliberately, with its own round of verification, not
+folded into a documentation update.
+
+---
+
+## 9. Related documents
 
 - [CI_DEMO_SCRIPT.md](CI_DEMO_SCRIPT.md) — condensed run sheet for this
   same walkthrough.
