@@ -151,7 +151,7 @@ public class Portfolio {
         }
 
         Money totalCost = price.multiply(quantity);
-        if (balance.isGreaterThanOrEqual(totalCost)) {
+        if (balance.isLessThan(totalCost)) {
             throw new InsufficientFundsException("Insufficient funds to buy " + quantity + " shares of " + ticker);
         }
 
