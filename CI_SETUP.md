@@ -71,17 +71,22 @@ Replace `${SONAR_PROJECT_KEY}` with your actual project key in these lines:
 [![Code Smells](https://sonarcloud.io/api/project_badges/measure?project=YOUR_PROJECT_KEY&metric=code_smells)](https://sonarcloud.io/summary/new_code?id=YOUR_PROJECT_KEY)
 ```
 
-### 5. Configure Branch Protection (Recommended)
+### 5. Configure Branch Protection — done, via a ruleset
 
-**Go to**: GitHub → alfredorueda/HexaStock → Settings → Branches
+This step is complete. `main` is protected by a repository **ruleset**
+(`Settings → Rules → Rulesets`, not the classic `Settings → Branches` page
+this section originally pointed to — GitHub's newer mechanism for the same
+purpose). It requires the `build-and-test` check to pass, requires every
+change to arrive through a pull request, and applies with no exception for
+administrators.
 
-1. **Add rule**: Click "Add rule"
-2. **Branch name pattern**: `main`
-3. **Enable**: ✅ "Require status checks to pass before merging"
-4. **Select status checks**:
-   - Search and select: `build-and-test`
-   - If available after first SonarCloud run: `SonarCloud Quality Gate`
-5. **Save changes**
+This was verified end to end — a pull request with a deliberately failing
+test was confirmed blocked from merging, and a passing pull request was
+confirmed mergeable. See
+[CI_DISCIPLINE_WALKTHROUGH.md](CI_DISCIPLINE_WALKTHROUGH.md) for the full
+explanation and the evidence, or
+[CI_DEMO_SCRIPT.md](CI_DEMO_SCRIPT.md) for a condensed run sheet to
+reproduce it.
 
 ## Testing the Setup
 
