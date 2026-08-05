@@ -191,12 +191,13 @@ merging, exactly as a real failing contribution should be.
 ### 4.2 This document reached `main` through a passing pull request
 
 This walkthrough and its companion [CI_DEMO_SCRIPT.md](CI_DEMO_SCRIPT.md)
-were themselves written on a branch, pushed, and opened as a pull request
-against `main` — not committed directly, since the ruleset no longer
-allows that. The full suite (all seven modules, including the
-Testcontainers-backed persistence tests) had to pass before the **Merge**
-button became available. That pull request is the mechanism working as
-intended, not a separate claim to take on faith.
+were themselves written on a branch, pushed, and opened as
+[PR #31](https://github.com/alfredorueda/HexaStock/pull/31) against
+`main` — not committed directly, since the ruleset no longer allows that.
+The full suite (all seven modules, including the Testcontainers-backed
+persistence tests) had to pass before the **Merge** button became
+available. That pull request is the mechanism working as intended, not a
+separate claim to take on faith.
 
 ```mermaid
 stateDiagram-v2
