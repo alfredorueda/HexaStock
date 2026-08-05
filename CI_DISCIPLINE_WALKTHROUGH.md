@@ -36,6 +36,11 @@ explained version below? See
    into something GitHub itself enforces — with no exception for
    administrators.
 
+A natural follow-up question: what stops someone from weakening the
+*tests* instead of fixing the *code*? Section 10 addresses it directly —
+and, unlike the two smaller companion repositories, this one already runs
+part of the answer in its real pipeline (SonarCloud's Quality Gate).
+
 ```mermaid
 flowchart TD
     A["Edit code on a branch"] --> B["Run the fast domain tests locally"]
@@ -321,7 +326,112 @@ folded into a documentation update.
 
 ---
 
-## 9. Related documents
+## 9. Why a passing check isn't the whole guarantee: protecting test integrity
+
+A question follows naturally from everything above: the `MainProtection`
+ruleset guarantees that `build-and-test` passes before a pull request can
+be merged — but what stops a contributor from weakening or deleting the
+very tests that check runs, inside the same pull request that introduces
+the bug? If the tests themselves can be edited freely, "the check is
+green" and "the code is correct" are not actually the same statement.
+
+This is a well-documented limitation of CI-based gatekeeping in general,
+not a flaw specific to this repository: an automated check can only
+verify that the code satisfies the rules currently encoded in the test
+suite. It cannot verify that those rules are still the right ones.
+Engineering organizations address this gap with a combination of
+practices, layered on top of — not instead of — the CI mechanism this
+document demonstrates.
+
+### 9.1 Mandatory human review
+
+Automated status checks and human review answer different questions, and
+production-grade branch protection requires both:
+
+- **Require a pull request before merging**, with **required approving
+  review count ≥ 1**, ensures at least one person reads the diff, not
+  just the CI result.
+- **Dismiss stale pull request approvals when new commits are pushed**
+  revokes a prior approval the moment new commits — including ones that
+  touch the test files — are pushed, forcing a fresh look.
+- Disallowing self-approval prevents the author of a change from also
+  being its only reviewer.
+
+For a repository using rulesets, as this one does, these options live
+under **Settings → Rules → Rulesets**, on the same `MainProtection`
+ruleset already covered in section 3, alongside its `pull_request` and
+`required_status_checks` rules.
+
+### 9.2 CODEOWNERS: routing test changes to the right reviewer
+
+A `CODEOWNERS` file lets a repository designate specific reviewers for
+specific paths — in a multi-module project like this one, per module:
+
+```
+# CODEOWNERS
+/domain/src/test/            @qa-team
+/application/src/test/       @qa-team
+```
+
+Combined with the branch protection option **Require review from Code
+Owners**, this guarantees that *any* pull request touching a test file
+must be approved by someone from the designated team — typically QA or a
+senior engineer — regardless of who approves the rest of the change. This
+is the most direct, widely used answer to "how do we stop people from
+quietly weakening the tests?": it does not prevent the edit, but it
+guarantees a specific, accountable reviewer sees it before the change can
+reach `main`.
+
+### 9.3 Coverage and mutation testing as an automated gate — already partly in place here
+
+Human review does not scale perfectly, so many organizations back it with
+automated signals that are harder to game than "the suite passes". Unlike
+the two smaller companion repositories, HexaStock's real pipeline already
+runs part of this layer:
+
+- **Code coverage**, via **JaCoCo**, is generated on every build (see
+  [CI_SETUP.md](CI_SETUP.md)) and reported to **SonarCloud**, whose
+  **Quality Gate** can fail the check if a pull request lowers the
+  covered-line percentage below a configured threshold. This is a coarse
+  signal — a test can assert nothing meaningful and still count toward
+  coverage — but it reliably catches wholesale deletion of test files,
+  and it is already visible on every pull request in this repository as
+  the `SonarCloud Code Analysis` check.
+- **Mutation testing** (PIT, Stryker4s) goes further, and is *not* part
+  of this repository's pipeline today. It automatically introduces small,
+  deliberate bugs ("mutants") into the production code and re-runs the
+  suite against each one; a healthy suite should fail on most mutants. A
+  suite that has been weakened — assertions removed, edge cases deleted —
+  lets a much larger share of mutants survive, which mutation testing
+  reports as a falling *mutation score*, even while code coverage stays
+  unchanged. Adding it is a natural extension of the SonarCloud
+  integration already in place.
+
+### 9.4 Static rules against common tampering patterns
+
+A lightweight, additional CI step can scan a diff for patterns that
+usually indicate a test was disabled rather than fixed: `@Disabled`
+annotations, a shrinking total test count relative to `main` without an
+explicit justification label, or an assertion-free test body. This does
+not replace review, but it turns an easy-to-miss diff detail into a hard
+build failure.
+
+### 9.5 What this means for the mechanism shown in this document
+
+The `MainProtection` ruleset demonstrated throughout this document is a
+necessary layer, not a complete one. It guarantees that the currently
+defined tests pass before a change reaches `main` — a real and valuable
+guarantee, verified directly in section 4. Making sure those tests stay
+meaningful is a separate, complementary problem, solved primarily through
+mandatory human review (`CODEOWNERS` plus required approvals on test
+paths) and automated integrity signals — partially in place here already
+via SonarCloud's coverage-backed Quality Gate, with mutation testing as
+the natural next step. Neither review nor automated signals substitutes
+for the other.
+
+---
+
+## 10. Related documents
 
 - [CI_DEMO_SCRIPT.md](CI_DEMO_SCRIPT.md) — condensed run sheet for this
   same walkthrough.
