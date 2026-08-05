@@ -14,6 +14,20 @@ around that.
 
 ## Before starting
 
+- [ ] **Fork the repo, then clone your fork** — not this one. Cloning
+      `alfredorueda/HexaStock` directly won't let you push branches or open
+      pull requests, since you don't have write access to it:
+      1. On GitHub, go to `https://github.com/alfredorueda/HexaStock` and
+         click **Fork** (top-right).
+      2. Clone *your* fork, replacing `<your-username>`:
+         ```bash
+         git clone https://github.com/<your-username>/HexaStock.git
+         cd HexaStock
+         ```
+      Every command below runs inside your fork. (Forking copies the code
+      but not the `MainProtection` ruleset from `main` — optional to
+      recreate under **Settings → Rules → Rulesets** on your fork if you
+      also want to see the merge-blocked behavior there.)
 - [ ] On `main`, terminal open, the repository's **Actions** tab open in a
       browser tab.
 - [ ] Confirm the baseline:
