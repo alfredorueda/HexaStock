@@ -223,6 +223,18 @@ throwaway branch — it never has to touch `main`. See
 [CI_DEMO_SCRIPT.md](CI_DEMO_SCRIPT.md) for the exact copy-paste steps. In
 outline:
 
+0. **Fork this repository, then clone your fork** — not this one. Cloning
+   `alfredorueda/HexaStock` directly won't let you push branches or open
+   pull requests, since you don't have write access to it:
+   ```bash
+   git clone https://github.com/<your-username>/HexaStock.git
+   cd HexaStock
+   ```
+   (Fork first, from `https://github.com/alfredorueda/HexaStock` →
+   **Fork**, top-right. Forking copies the code but not the
+   `MainProtection` ruleset from section 3 — optional to recreate under
+   **Settings → Rules → Rulesets** on your fork if you also want to see
+   the merge-blocked behavior there.)
 1. Branch from `main`.
 2. Comment out `balance = balance.subtract(totalCost);` in
    `Portfolio.buy()`.
