@@ -157,7 +157,7 @@ public class Portfolio {
 
         Holding holding = findOrCreateHolding(ticker);
         holding.buy(quantity, price);
-        balance = balance.subtract(totalCost);
+        // balance = balance.subtract(totalCost);  // BUG: forgets to deduct cash, for CI discipline demo
     }
 
     /**
