@@ -35,7 +35,16 @@ build/
 # macOS system files
 .DS_Store
 **/.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
 /.obsidian/
+
+# Windows system files
+Thumbs.db
+ehthumbs.db
+Desktop.ini
 
 # Local secrets (never commit real API keys)
 .env

@@ -295,6 +295,34 @@ configuration, every change to `main` must arrive through a pull request,
 with no exception for administrators. Create a branch and open a pull
 request instead.
 
+This is worth sitting with for a moment, because it's easy to read
+section 4's PR #30 as being about a *deliberate* bad change — a bug
+introduced on purpose, caught on record — and conclude the ruleset exists
+for hypothetical bad actors. In practice, the far more common trigger is
+far less dramatic: someone starts editing before remembering to create a
+branch, especially mid-flow or under time pressure, and only notices when
+`git push` refuses to cooperate. The ruleset doesn't distinguish between
+the two cases, and that's the feature, not a limitation — it doesn't ask
+*why* a change is heading to `main` without review, it just requires the
+same PR either way.
+
+Nothing is lost when this happens; the rejected `push` means the commit
+only ever reached the local repository, never `origin`:
+
+```bash
+git branch demo/break-the-build   # snapshot the current commit onto a new branch
+git reset --hard origin/main      # bring local main back in sync with the remote
+git checkout demo/break-the-build # keep working from here
+```
+
+`git branch <name>` creates a new branch pointing at whatever commit
+`main` is on right now, without moving `main` itself — so the work isn't
+discarded, it's just relabeled. `git reset --hard origin/main` then moves
+the local `main` branch back to match the remote exactly, discarding the
+commit *from `main`* (not from `demo/break-the-build`, which now also
+points at it). From there, section 5 applies unchanged: push the branch,
+open a pull request, let the check run.
+
 **Where do I see the ruleset itself?**
 `Settings → Rules → Rulesets` on the repository, or via
 `gh api repos/<owner>/HexaStock/rulesets`.
