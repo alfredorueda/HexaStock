@@ -1,0 +1,158 @@
+@startuml domain-class-diagram-with-buy
+!theme plain
+skinparam backgroundColor #FEFEFE
+skinparam classAttributeIconSize 0
+skinparam class {
+  BackgroundColor White
+  BorderColor Black
+  ArrowColor Black
+}
+skinparam note {
+  BackgroundColor #FFFFF0
+  BorderColor #CCCCAA
+}
+
+title Portfolio Domain Model — extended with Buy Stocks (US-08)
+' Extends spec/domain-class-diagram.puml with exactly three additions, all on Portfolio:
+'   1. + deposit(amount: Money): void
+'   2. A note documenting InsufficientFundsException
+'   3. A note documenting the buying rule (append-only, no merging)
+' Everything else is byte-for-byte identical to the original diagram.
+
+package "Domain Model (pure Java — no infrastructure)" {
+
+  class Portfolio <<aggregate root>> {
+    - id: PortfolioId
+    - owner: String
+    - balance: Money
+    - holdings: Map<Ticker, Holding>
+    - createdAt: LocalDateTime
+    __
+    + sell(ticker: Ticker, quantity: ShareQuantity, price: Price): SellResult
+    + buy(ticker: Ticker, quantity: ShareQuantity, price: Price): void
+    + deposit(amount: Money): void
+    + getHolding(ticker: Ticker): Holding
+    + getBalance(): Money
+  }
+
+  class Holding <<entity>> {
+    - id: HoldingId
+    - ticker: Ticker
+    - lots: List<Lot>  {ordered by purchase date}
+    __
+    + sell(quantity: ShareQuantity, price: Price): SellResult
+    + buy(quantity: ShareQuantity, price: Price): void
+    + getTotalShares(): ShareQuantity
+    + getLots(): List<Lot>
+  }
+
+  class Lot <<entity>> {
+    - id: LotId
+    - initialShares: ShareQuantity
+    - remainingShares: ShareQuantity
+    - unitPrice: Price
+    - purchasedAt: LocalDateTime
+    __
+    + reduce(quantity: ShareQuantity): void
+    + calculateCostBasis(quantity: ShareQuantity): Money
+    + getRemainingShares(): ShareQuantity
+    + isEmpty(): boolean
+  }
+
+  Portfolio "1" *-- "0..*" Holding : contains  >
+  Holding "1" *-- "1..*" Lot : contains\n{ordered FIFO}  >
+
+  note right of Portfolio
+    **Aggregate Root**
+    All state changes to Holding
+    and Lot must pass through
+    Portfolio.
+
+    **New in US-08:** deposit(amount) only
+    ever increases balance. buy(...) checks
+    quantity x price against balance BEFORE
+    mutating anything; insufficient funds
+    raise InsufficientFundsException (a new
+    domain exception, alongside the ones in
+    error-contract.md) and leave the
+    portfolio completely untouched.
+  end note
+
+  note right of Holding
+    Lots are ordered by **purchasedAt**.
+    FIFO consumes oldest lots first.
+    A sale that empties the last lot also
+    removes the Holding from its Portfolio,
+    which is why the multiplicity is 1..*.
+
+    **New in US-08:** buy(...) always appends
+    a new Lot to the end of the list. It never
+    merges into an existing lot, even when the
+    ticker and price both match exactly.
+  end note
+}
+
+package "Value Objects (immutable, validated at construction)" <<Rectangle>> {
+
+  class Money <<value object>> {
+    - amount: BigDecimal
+    __
+    + add(other: Money): Money
+    + subtract(other: Money): Money
+  }
+
+  class Price <<value object>> {
+    - amount: BigDecimal
+    __
+    + multiply(qty: ShareQuantity): Money
+    {rejects non-positive values}
+  }
+
+  class ShareQuantity <<value object>> {
+    - value: int
+    __
+    + min(other: ShareQuantity): ShareQuantity
+    + subtract(other: ShareQuantity): ShareQuantity
+    + isPositive(): boolean
+    + isZero(): boolean
+    {rejects negative values}
+  }
+
+  class Ticker <<value object>> {
+    - symbol: String
+  }
+
+  class PortfolioId <<value object>> {
+    - value: String (UUID)
+  }
+
+  class HoldingId <<value object>> {
+    - value: String
+  }
+
+  class LotId <<value object>> {
+    - value: String
+  }
+
+  class SellResult <<value object>> {
+    - proceeds: Money
+    - costBasis: Money
+    - profit: Money
+    __
+    profit = proceeds − costBasis
+  }
+}
+
+' Relationships from entities to value objects
+Portfolio ..> PortfolioId : uses
+Portfolio ..> Money : balance
+Portfolio ..> Ticker : keys holdings
+Holding ..> HoldingId : uses
+Holding ..> Ticker : uses
+Lot ..> LotId : uses
+Lot ..> ShareQuantity : uses
+Lot ..> Price : uses
+Holding ..> SellResult : returns
+Portfolio ..> SellResult : returns
+
+@enduml
