@@ -12,9 +12,9 @@ The financial portfolio domain has non-trivial business rules: FIFO lot accounti
 
 Apply Domain-Driven Design (DDD) tactical patterns with a rich domain model:
 
-- **Aggregate root:** `Portfolio` is the sole entry point for all state changes within its boundary.
+- **Aggregate root:** `Portfolio` is the intended entry point for business operations that coordinate cash and shares.
 - **Entities:** `Holding` and `Lot` have identity and lifecycle within their aggregate.
-- **Value objects:** `Money`, `Price`, `ShareQuantity`, `Ticker`, `PortfolioId`, `HoldingId`, `LotId`, `SellResult`, `HoldingPerformance`, `StockPrice` are immutable, self-validating types.
+- **Value objects:** `Money`, `Price`, `ShareQuantity`, `Ticker`, `PortfolioId`, `HoldingId`, `LotId`, `SellResult`, `HoldingPerformance`, `StockPrice` are immutable records with type-specific validation. Validation coverage differs: `Money` permits negative values, `ShareQuantity.of(0)` is valid, and the public `SellResult` constructor does not derive profit.
 - **Domain service:** `HoldingPerformanceCalculator` encapsulates computation that spans aggregate and transaction data.
 - **Domain exceptions:** Typed exceptions (`InsufficientFundsException`, `InvalidAmountException`, etc.) express business rule violations.
 - **Application services:** Orchestrate use cases by coordinating ports and delegating to the domain; they do not contain business logic.
@@ -29,7 +29,7 @@ Apply Domain-Driven Design (DDD) tactical patterns with a rich domain model:
 
 **Positive:**
 - Business rules (FIFO sell, funds validation, quantity checks) live inside the aggregate, making them testable without infrastructure.
-- Value objects eliminate primitive obsession and enforce constraints at construction time.
+- Value objects make units and selected constraints explicit; they do not prove every business invariant.
 - The rich domain model is explicit about what operations are valid and what states are reachable.
 - Domain tests verify business logic in isolation.
 
@@ -45,9 +45,9 @@ Apply Domain-Driven Design (DDD) tactical patterns with a rich domain model:
 - `Lot.java`: Javadoc states "In DDD terms, this is an Entity"
 - `Money.java`, `Price.java`, `ShareQuantity.java`, `Ticker.java`: Javadoc states "In DDD terms, this is a Value Object"
 - `HoldingPerformanceCalculator.java`: domain service with no infrastructure dependencies
-- `CONTRIBUTING.md`: "Business logic lives in the domain layer - inside aggregates, entities, and value objects. Application services orchestrate; they do not decide."
-- `CONTRIBUTING.md`: "Value Objects over Primitives. The domain uses Money, Price, ShareQuantity, Ticker, PortfolioId, and similar types instead of raw BigDecimal, int, or String."
-- `CONTRIBUTING.md`: "Aggregate Root as Consistency Boundary. All state changes to entities within an aggregate pass through the aggregate root."
+- `CONTRIBUTING.md`: domain rules and application orchestration.
+- `Money`, `Price` and `ShareQuantity` distinguish amounts, unit prices and counts.
+- Encapsulation limit: public child accessors expose mutable `Holding` and `Lot` objects. An unmodifiable collection is not a deeply immutable object graph. Callers must still follow the aggregate protocol.
 - `doc/tutorial/richVsAnemicDomainModel/`: Entire tutorial comparing rich vs anemic approaches using HexaStock's sell use case
 - Domain tests: `PortfolioTest.java`, `HoldingTest.java`, `LotTest.java`, `MoneyTest.java`, `TickerTest.java`
 

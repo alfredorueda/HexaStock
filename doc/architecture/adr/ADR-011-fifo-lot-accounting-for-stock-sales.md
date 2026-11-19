@@ -6,7 +6,7 @@ Accepted
 
 ## Context
 
-When a portfolio holds multiple purchase lots of the same stock (bought at different times and prices), selling shares requires a policy to determine which lots are consumed first. The lot selection policy affects cost basis calculation, profit/loss reporting, and tax implications. The FIFO (First-In-First-Out) policy is the most common default for individual investor accounting.
+When a portfolio holds multiple purchase lots of the same stock (bought at different times and prices), selling shares requires a policy to determine which lots are consumed first. The lot selection policy affects cost basis calculation, profit/loss reporting, and the meaning of the reported result. FIFO is the teaching policy selected by this project; this is not a statement about tax rules.
 
 ## Decision
 
@@ -23,9 +23,9 @@ This logic is entirely within the domain layer, with no infrastructure dependenc
 
 ## Alternatives considered
 
-- **LIFO (Last-In-First-Out):** Consumes the most recently purchased lots first. Different tax implications. The Gherkin specification explicitly specifies FIFO. Standard alternative.
+- **LIFO (Last-In-First-Out):** Consumes the most recently purchased lots first. Produces a different cost basis. The Gherkin specification explicitly specifies FIFO. Standard alternative.
 - **Specific lot identification:** Let the user choose which lots to sell. More flexible but more complex. Not specified in current requirements. Standard alternative.
-- **Average cost basis:** Average the cost across all lots. Simpler but less precise for tax reporting. Standard alternative.
+- **Average cost basis:** Average the cost across all lots. Produces a different accounting result; suitability depends on the specified policy. Standard alternative.
 
 ## Consequences
 
@@ -37,19 +37,19 @@ This logic is entirely within the domain layer, with no infrastructure dependenc
 
 **Negative:**
 - Only one lot selection policy is supported. Adding alternatives would require refactoring to a strategy pattern.
-- Lots must be maintained in insertion order (guaranteed by Java's `ArrayList` and JPA's `@OrderColumn` if present, or by creation timestamp).
+- Lot order must survive persistence. JPA uses `@OrderBy("purchasedAt ASC")`; domain rehydration inserts by purchase timestamp. Equal timestamps have no explicit cross-storage tie-breaker.
 
 ## Repository evidence
 
 - `Holding.java`: `sell()` method implements the FIFO algorithm - loops through lots oldest-first, reduces quantities, accumulates cost basis, removes depleted lots
-- `sell-stocks.feature`: Scenario "Shares are consumed from lots in FIFO order" (US-07.FIFO-1, US-07.FIFO-2, US-07.FIFO-3) specifies exhaustive FIFO examples
-- `fifo-settlement-selling.feature`: Extended FIFO scenarios with settlement considerations (US-13)
+- `sell-stocks.feature`: Two worked scenarios, US-07.FIFO-1 and US-07.FIFO-2, illustrate FIFO; they are not an exhaustive proof
+- `fifo-settlement-selling.feature`: Proposed extension scenarios with settlement considerations, not implemented by the baseline
 - `PortfolioTradingRestIntegrationTest.java`: `GherkinFifoScenarios` nested class with `@SpecificationRef("US-07.FIFO-1")` etc., using `FixedPriceStockPriceAdapter` for deterministic price control
 - `SellResult.java`: record containing `proceeds`, `costBasis`, `profit` returned from sell operations
 - `PortfolioTest.java`, `HoldingTest.java`: domain-level tests verifying FIFO behaviour
 
 ## Relation to other specifications
 
-- **Gherkin:** This ADR documents the decision behind the FIFO policy that `sell-stocks.feature` and `fifo-settlement-selling.feature` specify in behavioural terms. The Gherkin scenarios provide the acceptance criteria; this ADR provides the rationale.
+- **Gherkin:** This ADR documents the decision behind the current FIFO policy in `sell-stocks.feature`; the settlement feature proposes additional rules in behavioural terms. The Gherkin scenarios provide the acceptance criteria; this ADR provides the rationale.
 - **OpenAPI:** The `SaleResponse` schema in `openapi.yaml` returns `costBasis`, `proceeds`, and `profit` fields that are computed by the FIFO algorithm.
 - **PlantUML:** Sequence diagrams under `doc/tutorial/sellStocks/diagrams/` trace the sell flow through `Portfolio.sell()` → `Holding.sell()` → lot iteration.
