@@ -61,6 +61,9 @@
 ## Project
 
 * [Contributing](CONTRIBUTING.md)
+* [CI: how checks protect main](CI_DISCIPLINE_WALKTHROUGH.md)
+  * [Configuration and report locations](CI_SETUP.md)
+  * [Classroom demonstration](CI_DEMO_SCRIPT.md)
 * [Acknowledgements](doc/ACKNOWLEDGEMENTS.md)
 
 ## Legal
