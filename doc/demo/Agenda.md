@@ -1,60 +1,22 @@
-# 📌 HexaStock Demo
-**Building a Financial Portfolio App with Hexagonal Architecture & DDD**
+# HexaStock classroom demonstration
 
----
+**Goal:** explain one complete sale and the boundaries that make it testable. Suggested duration: 30 minutes. Prepare Java 21; use the [start guide](../learning/START-HERE.md). Docker is needed for database integration tests, not the domain-only session.
 
-## 01. Introduction & Adapter Swap in Action
+| Time | Demonstration | Ask learners to explain |
+|---|---|---|
+| 0–5 min | Original [hexagonal overview](../tutorial/sellStocks/SELL-STOCK-04-HTTP-AND-PORTS.md) | Which arrows represent dependencies? |
+| 5–12 min | [FIFO example](../tutorial/sellStocks/SELL-STOCK-03-FIFO.md) | Why do 12 sold shares have cost basis 1240? |
+| 12–17 min | [Domain tests](../tutorial/sellStocks/SELL-STOCK-02-DOMAIN-TEST.md) | Which assertions check remaining state? |
+| 17–23 min | [Application and persistence](../tutorial/sellStocks/SELL-STOCK-05-ORCHESTRATION.md) | Who decides, who coordinates, and who stores? |
+| 23–28 min | [Integration evidence](../tutorial/testing/03-INTEGRATION-AND-ARCHITECTURE.md) | What can only a real adapter test establish? |
+| 28–30 min | [CI and coverage](../../CI_DISCIPLINE_WALKTHROUGH.md) | What does a passing check still not prove? |
 
-- Quick look at the **Hexagonal Architecture diagram**
-- Present HexaStock: a financial portfolio app built with DDD
-- Switch smoothly between **FinHub** and **AlphaVantage**
-- Spring profiles load different adapters automatically
-- Same business request, different provider behind the scenes
-- Demonstrates true decoupling of domain from infrastructure
+Use a deterministic quote fixture when demonstrating exact amounts. The `mockfinhub` runtime adapter returns random prices; the trading integration tests use a fixed-price test adapter. Do not expect an arbitrary live quote to reproduce the tutorial's arithmetic.
 
+For an optional adapter comparison, explain the `finhub`, `alphaVantage`, and `mockfinhub` profiles. Real providers need their own configuration and can fail or return cached observations. Keep credentials outside the demonstration material.
 
----
+Use the current [API reference](../stock-portfolio-api-specification.md) and `http/api-tests.http` for request examples. Run destructive database initialization only in a disposable teaching environment; the default JPA `create-drop` setting recreates the schema.
 
-## 02. Rich Domain Model
-- Entities: **Portfolio**, **Holding**, **Lot**, **Transaction** with embedded logic
-- Value Objects: **Money**, **Price**, **ShareQuantity**, **Ticker**, **PortfolioId**, **HoldingId**, **LotId**, **TransactionId**, **SellResult**, **StockPrice** enforce correctness
-- Business rules (cash checks, FIFO, transactions) live inside the model:
-  - https://deepwiki.com/alfredorueda/HexaStock/3.1-core-entities#fifo-accounting-implementation
-- Show the **UML Class Diagram** to illustrate relationships in the domain
+Show the coverage report from the run being demonstrated. Do not quote a fixed percentage or claim that coverage guarantees correct behavior. CI runs on its configured triggers; see [CI setup](../../CI_SETUP.md).
 
-[![HexaStock Domain Model](../tutorial/sellStocks/diagrams/Rendered/HexaStock%20Domain%20Model.png)](../tutorial/sellStocks/diagrams/Rendered/HexaStock%20Domain%20Model.svg)
-
-- This diagram shows the purchase flow within the domain model, starting from the Portfolio aggregate root. The Portfolio validates the purchase, finds or creates a Holding for the ticker, and the Holding creates a new Lot to track the purchase.
-<img src="Buy Stocks Use Case.png" width="70%">
-
-
----
-
-## 03. Lightning-Fast Unit Tests
-- Pure domain tests run in **milliseconds**
-- Scenarios: insufficient funds, invalid operations, FIFO sales
-- Enables **TDD and rapid feedback** without frameworks
-
----
-
-## 04. Integration with Testcontainers
-- Fresh **MySQL Docker container** for each test suite
-- **REST Assured** calls to the real REST API
-- Validate: 201 Created, 200 OK, 400 Bad Request, 404 Not Found, 409 Conflict
-
----
-
-## 05. REST API & Swagger
-- Resource-oriented endpoints with correct HTTP verbs
-- Proper status codes for each case (201, 200, 400, 404, 409)
-- **Swagger UI** for API docs + IntelliJ HTTP client for live calls
-- Database viewer shows updates in real time
-
----
-
-## 06. CI Pipeline & Coverage
-- **GitHub Actions**: build, test, integration, coverage on every push
-- **JaCoCo** coverage report ~92%
-- Guarantees safe refactoring and long-term evolvability
-
----
+**Exit question:** if the database changes from JPA/MySQL to MongoDB, which business-rule tests should remain unchanged, and which adapter guarantees must be verified again?

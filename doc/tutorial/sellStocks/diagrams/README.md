@@ -19,17 +19,7 @@ The ten new diagrams’ editable PlantUML sources share `sell-style.puml`: navy 
 
 ## Update a diagram
 
-Edit the source, render both formats, inspect the result, then synchronize the PNG used by GitBook. From the repository root, with Docker running:
-
-```bash
-./scripts/render-diagram.sh \
-  doc/tutorial/sellStocks/diagrams/sell-domain-fifo.puml \
-  doc/tutorial/sellStocks/diagrams/Rendered
-cp doc/tutorial/sellStocks/diagrams/Rendered/sell-domain-fifo.png \
-  .gitbook/assets/sell-domain-fifo.png
-```
-
-Alternatively, use a local PlantUML installation. The staged edition was rendered with PlantUML 1.2025.2 and Graphviz, with 180 DPI PNG output specified in the shared style. Keep the include file beside the source when rendering. A shared-style edit requires rerendering all ten diagrams.
+Edit the source, render both formats, inspect the result, then synchronize the PNG used by GitBook. Follow the [diagram maintenance commands](../../../diagrams/README.md). The staged edition uses PlantUML 1.2025.2 and Graphviz, with 180 DPI PNG output specified in the shared style. Preserve relative includes when rendering. A shared-style change requires rerendering all diagrams that include it, including the reporting, rich/anemic, and watchlist figures.
 
 The book embeds PNGs from `.gitbook/assets` using relative paths and descriptive alt text. Each figure links to its SVG for zooming and its PlantUML source for maintenance. Commit the source, both rendered formats and the GitBook PNG together; the two PNG copies must be identical.
 
