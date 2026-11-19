@@ -15,7 +15,7 @@ Use a deterministic quote fixture when demonstrating exact amounts. The `mockfin
 
 For an optional adapter comparison, explain the `finhub`, `alphaVantage`, and `mockfinhub` profiles. Real providers need their own configuration and can fail or return cached observations. Keep credentials outside the demonstration material.
 
-Use the current [API reference](../stock-portfolio-api-specification.md) and `http/api-tests.http` for request examples. Run destructive database initialization only in a disposable teaching environment; the default JPA `create-drop` setting recreates the schema.
+Use the current [API reference](../stock-portfolio-api-specification.md) and [`doc/calls.http`](../calls.http) for request examples. Run destructive database initialization only in a disposable teaching environment; the default JPA `create-drop` setting recreates the schema.
 
 Show the coverage report from the run being demonstrated. Do not quote a fixed percentage or claim that coverage guarantees correct behavior. CI runs on its configured triggers; see [CI setup](../../CI_SETUP.md).
 

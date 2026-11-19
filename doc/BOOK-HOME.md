@@ -13,6 +13,18 @@ The book and [source repository](https://github.com/alfredorueda/HexaStock) can 
 
 ***
 
+## A route for each learning stage
+
+| Starting point | Suggested route | Outcome |
+|---|---|---|
+| First Java/domain exercise | First Steps → sell stages 1–3 | Calculate and test FIFO without infrastructure |
+| First complete application | Sell stages 4–9 → API reference | Trace HTTP, ports, persistence, and failures |
+| Architecture course | Architecture map → DDD boundaries → dependency inversion → testing | Explain and verify responsibilities |
+| Advanced design | Concurrency → reporting → domain review | Compare alternatives with evidence |
+| Independent practice | Lot-policy exercise or proposed watchlists | Extend one requirement at a time |
+
+For a course with assessable sessions, use the [teaching program](architecture/ARCHITECTURE-TRANSFORMATION-PROGRAM.md). The [DDD/Hexagonal/Onion/Clean comparison](architecture/DDD-HEXAGONAL-ONION-CLEAN-COMPARATIVE-STUDY.md) is a conceptual reference after the first worked example.
+
 ## Supporting Chapters
 
 These chapters deepen specific themes introduced in the main study.
@@ -38,13 +50,13 @@ This advanced chapter examines how specifications, tests and review can guide AI
 
 ## Technical Review
 
-* [AI-Assisted Architectural Review — DDD and Hexagonal Architecture](domain-review/DDD-REVIEW-PERSONAL-INVESTMENT-PORTFOLIO.md) — A structured assessment of the domain model, aggregate design, and hexagonal layer separation.
+* [Review the domain and architecture](domain-review/DDD-REVIEW-PERSONAL-INVESTMENT-PORTFOLIO.md) — A structured assessment of the domain model, aggregate design, and hexagonal layer separation.
 
 ***
 
 ## API and Specifications
 
-* [Stock Portfolio API Specification](stock-portfolio-api-specification.md) — Complete REST API for all 10 use cases, RFC 7807 error contract, domain model, and exception mapping.
+* [Stock Portfolio API Specification](stock-portfolio-api-specification.md) — One page per baseline use case, with request/response examples, error mapping, and implementation limits.
 * [Gherkin Feature Files](https://github.com/alfredorueda/HexaStock/blob/main/doc/features/sell-stocks.feature) — Readable behavioural specifications linked to executable JUnit tests.
 
 ***

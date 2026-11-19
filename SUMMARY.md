@@ -28,6 +28,26 @@
   * [1. Map the modules and ports](doc/architecture/ARCHITECTURE-MAP.md)
   * [2. Understand runtime guarantees](doc/architecture/RUNTIME-AND-VERIFICATION.md)
   * [Architecture decisions](doc/architecture/adr/README.md)
+    * [ADR-001: Use Java 21 as the baseline language and runtime](doc/architecture/adr/ADR-001-use-java-21-as-baseline-runtime.md)
+    * [ADR-002: Use Spring Boot 3 as the application framework](doc/architecture/adr/ADR-002-use-spring-boot-3-as-application-framework.md)
+    * [ADR-003: Adopt Hexagonal Architecture with strict dependency inversion](doc/architecture/adr/ADR-003-adopt-hexagonal-architecture.md)
+    * [ADR-004: Model the core business using Domain-Driven Design with a rich domain model](doc/architecture/adr/ADR-004-rich-domain-model-with-ddd.md)
+    * [ADR-005: Expose functionality via REST API with RFC 7807 error responses](doc/architecture/adr/ADR-005-rest-api-with-rfc7807-errors.md)
+    * [ADR-006: Use multi-module Maven build to enforce architectural boundaries](doc/architecture/adr/ADR-006-multi-module-maven-build.md)
+    * [ADR-007: Keep domain production code free of frameworks](doc/architecture/adr/ADR-007-domain-module-zero-framework-dependencies.md)
+    * [ADR-008: Use MySQL with Spring Data JPA and explicit domain-persistence mapping](doc/architecture/adr/ADR-008-mysql-jpa-with-domain-persistence-mapping.md)
+    * [ADR-009: Use Testcontainers for integration tests instead of H2](doc/architecture/adr/ADR-009-testcontainers-for-integration-tests.md)
+    * [ADR-010: Enforce architecture rules with ArchUnit fitness tests](doc/architecture/adr/ADR-010-archunit-architecture-fitness-tests.md)
+    * [ADR-011: Implement FIFO lot accounting for stock sales in the domain](doc/architecture/adr/ADR-011-fifo-lot-accounting-for-stock-sales.md)
+    * [ADR-012: Coordinate JPA portfolio access with a pessimistic lock](doc/architecture/adr/ADR-012-pessimistic-locking-for-aggregate-consistency.md)
+    * [ADR-013: Cache stock prices with Caffeine](doc/architecture/adr/ADR-013-cache-stock-prices-with-caffeine.md)
+    * [ADR-014: Use @SpecificationRef for specification-to-test traceability](doc/architecture/adr/ADR-014-specification-ref-traceability-annotation.md)
+    * [ADR-015: Wire application services explicitly via @Configuration beans](doc/architecture/adr/ADR-015-explicit-bean-wiring-via-configuration.md)
+    * [ADR-016: Detect MongoDB conflicts and retry the use case](doc/architecture/adr/ADR-016-optimistic-locking-with-retry-for-mongodb-adapter.md)
+
+* [Compare DDD, Hexagonal, Onion, and Clean](doc/architecture/DDD-HEXAGONAL-ONION-CLEAN-COMPARATIVE-STUDY.md)
+* [Teaching program](doc/architecture/ARCHITECTURE-TRANSFORMATION-PROGRAM.md)
+  * [Program overview](doc/architecture/ARCHITECTURE-TRANSFORMATION-PROGRAM-EXECUTIVE-SUMMARY.md)
 
 * [Rich and anemic domain models](doc/tutorial/richVsAnemicDomainModel/RICH_VS_ANEMIC_DOMAIN_MODEL_TUTORIAL.md)
   * [1. Inspect the current model](doc/tutorial/richVsAnemicDomainModel/01-CURRENT-MODEL.md)
@@ -97,6 +117,8 @@
 
 ## Project
 
+* [Classroom demonstration](doc/demo/Agenda.md)
+* [Maintain diagrams](doc/diagrams/README.md)
 * [Contributing](CONTRIBUTING.md)
 * [CI: how checks protect main](CI_DISCIPLINE_WALKTHROUGH.md)
   * [Configuration and report locations](CI_SETUP.md)

@@ -56,7 +56,7 @@ This runs the domain tests without starting Spring, a database or a market-price
 
 **Expected result:** Maven reports `BUILD SUCCESS`. If it fails, first inspect `java -version` and the first error in the output. A passing test means its assertions passed; it does not establish that every possible input has been checked.
 
-When you are ready for HTTP and databases, follow the repository [setup instructions](https://github.com/alfredorueda/HexaStock/blob/main/README.md#getting-started).
+When you are ready for HTTP and databases, follow the repository [setup instructions](https://github.com/alfredorueda/HexaStock/blob/main/README.md#run-the-http-application).
 
 ## Understand the scope of each reading
 
