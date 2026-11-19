@@ -37,6 +37,9 @@
 
 * [Specification-Driven Development with AI](doc/tutorial/specificationDrivenAI/SPECIFICATION-DRIVEN-DEVELOPMENT-WITH-AI.md)
 * [Concurrency Control: Pessimistic Locking and Optimistic Concurrency](doc/tutorial/CONCURRENCY-PESSIMISTIC-LOCKING.md)
+  * [1. Coordinate JPA writers](doc/tutorial/concurrency/JPA-LOCKING.md)
+  * [2. Retry MongoDB conflicts](doc/tutorial/concurrency/MONGODB-RETRIES.md)
+  * [MongoDB adapter reference](doc/mongodb-adapter-optimistic-write-and-retry.md)
 * [Holdings Performance at Scale](doc/tutorial/portfolioReporting/HOLDINGS-PERFORMANCE-AT-SCALE.md)
 * [Watchlists and Market Sentinel](doc/tutorial/watchlists/WATCHLISTS-MARKET-SENTINEL.md)
 * [Lot Selection Strategies — DDD Hexagonal Exercise](doc/tutorial/DDD-Hexagonal-exercise.md)
