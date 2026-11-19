@@ -62,6 +62,8 @@ The maintained domain diagram is rendered as an image so it displays in GitBook:
 
 ![Portfolio, holdings, lots and sale values](../.gitbook/assets/sell-domain-model.png)
 
+[Open the full-size diagram (SVG)](https://raw.githubusercontent.com/alfredorueda/HexaStock/main/doc/tutorial/sellStocks/diagrams/Rendered/sell-domain-model.svg)
+
 [Diagram source](https://github.com/alfredorueda/HexaStock/blob/main/doc/tutorial/sellStocks/diagrams/sell-domain-model.puml).
 
 ## 5. HTTP Request File

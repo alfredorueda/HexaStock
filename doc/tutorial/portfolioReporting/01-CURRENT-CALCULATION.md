@@ -20,6 +20,8 @@ Average historical purchase price is **not** the cost basis per remaining share.
 
 ![Current report: load, quote, calculate](../../../.gitbook/assets/approachA-sequence.png)
 
+[Open the full-size diagram (SVG)](https://raw.githubusercontent.com/alfredorueda/HexaStock/main/doc/tutorial/portfolioReporting/diagrams/Rendered/approachA-sequence.svg)
+
 `ReportingService.getHoldingsPerformance()` performs these steps inside its application transaction:
 
 1. Load the portfolio or throw `PortfolioNotFoundException`.

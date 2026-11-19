@@ -21,6 +21,8 @@ For a settled, reserved lot containing ten shares, the first predicate rejects i
 
 ![Hypothetical duplicated policy](../../../.gitbook/assets/anemic-architecture.png)
 
+[Open the full-size diagram (SVG)](https://raw.githubusercontent.com/alfredorueda/HexaStock/main/doc/tutorial/richVsAnemicDomainModel/diagrams/Rendered/anemic-architecture.svg)
+
 A model made of data carriers does not require duplication. It can delegate both callers to a shared policy. A rich model can also be implemented badly by leaving obsolete predicates elsewhere. Diagnose ownership and reuse, not only the class name in which code appears.
 
 ## A second counterexample: fees
@@ -37,9 +39,13 @@ A shared result factory or calculator can reduce formula duplication. All constr
 
 ![Shared policy versus inconsistent copies](../../../.gitbook/assets/invariant-enforcement.png)
 
+[Open the full-size diagram (SVG)](https://raw.githubusercontent.com/alfredorueda/HexaStock/main/doc/tutorial/richVsAnemicDomainModel/diagrams/Rendered/invariant-enforcement.svg)
+
 ## How drift can arise
 
 ![Illustrative evolution of duplicated rules](../../../.gitbook/assets/rule-drift.png)
+
+[Open the full-size diagram (SVG)](https://raw.githubusercontent.com/alfredorueda/HexaStock/main/doc/tutorial/richVsAnemicDomainModel/diagrams/Rendered/rule-drift.svg)
 
 The timeline is hypothetical: first two callers agree, then one is updated, then the other produces an inconsistent answer. It is not a claim about named developers, real sprints or a production incident.
 
@@ -48,6 +54,8 @@ An eligible-shares query is not inherently a design error. Users may need that i
 ## Alternative service-centered design
 
 ![Illustrative service-centered calculation](../../../.gitbook/assets/anemic-sell-sequence.png)
+
+[Open the full-size diagram (SVG)](https://raw.githubusercontent.com/alfredorueda/HexaStock/main/doc/tutorial/richVsAnemicDomainModel/diagrams/Rendered/anemic-sell-sequence.svg)
 
 A service can use one policy and one calculation path over data carriers. Compare its coupling, mutation control and testing burden with aggregate methods. Do not compare a correct rich model with deliberately broken service code and call that a general proof of superiority.
 

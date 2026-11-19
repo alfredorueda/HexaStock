@@ -76,7 +76,7 @@ For the 12-share example:
 
 ![FIFO sale of 12 shares: consume 10 at 100.00 and 2 at 120.00; credit 1800.00 and leave 3 shares](../../../.gitbook/assets/sell-domain-fifo.png)
 
-[Open the scalable diagram](https://github.com/alfredorueda/HexaStock/blob/main/doc/tutorial/sellStocks/diagrams/Rendered/sell-domain-fifo.svg) · [PlantUML source](https://github.com/alfredorueda/HexaStock/blob/main/doc/tutorial/sellStocks/diagrams/sell-domain-fifo.puml)
+[Open the scalable diagram](https://raw.githubusercontent.com/alfredorueda/HexaStock/main/doc/tutorial/sellStocks/diagrams/Rendered/sell-domain-fifo.svg) · [PlantUML source](https://github.com/alfredorueda/HexaStock/blob/main/doc/tutorial/sellStocks/diagrams/sell-domain-fifo.puml)
 
 ## Where does FIFO order come from?
 

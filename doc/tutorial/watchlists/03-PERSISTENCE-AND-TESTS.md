@@ -47,6 +47,8 @@ A MongoDB implementation is optional. It must pass equivalent contracts; an exis
 
 ![Proposed command and detection paths](../../../.gitbook/assets/cqrs-read-vs-write-overview.png)
 
+[Open the full-size diagram (SVG)](https://raw.githubusercontent.com/alfredorueda/HexaStock/main/doc/tutorial/watchlists/diagrams/Rendered/cqrs-read-vs-write-overview.svg)
+
 ## Measure before scaling
 
 Let T be distinct tickers and R the matching alerts. An unpaged cycle uses approximately 1 + T database queries, T single-ticker provider method calls by default, and R notification calls. Cache hits can reduce remote calls. Index scans and joins have their own costs; counting round trips is not a full complexity analysis.

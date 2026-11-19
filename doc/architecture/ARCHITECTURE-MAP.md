@@ -18,7 +18,9 @@ A Maven module is a separately compiled part of this repository. A port is a Jav
 
 The parent POM is an eighth POM, not an eighth child module. Test dependencies are scoped separately: the domain inherits the parent's test starter, although domain production code is framework-free.
 
-![Ports and adapters in the sale use case](../../.gitbook/assets/hexastock-hexagonal-architecture.png)
+![Module dependency map: adapters depend on application ports, and application depends on the domain](../../.gitbook/assets/sell-architecture-overview.png)
+
+[Open the scalable dependency map](https://raw.githubusercontent.com/alfredorueda/HexaStock/main/doc/tutorial/sellStocks/diagrams/Rendered/sell-architecture-overview.svg)
 
 The [original hand-drawn hexagon and its explanation](../tutorial/sellStocks/SELL-STOCK-04-HTTP-AND-PORTS.md) provide another view of the same boundary. Read arrows according to each diagram's legend: runtime calls and source-code dependencies are different relations.
 

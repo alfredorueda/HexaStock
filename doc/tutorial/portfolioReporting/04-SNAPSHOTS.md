@@ -6,6 +6,8 @@ A projection stores data shaped for a query. For example, one row per portfolio 
 
 ![Two distinct projection update strategies](../../../.gitbook/assets/snapshot-architecture.png)
 
+[Open the full-size diagram (SVG)](https://raw.githubusercontent.com/alfredorueda/HexaStock/main/doc/tutorial/portfolioReporting/diagrams/Rendered/snapshot-architecture.svg)
+
 ## Option 1: update within the command transaction
 
 Write the portfolio, transaction record and projection **before the same transaction commits**, using resources that participate in that transaction. If it rolls back, all those writes roll back. This can provide atomic visibility for that stored state under the chosen database semantics.

@@ -25,7 +25,7 @@ This tutorial and the HexaStock codebase treat Cockburn's article as the primary
 
 ![Hexagonal architecture by Tom Hombergs: web and external adapters surround the application core through input and output ports](../../../.gitbook/assets/tom-hombergs-hexagonal-architecture.png)
 
-[Open the original image at full size](https://github.com/alfredorueda/HexaStock/blob/main/.gitbook/assets/tom-hombergs-hexagonal-architecture.png)
+[Open the original image at full size](https://raw.githubusercontent.com/alfredorueda/HexaStock/main/.gitbook/assets/tom-hombergs-hexagonal-architecture.png)
 
 > *Image credit:*
 > *Diagram by **Tom Hombergs**, reproduced for educational purposes with proper attribution.*
@@ -41,7 +41,7 @@ This widely cited diagram presents Cockburn's Ports and Adapters idea in a simpl
 
 ![Expanded architecture diagram by Herberto Graça showing application layers, ports and adapters](../../../.gitbook/assets/herberto-graca-explicit-architecture.png)
 
-[Open the original image at full size](https://github.com/alfredorueda/HexaStock/blob/main/.gitbook/assets/herberto-graca-explicit-architecture.png)
+[Open the original image at full size](https://raw.githubusercontent.com/alfredorueda/HexaStock/main/.gitbook/assets/herberto-graca-explicit-architecture.png)
 
 > *Image credit:*
 > *Diagram by **Herberto Graça**, reproduced for educational purposes with proper attribution.*

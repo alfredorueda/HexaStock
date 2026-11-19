@@ -31,6 +31,8 @@ At runtime, the service still calls an adapter object through that interface. So
 
 ![Ports and adapters around the sale use case](../../.gitbook/assets/sell-architecture-overview.png)
 
+[Open the full-size diagram (SVG)](https://raw.githubusercontent.com/alfredorueda/HexaStock/main/doc/tutorial/sellStocks/diagrams/Rendered/sell-architecture-overview.svg)
+
 For the original hexagonal drawing and its attribution, see [Stage 4](sellStocks/SELL-STOCK-04-HTTP-AND-PORTS.md).
 
 ## Locate the responsibilities

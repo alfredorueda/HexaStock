@@ -15,15 +15,18 @@ Use ArchUnit to express and enforce architectural rules as JUnit tests. These te
 Seven rules are currently enforced, organised into three groups:
 
 **Domain independence:**
+
 1. Domain does not depend on Application
 2. Domain does not depend on Adapters
 3. Domain does not depend on Spring
 
 **Application independence:**
+
 4. Application does not depend on Adapters
 5. Application does not depend on Spring
 
 **Adapter isolation:**
+
 6. Inbound adapters do not depend on outbound adapters
 7. Outbound adapters do not depend on inbound adapters
 

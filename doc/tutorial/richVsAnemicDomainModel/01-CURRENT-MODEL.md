@@ -4,6 +4,8 @@
 
 ![Current aggregate and result](../../../.gitbook/assets/domain-model.png)
 
+[Open the full-size diagram (SVG)](https://raw.githubusercontent.com/alfredorueda/HexaStock/main/doc/tutorial/richVsAnemicDomainModel/diagrams/Rendered/domain-model.svg)
+
 ## Assign each responsibility
 
 | Responsibility | Current owner |
@@ -19,9 +21,13 @@ The service calls ports for infrastructure interactions. It does not import a co
 
 ![Current responsibility map](../../../.gitbook/assets/rich-architecture.png)
 
+[Open the full-size diagram (SVG)](https://raw.githubusercontent.com/alfredorueda/HexaStock/main/doc/tutorial/richVsAnemicDomainModel/diagrams/Rendered/rich-architecture.svg)
+
 A sale of 12 shares after buying 10 at $100 and 5 at $120, at a sale price of $130, consumes the first lot and two shares of the second. Cost basis is $1,240; proceeds are $1,560; profit is $320. The portfolio credits proceeds and retains three shares at a $120 purchase price.
 
 ![Current domain call sequence](../../../.gitbook/assets/rich-sell-sequence.png)
+
+[Open the full-size diagram (SVG)](https://raw.githubusercontent.com/alfredorueda/HexaStock/main/doc/tutorial/richVsAnemicDomainModel/diagrams/Rendered/rich-sell-sequence.svg)
 
 ## Rich does not mean completely protected
 

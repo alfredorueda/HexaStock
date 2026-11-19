@@ -74,6 +74,7 @@ Exercises 5 and 7 are extensions, not descriptions of current behaviour. Work in
 ## Exercise 5: Add a Maximum Sell Percentage Invariant
 
 **Type:** Mixed (Design + Coding + Reasoning)
+
 **Goal:** Implement a non-trivial business invariant using Domain-Driven Design principles.
 
 ---
@@ -214,6 +215,7 @@ Write at least some tests proving:
 ## Exercise 7: Add a Third Stock Price Provider Adapter (Prove the Hexagon Works)
 
 **Type:** Coding + Architecture Validation (Driven Adapter / Outbound Port)
+
 **Goal:** Implement a **new outbound adapter** for market data that plugs into the existing port:
 
 * `application/src/main/java/cat/gencat/agaur/hexastock/application/port/out/StockPriceProviderPort.java`
@@ -285,11 +287,12 @@ public class TwelveDataStockPriceProviderAdapter implements StockPriceProviderPo
 ```
 
 **Strict rule:**
-✅ You may add new classes in the adapter layer
-❌ You must NOT change the port interface
-❌ You must NOT change the use case (`PortfolioStockOperationsService`)
-❌ You must NOT change the domain (`Portfolio`, `Holding`, `Lot`)
-❌ You must NOT change the REST controller
+
+* ✅ You may add new classes in the adapter layer
+* ❌ You must NOT change the port interface
+* ❌ You must NOT change the use case (`PortfolioStockOperationsService`)
+* ❌ You must NOT change the domain (`Portfolio`, `Holding`, `Lot`)
+* ❌ You must NOT change the REST controller
 
 This is the point of the exercise: **only infrastructure changes**.
 
