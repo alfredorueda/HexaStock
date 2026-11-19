@@ -1,101 +1,50 @@
-# Design Decision: Handling Lots with Zero Remaining Quantity in a Portfolio Aggregate
+# Why Depleted Lots Are Removed
 
-## 1. Purpose
-This document formalizes the design decision regarding whether **Lots** with a remaining quantity of zero should be retained or removed from the **Holding** entity within a **Portfolio** aggregate.  
-The decision is based on **Domain-Driven Design (DDD)** principles as introduced by **Eric Evans** (*Domain-Driven Design: Tackling Complexity in the Heart of Software*, 2003) and expanded by **Vaughn Vernon** (*Implementing Domain-Driven Design*, 2013) and **Jimmy Nilsson** (*Applying Domain-Driven Design and Patterns*, 2006).
+**Goal:** distinguish current investment state from the historical evidence needed for reporting.
 
----
+**Prerequisite:** [the FIFO example](tutorial/sellStocks/SELL-STOCK-03-FIFO.md). **Reading time:** about 5 minutes.
 
-## 2. Context
-In the current model:
-- **Portfolio** is the aggregate root.
-- **Holding** represents a position in a specific asset within the Portfolio.
-- **Lot** represents a batch of shares acquired at a specific time and price.
-- The `remaining` attribute in Lot indicates how many units are still held after partial or full sales.
+## The decision in the current code
 
-When a Lot reaches `remaining = 0`, there are two options:
-1. **Retain the Lot** within the Holding.
-2. **Remove the Lot** from the Holding.
+A lot records shares acquired in one purchase. During `Holding.sell`, each consumed lot has its remaining quantity reduced. When that quantity reaches zero, the iterator removes the lot from the holding's list.
 
----
+For example, buying 10 shares at 100.00 and 5 at 120.00, then selling 12, leaves one lot: 3 shares from the second purchase. The first lot no longer participates in future sales.
 
-## 3. Option Analysis
+This keeps the sale model focused on shares still available to sell. It reduces retained state, but does not impose a maximum aggregate size: a portfolio can continue accumulating active lots.
 
-### 3.1 Retaining Lots with Zero Remaining Quantity
-**Advantages:**
-- Preserves historical context directly within the aggregate.
-- Useful for regulatory, tax, or audit scenarios where the origin of a sale must be traceable from the current domain object.
-- Simplifies reconstruction of historical positions without accessing other aggregates.
+## A holding can still be empty
 
-**Disadvantages:**
-- The aggregate grows indefinitely, violating the DDD guideline that aggregates should be small enough to load and modify atomically (Evans).
-- Larger collections increase memory footprint, dirty checking costs, and persistence overhead.
-- Filtering out inactive Lots becomes necessary in most operations, adding complexity.
+The current implementation removes depleted lots, **not the holding itself**. After all shares of a ticker are sold, the portfolio may still contain a holding with zero lots and zero total shares.
 
----
+That distinction matters when predicting later behavior. A request to sell from an empty existing holding can fail for insufficient quantity; it is not necessarily the same case as a ticker absent from the portfolio.
 
-### 3.2 Removing Lots with Zero Remaining Quantity
-**Advantages:**
-- Keeps the aggregate small and efficient, in line with Vernon’s principle that aggregates should only contain state required to enforce invariants.
-- Reduces the size of collections, improving performance when loading and updating the aggregate.
-- Simplifies business logic for current state operations (only active Lots are processed).
+## What history is preserved?
 
-**Disadvantages:**
-- Historical details of Lots are no longer available directly from the Portfolio aggregate.
-- Requires a separate mechanism (e.g., `Transaction` aggregate) to reconstruct past events.
+The application service records purchases and sales separately from the portfolio. A `SaleTransaction` stores the ticker, quantity, unit price, proceeds, profit and creation time. It does not store the IDs and quantities of every lot consumed.
 
----
+Consequently, the current model supports transaction history and financial summaries, but the transaction record alone is not a complete per-lot audit record. Do not promise exact reconstruction of original lot identities after depletion without an explicit allocation-history design.
 
-## 4. Recommended Approach
+If such evidence becomes a requirement, possible extensions include storing sale-to-lot allocations or maintaining a separate historical lot representation. Specify the required queries, retention and consistency before choosing an implementation.
 
-Following DDD tactical modeling guidance from Evans and Vernon:
+## Compare the alternatives
 
-> “An aggregate is a cluster of associated objects that we treat as a unit for the purpose of data changes.  
-> It should be small enough to be loaded and updated in one transaction.”  
-> — *Eric Evans, Domain-Driven Design* (2003, p. 125)
+| Choice | Benefit | Cost |
+|---|---|---|
+| Keep depleted lots in the active holding | Historical lot details remain nearby. | Every load may include increasing amounts of inactive state; algorithms must distinguish it. |
+| Remove depleted lots, as now | Future sale logic works with remaining lots. | Historical allocation evidence needs a separate representation if required. |
 
-**Decision:**
-- Remove Lots from the Holding when their `remaining` quantity reaches zero.
-- Maintain full historical information in a **separate aggregate** (`Transaction`), which serves as the append-only log of all operations affecting the Portfolio.
-- The Portfolio aggregate will then represent **only the current active state** of investments.
+Neither choice alone establishes scalability or audit compliance. Measure actual loads and define historical requirements. The aggregate boundary answers which state is needed for current business rules; it does not prescribe every reporting representation.
 
-This approach:
-- Preserves **invariant enforcement** in the Portfolio aggregate.
-- Keeps aggregates **bounded** and **transactionally efficient**.
-- Delegates historical reconstruction to the `Transaction` aggregate, which can be queried independently.
+## Checkpoint
 
----
+After selling the final 3 shares from the example, how many lots and holdings remain for that ticker?
 
-## 5. Performance Considerations
-- **Bounded collections** reduce the risk of performance degradation when aggregates are loaded into memory.
-- Historical queries can be optimized via separate read models or projections without impacting transactional consistency boundaries.
-- This separation aligns with Vernon’s recommendation to avoid coupling long histories to aggregates that need fast, atomic updates.
+**Answer:** zero lots, but the existing holding remains. A new purchase can add a lot to it.
 
----
+Continue with [portfolio and transaction boundaries](DDD%20Portfolio%20and%20Transactions.md).
 
-## 6. Alignment with DDD Authors
+## References
 
-- **Eric Evans**: Emphasizes keeping aggregates small and focused on enforcing invariants, avoiding unbounded collections.
-- **Vaughn Vernon**: Recommends separating long-lived or unbounded historical data into different aggregates or read models.
-- **Jimmy Nilsson**: Advocates decoupling persistence concerns from domain object lifetime, supporting the use of separate aggregates for historical data.
-
----
-
-## 7. Summary
-The chosen approach is to **remove Lots with zero remaining quantity** from the Portfolio aggregate, while maintaining a complete historical record in the Transaction aggregate.
-
-This decision:
-- Aligns with established DDD literature and best practices.
-- Preserves aggregate efficiency and scalability.
-- Maintains a clean separation between **current state** (Portfolio) and **historical state** (Transaction).
-
----
-
-## 8. References
-
-- Evans, Eric. *Domain-Driven Design: Tackling Complexity in the Heart of Software.* Addison-Wesley, 2003.
-- Nilsson, Jimmy. *Applying Domain-Driven Design and Patterns: With Examples in C# and .NET.* Addison-Wesley, 2006.
-- Vernon, Vaughn. *Implementing Domain-Driven Design.* Addison-Wesley, 2013. (See especially ch. 10 on Aggregate design rules.)
-
-
-> **Key takeaway**: The Portfolio aggregate should reflect only active positions; historical reconstruction is delegated to the Transaction aggregate, ensuring both domain purity and operational performance.
+- Evans, Eric. *Domain-Driven Design*. Addison-Wesley, 2003. Aggregates and consistency boundaries.
+- Vernon, Vaughn. *Implementing Domain-Driven Design*. Addison-Wesley, 2013. Aggregate design.
+- Nilsson, Jimmy. *Applying Domain-Driven Design and Patterns*. Addison-Wesley, 2006. Domain and persistence trade-offs.
