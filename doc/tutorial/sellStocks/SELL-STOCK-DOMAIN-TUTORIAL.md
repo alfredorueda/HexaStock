@@ -1,6 +1,6 @@
 # Sell Stock — Domain Layer Only
 
-> **📖 This is a simplified version** of the full tutorial [From Specification to Integration Test: Engineering a Stock Portfolio with DDD and Hexagonal Architecture](SELL-STOCK-TUTORIAL.md). It focuses exclusively on the **domain model** — the business logic at the heart of HexaStock — without discussing REST controllers, HTTP endpoints, DTOs, JPA entities, persistence adapters, integration tests, or any infrastructure concern. If you want the complete architectural picture, read the full tutorial.
+> **📖 This is a simplified version** of the full tutorial [Sell Stock Deep Dive — staged learning path](SELL-STOCK-TUTORIAL.md). It focuses exclusively on the **domain model** — the business logic at the heart of HexaStock — without discussing REST controllers, HTTP endpoints, DTOs, JPA entities, persistence adapters, integration tests, or any infrastructure concern. If you want the complete architectural picture, read the full tutorial.
 
 ***
 
@@ -272,7 +272,7 @@ The sequence below traces how the sell operation flows through the **domain mode
 * Depleted lots (Lot #1 with 0 remaining) are removed automatically
 * The **Portfolio** updates its `balance` with the proceeds before returning the `SellResult`
 
-> **💡 Complementary diagrams:** The repository also contains a more detailed FIFO sequence diagram (selling 12 shares across two lots, matching Gherkin scenario FIFO-01) and a diagram comparing correct vs anti-pattern service behaviour. See [`diagrams/Rendered/sell-domain-fifo.svg`](https://github.com/alfredorueda/HexaStock/blob/main/doc/tutorial/sellStocks/diagrams/Rendered/sell-domain-fifo.svg) and [`diagrams/Rendered/sell-orchestrator-vs-aggregate.svg`](https://github.com/alfredorueda/HexaStock/blob/main/doc/tutorial/sellStocks/diagrams/Rendered/sell-orchestrator-vs-aggregate.svg).
+> **💡 Complementary diagrams:** The repository also contains a more detailed FIFO sequence diagram (selling 12 shares across two lots, matching Gherkin scenario US-07.FIFO-2) and a diagram comparing correct vs anti-pattern service behaviour. See [`diagrams/Rendered/sell-domain-fifo.svg`](https://github.com/alfredorueda/HexaStock/blob/main/doc/tutorial/sellStocks/diagrams/Rendered/sell-domain-fifo.svg) and [`diagrams/Rendered/sell-orchestrator-vs-aggregate.svg`](https://github.com/alfredorueda/HexaStock/blob/main/doc/tutorial/sellStocks/diagrams/Rendered/sell-orchestrator-vs-aggregate.svg).
 
 ***
 

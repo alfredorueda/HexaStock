@@ -780,4 +780,4 @@ Domain tests have zero infrastructure dependencies — they run without Docker, 
 
 ---
 
-*This document is part of the [HexaStock documentation ecosystem](sellStocks/SELL-STOCK-TUTORIAL.md#reading-map-the-hexastock-documentation-ecosystem).*
+*This document is part of the [HexaStock documentation ecosystem](sellStocks/SELL-STOCK-REFERENCE.md).*

@@ -29,7 +29,7 @@ The pilot established the patterns that were then extended to all 10 use cases:
 
 The Sell Stocks tutorials provide a deeper walkthrough:
 
-- [Sell Stock Tutorial](sellStocks/SELL-STOCK-TUTORIAL.md) — end-to-end tutorial covering the hexagonal architecture layers
+- [Sell Stock Tutorial](sellStocks/SELL-STOCK-TUTORIAL.md) — nine stages with goals and checkpoints, from specification to end-to-end verification
 - [Sell Stock Domain Tutorial](sellStocks/SELL-STOCK-DOMAIN-TUTORIAL.md) — focused tutorial on the domain model and FIFO logic
 
 ---

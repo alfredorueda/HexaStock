@@ -1,47 +1,22 @@
 @startuml sell-error-invalid-quantity
-!theme plain
-skinparam backgroundColor #FEFEFE
+!include sell-style.puml
+title <size:12><color:#087F8C>08 / ERROR PATH · 400</color></size>\nReject zero before entering the use case
 
-actor Client
-participant "PortfolioRestController" as Controller
-participant "PortfolioStockOperationsService" as Service
-participant "Portfolio" as Portfolio
-participant "ExceptionHandlingAdvice\n(@ControllerAdvice)" as Handler
-
-Client -> Controller: POST /api/portfolios/abc-123/sales\n{"ticker":"AAPL", "quantity":0}
-activate Controller
-
-Controller -> Controller: Create Value Objects:\nPortfolioId.of("abc-123")\nTicker.of("AAPL")\nShareQuantity.positive(0)
-
-note right of Controller
-  **Defense in depth:**
-  ShareQuantity.positive(0)
-  throws InvalidQuantityException
-  at the adapter boundary.
-  
-  Even if bypassed, Portfolio.sell()
-  checks quantity.isPositive() again.
-end note
-
-Controller --> Controller: throw InvalidQuantityException(\n"Quantity must be positive: 0")
-
-Controller -> Handler: handle exception
-activate Handler
-
-Handler -> Handler: create ProblemDetail:\n- status: 400\n- title: "Invalid Quantity"\n- detail: "Quantity must be positive"
-
-Handler --> Controller: ResponseEntity<ProblemDetail>
-deactivate Handler
-
-Controller --> Client: HTTP 400 BAD REQUEST\n{\n  "title": "Invalid Quantity",\n  "detail": "Quantity must be positive",\n  "status": 400\n}
-deactivate Controller
-
-note over Client, Handler
-  **Domain Exception → HTTP Status**
-  InvalidQuantityException → 400 Bad Request
-  
-  The Value Object **ShareQuantity.positive()**
-  enforces this rule at construction time.
-  Portfolio.sell() provides a second guard.
+actor Client #F3F7FA
+participant "REST controller" as C
+participant "Exception advice" as E #FFF5DF
+Client -> C : POST sale · quantity 0
+activate C
+C -> C : ShareQuantity.positive(0)
+C -> C : throws InvalidQuantityException
+C --[#B64D4D]> E : exception resolved by Spring MVC
+deactivate C
+activate E
+E --> Client : 400 · Invalid Quantity\n"Quantity must be positive: 0"
+deactivate E
+note over C, E
+  No use-case invocation.
+  No portfolio lookup or quote request.
+  No state mutation.
 end note
 @enduml

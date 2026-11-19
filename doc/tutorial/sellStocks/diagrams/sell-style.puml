@@ -1,0 +1,51 @@
+
+' Shared visual language for the Sell Stock learning path.
+skinparam backgroundColor #FFFFFF
+skinparam defaultFontName Helvetica
+skinparam defaultFontSize 14
+skinparam defaultFontColor #24374B
+skinparam shadowing false
+skinparam dpi 180
+skinparam roundcorner 12
+skinparam ArrowColor #52718D
+skinparam ArrowThickness 1.4
+skinparam LineType ortho
+skinparam nodesep 35
+skinparam ranksep 35
+skinparam Padding 10
+skinparam TitleFontSize 23
+skinparam TitleFontColor #142D4E
+skinparam TitleFontStyle bold
+skinparam TitleBorderThickness 0
+skinparam TitleBackgroundColor transparent
+skinparam titleAlignment left
+skinparam NoteBackgroundColor #F3F7FA
+skinparam NoteBorderColor #DCE5ED
+skinparam NoteFontColor #41576B
+skinparam NoteFontSize 13
+skinparam RectangleBackgroundColor #F2F7FC
+skinparam RectangleBorderColor #B7CCDE
+skinparam RectangleFontColor #142D4E
+skinparam RectangleStereotypeFontColor #60798E
+skinparam PackageBackgroundColor #F8FAFC
+skinparam PackageBorderColor #DCE5ED
+skinparam PackageFontColor #60798E
+skinparam sequence {
+  ParticipantBackgroundColor #EAF3F9
+  ParticipantBorderColor #B7CCDE
+  ParticipantFontColor #142D4E
+  ParticipantFontStyle bold
+  LifeLineBorderColor #BCCDD9
+  LifeLineBackgroundColor #F0F6FA
+  ArrowColor #52718D
+  ArrowFontSize 13
+  MessageAlign left
+  GroupBackgroundColor #F4F8FB
+  GroupBorderColor #CEDBE5
+  GroupFontColor #142D4E
+  DividerBackgroundColor #F1F6FA
+  DividerBorderColor #DCE5ED
+  ReferenceBackgroundColor #F2F8F8
+  ReferenceBorderColor #B7D7D4
+}
+hide footbox

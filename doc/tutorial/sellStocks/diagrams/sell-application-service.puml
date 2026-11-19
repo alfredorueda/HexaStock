@@ -1,58 +1,29 @@
 @startuml sell-application-service
-!theme plain
-skinparam backgroundColor #FEFEFE
+!include sell-style.puml
+title <size:12><color:#087F8C>05 / APPLICATION</color></size>\nCoordinate one complete sale
 
-participant "PortfolioStockOperationsService\n(Application Service)" as Service
-participant "PortfolioPort\n(Secondary Port)" as PortfolioPort
-participant "StockPriceProviderPort\n(Secondary Port)" as PricePort
-participant "Portfolio\n(Aggregate Root)" as Portfolio
-participant "TransactionPort\n(Secondary Port)" as TransactionPort
-
-activate Service
-
-Service -> PortfolioPort: getPortfolioById(PortfolioId)
-activate PortfolioPort
-PortfolioPort --> Service: Optional<Portfolio>
-deactivate PortfolioPort
-
-Service -> Service: portfolio = optional.orElseThrow()
-
-Service -> PricePort: fetchStockPrice(Ticker)
-activate PricePort
-PricePort --> Service: StockPrice
-deactivate PricePort
-
-Service -> Service: Price price = stockPrice.price()
-
-note right of Service
-  The service **orchestrates**:
-  1. Fetch data from ports
-  2. Extract Price from StockPrice
-  3. Call the aggregate root
-  4. Save results
-  
-  It does NOT contain
-  business logic!
+participant "Service" as S
+participant "PortfolioPort" as P
+participant "Price provider\nport" as Q
+participant "Portfolio\naggregate" as A #E6F3F1
+participant "TransactionPort" as T
+activate S
+S -> P : 1  getPortfolioById(id)
+P --> S : portfolio
+S -> Q : 2  fetchStockPrice(ticker)
+Q --> S : StockPrice · Price 150.00
+S -> A : 3  sell(AAPL, 12, price)
+activate A
+A --> S : SellResult
+deactivate A
+S -> P : 4  savePortfolio(portfolio)
+P --> S : saved in current transaction
+S -> S : Transaction.createSale(...)
+S -> T : 5  save(transaction)
+T --> S : saved in current transaction
+deactivate S
+note over S, T
+  The transaction commits after the advised method returns.
+  FIFO and cash arithmetic stay inside the domain.
 end note
-
-Service -> Portfolio: sell(Ticker, ShareQuantity, Price)
-activate Portfolio
-Portfolio --> Service: SellResult(Money, Money, Money)
-deactivate Portfolio
-
-Service -> PortfolioPort: savePortfolio(portfolio)
-activate PortfolioPort
-PortfolioPort --> Service: void
-deactivate PortfolioPort
-
-Service -> Service: Transaction.createSale(\nPortfolioId, Ticker, ShareQuantity,\nPrice, Money proceeds, Money profit)
-
-Service -> TransactionPort: save(transaction)
-activate TransactionPort
-TransactionPort --> Service: void
-deactivate TransactionPort
-
-Service --> : SellResult
-deactivate Service
-
 @enduml

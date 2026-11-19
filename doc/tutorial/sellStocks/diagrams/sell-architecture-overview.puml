@@ -1,0 +1,20 @@
+@startuml sell-architecture-overview
+!include sell-style.puml
+title <size:12><color:#087F8C>04 / PORTS AND ADAPTERS</color></size>\nDependencies point toward the core
+
+top to bottom direction
+rectangle "<b>REST adapter</b>\n<size:12>adapters-inbound-rest</size>\nCalls inbound ports" as Rest
+rectangle "<b>Persistence adapters</b>\n<size:12>JPA / MySQL or MongoDB</size>\nImplements outbound ports" as Storage
+rectangle "<b>Market adapters</b>\n<size:12>Finnhub / Alpha Vantage</size>\nImplements outbound ports" as Market
+rectangle "<b>Application</b>\n\nInbound ports: use-case contracts\nServices: orchestration\nOutbound ports: storage and quotes" as App #E6F3F1
+rectangle "<b>Domain</b>\n\nPortfolio · Holding · Lot\nMoney · Price · ShareQuantity\nFIFO rules and sale outcome" as Domain #E6F3F1
+Rest -down-> App
+Storage -down-> App
+Market -down-> App
+App -down-> Domain
+note bottom of Domain
+  Arrows show source-code dependencies.
+  At runtime, services call outbound ports.
+  bootstrap wires the selected implementations.
+end note
+@enduml

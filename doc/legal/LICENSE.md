@@ -4,7 +4,7 @@ This project uses a dual-license model.
 
 | Scope                      | License                                                                                     |
 | -------------------------- | ------------------------------------------------------------------------------------------- |
-| Source code                | [Apache License 2.0](https://github.com/alfredorueda/HexaStock/blob/main/LICENSE/README.md) |
+| Source code                | [Apache License 2.0](https://github.com/alfredorueda/HexaStock/blob/main/LICENSE) |
 | Book and editorial content | [CC BY-NC 4.0](BOOK-LICENSE.md)                                                             |
 
 The source code is open source under Apache License 2.0. The book and editorial written content are shared for non-commercial use under Creative Commons Attribution-NonCommercial 4.0 International.
@@ -15,7 +15,7 @@ For the complete terms of the book license, see the [Book License — CC BY-NC 4
 
 ## Source Code License — Apache License 2.0
 
-Canonical repository license file: [`/LICENSE`](https://github.com/alfredorueda/HexaStock/blob/main/LICENSE/README.md).
+Canonical repository license file: [`/LICENSE`](https://github.com/alfredorueda/HexaStock/blob/main/LICENSE).
 
 ```
                              Apache License

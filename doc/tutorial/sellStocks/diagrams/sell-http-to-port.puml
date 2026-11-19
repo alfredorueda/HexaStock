@@ -1,48 +1,23 @@
 @startuml sell-http-to-port
-!theme plain
-skinparam backgroundColor #FEFEFE
+!include sell-style.puml
+title <size:12><color:#087F8C>04 / INBOUND ADAPTER</color></size>\nTranslate at the HTTP boundary
 
-actor Client
-participant "PortfolioRestController\n(Driving Adapter)" as Controller
-participant "PortfolioStockOperationsUseCase\n(Primary Port)" as Port
-participant "PortfolioStockOperationsService\n(Application Service)" as Service
-
-Client -> Controller: POST /api/portfolios/{id}/sales\n{"ticker":"AAPL", "quantity":5}
-activate Controller
-
-Controller -> Controller: Extract path variable: id
-Controller -> Controller: Parse request body: SaleRequestDTO
-Controller -> Controller: Create Value Objects:\nPortfolioId.of(id)\nTicker.of("AAPL")\nShareQuantity.positive(5)
-
-Controller -> Port: sellStock(PortfolioId, Ticker, ShareQuantity)
-note right
-  Controller depends on the
-  **interface**, not the implementation.
-  This is Dependency Inversion.
-  
-  All parameters are **Value Objects**,
-  not primitives. Type safety prevents
-  accidentally swapping arguments.
-end note
-activate Port
-
-Port -> Service: sellStock(PortfolioId, Ticker, ShareQuantity)
-activate Service
-Service --> Port: SellResult
-deactivate Service
-
-Port --> Controller: SellResult
-deactivate Port
-
-Controller -> Controller: Convert to DTO:\nSaleResponseDTO\n(extracts BigDecimal from Money)
-
-Controller --> Client: HTTP 200 OK\n{"proceeds":750.00, "costBasis":625.00, "profit":125.00}
-deactivate Controller
-
-note over Controller
-  The controller is a **Driving Adapter**.
-  It translates HTTP primitives into
-  domain Value Objects and vice versa.
-  It has no business logic.
+actor Client #F3F7FA
+participant "REST controller" as C
+participant "Use case\nvia inbound port" as U #E6F3F1
+Client -> C : POST /api/portfolios/{id}/sales\nAAPL · quantity 12
+activate C
+C -> C : PortfolioId.of(id)\nTicker.of("AAPL")\nShareQuantity.positive(12)
+C -> U : sellStock(id, ticker, quantity)
+activate U
+U --> C : SellResult\n1800.00 / 1240.00 / 560.00
+deactivate U
+C -> C : SaleResponseDTO\nMoney → BigDecimal
+C --> Client : 200 OK · JSON response
+deactivate C
+note over C, U
+  PortfolioStockOperationsUseCase is the interface.
+  PortfolioStockOperationsService implements it.
+  The client does not choose the sale price.
 end note
 @enduml
