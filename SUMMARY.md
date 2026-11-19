@@ -57,6 +57,18 @@
 ## Specifications
 
 * [Stock Portfolio API Specification](doc/stock-portfolio-api-specification.md)
+  * [Errors and validation order](doc/api/ERRORS.md)
+  * [US-01: Create Portfolio](doc/api/US-01-CREATE-PORTFOLIO.md)
+  * [US-02: Get Portfolio](doc/api/US-02-GET-PORTFOLIO.md)
+  * [US-03: List All Portfolios](doc/api/US-03-LIST-PORTFOLIOS.md)
+  * [US-04: Deposit Funds](doc/api/US-04-DEPOSIT-FUNDS.md)
+  * [US-05: Withdraw Funds](doc/api/US-05-WITHDRAW-FUNDS.md)
+  * [US-06: Buy Stocks](doc/api/US-06-BUY-STOCKS.md)
+  * [US-07: Sell Stocks](doc/api/US-07-SELL-STOCKS.md)
+  * [US-08: Get Transaction History](doc/api/US-08-GET-TRANSACTION-HISTORY.md)
+  * [US-09: Get Holdings Performance](doc/api/US-09-GET-HOLDINGS-PERFORMANCE.md)
+  * [US-10: Get Stock Price](doc/api/US-10-GET-STOCK-PRICE.md)
+  * [Behavior and extension exercises](doc/api/BEHAVIOUR-AND-EXTENSIONS.md)
 
 ## Project
 
