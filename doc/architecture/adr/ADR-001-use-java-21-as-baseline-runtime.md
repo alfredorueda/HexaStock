@@ -14,8 +14,8 @@ Use Java 21 as the baseline language level and runtime for all modules.
 
 ## Alternatives considered
 
-- **Java 17 (previous LTS):** Would satisfy Spring Boot 3.x requirements but lacks newer language features and performance improvements present in Java 21. Standard alternative, not discussed in the repository.
-- **Java 23+ (latest non-LTS):** Would provide the newest features but lacks long-term support guarantees required for stable educational and production use. Standard alternative.
+- **Java 17:** Would satisfy Spring Boot 3.x requirements but lacks newer language features and performance improvements present in Java 21. Standard alternative, not discussed in the repository.
+- **Another JDK baseline:** Would require checking source compatibility, dependencies and CI together. This record describes the repository baseline, not a claim about the latest Java release or every vendor’s support policy.
 
 ## Consequences
 
@@ -32,14 +32,14 @@ Use Java 21 as the baseline language level and runtime for all modules.
 
 - `pom.xml`: `<java.version>21</java.version>`
 - `.github/workflows/build.yml`: `java-version: '21'`, `distribution: 'temurin'`
-- `CONTRIBUTING.md`: "Java 21 (or later)" in prerequisites
-- `README.md`: "JDK 21 or higher" in prerequisites
+- `CONTRIBUTING.md`: JDK 21 in prerequisites
+- `README.md`: JDK 21 setup
 - Domain value objects implemented as Java records: `Money.java`, `Price.java`, `ShareQuantity.java`, `Ticker.java`, `PortfolioId.java`, `SellResult.java`, `HoldingPerformance.java`, `StockPrice.java`
 
 ## Relation to other specifications
 
 - **Gherkin:** Not directly related. Gherkin specifies behaviour independently of language version.
 - **OpenAPI:** Not directly related. The API contract is language-agnostic.
-- **PlantUML:** Domain model diagrams reflect Java records as value objects, which is a Java 21 capability.
+- **PlantUML:** Domain model diagrams reflect Java records as value objects, using records, a feature available before Java 21.
 
 This ADR documents a technology decision that enables implementation choices visible in the source code but not expressed by behavioural or API specifications.
