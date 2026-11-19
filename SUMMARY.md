@@ -24,6 +24,11 @@
 
 ## Architecture and Design
 
+* [Technical architecture](doc/architecture/TECHNICAL-ARCHITECTURE-SPECIFICATION.md)
+  * [1. Map the modules and ports](doc/architecture/ARCHITECTURE-MAP.md)
+  * [2. Understand runtime guarantees](doc/architecture/RUNTIME-AND-VERIFICATION.md)
+  * [Architecture decisions](doc/architecture/adr/README.md)
+
 * [Rich vs Anemic Domain Model](doc/tutorial/richVsAnemicDomainModel/RICH_VS_ANEMIC_DOMAIN_MODEL_TUTORIAL.md)
 * [Dependency Inversion in Stock Selling](doc/tutorial/DEPENDENCY-INVERSION-STOCK-SELLING.md)
   * [Wiring and testing](doc/tutorial/dependencyInversion/WIRING-AND-TESTING.md)
