@@ -4,7 +4,7 @@
 
 ---
 
-This companion document presents the original source of Hexagonal Architecture together with two widely cited community diagrams that help visualise and teach the architectural style. For the HexaStock-specific architecture diagram showing the project's actual components, see the main tutorial.
+This companion document presents the original source of Hexagonal Architecture together with two widely cited community diagrams that help visualise and teach the architectural style. For the HexaStock-specific architecture diagram showing the project's actual components, see [Stage 4 — the original hexagonal view](SELL-STOCK-04-HTTP-AND-PORTS.md#the-original-hexagonal-view).
 
 ---
 
@@ -23,7 +23,9 @@ This tutorial and the HexaStock codebase treat Cockburn's article as the primary
 
 ## Community Diagram: Simplified Teaching View (Tom Hombergs)
 
-<img width="1600" height="797" alt="Hexagonal Architecture" src="https://github.com/user-attachments/assets/09c46496-b801-4375-801a-aebe1361d57d" />
+![Hexagonal architecture by Tom Hombergs: web and external adapters surround the application core through input and output ports](../../../.gitbook/assets/tom-hombergs-hexagonal-architecture.png)
+
+[Open the original image at full size](https://github.com/alfredorueda/HexaStock/blob/main/.gitbook/assets/tom-hombergs-hexagonal-architecture.png)
 
 > *Image credit:*
 > *Diagram by **Tom Hombergs**, reproduced for educational purposes with proper attribution.*
@@ -37,7 +39,9 @@ This widely cited diagram presents Cockburn's Ports and Adapters idea in a simpl
 
 ## Community Diagram: Expanded Architectural Interpretation (Herberto Graça)
 
-<img width="876" height="657" alt="image" src="https://github.com/user-attachments/assets/91ddf125-0949-4251-87ac-ab0856698376" />
+![Expanded architecture diagram by Herberto Graça showing application layers, ports and adapters](../../../.gitbook/assets/herberto-graca-explicit-architecture.png)
+
+[Open the original image at full size](https://github.com/alfredorueda/HexaStock/blob/main/.gitbook/assets/herberto-graca-explicit-architecture.png)
 
 > *Image credit:*
 > *Diagram by **Herberto Graça**, reproduced for educational purposes with proper attribution.*

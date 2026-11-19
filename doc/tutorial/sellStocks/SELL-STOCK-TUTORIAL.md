@@ -34,6 +34,8 @@ A second scenario sells 8 shares from a fresh copy of the same starting state. T
 
 The model assumes USD, whole shares and no fees or taxes. This path describes the FIFO sell flow implemented in the main Java modules. Settlement-aware selling and alternative lot-selection policies in other teaching materials are extensions, not rules of this baseline flow.
 
+The [original hexagonal architecture diagram](SELL-STOCK-04-HTTP-AND-PORTS.md#the-original-hexagonal-view) introduces the architecture in Stage 4.
+
 ## Optional practice and reference
 
 * [Exercises](SELL-STOCK-EXERCISES.md) — choose a task after the relevant stage; coding extensions change the baseline requirements.
