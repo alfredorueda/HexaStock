@@ -51,7 +51,11 @@
   * [1. Coordinate JPA writers](doc/tutorial/concurrency/JPA-LOCKING.md)
   * [2. Retry MongoDB conflicts](doc/tutorial/concurrency/MONGODB-RETRIES.md)
   * [MongoDB adapter reference](doc/mongodb-adapter-optimistic-write-and-retry.md)
-* [Holdings Performance at Scale](doc/tutorial/portfolioReporting/HOLDINGS-PERFORMANCE-AT-SCALE.md)
+* [Holdings performance and scale](doc/tutorial/portfolioReporting/HOLDINGS-PERFORMANCE-AT-SCALE.md)
+  * [1. Calculate one report](doc/tutorial/portfolioReporting/01-CURRENT-CALCULATION.md)
+  * [2. Measure the request](doc/tutorial/portfolioReporting/02-MEASUREMENT.md)
+  * [3. Compare query alternatives](doc/tutorial/portfolioReporting/03-QUERY-ALTERNATIVES.md)
+  * [4. Maintain a projection](doc/tutorial/portfolioReporting/04-SNAPSHOTS.md)
 * [Watchlists and Market Sentinel](doc/tutorial/watchlists/WATCHLISTS-MARKET-SENTINEL.md)
 * [Lot Selection Strategies — DDD Hexagonal Exercise](doc/tutorial/DDD-Hexagonal-exercise.md)
 
