@@ -8,9 +8,11 @@
 
 This original overview places the application core inside the hexagon, with the REST adapter on the left and persistence and market adapters on the right. Ports sit on the boundary; the application service coordinates the domain model within it.
 
-[![Original HexaStock hexagonal architecture: application core, inbound and outbound ports, domain model and external adapters](../../../.gitbook/assets/hexastock-hexagonal-code-dependencies.png)](https://github.com/alfredorueda/HexaStock/blob/main/doc/tutorial/sellStocks/diagrams/Rendered/HexaStock_Hexagonal_Diagram_Code_Dependencies.png)
+![Original HexaStock hexagonal architecture: application core, inbound and outbound ports, domain model and external adapters](../../../.gitbook/assets/hexastock-hexagonal-code-dependencies.png)
 
-*Original diagram developed with the collaboration of Víctor García. Open the image to inspect it at full size.*
+[Open the original diagram at full size](https://github.com/alfredorueda/HexaStock/blob/main/doc/tutorial/sellStocks/diagrams/Rendered/HexaStock_Hexagonal_Diagram_Code_Dependencies.png)
+
+*Original diagram developed with the collaboration of Víctor García. Use the full-size link to inspect the smaller labels.*
 
 The image retains its original labels and shows the JPA/MySQL configuration. In the current code, the persistence adapters are named `JpaPortfolioRepository` and `JpaTransactionRepository`, and the Finnhub implementation is `FinhubStockPriceAdapter`. The module map below also includes the alternative MongoDB adapter.
 
