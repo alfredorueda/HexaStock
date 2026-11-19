@@ -1,13 +1,10 @@
 # US-07 — Sell Stocks (domain specification)
 
-> **Scope.** This specification defines the **domain** behaviour of selling stocks. Failure
-> outcomes are domain exceptions — see [`error-contract.md`](error-contract.md).
+This is a **standalone kata contract**, not a copy of HexaStock's runtime API. In this exercise, full liquidation removes the holding (AC-22); HexaStock `main` retains an empty holding. Follow the supplied exercise specifications when implementing the kata.
 
-This file describes **what selling does**. Two companion files describe the rest:
+The two authoritative inputs are this behavior specification and the [class diagram](domain-class-diagram.puml). Error expectations are listed in the acceptance criteria below; there are no additional `domain-model.md` or `error-contract.md` inputs to retrieve.
 
-* [`domain-model.md`](domain-model.md) — the classes, fields and value objects this behaviour
-  relies on (also drawn in [`domain-class-diagram.puml`](domain-class-diagram.puml)).
-* [`error-contract.md`](error-contract.md) — what each failure raises, and its message.
+Read in three passes: calculate the FIFO examples, group the rejection rules, then map criteria to tests. Use the class diagram to locate each responsibility.
 
 ---
 
@@ -26,8 +23,7 @@ This file describes **what selling does**. Two companion files describe the rest
 3. The quantity must be positive (> 0).
 4. The portfolio must hold the specified ticker.
 5. The portfolio must hold at least the requested quantity of shares for that ticker.
-6. The sale price must be positive (> 0) — from the value-object rules in
-   [`domain-model.md`](domain-model.md).
+6. The sale price must remain positive (> 0) after normalization to scale 2, `HALF_UP`, as required by the `Price` value object.
 
 ---
 
@@ -108,8 +104,8 @@ fulfilled. `proceeds = 12 × 150.00 = 1800.00`;
 
 | ID | Title | Starting context / preconditions | Action | Expected result |
 | -- | ----- | -------------------------------- | ------ | --------------- |
-| **AC-01** | Sale consumed entirely from a single lot | The baseline holding | Sell 8 shares of AAPL at 150.00 | The sale reports ticker AAPL, quantity 8, proceeds 1200.00, cost basis 800.00 and profit 400.00. FIFO took all 8 shares from Lot #1 at 100.00. The lots are now Lot #1 with 2 of its 10 initial shares remaining at 100.00, and Lot #2 untouched with 5 of 5 at 120.00. |
-| **AC-02** | Sale consumed across multiple lots, emptied lot removed | The baseline holding | Sell 12 shares of AAPL at 150.00 | The sale reports quantity 12, proceeds 1800.00, cost basis 1240.00 and profit 560.00. FIFO took 10 shares from Lot #1 at 100.00 and then 2 shares from Lot #2 at 120.00. Lot #1 is fully depleted and removed from the holding. One lot remains: Lot #2 with 3 of its 5 initial shares at 120.00. |
+| **AC-01** | Sale consumed entirely from a single lot | The baseline holding | Sell 8 shares of AAPL at 150.00 | For the requested ticker AAPL and quantity 8, the returned `SellResult` reports proceeds 1200.00, cost basis 800.00 and profit 400.00. FIFO took all 8 shares from Lot #1 at 100.00. The lots are now Lot #1 with 2 of its 10 initial shares remaining at 100.00, and Lot #2 untouched with 5 of 5 at 120.00. |
+| **AC-02** | Sale consumed across multiple lots, emptied lot removed | The baseline holding | Sell 12 shares of AAPL at 150.00 | For the requested quantity 12, the returned `SellResult` reports proceeds 1800.00, cost basis 1240.00 and profit 560.00. FIFO took 10 shares from Lot #1 at 100.00 and then 2 shares from Lot #2 at 120.00. Lot #1 is fully depleted and removed from the holding. One lot remains: Lot #2 with 3 of its 5 initial shares at 120.00. |
 | **AC-03** | Smallest possible sale | The baseline holding | Sell 1 share of AAPL at 150.00 | Proceeds 150.00, cost basis 100.00, profit 50.00. Both lots remain: 9 @ 100.00 and 5 @ 120.00. |
 | **AC-04** | Boundary — the sale exactly exhausts the oldest lot | The baseline holding | Sell 10 shares of AAPL at 150.00 | Proceeds 1500.00, cost basis 1000.00, profit 500.00. Lot #1 is emptied and removed; exactly one lot remains, 5 @ 120.00. No shares are taken from Lot #2. |
 | **AC-05** | Boundary — the sale liquidates the entire position | The baseline holding | Sell all 15 shares of AAPL at 150.00 | Proceeds 2250.00, cost basis 1600.00, profit 650.00. Every lot is consumed and the holding is removed from the portfolio — see AC-22. |
@@ -127,8 +123,19 @@ fulfilled. `proceeds = 12 × 150.00 = 1800.00`;
 | **AC-17** | A rejected sale of an unheld ticker leaves the portfolio untouched | The baseline holding, cash balance 0.00 | Attempt to sell 5 shares of MSFT (rejected per AC-13) | The cash balance is still 0.00 and the AAPL holding is unchanged, with 15 shares in two lots. |
 | **AC-18** | A lot cannot be reduced below zero | A single lot of 10 shares at 100.00 | Reduce the lot by 11 shares | The reduction is rejected with the conflict/insufficient-shares exception (`ConflictQuantityException`), and the lot still has 10 remaining shares. |
 | **AC-19** | A lot cannot be created with a non-positive share count | — | Create a lot with 0 shares (or a negative number) at 100.00 | Creation is rejected with the invalid-quantity exception (`InvalidQuantityException`). |
-| **AC-20** | Rejected — malformed ticker | — | Build a ticker from `"aapl"`, `"Aapl"`, `"TOOLONG"`, `"123"`, `"AA1"`, `"A-B"`, `""`, a blank string, or null | Each one is rejected with the invalid-ticker exception (`InvalidTickerException`). An empty or blank symbol reports "Ticker cannot be empty"; any other malformed symbol reports "Invalid ticker: &lt;value&gt;". A malformed ticker can never reach a sale. |
+| **AC-20** | Rejected — malformed ticker | — | Build a ticker from `"aapl"`, `"Aapl"`, `"TOOLONG"`, `"123"`, `"AA1"`, `"A-B"`, `""`, a blank string, or null | Each one is rejected with the invalid-ticker exception (`InvalidTickerException`). A null, empty, or blank symbol reports "Ticker cannot be empty"; any other malformed symbol reports "Invalid ticker: &lt;value&gt;". A malformed ticker can never reach a sale. |
 | **AC-21** | Boundary — well-formed ticker | — | Build a ticker from `"A"`, `"AA"`, `"AAPL"` or `"GOOGL"` | Each is accepted and keeps its symbol unchanged. One letter and five letters are both inside the range. |
 | **AC-22** | Selling the whole position removes the holding | The baseline holding (15 shares), cash balance 0.00 | Sell all 15 shares of AAPL at 150.00, then attempt to sell 1 more | The first sale succeeds and credits 2250.00. The holding is then gone from the portfolio, so the second sale is rejected with the holding-not-found exception (`HoldingNotFoundException`), not a quantity conflict. A *partial* sale, by contrast, keeps the holding: selling 14 of 15 leaves a holding with 1 share. |
 | **AC-23** | Buying again after full liquidation starts a fresh holding | A portfolio whose AAPL position was just fully sold (per AC-22) | Buy 4 shares of AAPL at 130.00 | A new holding is created — not the emptied one revived. It has exactly one lot, 4 shares at 130.00, with no leftover lots from the previous position. |
 | **AC-24** | A rejected purchase leaves no holding behind | A portfolio not holding MSFT | Attempt to buy 0 shares of MSFT | The purchase is rejected with the invalid-quantity exception (`InvalidQuantityException`) and **no** MSFT holding is created. A later sale of MSFT is a holding-not-found failure, not a quantity conflict — a ticker never acquired is a ticker not held. |
+
+
+## 6. Reading the class diagram
+
+The diagram lists domain fields and operations, not every Java construction mechanism. Constructors or factories, accessors needed to inspect the listed state, and the exceptions required by AC-10 through AC-24 are permitted. Do not add unrelated business operations or infrastructure. `SellResult` contains proceeds, cost basis, and profit; ticker and quantity remain input context, not additional result fields.
+
+The `Holding` → `Lot` multiplicity describes a holding retained by a portfolio after a completed operation. A temporary holding during a purchase may be empty before its first lot is added. Rejected purchases must not leave it attached (AC-24).
+
+For FIFO, create lots in chronological purchase order. If purchase timestamps are equal, retain insertion order. Reject the complete operation before mutating state when a criterion requires unchanged state.
+
+Where an acceptance criterion specifies exact exception text, compare that text. Where it specifies only an exception type or message meaning, do not invent an exact-message requirement. A test count is an exercise delivery constraint, not a substitute for checking all criteria and boundary inputs.

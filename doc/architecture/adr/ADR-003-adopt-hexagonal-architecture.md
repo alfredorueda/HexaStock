@@ -16,7 +16,7 @@ Adopt Hexagonal Architecture (Ports and Adapters) as the primary architectural s
 2. **Package conventions** - `..model..` for domain, `..application..` for application, `..adapter.in..` and `..adapter.out..` for adapters.
 3. **ArchUnit fitness tests** - automated tests that fail the build if dependency rules are violated.
 
-Dependencies flow strictly inward: adapters depend on ports, ports are defined by the application layer, the application layer depends on the domain, and the domain depends on nothing external.
+Dependencies flow strictly inward: adapters depend on ports, ports are defined by the application layer, the application layer depends on the domain, and domain production code uses the JDK without framework dependencies. Test dependencies are a separate concern.
 
 ## Alternatives considered
 
@@ -30,7 +30,7 @@ Dependencies flow strictly inward: adapters depend on ports, ports are defined b
 - Domain model is fully portable: zero framework dependencies, testable with plain JUnit.
 - Adapters are interchangeable: multiple stock price providers (Finnhub, AlphaVantage, mock) implement the same port.
 - Architectural rules are enforced automatically: ArchUnit tests prevent regressions.
-- Module boundaries make dependency violations visible at build time (Maven will fail if a module declares an undeclared dependency).
+- Module boundaries make dependency violations visible at build time (compilation fails when an imported type is absent from the resolved classpath).
 
 **Negative:**
 - More modules and more files than a flat structure.
@@ -39,14 +39,14 @@ Dependencies flow strictly inward: adapters depend on ports, ports are defined b
 
 ## Repository evidence
 
-- Root `pom.xml`: 6 modules (`domain`, `application`, `adapters-inbound-rest`, `adapters-outbound-persistence-jpa`, `adapters-outbound-market`, `bootstrap`)
+- Root `pom.xml`: 7 modules (`domain`, `application`, `adapters-inbound-rest`, `adapters-outbound-persistence-jpa`, `adapters-outbound-persistence-mongodb`, `adapters-outbound-market`, `bootstrap`)
 - `domain/pom.xml`: no dependencies on Spring, JPA, or any adapter module
 - `application/pom.xml`: depends only on `hexastock-domain` and standard `jakarta.transaction-api`
 - `HexagonalArchitectureTest.java`: 7 ArchUnit rules enforcing:
   - Domain does not depend on application, adapters, or Spring
   - Application does not depend on adapters or Spring
   - Inbound adapters do not depend on outbound adapters (and vice versa)
-- `CONTRIBUTING.md`: "The Inward Dependency Rule. Adapters depend on ports. Ports are defined by the core. The domain depends on nothing external. Violating this rule - even for convenience - is not acceptable."
+- `CONTRIBUTING.md`: dependency direction and review guidance. Maven declarations can be changed; ArchUnit checks specific package dependencies, not every possible form of coupling.
 - Input ports: `PortfolioLifecycleUseCase`, `CashManagementUseCase`, `PortfolioStockOperationsUseCase`, `ReportingUseCase`, `GetStockPriceUseCase`, `TransactionUseCase`
 - Output ports: `PortfolioPort`, `TransactionPort`, `StockPriceProviderPort`
 - `SpringAppConfig.java`: explicit wiring of services to ports (composition root pattern)

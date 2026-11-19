@@ -1,39 +1,33 @@
-# ═══════════════════════════════════════════════════════════════════════════════
-# BEHAVIOURAL SPECIFICATION — Settlement-Aware Selling (US-10)
-# ═══════════════════════════════════════════════════════════════════════════════
-#
-# This file describes the functional behaviour of the Settlement-Aware Sell
-# feature in Gherkin syntax. It specifies the T+2 settlement gate, the
-# interaction with reserved lots, transaction fees, and the accounting identity
-# that must hold across all sell paths.
-#
-# Scenario IDs are referenced by Java tests via @SpecificationRef:
-#   SETTLE-01 → shouldNotSellUnsettledLots
-#   SETTLE-02 → shouldSellExactlySettledQuantity
-#   SETTLE-03 → shouldReportEligibleSharesCorrectly
-#   SETTLE-REST-01 → sellUnsettledLots_returns409
-#   SETTLE-REST-02 → regularSellStillWorks
-# ═══════════════════════════════════════════════════════════════════════════════
+# PROPOSED EXTENSION — not implemented by main and not executed by Cucumber.
+# Scenario identifiers are retained for future traceability, not current coverage.
+# All relative dates use valuation date 2026-03-18 and a Monday-Friday calendar
+# with no holidays. Settlement occurs two business dates after purchase in this
+# teaching policy; this is not a statement of current market regulation.
+# Explicit scenario fees override the optional 0.1% teaching fee policy.
+# Proposed endpoint fragments are relative to /api/portfolios/{portfolioId}.
+# Read doc/tutorial/richVsAnemicDomainModel/03-SETTLEMENT-EXERCISE.md first.
 
 Feature: Settlement-Aware Stock Selling
 
   As a portfolio manager
   I want the system to enforce the T+2 settlement rule during sales
-  So that only fully settled lots can participate in regulated sell operations
+  So that only fully settled lots can participate in sales under this teaching policy
 
   Background:
-    Given a portfolio exists for owner "Alice" with balance $50,000.00
+    Given the valuation date is 2026-03-18
+    And business days are Monday to Friday with no holidays
+    And a portfolio exists for owner "Alice" with balance $50,000.00
 
   # ────────────────────────────────────────────────────────────────
   # Settlement Gate — Domain Level
   # ────────────────────────────────────────────────────────────────
 
-  Scenario: Reject sell when only unsettled lots exist (SETTLE-01)
+  Scenario: Reject sell when eligible quantity is insufficient (SETTLE-01)
     Given Alice bought 10 shares of AAPL at $100.00 five days ago
     And Alice bought 10 shares of AAPL at $110.00 just now
     When Alice tries to settlement-sell 15 shares of AAPL at $120.00
     Then the sell is rejected with "Insufficient Eligible Shares"
-    Because only the first lot (10 shares) has passed the T+2 settlement period
+    And only the first lot contributes 10 eligible shares
 
   Scenario: Allow selling exactly the settled quantity (SETTLE-02)
     Given Alice bought 10 shares of AAPL at $100.00 five days ago

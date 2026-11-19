@@ -11,7 +11,9 @@ info:
     Controllers are primary adapters; persistence and stock-price providers are secondary adapters.
 
     ## Error Contract
-    All error responses follow **RFC 7807 Problem Detail** (`application/problem+json`).
+    The application exceptions handled by `ExceptionHandlingAdvice` use
+    **Problem Detail** (`application/problem+json`). Framework parsing errors and
+    unhandled exceptions are not covered by a universal custom error-format guarantee.
     See the `ProblemDetail` schema under `components/schemas`.
   version: 0.0.1-SNAPSHOT
   contact:
@@ -23,7 +25,7 @@ servers:
 
 tags:
   - name: Portfolios
-    description: Portfolio CRUD and cash management
+    description: Portfolio creation, lookup and cash management
   - name: Stock Trading
     description: Buy and sell shares
   - name: Transactions
@@ -63,7 +65,7 @@ paths:
               schema:
                 type: string
                 format: uri
-                example: http://localhost:8080/api/portfolios/550e8400-e29b-41d4-a716-446655440000
+                example: http://localhost:8081/api/portfolios/550e8400-e29b-41d4-a716-446655440000
           content:
             application/json:
               schema:
@@ -283,18 +285,20 @@ paths:
 
         **Note:** The `type` query parameter is accepted by the controller but
         is **not currently used for filtering** — all transactions are always
-        returned regardless of the value passed.
+        returned regardless of the value passed. There is no pagination or explicit
+        sorting contract. A non-blank unknown portfolio ID returns an empty list;
+        this operation does not first check portfolio existence.
       parameters:
         - $ref: '#/components/parameters/PortfolioId'
         - name: type
           in: query
           required: false
           description: |
-            Transaction type filter. Accepted values: `DEPOSIT`, `WITHDRAWAL`,
-            `PURCHASE`, `SALE`. **Currently ignored by the implementation.**
+            Intended transaction type filter. The controller accepts an arbitrary
+            string; the service currently ignores it. Known transaction types are
+            DEPOSIT, WITHDRAWAL, PURCHASE and SALE.
           schema:
             type: string
-            enum: [DEPOSIT, WITHDRAWAL, PURCHASE, SALE]
       responses:
         '200':
           description: List of transactions (may be empty)
@@ -317,8 +321,12 @@ paths:
         For each ticker the response includes:
         - Total shares purchased, shares remaining
         - Weighted average purchase price
-        - Live market price (0.00 if provider unavailable)
+        - Provider price, which may be cached
+        - A provider exception propagates; the service does not substitute zero
         - Unrealized and realized gains
+
+        Fully sold tickers can remain in the report with zero remaining shares.
+        Historical purchase quantity is distinct from remaining quantity.
       parameters:
         - $ref: '#/components/parameters/PortfolioId'
       responses:
@@ -332,6 +340,8 @@ paths:
                   $ref: '#/components/schemas/HoldingDTO'
         '404':
           $ref: '#/components/responses/PortfolioNotFound'
+        '503':
+          $ref: '#/components/responses/ExternalApiError'
 
   # ── Stock prices ───────────────────────────────────────────────────
   /api/stocks/{symbol}:
@@ -340,7 +350,8 @@ paths:
       tags: [Stock Prices]
       summary: Get current stock price
       description: |
-        Retrieves the current market price for the given ticker symbol.
+        Retrieves the selected provider quote for the given ticker symbol.
+        External adapters cache quotes; this is not a guarantee of a live exchange price.
         Ticker must match `^[A-Z]{1,5}$`.
       parameters:
         - name: symbol
@@ -383,7 +394,7 @@ components:
       name: id
       in: path
       required: true
-      description: Unique portfolio identifier (UUID string)
+      description: Portfolio identifier; generated IDs are UUIDs, but input validation only requires a non-blank string
       schema:
         type: string
         example: 550e8400-e29b-41d4-a716-446655440000
@@ -470,7 +481,6 @@ components:
           example: "Portfolio not found with id: 550e8400"
         instance:
           type: string
-          format: uri
           description: URI reference identifying the specific occurrence
           example: "/api/portfolios/550e8400"
       required:
@@ -498,8 +508,7 @@ components:
       properties:
         amount:
           type: number
-          format: double
-          description: Monetary amount (must be > 0)
+          description: Monetary amount; rounded to two decimals with HALF_UP before the positive-amount business check
           example: 10000.00
 
     TradeRequest:
@@ -536,7 +545,6 @@ components:
           example: "Alice"
         cashBalance:
           type: number
-          format: double
           description: Initial cash balance (always 0.00)
           example: 0.00
         currency:
@@ -563,13 +571,11 @@ components:
           example: "Alice"
         balance:
           type: number
-          format: double
           description: Current cash balance
           example: 10000.00
         createdAt:
           type: string
-          format: date-time
-          description: Portfolio creation timestamp (ISO 8601, no timezone — LocalDateTime)
+          description: Portfolio creation timestamp (ISO 8601 local date-time without timezone)
           example: "2025-01-15T10:30:00"
       required:
         - id
@@ -596,17 +602,14 @@ components:
           example: 5
         proceeds:
           type: number
-          format: double
           description: Total money received (quantity × sell price)
           example: 901.25
         costBasis:
           type: number
-          format: double
           description: Original purchase cost of the sold shares (FIFO)
           example: 877.50
         profit:
           type: number
-          format: double
           description: Profit or loss (proceeds − costBasis). Can be negative.
           example: 23.75
       required:
@@ -620,79 +623,42 @@ components:
     TransactionDTO:
       type: object
       description: |
-        Wraps the raw `Transaction` domain object.
-
-        **Note:** The current implementation serialises domain value objects
-        as nested objects (e.g., `"id": {"value": "..."}`) rather than
-        flattened primitives. This is a known issue — see Follow-up Issue #2
-        in the API specification document.
-      properties:
-        transaction:
-          $ref: '#/components/schemas/TransactionDomain'
-
-    TransactionDomain:
-      type: object
-      description: |
-        Raw domain Transaction object as serialised by Jackson.
-        Value objects appear as nested objects with their internal field names.
+        Flat REST representation of a financial transaction, mapped by TransactionDTO.from.
+        Cash transactions have null ticker and unitPrice, quantity zero and profit zero.
+        Purchase transactions also have profit zero; sale transactions carry realized profit.
+      required: [id, portfolioId, type, ticker, quantity, unitPrice, totalAmount, profit, createdAt]
       properties:
         id:
-          type: object
-          properties:
-            value:
-              type: string
-              example: "a1b2c3d4-e5f6-7890-abcd-ef1234567890"
+          type: string
+          example: "a1b2c3d4-e5f6-7890-abcd-ef1234567890"
         portfolioId:
-          type: object
-          properties:
-            value:
-              type: string
-              example: "550e8400-e29b-41d4-a716-446655440000"
+          type: string
+          example: "550e8400-e29b-41d4-a716-446655440000"
         type:
           type: string
           enum: [DEPOSIT, WITHDRAWAL, PURCHASE, SALE]
-          example: "PURCHASE"
+          example: PURCHASE
         ticker:
-          type: object
+          type: string
           nullable: true
-          description: "null for DEPOSIT/WITHDRAWAL"
-          properties:
-            value:
-              type: string
-              example: "AAPL"
+          example: AAPL
         quantity:
-          type: object
-          properties:
-            value:
-              type: integer
-              format: int32
-              example: 10
+          type: integer
+          format: int32
+          example: 10
         unitPrice:
-          type: object
+          type: number
           nullable: true
-          description: "null for DEPOSIT/WITHDRAWAL"
-          properties:
-            value:
-              type: number
-              format: double
-              example: 150.00
+          example: 150.00
         totalAmount:
-          type: object
-          properties:
-            amount:
-              type: number
-              format: double
-              example: 1500.00
+          type: number
+          example: 1500.00
         profit:
-          type: object
-          properties:
-            amount:
-              type: number
-              format: double
-              example: 0.00
+          type: number
+          example: 0.00
         createdAt:
           type: string
-          format: date-time
+          description: ISO 8601 local date-time without timezone
           example: "2025-01-15T10:30:00"
 
     HoldingDTO:
@@ -705,32 +671,26 @@ components:
           example: "AAPL"
         quantity:
           type: number
-          format: double
-          description: Total shares ever purchased (all BUY transactions)
+          description: Total shares purchased in the recorded PURCHASE history
           example: 10
         remaining:
           type: number
-          format: double
           description: Shares currently held (after sells)
           example: 7
         averagePurchasePrice:
           type: number
-          format: double
           description: Weighted average purchase price (totalCost / totalQty, scale 2)
           example: 106.67
         currentPrice:
           type: number
-          format: double
-          description: Live market price (0.00 if provider unavailable)
+          description: Provider quote, possibly cached; zero only when the calculator receives a missing map entry, not a service-level provider-failure fallback
           example: 120.00
         unrealizedGain:
           type: number
-          format: double
           description: Unrealized gain/loss based on current vs purchase price per lot
           example: 200.00
         realizedGain:
           type: number
-          format: double
           description: Sum of profit from all SALE transactions for this ticker
           example: 80.00
       required:
@@ -752,7 +712,6 @@ components:
           example: "AAPL"
         price:
           type: number
-          format: double
           description: Current market price
           example: 178.50
         time:

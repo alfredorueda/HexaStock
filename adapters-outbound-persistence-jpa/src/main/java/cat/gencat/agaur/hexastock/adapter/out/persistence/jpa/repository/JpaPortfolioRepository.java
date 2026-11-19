@@ -60,12 +60,11 @@ public class JpaPortfolioRepository implements PortfolioPort {
      * <ol>
      *   <li>Queries the database for the portfolio with the specified ID using a pessimistic lock</li>
      *   <li>Converts the JPA entity to a domain model if found</li>
-     *   <li>Throws an exception if no portfolio with the ID exists</li>
+     *   <li>Returns Optional.empty() if no portfolio with the ID exists</li>
      * </ol>
      *
      * @param portfolioId The unique identifier of the portfolio to retrieve
-     * @return The Portfolio domain object
-     * @throws PortfolioNotFoundException if no portfolio with the ID exists
+     * @return the mapped portfolio, or an empty Optional when absent
      */
     @Override
     public Optional<Portfolio> getPortfolioById(PortfolioId portfolioId) {

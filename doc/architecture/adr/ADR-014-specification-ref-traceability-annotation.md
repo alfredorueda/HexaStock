@@ -41,7 +41,7 @@ Gherkin scenario identifiers follow the convention `US-XX.AC-N` or `US-XX.FIFO-N
 **Positive:**
 - Every test can declare its specification origin with structured metadata.
 - The traceability chain is maintained in code, not in external documentation.
-- IDE navigation: developers can search for `@SpecificationRef("US-07.FIFO-1")` to find all tests verifying that scenario.
+- IDE navigation: developers can search for the identifier `US-07.FIFO-1` to find all tests verifying that scenario.
 - The same Gherkin scenario can be verified at multiple levels (DOMAIN and INTEGRATION).
 
 **Negative:**
@@ -57,7 +57,7 @@ Gherkin scenario identifiers follow the convention `US-XX.AC-N` or `US-XX.FIFO-N
 - `PortfolioTradingRestIntegrationTest.java`: `@SpecificationRef(value = "US-07.FIFO-1", level = TestLevel.INTEGRATION, feature = "sell-stocks.feature")`
 - `PortfolioLifecycleRestIntegrationTest.java`: Multiple `@SpecificationRef` annotations on test methods
 - `PortfolioTest.java`: `@SpecificationRef(level = TestLevel.DOMAIN)` on domain tests
-- `CONTRIBUTING.md`: "Every test method references the Gherkin scenario it verifies using the @SpecificationRef annotation"
+- `CONTRIBUTING.md`: guidance on linking behavior tests to scenarios. Annotation presence is metadata, not proof of assertion quality or complete scenario coverage.
 
 ## Relation to other specifications
 

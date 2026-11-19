@@ -10,26 +10,26 @@ The project needs an application framework that provides dependency injection, w
 
 ## Decision
 
-Use Spring Boot 3.5.0 (with Spring Framework 6.x) as the application framework. Confine Spring-specific code to adapters, the bootstrap module, and a minimal `@Transactional` dependency in the application layer.
+Use Spring Boot 3.5.0 (with Spring Framework 6.x) as the application framework. Confine Spring-specific production code to adapters and bootstrap. The application module uses Jakarta `@Transactional`, a separate standard API interpreted by Spring at runtime.
 
 ## Alternatives considered
 
-- **Quarkus:** Provides similar capabilities with faster startup and native compilation. Standard alternative for cloud-native Java applications. Not discussed in the repository.
-- **Micronaut:** Compile-time dependency injection with low memory footprint. Standard alternative. Not discussed in the repository.
-- **Plain Java (no framework):** Would achieve maximum domain purity but would require reimplementing dependency injection, web serving, transaction management, and test infrastructure.
+- **Quarkus:** Offers an alternative runtime and native compilation model. Standard alternative for cloud-native Java applications. Not discussed in the repository.
+- **Micronaut:** Compile-time dependency injection. Standard alternative. Not discussed in the repository.
+- **Plain Java (no framework):** Would achieve maximum domain purity but would require selecting and integrating those facilities separately.
 
 ## Consequences
 
 **Positive:**
 - Mature ecosystem with extensive documentation and community support.
-- Spring profiles enable swappable adapters (`jpa`, `finhub`, `mockfinhub`).
+- Spring profiles enable swappable adapters (`jpa` or `mongodb`, and `finhub`, `alphaVantage` or `mockfinhub`).
 - `@SpringBootTest` with Testcontainers provides comprehensive integration testing.
 - `spring-boot-starter-*` modules simplify dependency management.
 - The application layer has no compile-time coupling to Spring. Transactional demarcation uses the standard Jakarta `@Transactional` annotation; Spring's transaction infrastructure recognises it at runtime.
 
 **Negative:**
 - Contributors must understand Spring Boot conventions (profiles, auto-configuration, component scanning).
-- Runtime startup is slower than compile-time frameworks such as Quarkus or Micronaut (acceptable for this project's context).
+- Startup and memory costs must be measured on the intended workload; this repository does not establish a comparative benchmark.
 
 ## Repository evidence
 

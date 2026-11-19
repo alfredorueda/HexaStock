@@ -2,7 +2,7 @@
 
 > **Alternative diagram** — This Mermaid version provides a simplified, browser-native view of the same hexagonal architecture described in the [PlantUML diagram](Rendered/hexastock-hexagonal-architecture.svg). The architectural style is Alistair Cockburn's Hexagonal Architecture (Ports and Adapters); the visual layout draws on the teaching clarity of [Tom Hombergs' Reflectoring diagram](https://reflectoring.io/spring-hexagonal/), emphasising clean layer separation and human readability.
 >
-> GitHub and GitBook render Mermaid natively — no external tooling required.
+> This is editable Mermaid source. For the book's primary, pre-rendered view, use the [architecture lesson](../SELL-STOCK-04-HTTP-AND-PORTS.md).
 
 ```mermaid
 ---
@@ -41,8 +41,8 @@ flowchart LR
     end
 
     %% ── RIGHT: Driven Adapters ──
-    persist("<b>PortfolioJpaAdapter</b><br/><b>TransactionJpaAdapter</b><br/><i>Persistence Adapters · JPA</i>"):::driven
-    market("<b>FinnhubStockPriceAdapter</b><br/><b>AlphaVantageStockPriceAdapter</b><br/><i>Market Adapters</i>"):::driven
+    persist("<b>JpaPortfolioRepository</b><br/><b>JpaTransactionRepository</b><br/><i>Persistence Adapters · JPA</i>"):::driven
+    market("<b>FinhubStockPriceAdapter</b><br/><b>AlphaVantageStockPriceAdapter</b><br/><i>Market Adapters</i>"):::driven
 
     %% ── FAR RIGHT: External Systems ──
     db[("MySQL")]:::infraNode
@@ -50,7 +50,7 @@ flowchart LR
 
     %% ── Wiring: all dependencies point inward ──
     ctrl -- "calls" --> inPort
-    inPort -. "implemented by" .-> svc
+    svc -. "implements" .-> inPort
     svc -- "delegates to" --> portfolio
     portfolio --> holding
     holding --> lot
@@ -58,9 +58,9 @@ flowchart LR
     svc -- "uses" --> outPort1
     svc -- "uses" --> outPort2
     svc -- "uses" --> outPort3
-    outPort1 -. "implemented by" .-> persist
-    outPort3 -. "implemented by" .-> persist
-    outPort2 -. "implemented by" .-> market
+    persist -. "implements" .-> outPort1
+    persist -. "implements" .-> outPort3
+    market -. "implements" .-> outPort2
     persist --> db
     market --> apis
 
@@ -85,4 +85,4 @@ flowchart LR
 
 **Value Objects** used throughout the domain: `Money`, `Price`, `ShareQuantity`, `Ticker`, `PortfolioId`.
 
-All dependencies point **inward** toward the domain. The domain module has zero external dependencies.
+Implementation arrows point from implementations toward their interfaces. Solid arrows show selected runtime interactions, not a complete dependency graph. This view selects the JPA path; `main` also provides a MongoDB persistence adapter. The domain production code has no framework dependencies; test dependencies are separate.

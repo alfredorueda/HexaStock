@@ -31,7 +31,7 @@ import java.util.Optional;
  * <ul>
  *   <li>Performance analysis and reporting</li>
  *   <li>Audit trails for financial activities</li>
- *   <li>Tax reporting and compliance</li>
+ *   <li>Educational analysis of recorded operations</li>
  * </ul>
  * </p>
  */
@@ -54,19 +54,14 @@ public class TransactionService implements TransactionUseCase {
     }
 
     /**
-     * Retrieves transactions for a specified portfolio, optionally filtered by transaction type.
-     * 
-     * <p>This method:
-     * <ol>
-     *   <li>Retrieves transactions for the specified portfolio ID</li>
-     *   <li>Optionally filters them by transaction type if provided</li>
-     *   <li>Converts domain Transaction objects to DTOs for the presentation layer</li>
-     * </ol>
-     * </p>
-     * 
-     * @param portfolioId The ID of the portfolio to retrieve transactions for
-     * @param type Optional transaction type to filter by (e.g., DEPOSIT, WITHDRAWAL, PURCHASE, SALE)
-     * @return A list of TransactionDTO objects representing the transaction history
+     * Retrieves domain transaction records for the supplied portfolio identifier.
+     * The current implementation ignores the optional type parameter and does not
+     * independently verify portfolio existence. The REST adapter maps the records
+     * to DTOs; this service returns domain values.
+     *
+     * @param portfolioId portfolio identifier
+     * @param type accepted but currently unused filter value
+     * @return transaction records returned by the persistence port
      */
     @Override
     public List<Transaction> getTransactions(String portfolioId, Optional<String> type) {

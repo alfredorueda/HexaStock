@@ -19,7 +19,7 @@ import cat.gencat.agaur.hexastock.application.exception.PortfolioNotFoundExcepti
  *   <li>Selling shares of a stock from a portfolio with profit/loss calculation</li>
  * </ul>
  * 
- * <p>This interface is implemented by application services in the domain layer and
+ * <p>This interface is implemented by services in the application layer and
  * used by driving adapters (like REST controllers) in the infrastructure layer.</p>
  * 
  * <p>Stock operations automatically handle:</p>
@@ -38,7 +38,7 @@ public interface PortfolioStockOperationsUseCase {
      * 
      * <p>This operation:</p>
      * <ol>
-     *   <li>Retrieves the current market price of the stock</li>
+     *   <li>Loads the portfolio, then retrieves a provider quote (which may be cached)</li>
      *   <li>Verifies the portfolio has sufficient funds</li>
      *   <li>Creates a new lot in the appropriate holding</li>
      *   <li>Deducts the purchase amount from the portfolio's cash balance</li>
@@ -59,7 +59,7 @@ public interface PortfolioStockOperationsUseCase {
      * 
      * <p>This operation:</p>
      * <ol>
-     *   <li>Retrieves the current market price of the stock</li>
+     *   <li>Loads the portfolio, then retrieves a provider quote (which may be cached)</li>
      *   <li>Verifies the portfolio has sufficient shares to sell</li>
      *   <li>Applies FIFO accounting to determine which lots to sell from</li>
      *   <li>Calculates proceeds, cost basis, and profit/loss</li>

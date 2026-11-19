@@ -33,7 +33,8 @@ Do not collapse planning, implementation, and review into one unreviewed agent r
 - Package root: `com.neueda.portfolio.domain`.
 - Use `BigDecimal` for every monetary amount; never use `double` or `float`.
 - No Spring, REST, persistence, logging framework, DTOs, authentication, or unrelated layers.
-- Do not add members absent from the class diagram or behaviour absent from the specification.
+- Follow the class diagram and its construction/accessor clarification in specification section 6.
+  Do not add unrelated members or behavior.
 - Preserve rejected-operation state and assert state as well as return values.
 
 ## Verification

@@ -14,44 +14,17 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 /**
- * Application service that orchestrates the holdings-performance report.
+ * Coordinates portfolio/history loading and quote lookup, then delegates
+ * reporting arithmetic to {@link HoldingPerformanceCalculator}.
  *
- * <p>This service sits in the <strong>application layer</strong> of the hexagonal
- * architecture.  It coordinates infrastructure ports (persistence, stock-price
- * provider) and delegates the actual computation to the domain-layer
- * {@link HoldingPerformanceCalculator}.</p>
+ * <p>The default set-based quote method calls providers sequentially. That alone
+ * is not rate limiting. Real provider adapters already use the stockPrices cache;
+ * the random mock has different behavior. Provider exceptions propagate.</p>
  *
- * <h2>Current design — sequential price fetching</h2>
- * <p>Stock prices are fetched sequentially via the default implementation of
- * {@link StockPriceProviderPort#fetchStockPrice(java.util.Set)}, which iterates
- * the ticker set and calls the single-ticker method one by one.  This is
- * intentional: the free-tier API (Finnhub) enforces strict rate limits, and
- * parallel calls would quickly trigger HTTP 429 responses.</p>
- *
- * <h2>Future improvements (not implemented — documented for pedagogy)</h2>
- * <ol>
- *   <li><strong>Batch price fetching</strong> — If the provider exposes a
- *       multi-symbol endpoint (e.g., {@code /quote?symbols=AAPL,MSFT}), the
- *       adapter can override the default method to fetch all prices in a single
- *       HTTP call, eliminating the N+1 problem entirely.</li>
- *   <li><strong>Parallel fetching with a bounded executor</strong> — Replace the
- *       sequential loop with {@code ExecutorService} (virtual threads or a
- *       fixed-size pool) to fetch prices concurrently while respecting rate
- *       limits.  This avoids the common-pool contention problem of
- *       {@code parallelStream()} and gives explicit control over concurrency.</li>
- *   <li><strong>Short-lived caching (e.g., 30 s TTL)</strong> — A Caffeine or
- *       Spring {@code @Cacheable} layer in front of the price adapter would
- *       deduplicate calls for the same ticker within a short window, reducing
- *       both latency and API quota consumption.</li>
- * </ol>
- * <p>These optimisations are omitted here because the current dataset size
- * (single-digit tickers per portfolio) does not justify the added complexity,
- * and the free-tier API would not benefit from parallelism.</p>
- *
- * <h2>Scalability thresholds</h2>
- * <p>In-memory processing with Java Streams is appropriate for up to ~100 000
- * transactions.  Beyond that, consider specialised read models, pagination, or
- * pushing aggregation into the persistence layer.</p>
+ * <p>The request loads full history and the portfolio graph. Performance depends
+ * on their sizes, quote/cache behavior, database work, contention and concurrent
+ * requests. No universal transaction-count capacity threshold is established.
+ * Dedicated query ports or projections are possible future designs.</p>
  */
 @Transactional
 public class ReportingService implements ReportingUseCase {
@@ -80,7 +53,7 @@ public class ReportingService implements ReportingUseCase {
      *   <li>Load the full transaction list for this portfolio.</li>
      *   <li>Collect the distinct tickers from the portfolio's holdings.</li>
      *   <li>Fetch live prices for those tickers (sequentially — see class-level doc).</li>
-     *   <li>Delegate to {@link HoldingPerformanceCalculator} for the O(T) computation.</li>
+     *   <li>Delegate to {@link HoldingPerformanceCalculator} for aggregation and remaining-lot calculations.</li>
      * </ol>
      */
     @Override
@@ -92,8 +65,7 @@ public class ReportingService implements ReportingUseCase {
 
         var transactions = transactionPort.getTransactionsByPortfolioId(id);
 
-        // Collect distinct tickers from current holdings (not from transactions,
-        // because closed positions with zero shares are removed from holdings).
+        // Collect holding tickers, including empty holdings retained after liquidation.
         var tickers = portfolio.getHoldings().stream()
                 .map(Holding::getTicker)
                 .collect(Collectors.toSet());

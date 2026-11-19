@@ -1,5 +1,8 @@
 # Esquema de la presentació
 
+> **Esborrany històric.** La numeració, els temps i alguns textos corresponen a una versió anterior. Per preparar o modificar la defensa, utilitza el [guió canònic de 20 minuts](output/materials-orals-canonics-20-minuts.md) i el PowerPoint indicat al [mapa de materials](README.md).
+
+
 Presentació per a una classe magistral reduïda de 20 minuts en el marc de la defensa d'una plaça de professorat permanent al TecnoCampus.
 
 ## Criteri de disseny

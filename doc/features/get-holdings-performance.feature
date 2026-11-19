@@ -50,7 +50,7 @@ Feature: Get Holdings Performance (US-09)
       | quantity             | Total shares ever purchased              |
       | remaining            | Shares currently held (after sells)      |
       | averagePurchasePrice | Weighted average of all purchase prices  |
-      | currentPrice         | Live market price                        |
+      | currentPrice         | Provider quote (possibly cached)                        |
       | unrealizedGain       | Gain/loss on shares still held           |
       | realizedGain         | Gain/loss from completed sales           |
 

@@ -23,7 +23,7 @@ The pilot established the patterns that were then extended to all 10 use cases:
 1. **Gherkin specification** — [`doc/features/sell-stocks.feature`](../features/sell-stocks.feature) defines two detailed FIFO scenarios with exact numeric expectations.
 2. **Domain-level tests** — `HoldingTest` and `PortfolioTest` verify FIFO mechanics and financial calculations, annotated with `@SpecificationRef`.
 3. **Integration-level tests** — `PortfolioTradingRestIntegrationTest` and `PortfolioErrorHandlingRestIntegrationTest` verify REST endpoint behaviour end-to-end.
-4. **Inline Gherkin in the specification** — The functional specification document embeds the Gherkin scenarios directly within the US-07 section, with a canonical source reference back to the `.feature` file.
+4. **Operation reference** — The US-07 API page links to the canonical `.feature` file and explains its current request, response, and failure contract.
 
 The Sell Stocks tutorials provide a deeper walkthrough:
 
@@ -36,7 +36,7 @@ The Sell Stocks tutorials provide a deeper walkthrough:
 
 ### 1. Functional Specification → Gherkin
 
-The [functional specification](../stock-portfolio-api-specification.md) defines acceptance criteria for each use case (US-01 through US-10) in a tabular Given/When/Then format. Each use case section now includes an embedded **Gherkin block** showing the exact scenarios, plus a **Canonical source** reference pointing to the standalone `.feature` file.
+The [API reference](../stock-portfolio-api-specification.md) provides a separate page for each use case (US-01 through US-10). Each page links to its canonical `.feature` file. Read the feature for the concrete scenarios and the operation page for HTTP shapes and implementation limits.
 
 ### 2. Gherkin Feature Files
 

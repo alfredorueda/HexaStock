@@ -37,7 +37,7 @@ public record CreatePortfolioResponseDTO(
             portfolio.getId().value(),
             portfolio.getOwnerName(),
             portfolio.getBalance().amount(),
-            "USD" // Default currency as Portfolio uses BigDecimal directly
+            "USD" // Fixed currency for the single-currency teaching model
         );
     }
 }

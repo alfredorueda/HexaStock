@@ -6,7 +6,7 @@ Accepted
 
 ## Context
 
-Stock price lookups are frequent operations (every buy, sell, and performance calculation requires a current price). External API calls to Finnhub or AlphaVantage have latency, rate limits, and quota constraints. Redundant API calls for the same ticker within a short window waste resources and risk hitting rate limits.
+Stock price lookups are frequent operations (every buy, sell, and performance calculation requires a provider quote, potentially served from cache). External API calls to Finnhub or AlphaVantage have latency, rate limits, and quota constraints. Redundant API calls for the same ticker within a short window waste resources and risk hitting rate limits.
 
 ## Decision
 
@@ -16,25 +16,25 @@ Cache stock price responses using Spring Cache backed by Caffeine. Configuration
 - **Time-to-live:** 5 minutes (`expireAfterWrite=300s`)
 - **Maximum entries:** 1,000
 - **Cache annotation:** `@Cacheable("stockPrices")` on the stock price provider adapter method
-- **Profile:** Caching is configured in the `adapters-outbound-market` module
+- **Placement:** Adapter annotations use Spring Cache; bootstrap enables caching and supplies configuration
 
 ## Alternatives considered
 
 - **Redis:** Distributed cache suitable for multi-instance deployments. Adds infrastructure complexity for a single-instance educational project. Standard alternative.
 - **No caching:** Every request hits the external API. Would exhaust free-tier API quotas quickly. Rejected.
-- **EhCache:** Another popular Java cache. Caffeine is the recommended default for Spring Boot and provides superior performance. Standard alternative.
+- **EhCache:** Another popular Java cache. This repository does not benchmark it against Caffeine. Standard alternative.
 - **Longer TTL:** Would reduce API calls further but increase the staleness of price data. 5 minutes is a balance between freshness and API quota preservation for a non-HFT use case.
 
 ## Consequences
 
 **Positive:**
-- Dramatically reduces external API calls for repeated lookups of the same ticker.
-- Caffeine is a high-performance, thread-safe cache with O(1) operations.
+- Can reduce external API calls for repeated lookups of the same ticker.
+- Caffeine supplies an in-process cache; this decision does not establish an end-to-end performance bound.
 - Spring `@Cacheable` provides transparent caching without modifying service logic.
-- 5-minute TTL ensures prices are reasonably current for educational purposes.
+- The five-minute policy deliberately allows reuse; it does not guarantee a fresh market quote.
 
 **Negative:**
-- Prices may be up to 5 minutes stale.
+- Entries may be reused for up to five minutes after insertion; the provider quote may already be older.
 - Cache is local to the JVM instance (no sharing across instances).
 - Cache eviction policy (size-based + time-based) may evict actively traded tickers.
 
@@ -43,11 +43,11 @@ Cache stock price responses using Spring Cache backed by Caffeine. Configuration
 - `adapters-outbound-market/pom.xml`: `spring-boot-starter-cache`, `com.github.ben-manes.caffeine:caffeine`
 - `application.properties`: `spring.cache.type=caffeine`, `spring.cache.caffeine.spec=maximumSize=1000,expireAfterWrite=300s`, `spring.cache.cache-names=stockPrices`
 - `SpringAppConfig.java`: `@EnableCaching`
-- `FinhubStockPriceAdapter.java`: likely annotated with `@Cacheable("stockPrices")` (cache is configured for the stock price lookup operation)
-- `README.md`: "Caffeine-based local caching with TTL" listed as a feature
+- `FinhubStockPriceAdapter.java` and `AlphaVantageStockPriceAdapter.java`: `@Cacheable(cacheNames = "stockPrices", key = "#ticker.value()", sync = true)`. The random mock adapter is not cached by these annotations.
+- `README.md`: provider profile setup
 
 ## Relation to other specifications
 
-- **Gherkin:** Caching is transparent to behavioural specifications. Users see the same stock price behaviour regardless of cache state.
-- **OpenAPI:** The `GET /api/stocks/{symbol}` endpoint returns stock prices. Caching affects latency and freshness but not the API contract.
+- **Gherkin:** Caching is transparent to behavioural specifications. A repeated request can receive a cached quote; tests must control the provider and cache state when asserting exact prices.
+- **OpenAPI:** The `GET /api/stocks/{symbol}` endpoint returns stock prices. Caching affects latency and freshness and must be considered when interpreting the returned price and timestamp.
 - **PlantUML:** Not directly represented. Could be visualised in a deployment or component diagram showing the cache layer.

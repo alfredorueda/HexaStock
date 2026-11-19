@@ -72,7 +72,7 @@ For GitBook compatibility:
 - Use relative Markdown links for book pages and images, and register new chapters in [SUMMARY.md](SUMMARY.md).
 - Link source code to the corresponding path on GitHub `main`; GitBook does not publish Java source files as book pages.
 - Use ordinary Markdown images so the renderer preserves their aspect ratio. Keep captions and source attribution.
-- Update diagram sources together with their rendered assets. Follow the [diagram maintenance guide](doc/tutorial/sellStocks/diagrams/README.md).
+- Update diagram sources together with their rendered assets. Follow the [diagram maintenance guide](doc/diagrams/README.md).
 - Preserve existing entry-page paths when splitting a chapter, and update incoming section links.
 
 Do not change license terms or remove attribution as an editorial cleanup.

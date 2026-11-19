@@ -17,7 +17,7 @@ Key implementation decisions:
 - **Profile-gated activation:** The JPA repository adapter is activated only when the `jpa` Spring profile is active (`@Profile("jpa")`).
 - **Separate entity model:** `PortfolioJpaEntity`, `HoldingJpaEntity`, `LotJpaEntity`, `TransactionJpaEntity` mirror domain types but carry JPA annotations.
 - **Static mappers:** `PortfolioMapper`, `HoldingMapper`, `LotMapper`, `TransactionMapper` perform bidirectional mapping.
-- **Aggregate-level persistence:** `cascade = ALL, orphanRemoval = true` on `@OneToMany` relationships ensures the full aggregate is saved/loaded as a unit.
+- **Aggregate-level persistence:** `cascade = ALL, orphanRemoval = true` on `@OneToMany` relationships propagates persistence operations and removes deleted children. Loading uses lazy collections; atomicity additionally depends on the transaction boundary.
 - **Docker Compose for local development:** MySQL container defined in `docker-compose.yml`.
 
 ## Alternatives considered
@@ -31,7 +31,7 @@ Key implementation decisions:
 
 **Positive:**
 - Domain model remains free of JPA annotations.
-- Aggregate-level `cascade = ALL` ensures consistency: saving a Portfolio also saves its Holdings and Lots.
+- Cascades propagate saves to child entities. Locking and transaction boundaries supply the separate concurrency and atomicity guarantees.
 - Profile-gated activation allows swapping the persistence implementation.
 - Mapper classes serve as an anti-corruption layer, preventing persistence concerns from leaking into the domain.
 - `orphanRemoval = true` ensures that depleted lots (removed during FIFO sell) are deleted from the database.
@@ -46,9 +46,9 @@ Key implementation decisions:
 - `docker-compose.yml`: `image: mysql:8.0.32`, port `3307:3306`, database `hexastock_db`
 - `application.properties`: `spring.datasource.url=jdbc:mysql://localhost:3307/hexastock_db`, `spring.jpa.properties.hibernate.dialect=org.hibernate.dialect.MySQLDialect`
 - `adapters-outbound-persistence-jpa/pom.xml`: `spring-boot-starter-data-jpa`, `mysql-connector-j` version `8.2.0`
-- `JpaPortfolioRepository.java`: implements `PortfolioPort`, annotated `@Repository @Profile("jpa")`
+- `JpaPortfolioRepository.java`: implements `PortfolioPort`, annotated `@Component @Profile("jpa")`
 - `PortfolioJpaEntity.java`: `@Entity @Table(name = "portfolios")`, `@OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)`
-- `PortfolioMapper.java`: static `toDomain()` and `toJpaEntity()` methods
+- `PortfolioMapper.java`: static `toModelEntity()` and `toJpaEntity()` methods
 - `JpaPortfolioSpringDataRepository.java`: extends `JpaRepository<PortfolioJpaEntity, String>`
 
 ## Relation to other specifications

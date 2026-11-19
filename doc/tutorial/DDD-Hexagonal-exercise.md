@@ -1,319 +1,99 @@
-# Extending Lot Selection Strategies in HexaStock
-**Domain-Driven Design + Hexagonal (Clean) Architecture**
+# Exercise: extend lot selection policies
 
----
+**Level:** intermediate, after the [domain-only FIFO lessons](sellStocks/SELL-STOCK-DOMAIN-TUTORIAL.md). **Baseline:** `main` implements FIFO. LIFO, HIFO and specific-lot selection below are assignment requirements, not existing features or claims about permitted tax treatment.
 
-## 1. Business Context
+The teaching scenario is a product team requesting alternative lot-selection policies for simulations. Your task is to add those policies while keeping business decisions in the domain and making the necessary contract and persistence changes explicit.
 
-The **HexaStock** platform was originally designed to use the **FIFO (First-In, First-Out)** criterion when selling stocks, so the system was initially implemented with FIFO as its default — and only — lot selection policy.
+## 1. Define the behavior before choosing a pattern
 
-At this point, **FIFO is already implemented and working correctly in the system**.
+Mandatory requirements:
 
-Over recent months, several clients and potential international partners have highlighted an important limitation of the product:  
-working exclusively with FIFO is insufficient for advanced users who require greater flexibility and analytical capabilities.
+1. A portfolio receives its policy when created.
+2. The policy is persisted as aggregate state and cannot be changed after creation.
+3. Omitted policy means FIFO, preserving existing clients' behavior.
+4. Every sale uses that portfolio's policy.
+5. Support FIFO, LIFO and HIFO; keep the existing FIFO behavior covered by tests.
 
-As part of the company's growth strategy, the product is now expected to **expand to international markets**, where:
+| Policy | Selection rule |
+|---|---|
+| FIFO | Oldest purchase first |
+| LIFO | Newest purchase first |
+| HIFO | Highest unit purchase price first |
 
-- different regulations apply,
-- alternative lot selection policies are commonly used,
-- and advanced portfolio functionality is expected by expert users.
+Specify a deterministic secondary order for ties. For example, HIFO can break equal prices by purchase timestamp and then lot ID. Document the chosen ordering and preserve it across save/reload. The current timestamp ordering does not itself define a stable tie-breaker across storage implementations.
 
-This creates a clear business opportunity:  
-**to extend HexaStock so it supports additional lot selection policies beyond FIFO**, while preserving architectural quality and minimizing maintenance costs.
+**Checkpoint:** explain why merely sorting by price is insufficient for two lots with the same price.
 
----
+## 2. Calculate and test a shared example
 
-## 2. Objective of the Assignment
+Use three chronologically ordered lots and sell 12 shares at $150:
 
-The goal of this assignment is to **evolve the existing system** to support **new lot selection policies**, beyond FIFO, while strictly respecting:
+| Lot | Quantity | Unit price |
+|---|---:|---:|
+| Oldest | 10 | $100 |
+| Middle | 8 | $130 |
+| Newest | 5 | $110 |
 
-- **Domain-Driven Design (DDD)** principles
-- **Hexagonal (Clean) Architecture**
-- strong encapsulation of business rules within the **domain**
-- minimal and controlled impact on infrastructure
+| Policy | Consumed shares | Cost basis | Proceeds | Profit |
+|---|---|---:|---:|---:|
+| FIFO | 10 oldest + 2 middle | $1,260 | $1,800 | $540 |
+| LIFO | 5 newest + 7 middle | $1,460 | $1,800 | $340 |
+| HIFO | 8 middle + 4 newest | $1,480 | $1,800 | $320 |
 
-This assignment is not about rewriting the system, but about **evolving it correctly**.
+All three leave 11 shares and credit $1,800. Their remaining lots and cost basis differ. Verify the calculations manually before implementing a strategy.
 
----
+Add tests for a single lot, partial consumption, a sale spanning lots, exact depletion, ordering ties, an unknown policy at the input boundary, a missing holding, and an excessive quantity. A rejected sale must leave cash and lots unchanged. Do not remove a partially consumed lot or mutate the stored list's canonical order accidentally while selecting candidates.
 
-## 3. Fundamental Design Principle (Key Learning Objective)
+Run domain tests without infrastructure:
 
-This assignment is intentionally designed as a deep learning opportunity about software design and architecture.
+```bash
+./mvnw -pl domain test
+```
 
-HexaStock follows the following guiding principle:
+## 3. Implement and connect the policy
 
-> **Business changes should primarily impact the domain.**  
-> **Infrastructure changes should impact infrastructure code only.**  
-> **The domain must not depend on frameworks, databases, or technical details.**
+The domain chooses and consumes lots. You may use a strategy interface, enum behavior or another cohesive design; justify the abstraction with the policies it supports. Avoid repeating policy switches in controllers, services and mappers.
 
-Introducing new lot selection policies is a **business rule change**.  
-Therefore, the main impact of this extension must be concentrated in the **domain model** and its algorithms.
+| Layer | Expected change |
+|---|---|
+| Domain | Policy state, selection behavior and invariants |
+| Application | Carry the creation choice and coordinate existing use cases |
+| REST | Translate the new creation field and define invalid-value responses |
+| Persistence adapters | Map and restore the policy without choosing the business algorithm |
+| Bootstrap | Wiring changes only if the chosen design needs them |
 
-This exercise aims to demonstrate, in a concrete and practical way, the power of combining **DDD with Hexagonal Architecture** to reduce the cost of change and protect the core of the system.
+A business change can legitimately affect DTOs and persistence mappings when it adds state. “Rules belong in the domain” does not mean that every other file must remain unchanged. Define how old persisted portfolios receive FIFO and how new data remains readable; the local `create-drop` setup is not a data migration strategy.
 
----
+The domain must not acquire Spring, JPA or MongoDB dependencies. Production port interfaces are in `application`, not in the domain package. Preserve the current transaction and concurrency mechanisms when connecting the new behavior.
 
-## 4. Lot Selection Policy (Key Domain Decision)
+**Checkpoint:** save a non-FIFO portfolio, reload it and show that the next sale still uses its original policy.
 
-Each **Portfolio** has an associated **Lot Selection Policy** that determines how lots are consumed when selling stocks.
+## 4. Optional: specific lot identification
 
-### Mandatory Business Rules
+`SPECIFIC_ID` is an additional immutable portfolio policy. A sale for that policy must include chosen lot IDs and quantities. FIFO, LIFO and HIFO requests must reject explicit selections rather than silently ignoring them.
 
-1. The policy is defined **when the portfolio is created**.
-2. The policy is persisted as part of the aggregate state.
-3. **The policy cannot be changed after creation.**
-4. All sell operations automatically apply the configured policy.
-5. FIFO remains available as the default policy and **must not be removed or broken**.
+Define and test unknown IDs, lots belonging to another holding, duplicate IDs, nonpositive quantities, quantities above a lot's remainder and a selection total that differs from the requested sale quantity. Validate the whole plan before mutation. An exposed lot ID is not inherently a boundary violation; the aggregate must still enforce ownership and consistency.
 
----
+This is an optional extension. Assess it separately from the mandatory three-policy work.
 
-## 5. Lot Selection Policies to Implement
+## 5. Optional: verify both existing persistence adapters
 
-### 5.1 Mandatory New Policies
+`main` already contains JPA/MySQL and MongoDB adapters. The updated exercise is to extend their mappings for policy state and compare save/reload behavior, rather than add MongoDB from scratch.
 
-Students must implement **two new policies**, in addition to the existing FIFO policy.
+Choose one persistence profile at runtime: `jpa` or `mongodb`. Reuse the existing portfolio and transaction ports, keep technology-specific types in adapters and run the relevant shared contracts. Domain tests remain independent of the selected storage technology.
 
-#### LIFO — Last In, First Out
+Also explain the different concurrency mechanisms: JPA uses a locking portfolio lookup; MongoDB uses version checks and transactions, with bounded application retry. Passing the same round-trip contract does not prove identical locking behavior. See [the concurrency lessons](CONCURRENCY-PESSIMISTIC-LOCKING.md).
 
-- The most recently acquired shares are sold first.
-- Clearly illustrates behavioral differences compared to FIFO.
-- Algorithmically straightforward.
+## Submission and assessment
 
----
+Submit a brief behavior specification, the implementation, focused domain tests, adapter evidence for the supported storage profiles, and a short design decision. Identify any unsupported optional extension explicitly.
 
-#### HIFO — Highest In, First Out
+Assess correctness first, then responsibility placement, deterministic ordering, persistence fidelity, test quality and clarity. Optional work does not substitute for the mandatory behavior and should not penalize students who omit it. Course-specific grading weights remain with the instructor.
 
-- Shares purchased at the **highest price** are sold first.
-- Uses a non-temporal selection criterion.
-- Commonly used in fiscal analysis and advanced simulations.
-- Provides higher algorithmic complexity.
-
-Both policies must be **fully encapsulated within the domain** and the solution must be designed to accommodate future policies easily.
-
----
-
-### 5.2 Advanced Extra — Specific Lot Identification (Optional)
-
-As an **advanced optional extension**, students may implement an additional policy.
-
-#### Specific Lot Identification
-
-- Allows selling **explicitly selected lots**.
-- The client specifies exactly which lots and how many shares from each lot should be sold.
-- Common in advanced brokers and markets such as the United States.
-
-##### Consistency Rules
-
-- `SPECIFIC_ID` is modeled as an additional **portfolio policy**.
-- If a portfolio is created with this policy:
-    - the sell request **must include explicit lot selection**.
-- If the portfolio uses FIFO, LIFO, or HIFO:
-    - the sell request **must not include lot selection**.
-
-This extension is optional but will be **highly valued** for advanced students.
-
----
-
-## 6. Design Requirements
-
-The solution must support multiple lot selection policies while respecting the following constraints:
-
-### Domain Layer Requirements
-
-- Lot selection logic must reside **entirely within the domain**.
-- The domain must determine which lots to consume based on the portfolio's policy.
-- Policy selection must depend on the **state of the Portfolio**, not on external components.
-- The solution must be designed to support adding new policies in the future with minimal changes to existing code.
-
-### Explicitly Forbidden
-
-- Business logic in REST controllers
-- Policy selection or lot selection algorithms in the web layer
-- Leakage of domain rules into infrastructure code
-- Conditional logic scattered across multiple layers to handle different policies
-
-### Design Quality Expectations
-
-Students are free to choose their own design approach, but the solution will be evaluated based on:
-
-- **Separation of concerns**: Each component has a clear, single responsibility
-- **Extensibility**: New policies can be added without modifying existing policy implementations
-- **Encapsulation**: Business rules are hidden within the domain and not exposed to other layers
-- **Testability**: Policies can be tested independently of infrastructure
-
----
-
-## 7. Hexagonal Architecture
-
-The extension must respect the existing architecture:
-
-- **Domain**  
-  Main focus of the change. Contains all lot selection logic.
-
-- **Application layer**  
-  Orchestrates use cases, no algorithmic logic.
-
-- **Inbound adapters (REST)**  
-  Input validation and DTO translation.
-
-- **Outbound adapters (persistence)**  
-  Persist the policy as part of portfolio state, no business logic.
-
----
-
-## 8. Evaluation Criteria
-
-The following aspects will be especially valued:
-
-- Clear separation of responsibilities across architectural layers
-- Strong encapsulation of business rules in the domain
-- Strict respect for architectural boundaries
-- Solution design that facilitates future extension with new policies
-- Clear and expressive domain tests
-- *(Extra)* Correct implementation of Specific Lot Identification
-
----
-
-## Pedagogical Closing
-
-> *This assignment is not about adding features, but about demonstrating how a well-designed system can evolve with new business rules without compromising its architecture.*
-
----
-
-## 9. Optional Infrastructure Extension — Multiple Persistence Adapters (MySQL & MongoDB)
-
-### Context
-
-The current HexaStock system uses a **relational database (MySQL)** via JPA as its persistence mechanism.  
-This persistence layer is already implemented following **hexagonal architecture principles**: the domain defines outbound ports (repository interfaces), and the infrastructure provides concrete adapters that implement those ports using JPA.
-
-This design decision has successfully isolated the domain from persistence concerns.
-
----
-
-### Optional Advanced Requirement
-
-As an **optional and advanced extension**, students may extend the system to support **MongoDB** as an alternative persistence mechanism, in addition to the existing MySQL/JPA implementation.
-
-The choice of persistence technology must be controlled using **Spring Profiles**:
-
-- **Profile `jpa`**: activates the MySQL/JPA adapter
-- **Profile `mongodb`**: activates the MongoDB adapter
-
-Switching between MySQL and MongoDB must be possible **without changing domain code**, simply by activating a different Spring profile in the application configuration.
-
-Both adapters must coexist in the codebase, and the application must work correctly with either technology depending on the active profile.
-
----
-
-### Architectural Constraints (Very Important)
-
-This extension is **optional** and intended for **advanced students** who wish to explore infrastructure flexibility in depth.
-
-If you choose to implement this extension, the following constraints are **mandatory**:
-
-1. **The domain layer must not be modified** to support MongoDB.
-   - No MongoDB-specific annotations, types, or logic in domain classes.
-   - Domain classes remain persistence-agnostic.
-
-2. **All existing domain tests must remain unchanged** and must pass regardless of the active persistence technology.
-   - Domain tests should not know or care whether data is stored in MySQL or MongoDB.
-
-3. **All MongoDB-related code must live exclusively in infrastructure adapters.**
-   - Document models, mappers, and repository implementations belong to the adapter layer.
-
-4. **The existing repository ports must be reused.**
-   - The MongoDB adapter must implement the same outbound port interfaces already used by the JPA adapter.
-   - No new ports should be created for MongoDB.
-
-5. **Profile-based activation must be clean and explicit.**
-   - Each adapter should be activated only when its corresponding profile is active.
-   - Use Spring's `@Profile` annotation or equivalent mechanisms.
-
----
-
-### Explicit Pedagogical Objective
-
-This optional extension exists to demonstrate a fundamental architectural principle:
-
-> **Changes in infrastructure impact only infrastructure code.**  
-> **A stable and well-designed domain remains unchanged even when the persistence technology changes completely.**
-
-By implementing this extension, you will experience firsthand:
-
-- That **infrastructure is replaceable** without touching business logic.
-- That **ports and adapters** provide genuine protection and flexibility.
-- The practical value of combining **Domain-Driven Design** with **Hexagonal Architecture** in real-world scenarios.
-
-This is the counterpart to the mandatory assignment:  
-- The **mandatory work** (lot selection policies) demonstrates how **business changes** are isolated in the domain.
-- This **optional extension** demonstrates how **infrastructure changes** are isolated in adapters.
-
-Together, they illustrate the complete architectural story.
-
----
-
-### Implementation Hints (High-Level)
-
-The HexaStock project already demonstrates profile-based adapter selection in another area: **stock price providers** can be switched via Spring profiles. Study that implementation as a reference pattern.
-
-For the MongoDB adapter, consider the following approach:
-
-- Use **Spring Data MongoDB** as the persistence framework.
-- Create separate **MongoDB document models** (e.g., `PortfolioDocument`) in the adapter layer.
-  - These documents may have a different structure optimized for MongoDB (embedded lots, denormalized data, etc.).
-- Implement **dedicated mappers** to translate between domain entities and MongoDB documents.
-- Ensure the MongoDB repository implementation satisfies the same port contract as the JPA adapter.
-- Both JPA and MongoDB adapters should **coexist in the codebase**, activated conditionally via profiles.
-
-You are free to design the MongoDB document structure as you see fit, as long as:
-- It correctly represents the domain state.
-- The adapter correctly translates between documents and domain entities.
-- All domain rules and invariants are preserved.
-
----
-
-### Evaluation Notes
-
-This optional extension will be evaluated **separately** from the mandatory assignment and will **not penalize** students who choose not to implement it.
-
-**If you do not implement this extension**, your grade will be based entirely on the mandatory requirements (lot selection policies, domain design, and tests).
-
-**If you do implement this extension**, it will be assessed based on:
-
-- **Clean separation** between domain and infrastructure (domain remains unchanged).
-- **Correct use of Spring profiles** to switch between adapters.
-- **Absence of persistence-specific code in the domain** (no JPA or MongoDB leaks).
-- **Ability to run the application with either database** by changing configuration only.
-- **Quality of the MongoDB adapter design** (document modeling, mapping, error handling).
-- **All tests passing** regardless of the active persistence technology.
-
-Successful implementation of this extension will demonstrate **advanced understanding** of hexagonal architecture and will be rewarded accordingly.
-
----
-
-### Pedagogical Closing
-
-This optional infrastructure extension reinforces the core learning objective of the assignment:
-
-- The **core assignment** focuses on a **business change**: extending lot selection policies.  
-  This change is isolated in the **domain layer**.
-
-- This **optional extension** focuses on an **infrastructure change**: replacing the persistence technology.  
-  This change is isolated in the **adapter layer**.
-
-Each type of change is intentionally confined to its proper architectural layer.
-
-By working through both challenges, you will gain deep, practical understanding of how **Domain-Driven Design** [Evans, 2003; Vernon, 2013] and **Hexagonal Architecture** [Cockburn, 2005; Martin, 2017] work together to produce systems that are resilient to change \u2014 whether that change originates from evolving business requirements or from evolving technical infrastructure.
-
----
+A good explanation can trace one sale from request to chosen lots and show which test would fail if the policy were ignored.
 
 ## References
 
-- Cockburn, Alistair. \"Hexagonal Architecture.\" 2005. https://alistair.cockburn.us/hexagonal-architecture/
-- Evans, Eric. *Domain-Driven Design: Tackling Complexity in the Heart of Software.* Addison-Wesley, 2003.
-- Gamma, Erich, Richard Helm, Ralph Johnson, and John Vlissides. *Design Patterns: Elements of Reusable Object-Oriented Software.* Addison-Wesley, 1994. (Strategy pattern.)
-- Martin, Robert C. *Clean Architecture: A Craftsman's Guide to Software Structure and Design.* Prentice Hall, 2017.
-- Vernon, Vaughn. *Implementing Domain-Driven Design.* Addison-Wesley, 2013.
-
-
+- [Sell-stock walkthrough](sellStocks/SELL-STOCK-TUTORIAL.md) and [architecture map](../architecture/ARCHITECTURE-MAP.md).
+- Eric Evans, *Domain-Driven Design*, 2003; Vaughn Vernon, *Implementing Domain-Driven Design*, 2013.
+- Erich Gamma, Richard Helm, Ralph Johnson and John Vlissides, *Design Patterns*, 1994, for the Strategy pattern.

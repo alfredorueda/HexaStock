@@ -1,68 +1,34 @@
 @startuml approachA-sequence
-!theme plain
-skinparam backgroundColor #FEFEFE
-
-title Approach A — Single-Pass In-Memory Aggregation (Current Implementation)
-
-participant "PortfolioRestController\n(Driving Adapter)" as Controller
-participant "ReportingService\n(Application Service)" as Service
-participant "PortfolioPort\n(Secondary Port)" as PortfolioPort
-participant "TransactionPort\n(Secondary Port)" as TransactionPort
-participant "StockPriceProviderPort\n(Secondary Port)" as PricePort
-participant "HoldingPerformanceCalculator\n(Domain Service)" as Calculator
-
-activate Controller
-Controller -> Service: getHoldingsPerfomance(portfolioId)
-activate Service
-
-note right of Service
-  **Application layer orchestration**
-  No business logic here —
-  only coordination of ports
-  and domain services.
+!include ../../sellStocks/diagrams/sell-style.puml
+title Calculate a holdings report
+caption Current implementation on main
+participant "Reporting service" as S
+participant "Storage ports" as D
+participant "Quote port" as Q
+participant "Domain calculator" as C
+S -> D: Load portfolio
+D --> S: Portfolio (including remaining lots)
+S -> D: Load transaction history
+D --> S: All T transactions
+S -> Q: Request holding tickers
+note over Q
+Sequential default lookup;
+real adapters can serve cached quotes.
+A provider failure propagates.
 end note
-
-== 1. Load aggregate ==
-Service -> PortfolioPort: getPortfolioById(PortfolioId)
-activate PortfolioPort
-PortfolioPort --> Service: Optional<Portfolio>
-deactivate PortfolioPort
-Service -> Service: portfolio.orElseThrow()
-
-== 2. Load full transaction list ==
-Service -> TransactionPort: getTransactionsByPortfolioId(PortfolioId)
-activate TransactionPort
-TransactionPort --> Service: List<Transaction>  ← all T transactions
-deactivate TransactionPort
-
-== 3. Fetch live prices (sequential — free-tier rate limit) ==
-Service -> PricePort: fetchStockPrice(Set<Ticker>)
-activate PricePort
-note right of PricePort
-  Iterates tickers one by one.
-  Sequential to respect API rate limits.
+Q --> S: Quote map
+S -> C: Portfolio + history + quotes
+activate C
+C -> C: Accumulate historical totals
+C -> C: Combine with remaining lots
+note over C
+O(T + K + L) approximate work
+K historical tickers; L visited lots
 end note
-PricePort --> Service: Map<Ticker, StockPrice>
-deactivate PricePort
-
-== 4. Domain computation — O(T) single pass ==
-Service -> Calculator: getHoldingsPerformance(\n  portfolio, transactions, tickerPrices)
-activate Calculator
-
-note right of Calculator
-  **Single-pass loop over T transactions**
-  • HashMap<Ticker, TickerAccumulator>
-  • switch (tx.getType()) { PURCHASE → ..., SALE → ... }
-  • No parallelStream, no repeated filtering
-  • O(T) time, O(H) memory (H = distinct tickers)
-  • Returns List.copyOf(results) — immutable
+C --> S: List<HoldingPerformance>
+deactivate C
+note over S
+The REST adapter maps domain
+results to HoldingDTO.
 end note
-
-Calculator --> Service: List<HoldingDTO>  (immutable)
-deactivate Calculator
-
-Service --> Controller: List<HoldingDTO>
-deactivate Service
-Controller --> : HTTP 200 JSON
-deactivate Controller
 @enduml

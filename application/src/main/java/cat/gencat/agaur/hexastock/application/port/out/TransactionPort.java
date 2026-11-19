@@ -13,7 +13,7 @@ import java.util.List;
  * financial transaction records. It is implemented by driven adapters that connect to 
  * actual database systems.</p>
  * 
- * <p>This generic interface allows the application to:</p>
+ * <p>This interface allows the application to:</p>
  * <ul>
  *   <li>Abstract away the details of how transactions are stored and retrieved</li>
  *   <li>Support multiple storage technologies without changing the application core</li>
@@ -26,8 +26,7 @@ import java.util.List;
  *   <li>Saving new transaction records when financial activities occur</li>
  * </ul>
  * 
- * <p>The generic type parameter &lt;T&gt; allows flexibility in how transactions are represented
- * when retrieved from persistence, while ensuring type safety.</p>
+ * <p>Both persistence adapters return the shared domain Transaction types.</p>
  */
 public interface TransactionPort {
 
@@ -38,7 +37,7 @@ public interface TransactionPort {
      * deposits, withdrawals, stock purchases, and stock sales.</p>
      * 
      * @param portfolioId The unique identifier of the portfolio to get transactions for
-     * @return A list of transaction records of type T
+     * @return A list of domain Transaction records
      */
     List<Transaction> getTransactionsByPortfolioId(PortfolioId portfolioId);
     

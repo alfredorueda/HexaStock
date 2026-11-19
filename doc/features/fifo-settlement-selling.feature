@@ -1,20 +1,11 @@
-# ═══════════════════════════════════════════════════════════════════════════════
-# BEHAVIOURAL SPECIFICATION — FIFO Settlement Selling & Lot Lifecycle (US-13)
-# ═══════════════════════════════════════════════════════════════════════════════
-#
-# Settlement-aware selling uses FIFO order, consuming only settled,
-# non-reserved lots. Partial lot consumption leaves remaining shares.
-# Lots with zero remaining quantity are removed from the holding.
-#
-# Scenario IDs referenced by @SpecificationRef:
-#   FIFO-01 → shouldSellSettledLotsInFifoOrder
-#   FIFO-02 → shouldLeaveUnsettledLotIntact
-#   PARTIAL-01 → shouldSellPartialLotCorrectly
-#   ELIGIBLE-02 → shouldReturnZeroWhenAllUnsettled
-#   ELIGIBLE-03 → shouldCountOnlySettledAndUnreservedShares
-#   LOT-SETTLE-01 → lotShouldNotBeSettledBeforeSettlementDate
-#   ATOMIC-01 → fullScenarioAtomicCorrectness
-# ═══════════════════════════════════════════════════════════════════════════════
+# PROPOSED EXTENSION — not implemented by main and not executed by Cucumber.
+# Scenario identifiers are retained for future traceability, not current coverage.
+# All relative dates use valuation date 2026-03-18 and a Monday-Friday calendar
+# with no holidays. Settlement occurs two business dates after purchase in this
+# teaching policy; this is not a statement of current market regulation.
+# Explicit scenario fees override the optional 0.1% teaching fee policy.
+# Proposed endpoint fragments are relative to /api/portfolios/{portfolioId}.
+# Read doc/tutorial/richVsAnemicDomainModel/03-SETTLEMENT-EXERCISE.md first.
 
 Feature: FIFO Settlement-Aware Selling
 
@@ -23,7 +14,9 @@ Feature: FIFO Settlement-Aware Selling
   So that sales only touch settled, unreserved lots and produce correct accounting
 
   Background:
-    Given a portfolio exists for owner "Alice" with balance $50,000.00
+    Given the valuation date is 2026-03-18
+    And business days are Monday to Friday with no holidays
+    And a portfolio exists for owner "Alice" with balance $50,000.00
 
   # ────────────────────────────────────────────────────────────────
   # FIFO Ordering

@@ -1,57 +1,38 @@
-# ADR-007: Keep the domain module free of all framework dependencies
+# ADR-007: Keep domain production code free of frameworks
 
 ## Status
 
-Accepted
+Accepted; dependency scope clarified against `main`.
 
 ## Context
 
-In hexagonal architecture, the domain layer should be the most stable and reusable part of the system. Framework dependencies (Spring annotations, JPA annotations, validation frameworks) create coupling that reduces portability, complicates testing, and blurs the boundary between domain logic and infrastructure concerns.
-
-The project needs a clear policy on what dependencies are permitted in the domain module.
+A FIFO rule should be testable without a web server or database. Importing JPA or Spring into the domain would couple that rule to an infrastructure choice.
 
 ## Decision
 
-The `domain` module has **zero external dependencies**. No Spring, no JPA, no Hibernate annotations, no Jakarta validation, no third-party libraries. The only dependency is the JDK itself.
+Domain **production code** uses JDK types and domain types, with no Spring, JPA or validation-framework dependency. Constructor and operation checks express domain constraints. Transaction demarcation belongs to application services, using Jakarta Transactions.
 
-This is enforced at three levels:
-
-1. **`domain/pom.xml`** declares no dependencies (only the parent POM for module coordinates).
-2. **ArchUnit test** `domainDoesNotDependOnSpring()` verifies that domain classes do not reference Spring packages.
-3. **Maven module boundary** prevents any transitive framework dependency from reaching the domain.
+This does not mean that the module has no dependencies of any kind. Its effective Maven configuration inherits `spring-boot-starter-test` in test scope from the parent. JUnit tests and the shared test-jar are intentionally outside the production dependency policy.
 
 ## Alternatives considered
 
-- **Allow `@Transactional` in the domain:** Some DDD practitioners place transaction boundaries on aggregate root methods. The project explicitly chose to keep `@Transactional` in the application layer instead, using the standard Jakarta `@Transactional` annotation (`jakarta.transaction.Transactional`) to avoid any Spring compile-time dependency.
-- **Allow Jakarta Validation annotations (`@NotNull`, `@Pattern`) in domain types:** Would provide declarative validation but introduces a framework dependency. The project uses constructor-based self-validation instead (e.g. `Ticker` validates against a regex in its constructor).
-- **Allow Lombok in the domain:** Would reduce boilerplate but adds a compile-time dependency and hides generated code. The project uses Java records instead.
+- Put persistence or validation annotations on domain classes: fewer mappings, but infrastructure coupling in business types.
+- Use Lombok: less handwritten code, but an additional build dependency. The model uses records where appropriate.
+- Put transaction annotations on aggregate methods: would make infrastructure part of a rule that can run independently in memory.
 
 ## Consequences
 
-**Positive:**
-- Domain classes are testable with plain JUnit, no Spring context needed.
-- Domain model is portable across frameworks.
-- The zero-dependency policy is a strong, unambiguous rule that is easy to verify and communicate.
-- Value objects as Java records provide the conciseness that Lombok would offer, without the dependency.
+Domain tests can construct ordinary objects and run without Spring or Docker. Explicit validation and persistence mappers require maintenance. This policy does not establish complete validation: each constructor and operation must still be reviewed.
 
-**Negative:**
-- Self-validating constructors require manual null-checks and assertions.
-- No declarative validation (e.g. JSR 380 annotations) in the domain.
-- No use of `@Transactional` in the domain, requiring transaction boundaries to be managed at the application layer.
+Maven controls the resolved classpath; it is not an automatic prohibition on future dependency edits. ArchUnit checks domain dependencies on application, adapter and Spring packages. It does not scan every possible external library or guarantee the absence of reflection-based coupling.
 
 ## Repository evidence
 
-- `domain/pom.xml`: no `<dependencies>` section (only parent POM coordinates)
-- `HexagonalArchitectureTest.java`:
-  - `domainDoesNotDependOnSpring()`: `noClasses().that().resideInAPackage("..model..").should().dependOnClassesThat().resideInAPackage("org.springframework..")`
-  - `domainDoesNotDependOnApplication()`: domain packages must not reference application packages
-  - `domainDoesNotDependOnAdapters()`: domain packages must not reference adapter packages
-- `Money.java`: manual null-check in compact constructor, `Objects.requireNonNull(amount, "amount cannot be null")`
-- `Ticker.java`: regex validation in constructor, `if (!symbol.matches(PATTERN)) throw new InvalidTickerException(...)`
-- `CONTRIBUTING.md`: "The domain depends on nothing external. Violating this rule - even for convenience - is not acceptable."
+- Root `pom.xml`: shared test-scope starter.
+- `domain/pom.xml`: module configuration and test-jar publication.
+- `HexagonalArchitectureTest.java`: three domain dependency rules.
+- `Money`, `Price`, `Ticker`, `ShareQuantity`: explicit validation with different permitted values.
 
 ## Relation to other specifications
 
-- **Gherkin:** This decision enables domain-level tests annotated with `@SpecificationRef(level = TestLevel.DOMAIN)` that verify Gherkin scenarios without any infrastructure.
-- **OpenAPI:** No relation. The API layer is in a separate module.
-- **PlantUML:** Domain model diagrams show pure domain classes. This ADR guarantees that those classes will never acquire framework annotations that would complicate the diagrams.
+[Domain-only lessons](../../tutorial/sellStocks/SELL-STOCK-DOMAIN-TUTORIAL.md) demonstrate the practical benefit. [Testing scopes](../../tutorial/TESTING-STRATEGY.md) explain what an isolated test proves and what still requires integration tests.

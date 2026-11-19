@@ -1,134 +1,28 @@
-# HEXASTOCK
+# Architecture learning program: executive overview
 
-# Enterprise Architecture Transformation Program
+HexaStock is a practical teaching environment for Domain-Driven Design and ports and adapters. The program helps students and engineering teams explain business rules, trace dependencies, test behavior and evaluate changes using evidence from a working Java application.
 
----
+## Audience and entry point
 
-## Executive Overview
+Participants should know basic Java, unit tests and HTTP. They can begin with domain exercises without Docker or external API keys. [Start Here](../learning/START-HERE.md) provides a gentler route for students encountering the architecture for the first time.
 
-Modern enterprises do not struggle with coding speed.
-They struggle with architectural erosion.
+## What participants produce
 
-As systems evolve, complexity accumulates. Infrastructure leaks into business logic.
-Change becomes risky. Refactoring becomes expensive. Innovation slows down.
+- A traced sale, with business rules distinguished from orchestration and persistence.
+- Tests linked to concrete acceptance examples.
+- A small extension with an explicit port contract and verification evidence.
+- A short design decision explaining benefits, costs and limits.
 
-The **HexaStock Enterprise Architecture Transformation Program** is a production-grade engineering initiative designed to restore structural clarity and long-term evolvability.
+The sequence starts with one domain rule, then crosses HTTP and persistence boundaries. Concurrency and reporting projections come later. Instructors can select sessions independently once prerequisites are met.
 
-It is built around:
+## What the repository demonstrates
 
-* Domain-Driven Design (DDD)
-* Hexagonal Architecture (Ports & Adapters)
-* Specification-first engineering
-* Contract-first API definition
-* Automated architectural validation
+The baseline includes FIFO trading, a rich domain model, JPA and MongoDB adapters, quote providers, behavioral specifications, OpenAPI documentation, unit and integration tests, and seven architecture checks. OpenAPI is maintained alongside code; automatic contract-first generation is not configured.
 
-This is not pattern-based theory.
-It is boundary-driven engineering shaped by real enterprise constraints. 
+This is an educational reference, not evidence of production certification or a guaranteed organizational return. Production adoption would need additional decisions about authorization, data migrations, idempotency, operations and deployment. Proposed exercises such as watchlists and gRPC are not existing capabilities.
 
----
+## Assessing learning
 
-## Strategic Impact
+Evaluate whether participants can explain an invariant, locate its implementation, select a meaningful test and justify a boundary. A passing build supports that assessment but does not replace it. Team outcomes such as onboarding time or change failure rate require local measurement; they are not guaranteed by an architectural label.
 
-Organizations that master architectural discipline gain:
-
-* Infrastructure independence
-* Safe technology evolution
-* Reduced ripple effects across systems
-* Lower long-term technical debt
-* Faster onboarding of engineers
-* Greater resilience under continuous change
-
-As documented in the Netflix Technology Blog \u2014 specifically the article [*Ready for Changes with Hexagonal Architecture*](https://netflixtechblog.com/ready-for-changes-with-hexagonal-architecture-b315ec967749) \u2014 and echoed in *Building Evolutionary Architectures* [Ford, Parsons & Kua, 2017], isolating core business logic from infrastructure is not a stylistic choice.
-It is a structural strategy for adaptability at scale.
-
-Architecture is not documentation.
-It is an operational capability.
-
----
-
-## Engineering Foundation
-
-HexaStock functions as a production-grade architectural laboratory featuring:
-
-* Gherkin-style behavioural specifications
-* Contract-first OpenAPI definition
-* A rich, invariant-protected domain model
-* Clean Hexagonal Architecture
-* 100+ automated tests (domain + integration)
-* Continuous Integration validation
-* Multiple outbound integrations
-
-Every architectural boundary is:
-
-* Explicit
-* Inspectable
-* Testable
-* Verifiable
-
-This creates systemic engineering discipline rather than accidental correctness.
-
----
-
-## Capability Development
-
-Through guided architectural exercises, engineering teams develop the ability to:
-
-* Enforce strict dependency direction
-* Encapsulate business logic inside aggregates
-* Evolve infrastructure without destabilizing the core
-* Integrate external systems safely
-* Introduce alternative interfaces (REST, gRPC)
-* Apply CQRS when performance realities require it
-* Extend business rules without architectural regression
-
-The focus is not on adopting patterns.
-It is on mastering structural engineering discipline.
-
----
-
-## Transformation Focus
-
-This program is not a workshop.
-It is architectural capability development.
-
-It aligns:
-
-* Business specification
-* Implementation discipline
-* Automated validation
-* Infrastructure adaptability
-* Controlled domain evolution
-
-The result is structural clarity.
-
-Systems built under this discipline do not merely tolerate change.
-They grow stronger through it.
-
----
-
-## Full Program Details
-
-This executive summary provides a strategic overview.
-
-For the complete program structure, detailed exercises, engineering documentation, and repository references:
-
-[https://github.com/alfredorueda/HexaStock/blob/main/doc/architecture/ARCHITECTURE-TRANSFORMATION-PROGRAM.md](https://github.com/alfredorueda/HexaStock/blob/main/doc/architecture/ARCHITECTURE-TRANSFORMATION-PROGRAM.md)
-
----
-
-## Architecture in the Age of AI
-
-AI accelerates implementation.
-Architecture determines whether that acceleration produces clarity or entropy.
-
-Organizations with strong architectural boundaries amplify AI safely.
-Organizations without them accelerate technical debt.
-
-Architectural capability is now a strategic differentiator.
-
----
-
-# HexaStock
-
-### Engineering architecture that grows stronger through change.
-
+See [the program and session deliverables](ARCHITECTURE-TRANSFORMATION-PROGRAM.md) for a concrete teaching sequence.

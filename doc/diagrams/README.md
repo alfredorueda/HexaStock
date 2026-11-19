@@ -1,59 +1,36 @@
-# Diagram Pipeline — PlantUML → SVG & PNG
+# Maintain diagrams for GitHub and GitBook
 
-## Source of Truth
+Editable PlantUML sources and their SVG/PNG renders should describe the same behavior. The book uses PNG copies under `.gitbook/assets`; SVG links provide a full-size view. Preserve each image's aspect ratio: do not force both width and height.
 
-**PlantUML files (`.puml`) are the single source of truth** for all architectural and sequence diagrams in this project. SVG and PNG files are **generated artifacts** and must never be edited by hand.
+## Sources and exceptions
 
-## Folder Convention
+For a source `name.puml`, keep `Rendered/name.svg` and `Rendered/name.png` beside it. Shared styles may be included from another directory. The original hand-drawn hexagonal overview and attributed community images are separate source images, not generated PlantUML artifacts. Preserve their attribution and natural proportions.
 
-For every PlantUML source file, the rendered outputs are placed in a sibling `Rendered/` directory with the same base name:
+Presentation materials have their own canonical files and maintenance instructions in [AGENTS.md](../presentations/defensa-placa-permanent-dsi-ports-sortida-hexagonal/AGENTS.md); do not bulk-regenerate them as a book maintenance step.
 
-```
-<dir>/<name>.puml          ← source (edit this)
-<dir>/Rendered/<name>.svg  ← generated output (do NOT edit)
-<dir>/Rendered/<name>.png  ← generated output (do NOT edit)
-```
+## Render only the diagrams you changed
 
-Example:
-
-```
-doc/tutorial/sellStocks/diagrams/sell-domain-fifo.puml
-doc/tutorial/sellStocks/diagrams/Rendered/sell-domain-fifo.svg
-doc/tutorial/sellStocks/diagrams/Rendered/sell-domain-fifo.png
-```
-
-## Embedding in Markdown
-
-Use the canonical clickable pattern — PNG for display, SVG for zoom:
-
-```markdown
-[![Alt Text](path/to/Rendered/diagram.png)](path/to/Rendered/diagram.svg)
-```
-
-## Rendering Locally
-
-Prerequisites: **Docker** must be running (the script uses the `plantuml/plantuml` image, which includes Graphviz).
-
-From the repository root:
+With Java, Graphviz, and a local PlantUML JAR available, run from the repository root. Replace `/path/to/plantuml.jar` with the actual installation:
 
 ```bash
-./scripts/render-diagrams.sh
+java -jar /path/to/plantuml.jar -failfast2 -tsvg -o Rendered \
+  doc/tutorial/sellStocks/diagrams/sell-domain-fifo.puml
+java -jar /path/to/plantuml.jar -failfast2 -tpng -o Rendered \
+  doc/tutorial/sellStocks/diagrams/sell-domain-fifo.puml
+cp doc/tutorial/sellStocks/diagrams/Rendered/sell-domain-fifo.png \
+  .gitbook/assets/sell-domain-fifo.png
 ```
 
-The script will:
+The staged diagrams were rendered with PlantUML 1.2025.2 and Graphviz. Rendering with another version can change layout; inspect the output. Keep relative includes resolvable. The legacy bulk Docker script mounts each source folder independently, so cross-directory includes need additional handling; it also scans presentation resources. It is not the default workflow for these staged chapters.
 
-1. Recursively find all `*.puml` and `*.plantuml` files in the repo.
-2. Create the `Rendered/` directory next to each source if it doesn't exist.
-3. Render each diagram to both SVG and PNG, overwriting any previous version.
-4. Print a summary and exit non-zero if any diagram fails.
+There is no automatic diagram-rendering workflow in the current `.github/workflows` directory. Commit the source, both renders, and the GitBook PNG together after inspection.
 
-## CI — Automatic Rendering
+## Verify meaning and appearance
 
-A GitHub Actions workflow (`.github/workflows/plantuml-svg-autocommit.yml`) runs on every push to `main`:
+* Distinguish source dependency arrows from runtime interactions. An adapter's implementation dependency points toward its port.
+* Check class names, cardinalities, amounts, error order, and proposed/current labels against the relevant contract.
+* Inspect at book-column width as well as full size. Reduce participants or split a diagram when labels become too small.
+* Avoid overlapping labels and relying on color alone. Give every image useful alternative text.
+* Confirm the displayed PNG matches its `Rendered` copy and that full-size/source links resolve.
 
-1. Checks out the repository.
-2. Runs `scripts/render-diagrams.sh`.
-3. If any outputs changed, auto-commits **only** the files inside `**/Rendered/*.svg` and `**/Rendered/*.png`.
-4. The commit message includes `[skip ci]` to prevent infinite loops.
-
-**No manual action is needed** — just edit a `.puml` file, push to `main`, and the workflow will regenerate and commit the updated diagrams automatically.
+See [the sell-stock diagram guide](../tutorial/sellStocks/diagrams/README.md) for its scenario and shared style.

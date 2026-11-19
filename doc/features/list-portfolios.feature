@@ -39,7 +39,8 @@ Feature: List All Portfolios (US-03)
 
   Scenario: Listing all portfolios when several exist
     Given portfolios exist for owners "Alice", "Bob", and "Charlie"
-    And Alice has deposited $1000, Bob has deposited $2500, Charlie has deposited $0
+    And Alice has deposited $1000 and Bob has deposited $2500
+    And Charlie has made no deposit
     When I GET /api/portfolios
     Then I receive 200 OK with a JSON array containing all three portfolios
     And each entry contains id, ownerName, balance, createdAt

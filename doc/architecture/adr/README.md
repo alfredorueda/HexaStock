@@ -2,6 +2,8 @@
 
 This directory contains the Architecture Decision Records for the HexaStock project. ADRs capture significant architectural and technological decisions with their context, rationale, alternatives, and consequences.
 
+Start with ADR-003 (boundaries), ADR-004 (domain model), then ADR-006 (modules). Read concurrency decisions only after following one sale. These records describe implemented choices; alternative comparisons are design analysis, not evidence that every alternative was prototyped or benchmarked.
+
 ## What is an ADR?
 
 An Architecture Decision Record is a short document that captures a single architectural decision. Each ADR describes the context that led to the decision, the decision itself, what alternatives were considered, and what consequences follow. ADRs are numbered sequentially and are never deleted - superseded decisions are marked with a new status.
@@ -13,7 +15,7 @@ The HexaStock project uses multiple specification artefacts that complement each
 | Specification | What it defines | Example |
 |--------------|----------------|---------|
 | **Gherkin features** (`doc/features/`) | *What* the system does (behaviour) | "Shares are consumed from lots in FIFO order" |
-| **OpenAPI contract** (`doc/openapi.yaml`) | *What* the API looks like (contract) | `POST /api/portfolios/{id}/sell` request/response schema |
+| **OpenAPI contract** (`doc/openapi.yaml`) | *What* the API looks like (contract) | `POST /api/portfolios/{id}/sales` request/response schema |
 | **PlantUML diagrams** (`doc/tutorial/*/diagrams/`) | *How* the structure looks (visualisation) | Domain model class diagram, hexagonal architecture layers |
 | **ADRs** (this directory) | *Why* a decision was made (rationale) | Why FIFO over LIFO? Why pessimistic locking over optimistic? |
 | **Master specification** (`doc/architecture/TECHNICAL-ARCHITECTURE-SPECIFICATION.md`) | *How* everything fits together (synthesis) | Technology stack, testing strategy, traceability matrix |
@@ -29,11 +31,11 @@ ADRs do not duplicate content from Gherkin, OpenAPI, or PlantUML. Instead, each 
 | [ADR-003](ADR-003-adopt-hexagonal-architecture.md) | Adopt Hexagonal Architecture | Accepted | Ports and Adapters pattern enforced by Maven modules, package conventions, and ArchUnit fitness tests |
 | [ADR-004](ADR-004-rich-domain-model-with-ddd.md) | Rich domain model with DDD | Accepted | DDD tactical patterns with aggregate root (Portfolio), entities (Holding, Lot), value objects (Money, Ticker, etc.), and domain services |
 | [ADR-005](ADR-005-rest-api-with-rfc7807-errors.md) | REST API with RFC 7807 errors | Accepted | REST primary adapter with separate DTO layer and RFC 7807 ProblemDetail for structured error responses |
-| [ADR-006](ADR-006-multi-module-maven-build.md) | Multi-module Maven build | Accepted | Six Maven modules encoding architectural boundaries with compile-time dependency enforcement |
-| [ADR-007](ADR-007-domain-module-zero-framework-dependencies.md) | Domain module zero framework dependencies | Accepted | Domain module has no external dependencies — no Spring, no JPA, no third-party libraries |
+| [ADR-006](ADR-006-multi-module-maven-build.md) | Multi-module Maven build | Accepted | Seven child Maven modules encoding architectural boundaries with compile-time dependency enforcement |
+| [ADR-007](ADR-007-domain-module-zero-framework-dependencies.md) | Domain module zero framework dependencies | Accepted | Domain production code has no framework dependency; test dependencies are scoped separately |
 | [ADR-008](ADR-008-mysql-jpa-with-domain-persistence-mapping.md) | MySQL/JPA with domain-persistence mapping | Accepted | MySQL 8.0.32 via Spring Data JPA with separate JPA entity model and explicit static mappers |
 | [ADR-009](ADR-009-testcontainers-for-integration-tests.md) | Testcontainers for integration tests | Accepted | Real MySQL 8.0.32 in Testcontainers instead of H2, for high-fidelity integration testing |
-| [ADR-010](ADR-010-archunit-architecture-fitness-tests.md) | ArchUnit architecture fitness tests | Accepted | Six ArchUnit rules enforcing hexagonal dependency direction as part of the build |
+| [ADR-010](ADR-010-archunit-architecture-fitness-tests.md) | ArchUnit architecture fitness tests | Accepted | Seven ArchUnit rules enforcing hexagonal dependency direction as part of the build |
 | [ADR-011](ADR-011-fifo-lot-accounting-for-stock-sales.md) | FIFO lot accounting for stock sales | Accepted | First-In-First-Out lot consumption for sell operations, implemented as a domain rule in Holding.sell() |
 | [ADR-012](ADR-012-pessimistic-locking-for-aggregate-consistency.md) | Pessimistic locking for aggregate consistency | Accepted | PESSIMISTIC_WRITE lock on portfolio reads-for-update to prevent lost updates in concurrent scenarios |
 | [ADR-013](ADR-013-cache-stock-prices-with-caffeine.md) | Cache stock prices with Caffeine | Accepted | Local Caffeine cache with 5-minute TTL and 1,000 entry limit for external stock price API responses |

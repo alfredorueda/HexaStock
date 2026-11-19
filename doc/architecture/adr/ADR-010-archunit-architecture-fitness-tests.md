@@ -12,7 +12,7 @@ Hexagonal architecture dependency rules (ADR-003) must be continuously enforced,
 
 Use ArchUnit to express and enforce architectural rules as JUnit tests. These tests run as part of the standard `mvn verify` cycle and fail the build on any violation.
 
-Six rules are currently enforced, organised into three groups:
+Seven rules are currently enforced, organised into three groups:
 
 **Domain independence:**
 1. Domain does not depend on Application
@@ -21,10 +21,11 @@ Six rules are currently enforced, organised into three groups:
 
 **Application independence:**
 4. Application does not depend on Adapters
+5. Application does not depend on Spring
 
 **Adapter isolation:**
-5. Inbound REST adapter does not depend on outbound persistence adapter
-6. Outbound adapters do not depend on inbound REST adapter
+6. Inbound adapters do not depend on outbound adapters
+7. Outbound adapters do not depend on inbound adapters
 
 All rules operate on package patterns matching the project's naming convention (e.g. `..model..` for domain, `..adapter.in..` for inbound).
 
@@ -45,20 +46,20 @@ All rules operate on package patterns matching the project's naming convention (
 **Negative:**
 - ArchUnit adds a test-scope dependency.
 - Rules must be updated if package naming conventions change.
-- Static analysis cannot catch all architectural violations (e.g. runtime reflection).
+- Static analysis cannot catch all architectural violations (e.g. runtime reflection). These seven rules also do not prohibit dependencies between every pair of outbound adapters.
 
 ## Repository evidence
 
 - `bootstrap/pom.xml`: `com.tngtech.archunit:archunit-junit5` version `1.3.0` (test scope)
 - `HexagonalArchitectureTest.java`: Full test class with:
-  - `@Nested class DomainLayerRules` (3 tests)
-  - `@Nested class ApplicationLayerRules` (1 test)
-  - `@Nested class AdapterLayerRules` (2 tests)
-  - `@AnalyzeClasses(packages = "cat.gencat.agaur.hexastock")`
+  - `@Nested class DomainLayer` (3 tests)
+  - `@Nested class ApplicationLayer` (2 tests)
+  - `@Nested class AdapterIsolation` (2 tests)
+  - Class import scoped to `cat.gencat.agaur.hexastock`
 - `CONTRIBUTING.md`: References architecture tests as a mandatory quality gate
 
 ## Relation to other specifications
 
 - **Gherkin:** Not directly related. ArchUnit tests enforce structural rules, not behavioural ones.
 - **OpenAPI:** Not directly related.
-- **PlantUML:** Architecture diagrams visualise the same dependency structure that ArchUnit tests enforce. If a diagram shows "domain does not depend on adapters", ArchUnit tests guarantee it. The ADR and PlantUML diagrams express the same intent through different mechanisms.
+- **PlantUML:** Architecture diagrams visualise the same dependency structure that ArchUnit tests enforce. The tests check the implemented rules against imported bytecode. They do not parse diagrams or enforce every dependency a diagram might suggest. The ADR and PlantUML diagrams express the same intent through different mechanisms.
