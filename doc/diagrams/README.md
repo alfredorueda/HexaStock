@@ -25,6 +25,14 @@ The staged diagrams were rendered with PlantUML 1.2025.2 and Graphviz. Rendering
 
 There is no automatic diagram-rendering workflow in the current `.github/workflows` directory. Commit the source, both renders, and the GitBook PNG together after inspection.
 
+## Publish a figure, not a linked thumbnail
+
+Put the Markdown image on its own line and put its full-size link in a separate paragraph. Wrapping the image in a link (`[![...](...)](...)`) can make GitBook import it as an inline image, limited to 300 pixels, instead of a figure that fills the reading column.
+
+Use a direct `raw.githubusercontent.com/alfredorueda/HexaStock/main/` link to the SVG, or to the original PNG when no vector source exists. This opens the image itself so readers can zoom without navigating GitHub's file interface. Keep the embedded image path relative to the page.
+
+Check the GitBook preview after synchronization, then the published page after merging. Inspect desktop and narrow mobile widths: the whole diagram should fit proportionally, and its full-size link should load an image. Check long tables and code blocks by scrolling within them; the whole page should not overflow sideways. A successful synchronization check does not establish visual readability.
+
 ## Verify meaning and appearance
 
 * Distinguish source dependency arrows from runtime interactions. An adapter's implementation dependency points toward its port.

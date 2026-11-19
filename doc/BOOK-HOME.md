@@ -63,6 +63,8 @@ This advanced chapter examines how specifications, tests and review can guide AI
 
 ## How to Read the Technical Chapters
 
+On a small screen, use the full-size link below a diagram to inspect its labels. Wide tables and code blocks can be scrolled horizontally without moving the whole page.
+
 A chapter may describe the current implementation, propose an extension, or compare alternatives. Check that scope before treating an example as a feature available in the application. Linked source files and tests provide implementation evidence; a recommendation is a design argument to evaluate.
 
 For example, the baseline sell flow has no settlement delay or fees. Reporting projections, domain events and alternative lot-selection policies are later design topics. You can finish the introductory path before studying them.
