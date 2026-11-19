@@ -73,7 +73,11 @@
 
 ## Technical Review
 
-* [AI-Assisted Architectural Review](doc/domain-review/DDD-REVIEW-PERSONAL-INVESTMENT-PORTFOLIO.md)
+* [Review the domain and architecture](doc/domain-review/DDD-REVIEW-PERSONAL-INVESTMENT-PORTFOLIO.md)
+  * [1. Inspect invariants and limits](doc/domain-review/01-INVARIANTS-AND-LIMITS.md)
+  * [2. Compare model alternatives](doc/domain-review/02-MODEL-ALTERNATIVES.md)
+  * [3. Plan runtime improvements](doc/domain-review/domain-model-constructive-strategy-review.md)
+  * [4. Measure aggregate size](doc/domain-review/AGGREGATE-SIZE-GUIDELINES.md)
 
 ## Specifications
 
