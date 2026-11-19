@@ -4,181 +4,104 @@
 
 [![License](https://img.shields.io/badge/Code-Apache_2.0-blue.svg)](LICENSE) [![License: CC BY-NC 4.0](https://img.shields.io/badge/Book-CC_BY--NC_4.0-lightgrey.svg)](https://creativecommons.org/licenses/by-nc/4.0/)
 
----
-
-### Domain-Driven Design and Hexagonal Architecture in a Financial Domain
-
-This repository is accompanied by a technical book that serves as the long-form reference for the project. The book traces the architectural and domain reasoning behind HexaStock — from strategic design decisions and aggregate boundaries to persistence trade-offs and testing strategies — following the conceptual frameworks of Domain-Driven Design [Evans, 2003; Vernon, 2013] and the Hexagonal Architecture style [Cockburn, 2005].
-
-The financial domain is not incidental. It surfaces modelling tensions that are difficult to contrive artificially: FIFO lot accounting, settlement mechanics, and concurrent mutation of a shared portfolio under transactional guarantees. The resulting case study grounds every design decision in concrete business semantics rather than textbook abstractions.
-
-The book and the repository are complementary. The codebase provides the executable implementation; the book documents the reasoning, the alternatives considered, and the architectural principles that shaped each decision. Taken together, they offer a study path for engineers and architects applying DDD and Hexagonal Architecture to non-trivial domains.
-
-**[➜ Explore the full book](https://alfredo-rueda-unsain.gitbook.io/alfredo-rueda-unsain-docs)**
-
----
 
 # HexaStock
 
-HexaStock is an instructional project that illustrates Domain-Driven Design and Hexagonal Architecture through a realistic financial-portfolio domain. Developed for software engineering students and workshop participants, it provides a complete, testable system with non-trivial business rules, multiple interchangeable adapters, and explicit architectural boundaries enforced at both module and fitness-test levels.
+Learn to separate business rules from databases and HTTP by building a stock portfolio application. The example is small enough to study, but includes meaningful problems: cash balances, purchases, FIFO sales and concurrent updates.
 
-### Sell Stock Deep Dive (Reference Use Case)
+You need basic Java and unit-testing knowledge to begin. You do not need prior experience with Domain-Driven Design (DDD) or hexagonal architecture.
 
-> **[doc/tutorial/sellStocks/SELL-STOCK-TUTORIAL.md](doc/tutorial/sellStocks/SELL-STOCK-TUTORIAL.md)**
+**[Start the learning path](doc/learning/START-HERE.md)** · **[Read the book](https://alfredo-rueda-unsain.gitbook.io/alfredo-rueda-unsain-docs)** · **[Follow a sale in nine stages](doc/tutorial/sellStocks/SELL-STOCK-TUTORIAL.md)**
 
-The sell-stock use case is the tutorial reference of the project. It concentrates the highest density of domain logic in the system and therefore provides the most complete illustration of DDD and Hexagonal Architecture in practice. The tutorial covers:
+## First run: business rules only
 
-- Full execution trace: REST adapter → application service → domain model → persistence adapter.
-- Aggregate boundary enforcement (`Portfolio` as aggregate root enforcing invariants) [Evans, 2003, ch. 6].
-- FIFO lot-accounting logic implemented entirely inside the domain layer.
-- Orchestration by application services versus rule enforcement by the aggregate.
-- Exercises for training sessions and self-directed study.
-
-### Documentation Map
-
-| Document | Description |
-|----------|-------------|
-| [API Specification](doc/stock-portfolio-api-specification.md) | User stories, domain model, error handling, HTTP examples |
-| [Sell Stock Tutorial](doc/tutorial/sellStocks/SELL-STOCK-TUTORIAL.md) | End-to-end use case walkthrough with exercises |
-| [Rich vs Anemic Domain Model](doc/tutorial/richVsAnemicDomainModel/RICH_VS_ANEMIC_DOMAIN_MODEL_TUTORIAL.md) | Architectural comparison of domain modelling approaches |
-| [HTTP Requests](doc/calls.http) | Pre-built requests for manual API testing in IntelliJ |
-| [OpenAPI Definition](doc/openapi.yaml) | Machine-readable API contract |
-| [DDD Portfolio and Transactions](doc/DDD%20Portfolio%20and%20Transactions.md) | Domain design notes for portfolios and transactions |
-| [Remove Zero-Quantity Lots](doc/Remove%20Lots%20with%20Zero%20Remaining%20Quantity%20from%20Portfolio%20Aggregate.md) | Design discussion on aggregate cleanup |
-| [Dependency Inversion (Selling)](doc/tutorial/DEPENDENCY-INVERSION-STOCK-SELLING.md) | Tutorial on dependency inversion in the sell flow |
-| [Concurrency Control: Pessimistic Locking and Optimistic Concurrency](doc/tutorial/CONCURRENCY-PESSIMISTIC-LOCKING.md) | Concurrent portfolio updates: pessimistic write locks (JPA/MySQL) and optimistic concurrency with retries (MongoDB) |
-| [DDD Hexagonal Exercise](doc/tutorial/DDD-Hexagonal-exercise.md) | Guided exercise on hexagonal patterns |
-| [Holdings Performance at Scale](doc/tutorial/portfolioReporting/HOLDINGS-PERFORMANCE-AT-SCALE.md) | Reporting and performance considerations |
-| [Watchlists: Market Sentinel](doc/tutorial/watchlists/WATCHLISTS-MARKET-SENTINEL.md) | Watchlist feature design and tutorial |
-| [MongoDB Adapter: Optimistic Write & Retry](doc/mongodb-adapter-optimistic-write-and-retry.md) | Concurrency strategy of the MongoDB persistence adapter |
-
-## Project Structure
-
-HexaStock is a Maven multi-module project. Each module corresponds to a layer of the hexagonal architecture, so the dependency rule (adapters depend on the application core, never the reverse) is enforced at build time.
-
-| Module | Role |
-|--------|------|
-| [`domain`](domain) | Pure domain model: aggregates (`Portfolio`, `Holding`, `Lot`), value objects, domain services and exceptions. No framework dependencies. |
-| [`application`](application) | Application services and ports. Inbound ports (`PortfolioLifecycleUseCase`, `CashManagementUseCase`, `PortfolioStockOperationsUseCase`, `TransactionUseCase`, `ReportingUseCase`, `GetStockPriceUseCase`) and outbound ports (`PortfolioPort`, `TransactionPort`, `StockPriceProviderPort`). |
-| [`adapters-inbound-rest`](adapters-inbound-rest) | Inbound REST adapter: Spring MVC controllers, DTOs and global error handling. |
-| [`adapters-outbound-persistence-jpa`](adapters-outbound-persistence-jpa) | Outbound persistence adapter implementing `PortfolioPort` and `TransactionPort` with Spring Data JPA over MySQL. Active under the `jpa` profile. |
-| [`adapters-outbound-persistence-mongodb`](adapters-outbound-persistence-mongodb) | Outbound persistence adapter implementing the same ports with Spring Data MongoDB. Active under the `mongodb` profile. Provides its own `MongoTransactionManager` and requires a MongoDB replica set for multi-document transactions. |
-| [`adapters-outbound-market`](adapters-outbound-market) | Outbound adapter implementing `StockPriceProviderPort` against external market data providers (Finnhub, Alpha Vantage) with a mock variant for tests. |
-| [`bootstrap`](bootstrap) | Spring Boot composition root (`HexaStockApplication`), profile-specific configuration (`application-jpa.properties`, `application-mongodb.properties`), cross-cutting concerns and end-to-end integration tests. |
-
-### Persistence adapters
-
-The two persistence adapters implement the same outbound ports (`PortfolioPort`, `TransactionPort`) defined in the `application` module, so the domain and application layers are unaware of which technology is in use.
-
-## Prerequisites
-
-- JDK 21 or higher
-- Apache Maven 3.6 or higher
-- Docker (for MySQL via Docker Compose and for TestContainers during tests)
-- IntelliJ IDEA Ultimate (recommended)
-- Git
-
-## Getting Started
-
-### 1. Clone and run the tests
-
-No API keys or database setup needed — TestContainers handles everything automatically (Docker must be running):
+Install **JDK 21** and Git. Use the included Maven wrapper; a separate Maven installation and a paid IDE are unnecessary.
 
 ```bash
 git clone https://github.com/alfredorueda/HexaStock.git
 cd HexaStock
-./mvnw clean test
+java -version
+./mvnw -pl domain test
 ```
 
-### 2. Run the application locally
+Expected result: `BUILD SUCCESS`. This first step runs the domain tests without Docker, Spring application startup or market-data keys. On Windows, use `mvnw.cmd` in place of `./mvnw`.
 
-To run the full application with real stock prices you need three things: the databases, your API keys, and the Spring Boot profiles.
+Then read [the sale requirements](doc/tutorial/sellStocks/SELL-STOCK-01-BEHAVIOUR.md) and [the first domain test](doc/tutorial/sellStocks/SELL-STOCK-02-DOMAIN-TEST.md). The key question is concrete: if shares were bought at different prices, what is the cost of the shares sold?
 
-**Start local databases (MySQL + MongoDB):**
+## Run the HTTP application
+
+This step adds a database and a web server. Install and start Docker with Compose support first.
 
 ```bash
-docker-compose up -d
+docker compose up -d mysql
+./mvnw install -DskipTests
+./mvnw spring-boot:run -pl bootstrap -Dspring-boot.run.profiles=jpa,mockfinhub
 ```
 
-**Set up your API keys** (one-time step):
+Wait until MySQL is ready before starting the application. The first Maven command installs sibling modules needed by `bootstrap`; rerun it after changing their code. The second command starts the application on **http://localhost:8081**.
+
+Open [Swagger UI](http://localhost:8081/swagger-ui.html), or use [the HTTP request collection](doc/calls.http). Create a portfolio, deposit cash, buy shares and then sell some of them. Copy the returned portfolio ID into subsequent requests.
+
+The `mockfinhub` provider generates random prices. It is useful for exploration, but repeated requests are not an accounting test with a fixed expected price. Automated trading tests use a separate fixed-price adapter.
+
+**Local database lifecycle:** the checked-in JPA configuration uses `spring.jpa.hibernate.ddl-auto=create-drop`. It recreates the application's tables at startup and drops them on a normal shutdown. Use this configuration with disposable learning data.
+
+Stop the application with Ctrl+C and stop the database with `docker compose stop mysql`.
+
+## Choose adapters when you are ready
+
+An *adapter* connects application logic to a technology. Choose one persistence profile and one price-provider profile:
+
+| Category | Profile | Purpose |
+|---|---|---|
+| Persistence | `jpa` | MySQL; pessimistic write locking |
+| Persistence | `mongodb` | MongoDB; optimistic version checks and transaction retries |
+| Price provider | `mockfinhub` | Random demonstration prices; no key |
+| Price provider | `finhub` | Finnhub API; requires `FINNHUB_API_KEY` |
+| Price provider | `alphaVantage` | Alpha Vantage API; requires `ALPHA_VANTAGE_API_KEY` |
+
+For MongoDB, start `docker compose up -d mongo` and use `mongodb,mockfinhub`. The bundled service configures the `rs0` replica set needed for transactions. The default URI is `mongodb://localhost:27017/hexaStock?replicaSet=rs0`; override it with `SPRING_DATA_MONGODB_URI` if needed.
+
+To try an external provider, copy `.env.example` to `.env`, replace the relevant placeholder and run `source .env` before the Maven command. The example uses `export`, so the variables reach the Java process. In an IDE, set these environment variables in the run configuration instead. `.env` is ignored by Git; keep credentials out of tracked files.
+
+## Run the complete checks
+
+With Docker running:
 
 ```bash
-cp .env.example .env        # copy the example file
-# edit .env and add your real keys (free-tier keys work fine)
+./mvnw clean verify
 ```
 
-Free-tier keys: [finnhub.io](https://finnhub.io/) · [alphavantage.co](https://www.alphavantage.co/support/#api-key)
+Testcontainers creates test databases; you do not need to start the Compose services for these tests. The command matches the lifecycle used by CI. If Docker discovery fails, first check `docker version`, `docker info` and the active Docker context. Investigate local socket or environment configuration before changing global Docker settings.
 
-**Start the application:**
+## Find your way through the code
 
-```bash
-source .env
-./mvnw install -DskipTests -q
-./mvnw spring-boot:run -pl bootstrap -Dspring-boot.run.profiles=jpa,finhub
-# or:
-# ./mvnw spring-boot:run -pl bootstrap -Dspring-boot.run.profiles=mongodb,finhub
-```
+A *portfolio* owns cash and holdings. A holding groups purchase lots for one ticker. A sale consumes the oldest remaining lots first: First In, First Out (FIFO).
 
-The first command compiles and installs all modules into your local Maven repository (only needed once, or after code changes). The second starts the app.
+| Module | Responsibility |
+|---|---|
+| [`domain`](domain) | Business rules. `Portfolio` is the aggregate root; `Holding` and `Lot` are child entities. No production framework dependencies. |
+| [`application`](application) | Use cases, orchestration and port interfaces. Uses Jakarta transaction annotations. |
+| [`adapters-inbound-rest`](adapters-inbound-rest) | HTTP controllers, request/response objects and error translation. |
+| [`adapters-outbound-persistence-jpa`](adapters-outbound-persistence-jpa) | Maps the domain to relational entities and MySQL. |
+| [`adapters-outbound-persistence-mongodb`](adapters-outbound-persistence-mongodb) | Maps the same domain to MongoDB documents. |
+| [`adapters-outbound-market`](adapters-outbound-market) | Obtains prices from a provider or the demonstration adapter. |
+| [`bootstrap`](bootstrap) | Starts Spring Boot, selects adapters and wires dependencies. |
 
-The app starts on **http://localhost:8081**. Swagger UI is at [http://localhost:8081/swagger-ui.html](http://localhost:8081/swagger-ui.html).
+The Maven module graph and architecture tests check specific dependency boundaries. They help preserve the design; they do not prove every business rule or encapsulation property.
 
-> **Why two Maven commands?** HexaStock is a multi-module project. `spring-boot:run` can only target a single module (`-pl bootstrap`), so the sibling modules (domain, application, adapters) must be installed first.
+## Continue reading
 
-### 3. Try the API
+| Your next question | Read |
+|---|---|
+| Where should I begin? | [Beginner learning path](doc/learning/START-HERE.md) |
+| How does one sale work? | [Staged sell-stock tutorial](doc/tutorial/sellStocks/SELL-STOCK-TUTORIAL.md) |
+| What does each business term mean? | [Domain vocabulary](doc/tutorial/sellStocks/UBIQUITOUS-LANGUAGE.md) |
+| Which HTTP operations exist? | [API specification](doc/stock-portfolio-api-specification.md) and [OpenAPI](doc/openapi.yaml) |
+| How can I contribute? | [Contribution guide](CONTRIBUTING.md) |
+| Where is the rest of the book? | [Table of contents](SUMMARY.md) |
 
-Pre-configured HTTP requests are in [doc/calls.http](doc/calls.http).
-
-In IntelliJ IDEA, open the file and click the green **Run** arrow next to any request. Example workflow:
-
-1. Create a portfolio
-2. Deposit cash
-3. Buy stocks (e.g. AAPL, MSFT)
-4. Check portfolio status
-5. Sell stocks
-6. View transaction history
-
-## Spring Profiles
-
-The application requires two Spring profiles to start:
-
-| Category | Profile | Description |
-|----------|---------|-------------|
-| Persistence (choose one) | `jpa` | Spring Data JPA / Hibernate over MySQL; pessimistic locking. |
-| | `mongodb` | Spring Data MongoDB; optimistic locking with retry. Requires a replica set (the bundled `docker-compose.yml` configures `rs0`). |
-| Stock price provider (choose one) | `finhub` | Finnhub real-time API |
-| | `alphaVantage` | Alpha Vantage API |
-| | `mockfinhub` | Random prices — no API key needed (used by tests) |
-
-Valid combinations: `jpa,finhub` · `jpa,alphaVantage` · `jpa,mockfinhub` · `mongodb,finhub` · `mongodb,alphaVantage` · `mongodb,mockfinhub`
-
-**From IntelliJ IDEA:** open *Run > Edit Configurations*, set the *Active profiles* field (e.g. `jpa,finhub`) and add environment variables from your `.env` file.
-
-## API Keys Configuration
-
-API keys are read from **environment variables** so that real secrets are never committed to version control.
-
-| Variable | Purpose | Required for |
-|----------|---------|-------------|
-| `FINNHUB_API_KEY` | [Finnhub](https://finnhub.io/) stock price API | Running with profile `finhub` |
-| `ALPHA_VANTAGE_API_KEY` | [Alpha Vantage](https://www.alphavantage.co/) stock price API | Running with profile `alphaVantage` |
-| `SPRING_DATA_MONGODB_URI` | MongoDB connection URI | Running with profile `mongodb` |
-
-> **Tests do not require real API keys.** The test suite uses the `mockfinhub` profile with TestContainers, so `./mvnw clean test` works out of the box without any `.env` file.
-
-The `.env` file is listed in `.gitignore` and will never be committed.
-
-## Troubleshooting: "Could not find a valid Docker environment"
-
-HexaStock uses **Testcontainers 1.21.4**, which handles Docker Engine 27.x and 29.x out of the box. If you still see this error:
-
-1. Run `docker version` — confirm the API version is ≥ 1.44
-2. Check for a stale `~/.docker-java.properties` that might force a wrong API version — delete or fix it
-3. If you use **Podman** or **Colima**, create `~/.docker-java.properties` with:
-   ```properties
-   api.version=1.44
-   ```
-4. Make sure Docker Desktop is running and the Docker socket is accessible
+The implemented baseline supports portfolios, cash movements, purchases, FIFO sales, transaction history and holdings reports. Watchlists, settlement, fees and alternative lot-selection rules appear in advanced design material or exercises; they are not all implemented features of `main`.
 
 ## Acknowledgments
 
