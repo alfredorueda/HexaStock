@@ -40,3 +40,7 @@ The successful sale uses 10 shares bought at 100.00, then 5 at 120.00, selling 1
 The architecture diagram shows source dependencies; the sequence diagrams show runtime interactions. A port and its implementation are not separate network calls. The persistence diagram distinguishes `save` from later flush/commit, and the error diagrams preserve the order of validation in `main`.
 
 Other files in this directory support older companion chapters. They are not part of the staged path; update their consumers deliberately rather than assuming every diagram describes the same scenario.
+
+## Community reference images
+
+The Tom Hombergs and Herberto Graça diagrams in [Architecture Reference Diagrams](../HEXAGONAL-ARCHITECTURE-REFERENCE-DIAGRAMS.md) are preserved as original PNG files in `.gitbook/assets`. Embed them with standard Markdown and no fixed width or height: retaining a fixed height while the book constrains the width distorts their proportions. Their natural sizes are 1600 × 797 and 876 × 657 pixels, respectively. Keep the attribution and full-size links beside each image.
