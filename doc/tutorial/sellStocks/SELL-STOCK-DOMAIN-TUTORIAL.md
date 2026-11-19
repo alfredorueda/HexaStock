@@ -1,495 +1,69 @@
-# Sell Stock — Domain Layer Only
+# Sell Stock: The Domain-Only Learning Path
 
-> **📖 This is a simplified version** of the full tutorial [Sell Stock Deep Dive — staged learning path](SELL-STOCK-TUTORIAL.md). It focuses exclusively on the **domain model** — the business logic at the heart of HexaStock — without discussing REST controllers, HTTP endpoints, DTOs, JPA entities, persistence adapters, integration tests, or any infrastructure concern. If you want the complete architectural picture, read the full tutorial.
+Learn the sale rules in three short sessions, using plain Java objects and JUnit. No database, web server or API key is needed.
 
-***
+**Prerequisites:** Java classes, interfaces and basic assertions. If the business terms are new, read the [shared vocabulary](UBIQUITOUS-LANGUAGE.md) first.
 
-## 1. Introduction
+## 1. Calculate the expected behavior
 
-HexaStock is a stock portfolio management system designed and implemented with **Domain-Driven Design (DDD)** \[Evans, 2003; Vernon, 2013]. This companion tutorial focuses on one use case — **selling stocks from a portfolio** — to illustrate how a rich domain model enforces business rules.
+Read [Stage 1: specify the sale](SELL-STOCK-01-BEHAVIOUR.md). Work through the example with two purchase lots and a sale of 12 shares.
 
-You will study how:
+Before continuing, explain why cash increases by 1800.00 while profit is only 560.00. These values describe different things: proceeds and proceeds minus historical cost.
 
-* Observable behaviour is specified before any production code is written \[North, 2006].
-* Aggregates, entities, and value objects collaborate to realise that behaviour.
-* The domain model enforces its own consistency (invariants) without depending on any external technology.
+## 2. Test through the aggregate root
 
-Everything in this tutorial runs **without a database, without a web server, and without any framework**. The domain model is plain Java.
+Read [Stage 2: model and test the aggregate](SELL-STOCK-02-DOMAIN-TEST.md), then run:
 
-***
-
-## 2. Learning Objectives
-
-By the end of this tutorial, you will understand:
-
-* How **Gherkin scenarios** capture expected behaviour in business language before any design decisions are made
-* How **JUnit tests** validate that behaviour directly against the domain model, with no infrastructure required
-* How **Domain-Driven Design (DDD)** shapes the model into aggregates (`Portfolio`, `Holding`, `Lot`) that enforce business invariants
-* How the **aggregate root pattern** ensures that all state changes pass through a single consistency boundary
-* How **FIFO (First-In-First-Out) accounting** is implemented entirely within the domain model as a core business rule
-* How **Value Objects** (`Money`, `Price`, `ShareQuantity`, `Ticker`, `PortfolioId`, etc.) replace primitives to enforce constraints at construction time
-* Why **application services orchestrate** use cases without containing business logic, while **aggregates decide** and protect invariants
-
-***
-
-## 3. Functional Specification (Behaviour)
-
-Before writing any code, we define the **observable behaviour** of the sell use case using Gherkin scenarios. These describe what the system must do in business terms, independent of any technical design decisions.
-
-**Source of truth:** [US-07 — Sell Stocks (API Specification)](../../stock-portfolio-api-specification.md#27-us-07--sell-stocks)
-
-> **Canonical Gherkin:** [`doc/features/sell-stocks.feature`](https://github.com/alfredorueda/HexaStock/blob/main/doc/features/sell-stocks.feature) — the scenarios below are reproduced for readability; the `.feature` file is the single source referenced by `@SpecificationRef` annotations in tests.
-
-```gherkin
-Feature: Sell Stocks with FIFO Lot Consumption
-
-  Background:
-    Given a portfolio exists for owner "Alice"
-    And the portfolio holds AAPL with the following lots (in purchase order):
-      | Lot # | Shares | Purchase Price |
-      |     1 |     10 |        100.00  |
-      |     2 |      5 |        120.00  |
-    And the current market price for AAPL is 150.00
-
-  Scenario: Selling shares consumed entirely from a single lot
-    When I sell 8 shares of AAPL
-    Then the sale response contains:
-      | Field     | Value   |
-      | ticker    | AAPL    |
-      | quantity  |       8 |
-      | proceeds  | 1200.00 |
-      | costBasis |  800.00 |
-      | profit    |  400.00 |
-    And FIFO consumed 8 shares from Lot #1 at 100.00
-    And the AAPL holding lots are now:
-      | Lot # | Initial Shares | Remaining Shares | Purchase Price |
-      |     1 |             10 |                2 |        100.00  |
-      |     2 |              5 |                5 |        120.00  |
-    And the portfolio cash balance has increased by 1200.00
-
-  # Calculation breakdown:
-  #   FIFO step 1: Lot #1 has 10 remaining → take min(10, 8) = 8 shares
-  #                costBasis contribution = 8 × 100.00 = 800.00
-  #                Lot #1 remaining: 10 − 8 = 2
-  #   Total shares sold: 8 (request fulfilled)
-  #   proceeds  = 8 × 150.00  = 1200.00
-  #   costBasis = 800.00
-  #   profit    = 1200.00 − 800.00 = 400.00
-
-  Scenario: Selling shares consumed across multiple lots
-    When I sell 12 shares of AAPL
-    Then the sale response contains:
-      | Field     | Value   |
-      | ticker    | AAPL    |
-      | quantity  |      12 |
-      | proceeds  | 1800.00 |
-      | costBasis | 1240.00 |
-      | profit    |  560.00 |
-    And FIFO consumed 10 shares from Lot #1 at 100.00 and 2 shares from Lot #2 at 120.00
-    And Lot #1 is fully depleted and removed
-    And the AAPL holding lots are now:
-      | Lot # | Initial Shares | Remaining Shares | Purchase Price |
-      |     2 |              5 |                3 |        120.00  |
-    And the portfolio cash balance has increased by 1800.00
-
-  # Calculation breakdown:
-  #   FIFO step 1: Lot #1 has 10 remaining → take min(10, 12) = 10 shares
-  #                costBasis contribution = 10 × 100.00 = 1000.00
-  #                Lot #1 remaining: 10 − 10 = 0 → lot is empty, removed
-  #                Shares still to sell: 12 − 10 = 2
-  #   FIFO step 2: Lot #2 has 5 remaining → take min(5, 2) = 2 shares
-  #                costBasis contribution = 2 × 120.00 = 240.00
-  #                Lot #2 remaining: 5 − 2 = 3
-  #                Shares still to sell: 2 − 2 = 0
-  #   Total shares sold: 12 (request fulfilled)
-  #   proceeds  = 12 × 150.00 = 1800.00
-  #   costBasis = 1000.00 + 240.00 = 1240.00
-  #   profit    = 1800.00 − 1240.00 = 560.00
+```bash
+./mvnw -pl domain test
 ```
 
-***
+`Portfolio` is the aggregate root. `Holding` and `Lot` are child entities. The aggregate-level test checks the sale result and the cash update together; a holding-level test can check FIFO without observing portfolio cash.
 
-## 4. Executable Specification (JUnit Domain Tests)
+A successful unit test demonstrates the assertions made for its inputs. It does not establish database atomicity, concurrent-request safety or that every public mutation path preserves every invariant.
 
-The Gherkin scenarios describe observable behaviour at the **Portfolio level** — the aggregate root. HexaStock validates this behaviour at **two complementary levels**, both of which run with no infrastructure at all (no database, no web server, no Spring context):
+## 3. Trace the FIFO loop
 
-1. **Aggregate-level test** — exercises `Portfolio.sell(...)` and verifies financial results, balance updates, and FIFO lot consumption as a single consistent unit.
-2. **Algorithm-level test** — exercises `Holding.sell(...)` and verifies the FIFO lot-consumption algorithm in isolation.
+Read [Stage 3: follow the FIFO algorithm](SELL-STOCK-03-FIFO.md). Use the diagram to predict the remaining quantity after each iteration, then compare your prediction with the code.
 
-### Aggregate Root Test (Portfolio)
+![Domain model: Portfolio contains holdings and purchase lots](../../../.gitbook/assets/sell-domain-model.png)
 
-This is the direct executable translation of the Gherkin scenario. It invokes `Portfolio.sell(...)` exactly as the application service would, and asserts every observable outcome.
+Depleted lots are removed during the loop. The empty holding itself remains in the portfolio after a complete sale. Rehydration inserts lots by purchase time; equal timestamps do not have an explicit secondary ordering rule.
 
-**Test source:** [PortfolioTest.java — shouldSellSharesUsingFIFOThroughPortfolioAggregateRoot\_GherkinScenario](https://github.com/alfredorueda/HexaStock/blob/9f52de7b30dd683952b5a1b10ac63c878535444a/src/test/java/cat/gencat/agaur/hexastock/model/PortfolioTest.java#L201)
+**Stop here for a first lesson.** You can explain and test the business operation without studying HTTP or persistence. When ready, [Stage 4](SELL-STOCK-04-HTTP-AND-PORTS.md) connects this model to the rest of the application.
 
-```java
-@Test
-@DisplayName("Should sell shares across multiple lots using FIFO through the aggregate root (Gherkin scenario)")
-void shouldSellSharesUsingFIFOThroughPortfolioAggregateRoot_GherkinScenario() {
-    // Background: a portfolio with sufficient funds to buy AAPL lots
-    Price purchasePrice1 = Price.of("100.00");
-    Price purchasePrice2 = Price.of("120.00");
-    Price marketSellPrice = Price.of("150.00");
+## Practice at increasing difficulty
 
-    Portfolio fundedPortfolio = new Portfolio(
-            PortfolioId.generate(), "Alice", Money.of("10000.00"), LocalDateTime.now());
+### Trace a purchase
 
-    // Background: buy 10 shares of AAPL @ 100, then 5 shares @ 120
-    fundedPortfolio.buy(APPLE, ShareQuantity.of(10), purchasePrice1);
-    fundedPortfolio.buy(APPLE, ShareQuantity.of(5), purchasePrice2);
+Write a short trace of `Portfolio.buy`: validation, lot creation and the cash change. Compare it with a sale. Explain why buying creates a lot while selling may consume several lots.
 
-    Money balanceBeforeSell = fundedPortfolio.getBalance(); // 10000 - 1000 - 600 = 8400
+### Explain identity and value
 
-    // When: sell 12 shares of AAPL @ 150 through the aggregate root
-    SellResult result = fundedPortfolio.sell(APPLE, ShareQuantity.of(12), marketSellPrice);
+Why is `Lot` an entity while `Ticker` is a value object? Why is `PortfolioId` a value object even though it represents identity? Use equality and state changes in your answer.
 
-    // Then: financial results match Gherkin expectations
-    assertEquals(Money.of("1800.00"), result.proceeds());   // 12 × 150
-    assertEquals(Money.of("1240.00"), result.costBasis());   // (10 × 100) + (2 × 120)
-    assertEquals(Money.of("560.00"), result.profit());       // 1800 − 1240
+### Examine the boundary
 
-    // And: portfolio balance increased by proceeds
-    assertEquals(balanceBeforeSell.add(Money.of("1800.00")), fundedPortfolio.getBalance());
+Explain what could go wrong if a caller invokes `Holding.sell` directly and forgets to update portfolio cash. The current model exposes mutable children, so this bypass is possible. Explain the intended root-based update path and propose a way to reduce accidental bypasses.
 
-    // And: FIFO lot consumption — only Lot #2 survives with 3 remaining shares
-    Holding aaplHolding = fundedPortfolio.getHolding(APPLE);
-    assertEquals(ShareQuantity.of(3), aaplHolding.getTotalShares());
-    assertEquals(1, aaplHolding.getLots().size());
+### Extend the rules: maximum sale percentage
 
-    Lot remainingLot = aaplHolding.getLots().getFirst();
-    assertEquals(ShareQuantity.of(3), remainingLot.getRemainingShares());
-    assertEquals(purchasePrice2, remainingLot.getUnitPrice());
-}
-```
+This is an **exercise**, not a rule of the current application:
 
-> **💡 Why test through the aggregate root?** The Gherkin scenario says _"the portfolio cash balance has increased by 1800.00"_ — this is a Portfolio-level invariant. Only a test that calls `Portfolio.sell(...)` can verify that the balance update and the FIFO lot consumption happen together atomically and consistently. A `Holding`-level test cannot observe the balance.
+- Positive sales of at most 10 shares have no additional percentage restriction.
+- A sale of more than 10 shares may consume at most 50% of the holding.
+- Existing availability checks still apply.
 
-### FIFO Algorithm Test (Holding)
+Choose a place for the rule, justify the choice and add an `ExcessiveSaleException`. Test a holding of 30 shares: selling 10 succeeds, selling 15 succeeds, and selling 16 fails without changing cash or lots. Also test an insufficient-shares request and zero quantity.
 
-This lower-level test verifies the FIFO lot-consumption algorithm in isolation — shares are consumed from the oldest lot first, depleted lots are removed, and cost basis is calculated correctly — without involving portfolio-level concerns such as cash balance.
+For each test, start from a fresh portfolio. Do not let an earlier sale change the preconditions of the next example.
 
-**Test source:** [HoldingTest.java — shouldSellSharesAcrossMultipleLots\_GherkinScenario](https://github.com/alfredorueda/HexaStock/blob/44fa1ff6e29b79faccb0952a5103475eb4f03061/src/test/java/cat/gencat/agaur/hexastock/model/HoldingTest.java#L181)
+## Further study
 
-```java
-@Test
-@DisplayName("Should sell shares across multiple lots using FIFO (Gherkin scenario)")
-void shouldSellSharesAcrossMultipleLots_GherkinScenario() {
-    // Background: buy 10 shares @ 100, then 5 shares @ 120
-    holding.buy(ShareQuantity.of(10), PRICE_100);
-    holding.buy(ShareQuantity.of(5), PRICE_120);
-
-    // When: sell 12 shares @ 150 (market price from Gherkin)
-    SellResult result = holding.sell(ShareQuantity.of(12), PRICE_150);
-
-    // Then: 3 remaining shares, only Lot #2 survives
-    assertEquals(ShareQuantity.of(3), holding.getTotalShares());
-    assertEquals(1, holding.getLots().size());
-
-    Lot remainingLot = holding.getLots().getFirst();
-    assertEquals(ShareQuantity.of(3), remainingLot.getRemainingShares());
-    assertEquals(PRICE_120, remainingLot.getUnitPrice());
-
-    // And: financial results match Gherkin expectations
-    assertEquals(Money.of("1800.00"), result.proceeds());
-    assertEquals(Money.of("1240.00"), result.costBasis());
-    assertEquals(Money.of("560.00"), result.profit());
-}
-```
-
-> **💡 Two levels, one truth:** Both tests verify the same FIFO financial results (proceeds, cost basis, profit). The Portfolio test additionally verifies aggregate consistency (balance update). Together they form a complete executable specification at the appropriate DDD abstraction levels.
-
-***
-
-## 5. Domain Context: What "Selling Stocks" Means
-
-In HexaStock:
-
-* A **Portfolio** represents an investor's account containing cash (`Money`) and stock holdings. It is the **aggregate root** — the single entry point for all operations.
-* A **Holding** tracks all shares owned for a specific stock ticker (e.g., `Ticker.of("AAPL")`). A portfolio contains zero or more holdings.
-* A **Lot** represents a single purchase — a batch of shares (`ShareQuantity`) bought at a specific price (`Price`) and time. A holding contains one or more lots, ordered by purchase date.
-* **FIFO (First-In-First-Out)** accounting means that when selling, the **oldest lots are consumed first**.
-
-When the domain model sells stocks:
-
-1. It validates that the quantity is positive and the holding exists
-2. It applies FIFO to determine which lots to draw from (oldest first)
-3. It calculates **proceeds** (price × quantity), **cost basis** (what was originally paid for those specific lots), and **profit** (proceeds − cost basis)
-4. It updates the portfolio's cash balance
-5. It removes fully depleted lots
-
-> **💡 Why Value Objects?** The domain uses `Money`, `Price`, `ShareQuantity`, `Ticker`, `PortfolioId`, `HoldingId`, and `LotId` instead of primitives (`BigDecimal`, `int`, `String`). This eliminates an entire class of bugs — you cannot accidentally pass a quantity where a price is expected — and enforces validation at construction time. For example, `ShareQuantity` rejects negative values, and `Price` rejects non-positive values at the moment they are created.
-
-***
-
-## 6. Domain Class Diagram
-
-The diagram below shows **only the domain model** — the entities and value objects that implement the business logic. No controllers, DTOs, JPA entities, adapters, or infrastructure classes appear here.
-
-**Full UML diagram reference:** See [`diagrams/Rendered/domain-class-diagram.svg`](https://github.com/alfredorueda/HexaStock/blob/main/doc/tutorial/sellStocks/diagrams/Rendered/domain-class-diagram.svg)
-
-[![Domain Class Diagram](../../../.gitbook/assets/domain-class-diagram.png)](https://github.com/alfredorueda/HexaStock/blob/main/doc/tutorial/sellStocks/diagrams/Rendered/domain-class-diagram.svg)
-
-[View PlantUML source](https://github.com/alfredorueda/HexaStock/blob/main/doc/tutorial/sellStocks/diagrams/domain-class-diagram.puml)
-
-**Key relationships:**
-
-* A `Portfolio` contains zero or more `Holding` objects, indexed by `Ticker`
-* A `Holding` contains one or more `Lot` objects, ordered by purchase date
-* All state changes to `Holding` and `Lot` **must go through `Portfolio`** (the aggregate root)
-* Value Objects are immutable and enforce constraints at construction time
-
-***
-
-## 7. Simplified Use Case Flow
-
-In a complete system, the sell operation passes through many architectural layers (REST controller → port → service → domain → persistence). In this tutorial, we focus only on the **application core**.
-
-The application service is a **thin orchestrator** — it loads data, calls the aggregate root, and saves the result. All business logic (validation, FIFO, profit calculation) lives inside the domain model. The activity diagram below traces this flow through each domain participant, including the three validation checkpoints and the FIFO loop.
-
-**Full UML diagram reference:** See [`diagrams/Rendered/sell-use-case-flow.svg`](https://github.com/alfredorueda/HexaStock/blob/main/doc/tutorial/sellStocks/diagrams/Rendered/sell-use-case-flow.svg)
-
-[![Sell Use Case Flow](../../../.gitbook/assets/sell-use-case-flow.png)](https://github.com/alfredorueda/HexaStock/blob/main/doc/tutorial/sellStocks/diagrams/Rendered/sell-use-case-flow.svg)
-
-[View PlantUML source](https://github.com/alfredorueda/HexaStock/blob/main/doc/tutorial/sellStocks/diagrams/sell-use-case-flow.puml)
-
-***
-
-## 8. Domain Sequence Diagram: The SELL Operation
-
-The sequence below traces how the sell operation flows through the **domain model only** — from the moment the application service calls `Portfolio.sell()` to the moment `SellResult` is returned. No REST controllers, HTTP requests, or database operations appear. It walks through the Gherkin Scenario 2 (selling 12 shares of AAPL at 150.00), showing both FIFO steps, lot depletion, and the final financial result.
-
-**Full UML sequence diagram reference:** See [`diagrams/Rendered/sell-domain-sequence.svg`](https://github.com/alfredorueda/HexaStock/blob/main/doc/tutorial/sellStocks/diagrams/Rendered/sell-domain-sequence.svg)
-
-[![Sell Domain Sequence](../../../.gitbook/assets/sell-domain-sequence.png)](https://github.com/alfredorueda/HexaStock/blob/main/doc/tutorial/sellStocks/diagrams/Rendered/sell-domain-sequence.svg)
-
-[View PlantUML source](https://github.com/alfredorueda/HexaStock/blob/main/doc/tutorial/sellStocks/diagrams/sell-domain-sequence.puml)
-
-**What this diagram shows:**
-
-* The **Portfolio** validates inputs and delegates to the correct `Holding`
-* The **Holding** implements the FIFO algorithm, iterating lots from oldest to newest
-* Each **Lot** reduces its `remainingShares` and reports its `costBasis` contribution
-* Depleted lots (Lot #1 with 0 remaining) are removed automatically
-* The **Portfolio** updates its `balance` with the proceeds before returning the `SellResult`
-
-> **💡 Complementary diagrams:** The repository also contains a more detailed FIFO sequence diagram (selling 12 shares across two lots, matching Gherkin scenario US-07.FIFO-2) and a diagram comparing correct vs anti-pattern service behaviour. See [`diagrams/Rendered/sell-domain-fifo.svg`](https://github.com/alfredorueda/HexaStock/blob/main/doc/tutorial/sellStocks/diagrams/Rendered/sell-domain-fifo.svg) and [`diagrams/Rendered/sell-orchestrator-vs-aggregate.svg`](https://github.com/alfredorueda/HexaStock/blob/main/doc/tutorial/sellStocks/diagrams/Rendered/sell-orchestrator-vs-aggregate.svg).
-
-***
-
-## 9. Why Application Services Orchestrate and Aggregates Enforce Invariants
-
-This section addresses a central concern of tactical DDD: the allocation of responsibility between application services (orchestrators) and aggregates (invariant enforcers) \[Evans, 2003, chs. 4 and 6; Vernon, 2013, ch. 14].
-
-### A) Roles Explained with Real Code
-
-**Application Service (Orchestrator):**
-
-```java
-@Override
-public SellResult sellStock(PortfolioId portfolioId, Ticker ticker, ShareQuantity quantity) {
-    // 1. Retrieve portfolio (via an outbound port — how it's loaded is not our concern)
-    Portfolio portfolio = portfolioPort.getPortfolioById(portfolioId)
-        .orElseThrow(() -> new PortfolioNotFoundException(portfolioId.value()));
-
-    // 2. Fetch current stock price (via another outbound port)
-    StockPrice stockPrice = stockPriceProviderPort.fetchStockPrice(ticker);
-    Price price = stockPrice.price();
-
-    // 3. Delegate ALL business logic to the aggregate root
-    SellResult sellResult = portfolio.sell(ticker, quantity, price);
-
-    // 4. Persist (we don't care how — the port abstracts it away)
-    portfolioPort.savePortfolio(portfolio);
-
-    // ...
-
-    return sellResult;
-}
-```
-
-**Role:** The service is a **director of orchestra** — it retrieves, delegates, and persists, but **never decides**. It does not validate quantities, check holdings, implement FIFO, calculate profits, or update lots directly.
-
-**Aggregate Root (Decision Maker):**
-
-```java
-public SellResult sell(Ticker ticker, ShareQuantity quantity, Price price) {
-    if (!quantity.isPositive())
-        throw new InvalidQuantityException("Quantity must be positive");
-    if (!holdings.containsKey(ticker))
-        throw new HoldingNotFoundException("Holding not found in portfolio: " + ticker);
-
-    Holding holding = holdings.get(ticker);
-    SellResult result = holding.sell(quantity, price);
-    balance = balance.add(result.proceeds());
-
-    return result;
-}
-```
-
-**Role:** The aggregate root is the **guardian of invariants** — it validates, delegates to controlled entities, updates balance consistently, and returns a complete result.
-
-### B) Why Direct Manipulation Breaks Invariants
-
-Imagine if the application service bypassed the aggregate root and manipulated internal entities directly:
-
-```java
-// ❌ WRONG! DO NOT DO THIS!
-Holding holding = portfolio.getHoldings().stream()
-    .filter(h -> h.getTicker().equals(ticker))
-    .findFirst().orElseThrow();
-
-ShareQuantity remaining = quantity;
-for (Lot lot : holding.getLots()) {
-    if (remaining.isPositive()) {
-        ShareQuantity toSell = lot.getRemainingShares().min(remaining);
-        lot.reduce(toSell);      // Direct manipulation!
-        remaining = remaining.subtract(toSell);
-    }
-}
-
-Money someAmount = Price.of(150).multiply(quantity);
-portfolio.deposit(someAmount);   // Wrong way to add proceeds!
-```
-
-**What breaks:**
-
-1. **FIFO Logic Duplication** — The FIFO algorithm is now in the service, not in the domain. If business rules change (e.g., switch to LIFO), you must change the service instead of the domain model.
-2. **Invariant Violation Risk** — The service might forget to check `getTotalShares() >= quantity`. The portfolio would enter an invalid state.
-3. **Balance Inconsistency** — The balance update logic might not match the actual proceeds calculation, corrupting the portfolio.
-4. **No Central Enforcement** — If another use case also needs to sell stocks, it must duplicate all validation and calculation logic.
-5. **Testability** — You now need complex tests to verify FIFO correctness. With the correct design, you can unit-test `Holding.sell()` in isolation with no setup overhead.
-
-**✅ Correct pattern — one line in the service, all logic in the aggregate:**
-
-```java
-SellResult sellResult = portfolio.sell(ticker, quantity, price);
-```
-
-### C) Teaching Note
-
-> **💡 Key Principle**
->
-> **Application services coordinate; aggregates decide.**
->
-> The application service is a **traffic controller**. It fetches data, calls the aggregate, and saves results. It does not make business decisions.
->
-> The aggregate root is a **consistency boundary**. All changes to entities within the aggregate must go through the root. This ensures invariants are never violated.
->
-> **Value Objects** reinforce this boundary by making the types expressive. You cannot accidentally pass a `ShareQuantity` where a `Price` is expected — the compiler catches it.
-
-**Diagram Reference:** See [`diagrams/Rendered/sell-orchestrator-vs-aggregate.svg`](https://github.com/alfredorueda/HexaStock/blob/main/doc/tutorial/sellStocks/diagrams/Rendered/sell-orchestrator-vs-aggregate.svg)
-
-[![Sell Orchestrator vs Aggregate](../../../.gitbook/assets/sell-orchestrator-vs-aggregate.png)](https://github.com/alfredorueda/HexaStock/blob/main/doc/tutorial/sellStocks/diagrams/Rendered/sell-orchestrator-vs-aggregate.svg)
-
-***
-
-## 10. What This Simplified Tutorial Leaves Out
-
-This tutorial intentionally omits everything outside the domain model. If you want to learn about these topics, read the [full tutorial](SELL-STOCK-TUTORIAL.md):
-
-| Topic                          | What it covers                                                              | Full tutorial section        |
-| ------------------------------ | --------------------------------------------------------------------------- | ---------------------------- |
-| **REST Controllers & DTOs**    | How HTTP requests enter the system; JSON ↔ Value Object mapping             | Sections 7, 9 (Steps 1–2, 6) |
-| **Hexagonal Architecture Map** | Complete layer table: adapters, ports, services, domain                     | Section 8                    |
-| **Persistence & JPA**          | How domain objects are mapped to database entities; the mapper pattern      | Section 12                   |
-| **Transactionality**           | `@Transactional`, ACID guarantees, concurrency control, pessimistic locking | Section 11                   |
-| **Error → HTTP Mapping**       | How domain exceptions become HTTP 400/404/409 responses                     | Section 13                   |
-| **Integration Testing**        | End-to-end tests with Testcontainers, RestAssured, and adapter swapping     | Section 16                   |
-| **Architecture Overview**      | Ports & Adapters, Dependency Inversion, architectural trade-offs            | Section 1                    |
-
-***
-
-## 11. Key Takeaways
-
-### Domain-Driven Design
-
-* **Aggregates protect invariants** — all state changes to `Holding` and `Lot` pass through the `Portfolio` root. The portfolio can never enter an inconsistent state.
-* **Application services orchestrate** — they coordinate use cases without containing business logic. The service calls `portfolio.sell(...)` and saves the result; it does not implement FIFO.
-* **Value Objects eliminate primitive obsession** — types like `Money`, `Price`, `ShareQuantity`, `Ticker`, and `PortfolioId` enforce constraints at construction time and encode the ubiquitous language in the type system \[Evans, 2003, ch. 5; Fowler, 2018].
-* **Business rules live in the domain** — FIFO logic belongs in `Holding.sell()`, not in a service or adapter \[Fowler, 2003].
-* **Domain exceptions carry business semantics** — `ConflictQuantityException` ("Not enough shares to sell") names a business rule violation rather than a technical error.
-
-### Testing the Domain
-
-* **Domain tests need no infrastructure** — the `PortfolioTest` and `HoldingTest` examples run in milliseconds without Spring, without a database, and without any framework.
-* **Two levels verify one truth** — the aggregate test checks consistency (balance + FIFO together), the holding test checks the algorithm in isolation. Both verify the same financial results.
-* **Gherkin scenarios drive the tests** — the executable specifications are direct translations of the business behaviour, making them readable by non-developers.
-* **Requirements traceability is lightweight** — each test method carries a `@SpecificationRef` annotation linking it to the Gherkin scenario ID it verifies (e.g., `US-07.AC-2`). This creates a traceable chain from requirement to code: `API Spec → Gherkin Scenario → @SpecificationRef → Test → Production Code`. No frameworks needed — just a custom annotation and a naming convention.
-
-***
-
-## 12. Exercises
-
-The following exercises are designed to deepen your understanding of the domain model. They require no infrastructure — all can be completed with pure Java domain classes and JUnit tests.
-
-***
-
-### Exercise 1: Trace the Domain Logic for a Buy Operation
-
-**Goal:** Understand how the `buy` operation flows through the aggregate.
-
-**What to deliver:**
-
-* A written trace (similar to the sequence diagram in Section 8) showing how `Portfolio.buy(Ticker, ShareQuantity, Price)` works:
-  * What does the Portfolio validate?
-  * How does it delegate to Holding?
-  * How is a new Lot created?
-  * What happens to the portfolio balance?
-* Identify one key difference between the buy and sell operations in the domain model
-
-***
-
-### Exercise 2: Identify Aggregate Boundaries
-
-**Goal:** Understand why `Portfolio` is the aggregate root.
-
-**What to deliver:**
-
-* A written explanation (300–500 words) answering:
-  * Why is `Portfolio` the aggregate root instead of `Holding` or `Lot`?
-  * What invariants would break if `Holding` were exposed as a separate aggregate that callers could modify directly?
-  * Why must balance updates and holding modifications happen together atomically?
-* Use concrete examples from the sell operation to support your reasoning
-
-***
-
-### Exercise 3: Distinguish Value Objects from Entities
-
-**Goal:** Understand the difference between entities and value objects.
-
-**What to deliver:**
-
-* A written explanation answering:
-  * Why is `Ticker` a value object while `Lot` is an entity?
-  * Why is `Money` a value object while `Portfolio` is an entity?
-  * Why are `PortfolioId`, `HoldingId`, and `LotId` value objects even though they represent identity? (Hint: they are identity _values_, not entities themselves.)
-
-***
-
-### Exercise 4: Add a Maximum Sell Percentage Invariant
-
-**Goal:** Implement a business invariant using DDD principles — entirely within the domain model.
-
-**Business Rules:**
-
-* A portfolio may sell **up to 10 shares** of a holding without any percentage restriction
-* When selling **more than 10 shares**, the portfolio cannot sell more than **50% of the shares of the affected holding**
-
-**What to deliver:**
-
-1. **Design decision** — Where should this invariant be implemented: `Portfolio.sell()` or `Holding.sell()`? Justify using aggregate boundaries and encapsulation.
-2. **Implementation** — Enforce the rule in the appropriate domain class. Introduce a new domain exception: `ExcessiveSaleException`.
-3. **Tests** — Write domain unit tests proving:
-   * Selling ≤ 10 shares always succeeds (if shares exist)
-   * Selling > 10 shares succeeds only if ≤ 50% of the holding
-   * Selling > 10 shares and exceeding 50% fails with `ExcessiveSaleException`
-4. **Reflection** — How would you support a future requirement where the 50% limit is configurable per portfolio? Would that change where the invariant lives?
-
-***
-
-> **📖 Ready for the full picture?** This tutorial covered only the domain model. To see how it connects to REST controllers, persistence, transactions, error handling, and integration tests, read the [full tutorial](SELL-STOCK-TUTORIAL.md).
-
-***
+- [Application orchestration](SELL-STOCK-05-ORCHESTRATION.md): why the service loads, delegates and saves.
+- [Persistence](SELL-STOCK-06-PERSISTENCE.md): how plain Java state is mapped to storage.
+- [Consistency](SELL-STOCK-07-CONSISTENCY.md): what transactions and concurrency control add.
+- [Additional exercises](SELL-STOCK-EXERCISES.md): extend the learning path.
 
 ## References
 
