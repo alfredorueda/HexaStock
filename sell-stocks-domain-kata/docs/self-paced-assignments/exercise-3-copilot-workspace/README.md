@@ -3,6 +3,17 @@
 You will rebuild the Exercise 2 domain with GitHub Copilot, one skill, and three specialised
 agents. Your starter workspace is already prepared. Do not run a setup or generation script.
 
+## Learning checkpoints
+
+| Stage | Stop when you can explain |
+|---|---|
+| Plan | The FIFO arithmetic and the purpose of each test |
+| Implement | How the diff satisfies one planned behavior |
+| Review | Which claims have executable evidence and which need correction |
+| Verify | The final results and any remaining limitations |
+
+The exercise specifications are independent of the main application. In particular, this kata removes an empty holding after liquidation. Read the two supplied inputs rather than copying the project's implementation. Leave the plan and evidence templates blank until you perform the corresponding work.
+
 ## Before you start
 
 1. Open this entire folder in VS Code. Do not open only an individual file.

@@ -33,8 +33,8 @@ continuing.
 
 1. Follow the approved plan in dependency order: build configuration, value objects, entities,
    exceptions, aggregate behaviour, then acceptance tests.
-2. Implement only members present in the class diagram and behaviour required by the
-   specification.
+2. Implement the diagram and required behavior, including the construction/accessor
+   clarification in specification section 6. Do not add unrelated members.
 3. Keep the domain pure Java. Do not add Spring, REST, persistence, DTOs, logging, or unrelated
    abstractions.
 4. Use Java 21, Maven, JUnit 5 in test scope, and `BigDecimal` for every monetary value.
