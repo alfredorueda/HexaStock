@@ -1,18 +1,11 @@
-# ═══════════════════════════════════════════════════════════════════════════════
-# BEHAVIOURAL SPECIFICATION — Reserved Lot Handling (US-11)
-# ═══════════════════════════════════════════════════════════════════════════════
-#
-# Lots can be reserved (e.g., used as collateral). Reserved lots must be
-# excluded from settlement-aware selling and from eligible share counts.
-#
-# Scenario IDs referenced by @SpecificationRef:
-#   RESERVE-01 → shouldSkipReservedLots
-#   RESERVE-02 → shouldSellFromNonReservedLots
-#   RESERVE-03 → shouldAllowUnreservingLot
-#   LOT-SETTLE-02 → reservedLotShouldNotBeAvailable
-#   ELIGIBLE-01 → shouldDistinguishTotalFromEligible
-#   DRIFT-REST-01 → eligibleSharesShouldExcludeReservedLots
-# ═══════════════════════════════════════════════════════════════════════════════
+# PROPOSED EXTENSION — not implemented by main and not executed by Cucumber.
+# Scenario identifiers are retained for future traceability, not current coverage.
+# All relative dates use valuation date 2026-03-18 and a Monday-Friday calendar
+# with no holidays. Settlement occurs two business dates after purchase in this
+# teaching policy; this is not a statement of current market regulation.
+# Explicit scenario fees override the optional 0.1% teaching fee policy.
+# Proposed endpoint fragments are relative to /api/portfolios/{portfolioId}.
+# Read doc/tutorial/richVsAnemicDomainModel/03-SETTLEMENT-EXERCISE.md first.
 
 Feature: Reserved Lot Handling
 
@@ -21,7 +14,9 @@ Feature: Reserved Lot Handling
   So that reserved lots are excluded from sales and eligibility queries
 
   Background:
-    Given a portfolio exists for owner "Alice" with balance $50,000.00
+    Given the valuation date is 2026-03-18
+    And business days are Monday to Friday with no holidays
+    And a portfolio exists for owner "Alice" with balance $50,000.00
 
   # ────────────────────────────────────────────────────────────────
   # Domain-Level Reservation Rules
@@ -68,18 +63,9 @@ Feature: Reserved Lot Handling
     When the settled lot is reserved
     Then eligible AAPL shares are 0
 
-  # ────────────────────────────────────────────────────────────────
-  # Integration-Level Rule Inconsistency (Anemic Model Only)
-  # ────────────────────────────────────────────────────────────────
-
-  @anemic-branch-only @expected-failure
-  Scenario: Eligible shares query should exclude reserved lots (DRIFT-REST-01)
-    Given Alice bought 10 shares of AAPL and 5 shares of AAPL via REST
-    And all lots are settled (settlement dates backdated via JDBC)
-    And the oldest lot is reserved via POST /holdings/AAPL/lots/{id}/reserve
-    When Alice queries GET /holdings/AAPL/eligible-shares
-    Then the expected eligible count is 5
-    But the anemic model returns 15
-    Because Lot.isAvailableForSale() only checks settlement, not reservation
-    And the eligible-shares endpoint delegates to that flawed domain method
-    While the sell endpoint uses correct inline service logic
+  Scenario: Eligibility query agrees with reservation policy (DRIFT-REST-01)
+    Given Alice has two settled AAPL lots containing 10 and 5 shares
+    And the oldest lot is reserved
+    When Alice queries the proposed eligible-shares endpoint
+    Then the eligible count is 5
+    And the same state permits selling at most 5 shares
