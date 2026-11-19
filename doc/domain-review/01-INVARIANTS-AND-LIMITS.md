@@ -16,7 +16,7 @@
 | Depleted lots leave current state | Iterator removal during sale | Empty holdings remain; transactions are separate history |
 | Profit follows selected cost basis | `SellResult.of` computes proceeds minus cost | Public record construction can supply an independent profit |
 
-Inspect [Portfolio.java](../../domain/src/main/java/cat/gencat/agaur/hexastock/model/portfolio/Portfolio.java), [Holding.java](../../domain/src/main/java/cat/gencat/agaur/hexastock/model/portfolio/Holding.java), and their focused tests. An operation path can be well guarded without every public construction or mutation path enforcing the same contract.
+Inspect [Portfolio.java](https://github.com/alfredorueda/HexaStock/blob/main/domain/src/main/java/cat/gencat/agaur/hexastock/model/portfolio/Portfolio.java), [Holding.java](https://github.com/alfredorueda/HexaStock/blob/main/domain/src/main/java/cat/gencat/agaur/hexastock/model/portfolio/Holding.java), and their focused tests. An operation path can be well guarded without every public construction or mutation path enforcing the same contract.
 
 ## Encapsulation is more than an unmodifiable collection
 
