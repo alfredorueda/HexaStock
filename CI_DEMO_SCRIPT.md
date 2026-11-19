@@ -1,146 +1,80 @@
-# CI Demo Script — HexaStock
+# Classroom Demonstration: A Failing Check Blocks a Merge
 
-A condensed, copy-paste-ready run sheet for demonstrating the CI discipline
-on this repository's `main` branch. Same idea as the smaller
-[ci-demo-python](https://github.com/alfredorueda/ci-demo-python) and
-[ci-demo-java](https://github.com/alfredorueda/ci-demo-java) walkthroughs,
-now shown on a real, production-shaped, multi-module codebase. For every
-step explained in full, with diagrams, see
-[CI_DISCIPLINE_WALKTHROUGH.md](CI_DISCIPLINE_WALKTHROUGH.md).
+**Goal:** observe the relationship between a regression, a test failure and a required status check.
 
-Budget about 8 minutes for the steps below. Unlike the smaller repos, the
-full test suite takes roughly 2 minutes on a happy path — plan the pacing
-around that.
+Allow about 10–15 minutes, including CI queue and execution time. Use a personal fork for the exercise. The [walkthrough](CI_DISCIPLINE_WALKTHROUGH.md) explains the mechanism; this page is the practical run sheet.
 
-## Before starting
+## 1. Prepare the learning repository
 
-- [ ] **Fork the repo, then clone your fork** — not this one. Cloning
-      `alfredorueda/HexaStock` directly won't let you push branches or open
-      pull requests, since you don't have write access to it:
-      1. On GitHub, go to `https://github.com/alfredorueda/HexaStock` and
-         click **Fork** (top-right).
-      2. Clone *your* fork, replacing `<your-username>`:
-         ```bash
-         git clone https://github.com/<your-username>/HexaStock.git
-         cd HexaStock
-         ```
-      Every command below runs inside your fork. (Forking copies the code
-      but not the `MainProtection` ruleset from `main` — optional to
-      recreate under **Settings → Rules → Rulesets** on your fork if you
-      also want to see the merge-blocked behavior there.)
-- [ ] On `main`, terminal open, the repository's **Actions** tab open in a
-      browser tab.
-- [ ] Confirm the baseline:
-  ```bash
-  git checkout main
-  git pull
-  ```
-- [ ] (Optional, ~2 min) Confirm the full suite is green:
-  ```bash
-  ./mvnw clean verify
-  ```
+Fork HexaStock and clone your fork. Use JDK 21 and start Docker if you intend to run the complete suite locally. Enable GitHub Actions in the fork if necessary.
 
-## 1. Branch, then break the build on purpose (~2 min)
+Forks copy source, not upstream branch-protection settings. To demonstrate **blocked merging**, configure a ruleset for the fork's `main` that requires a pull request and the `build-and-test` check. Without it, a red check is visible but may not prevent a merge.
+
+Start from a clean checkout of your fork's `main`:
 
 ```bash
-git checkout -b demo/break-the-build
+git status --short
+git pull --ff-only
+git switch -c demo/ci-regression
+./mvnw -pl domain test
 ```
 
-In `domain/src/main/java/cat/gencat/agaur/hexastock/model/portfolio/Portfolio.java`,
-inside `buy(...)`, comment out:
+Expected baseline: the domain suite passes. Record the current count rather than assuming a fixed historical total.
+
+## 2. Introduce one controlled regression
+
+In `domain/src/main/java/cat/gencat/agaur/hexastock/model/portfolio/Portfolio.java`, temporarily comment out this line inside `buy`:
 
 ```java
 balance = balance.subtract(totalCost);
 ```
 
-Run just the fast, infrastructure-free tests first — this is the same
-domain-tests-only trick used in the two smaller demos:
+Run:
 
 ```bash
-./mvnw -pl domain,application clean test
+./mvnw -pl domain test
 ```
 
-Expected: `Tests run: 117, Failures: 3` in the `domain` module —
-`PortfolioTest$StockOperations.shouldAddHoldingAndDecreaseBalanceWhenBuying`,
-`shouldAddLotToExistingHoldingWhenBuyingMore`, and
-`shouldIncreaseBalanceAndUpdateHoldingWhenSelling`. The build stops right
-there, in well under a second of test time — it never even reaches the
-modules that need Docker.
+Tests checking the purchase balance should fail. Explain the failure before looking at CI: a purchase creates shares without paying for them.
 
-## 2. Push and open a pull request (~1 min)
+Stage only the intended file and push the exercise branch:
 
 ```bash
-git add -A
-git commit -m "Demo: break the build on purpose"
-git push -u origin demo/break-the-build
-gh pr create --fill
+git add domain/src/main/java/cat/gencat/agaur/hexastock/model/portfolio/Portfolio.java
+git commit -m "Demo: omit purchase cash deduction"
+git push -u origin demo/ci-regression
 ```
 
-## 3. Watch the check fail (~1–2 min)
+Open a pull request **in your fork**, targeting its `main`. Confirm the base repository in the UI; do not send the intentional regression to the upstream project.
 
-- Refresh the PR page. The `build-and-test` check goes yellow → red — this
-  takes about 30–60 seconds here, since GitHub still spins up the runner
-  and starts the Maven reactor even though it fails fast at the `domain`
-  module.
-- **Details** on the failed check → the same three failures shown locally.
-- **Merge** button: disabled — *"Merging is blocked."* This is enforced by
-  a **ruleset** on `main` (GitHub's newer branch-protection mechanism),
-  configured with no bypass for anyone, including administrators.
-- This exact scenario was independently verified as PR
-  [#30](https://github.com/alfredorueda/HexaStock/pull/30) — closed
-  without merging, on record as proof the block works.
+## 3. Observe the failed check
 
-## 4. Fix it and watch it go green (~2 min)
+Open the `build-and-test` details. Compare the CI failure with the local result. If the fork's ruleset requires the check, merging is blocked.
 
-Uncomment the line:
+A failure early in the reactor can finish faster than a successful full build because later modules do not run. Queue time and dependency downloads still vary.
 
-```java
-balance = balance.subtract(totalCost);
-```
+## 4. Restore the behavior
+
+Uncomment the cash-deduction line, then run the domain tests again. Inspect the diff to ensure only the intended restoration is present.
 
 ```bash
-./mvnw -pl domain,application clean test    # confirm 0 failures locally first
-git add -A
-git commit -m "Fix: restore the cash-balance deduction"
+./mvnw -pl domain test
+git add domain/src/main/java/cat/gencat/agaur/hexastock/model/portfolio/Portfolio.java
+git commit -m "Demo: restore purchase cash deduction"
 git push
 ```
 
-Refresh the PR: check reruns — now it has to run the **entire** suite
-(all modules, including the ones that start MySQL and MongoDB via
-Testcontainers), so this run takes close to **2 minutes**, not seconds.
-When it turns green, the **Merge** button activates.
+Wait for checks on the new commit. The successful full build also runs the database-backed tests. Other rules may still affect merge availability.
 
-## 5. Recap (~1 min)
+Close the demonstration pull request without merging. The exercise's purpose is to observe protection, not to add deliberate regressions to the project history.
 
-- The two smaller demo repos show this exact mechanism in isolation, with
-  a sub-second test suite. This repository shows the same mechanism at
-  real scale: a multi-module Maven build, a ~2-minute full suite with
-  Testcontainers, and a Maven reactor that fails fast when a fast module
-  breaks but pays the full cost when only a slow module catches the bug.
-- The rule that blocks the merge — a GitHub ruleset requiring the
-  `build-and-test` check, with no bypass for anyone — is configured once,
-  at the repository level, and then applies uniformly to every pull
-  request from that point on.
+## 5. Discuss what was demonstrated
 
-## If something stalls
+- Which assertion detected the missing cash update?
+- Which workflow command ran the tests?
+- Which repository rule prevented the merge?
+- Could the check pass if someone removed the assertion instead of fixing the code?
 
-- On this repository, a passing run takes close to 2 minutes (Testcontainers
-  pulling MySQL and MongoDB images, plus SonarCloud analysis) — a failing
-  run at the `domain` module is much faster, under a minute. Both are
-  normal; don't wait for a fast run when the fix touches a module tested
-  later in the reactor.
-- The ruleset can be inspected or edited at
-  `https://github.com/<owner>/HexaStock/settings/rules`.
-- **Committed straight to `main` by mistake** (forgot to branch first,
-  under time pressure — it happens to everyone)? Nothing is lost: the
-  ruleset blocked the *push*, so the commit only ever existed locally.
-  Move it to a branch instead of losing it:
-  ```bash
-  git branch demo/break-the-build   # snapshot the commit onto a new branch
-  git reset --hard origin/main      # bring local main back in sync
-  git checkout demo/break-the-build # keep working from here
-  ```
-  Then continue from step 2 (push the branch, open a PR) as normal. This
-  is the same protection at work as the rest of this document, just
-  catching a slip instead of a deliberate bad change — that's the point:
-  it doesn't ask why the push happened, it just requires a PR either way.
+The final question leads to code review and test quality. A green status proves that the executed checks passed, not that every requirement has been tested.
+
+If a direct push was rejected or reports are missing, consult [the walkthrough](CI_DISCIPLINE_WALKTHROUGH.md) and [CI configuration](CI_SETUP.md).

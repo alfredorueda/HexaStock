@@ -35,6 +35,12 @@
 
 ## Supporting Chapters
 
+* [Testing strategy](doc/tutorial/TESTING-STRATEGY.md)
+  * [1. Rules and orchestration](doc/tutorial/testing/01-RULES-AND-ORCHESTRATION.md)
+  * [2. Adapter contracts](doc/tutorial/testing/02-ADAPTER-CONTRACTS.md)
+  * [3. Integration and architecture](doc/tutorial/testing/03-INTEGRATION-AND-ARCHITECTURE.md)
+* [Requirement traceability](doc/tutorial/README.md)
+
 * [Specification-Driven Development with AI](doc/tutorial/specificationDrivenAI/SPECIFICATION-DRIVEN-DEVELOPMENT-WITH-AI.md)
 * [Concurrency Control: Pessimistic Locking and Optimistic Concurrency](doc/tutorial/CONCURRENCY-PESSIMISTIC-LOCKING.md)
   * [1. Coordinate JPA writers](doc/tutorial/concurrency/JPA-LOCKING.md)
@@ -55,6 +61,9 @@
 ## Project
 
 * [Contributing](CONTRIBUTING.md)
+* [CI: how checks protect main](CI_DISCIPLINE_WALKTHROUGH.md)
+  * [Configuration and report locations](CI_SETUP.md)
+  * [Classroom demonstration](CI_DEMO_SCRIPT.md)
 * [Acknowledgements](doc/ACKNOWLEDGEMENTS.md)
 
 ## Legal
