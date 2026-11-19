@@ -44,7 +44,7 @@ Feature: Get Transaction History (US-08)
     When I GET /api/portfolios/{id}/transactions
     Then I receive 200 OK with a JSON array of transaction objects
     And the array contains at least a DEPOSIT and a PURCHASE transaction
-    And each transaction object wraps the full Transaction domain object
+    And each transaction object contains flat fields id, portfolioId, type, ticker, quantity, unitPrice, totalAmount, profit, createdAt
 
   Scenario: Retrieving transaction history with type filter parameter
     Given a portfolio exists for owner "Alice"
