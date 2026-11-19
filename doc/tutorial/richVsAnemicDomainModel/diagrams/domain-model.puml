@@ -1,79 +1,43 @@
 @startuml domain-model
-!theme plain
-skinparam defaultFontSize 11
+!include ../../sellStocks/diagrams/sell-style.puml
+title The current portfolio aggregate
+caption Main baseline — selected fields and operations
 skinparam classAttributeIconSize 0
-title Domain Model — Portfolio Aggregate
-
-class Portfolio <<Aggregate Root>> {
-    -id: PortfolioId
-    -ownerName: String
-    -balance: Money
-    -createdAt: LocalDateTime
-    -holdings: Map<Ticker, Holding>
-    +buy(Ticker, ShareQuantity, Price): void
-    +sell(Ticker, ShareQuantity, Price): SellResult
-    +sellWithSettlement(...): SellResult
-    +reserveLot(Ticker, LotId): void
-    +unreserveLot(Ticker, LotId): void
-    +deposit(Money): void
-    +withdraw(Money): void
+skinparam ClassBackgroundColor #EAF3F9
+skinparam ClassBorderColor #B7CCDE
+hide circle
+class Portfolio <<aggregate root>> {
+ balance : Money
+ buy(ticker, quantity, price)
+ sell(ticker, quantity, price) : SellResult
 }
-
-class Holding <<Entity>> {
-    -id: HoldingId
-    -ticker: Ticker
-    -lots: List<Lot>
-    +buy(ShareQuantity, Price): void
-    +sell(ShareQuantity, Price): SellResult
-    +sellSettled(ShareQuantity, Price, LocalDateTime): SellResult
-    +getEligibleShares(LocalDateTime): ShareQuantity
-    +getTotalShares(): ShareQuantity
-    +findLotById(LotId): Lot
+class Holding <<entity>> {
+ ticker : Ticker
+ sell(quantity, price) : SellResult
+ getTotalShares() : ShareQuantity
 }
-
-class Lot <<Entity>> {
-    -id: LotId
-    -initialShares: ShareQuantity
-    -remainingShares: ShareQuantity
-    -unitPrice: Price
-    -purchasedAt: LocalDateTime
-    -settlementDate: LocalDateTime
-    -reserved: boolean
-    +isSettled(LocalDateTime): boolean
-    +isAvailableForSale(LocalDateTime): boolean
-    +availableShares(LocalDateTime): ShareQuantity
-    +reduce(ShareQuantity): void
-    +reserve(): void
-    +unreserve(): void
-    +calculateCostBasis(ShareQuantity): Money
+class Lot <<entity>> {
+ purchasedAt : LocalDateTime
+ remainingShares : ShareQuantity
+ unitPrice : Price
+ reduce(quantity)
 }
-
-class SellResult <<Value Object>> {
-    +proceeds: Money
-    +costBasis: Money
-    +profit: Money
-    +fee: Money
-    {static} +of(Money, Money): SellResult
-    {static} +withFee(Money, Money, Money): SellResult
-    +netProceeds(): Money
+class SellResult <<record>> {
+ proceeds : Money
+ costBasis : Money
+ profit : Money
+ of(proceeds, costBasis)
 }
-
-Portfolio "1" *-- "0..*" Holding : contains
-Holding "1" *-- "1..*" Lot : contains (FIFO ordered)
-Holding ..> SellResult : returns
-Portfolio ..> SellResult : returns
-
-note right of Portfolio
-  Aggregate boundary:
-  All access goes through Portfolio.
-  Invariants enforced at this level.
-end note
-
+Portfolio "1" *-- "0..*" Holding
+Holding "1" *-- "0..*" Lot : FIFO order
+Portfolio ..> SellResult
 note bottom of Lot
-  **T+2 Settlement Rule:**
-  settlementDate = purchasedAt + 2 days
-  
-  **Availability = settled AND not reserved**
+ Depleted lots are removed;
+ empty holdings remain.
+ No settlement or reservation fields.
 end note
-
+note right of Portfolio
+ Intended consistency boundary.
+ Public children remain mutable.
+end note
 @enduml

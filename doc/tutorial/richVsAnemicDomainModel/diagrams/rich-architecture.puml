@@ -1,52 +1,14 @@
 @startuml rich-architecture
-!theme plain
-skinparam componentStyle rectangle
-skinparam defaultFontSize 12
-title Rich Domain Model — Architecture
-
-package "Primary Adapter" <<Rectangle>> #E8F5E9 {
-    [PortfolioRestController] as ctrl
-}
-
-package "Application Layer" <<Rectangle>> #E3F2FD {
-    [PortfolioStockOperationsService] as svc
-    note bottom of svc
-      Thin orchestrator:
-      load → delegate → persist
-    end note
-}
-
-package "Domain Model (Aggregate)" <<Rectangle>> #FFF3E0 {
-    [Portfolio] as portfolio
-    [Holding] as holding
-    [Lot] as lot
-    [SellResult] as result
-
-    note bottom of portfolio
-      **All business logic here:**
-      • sellWithSettlement()
-      • reserveLot() / unreserveLot()
-      • buy() / sell()
-      • Balance validation
-    end note
-
-    note bottom of lot
-      isAvailableForSale():
-        isSettled(asOf) && !reserved
-    end note
-}
-
-package "Secondary Adapters" <<Rectangle>> #FCE4EC {
-    [JpaPortfolioRepository] as repo
-    [FinhubStockPriceAdapter] as price
-}
-
-ctrl --> svc : uses port
-svc --> portfolio : delegates to aggregate
-portfolio --> holding : navigates
-holding --> lot : FIFO iteration
-holding --> result : returns
-svc --> repo : saves/loads
-svc --> price : fetches price
-
+!include ../../sellStocks/diagrams/sell-style.puml
+title Responsibilities in the current sale
+caption Main baseline — arrows show calls, not all source dependencies
+rectangle "REST adapter\nTranslate HTTP; invoke input port" as H
+rectangle "Application service\nLoad, quote, delegate, persist" as S
+rectangle "Portfolio\nCoordinate cash and shares" as P #E4F3EF
+rectangle "Holding and Lot\nConsume FIFO lots" as L #E4F3EF
+rectangle "Output ports\nStorage and quotes" as O
+H -down-> S
+S -down-> P
+P -down-> L
+S -right-> O
 @enduml
