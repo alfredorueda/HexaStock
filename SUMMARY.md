@@ -64,6 +64,11 @@
   * [3. Compare query alternatives](doc/tutorial/portfolioReporting/03-QUERY-ALTERNATIVES.md)
   * [4. Maintain a projection](doc/tutorial/portfolioReporting/04-SNAPSHOTS.md)
 * [Watchlists and Market Sentinel](doc/tutorial/watchlists/WATCHLISTS-MARKET-SENTINEL.md)
+  * [1. Model watchlist commands](doc/tutorial/watchlists/01-WATCHLIST-COMMANDS.md)
+  * [2. Detect threshold matches](doc/tutorial/watchlists/02-DETECTION-AND-PORTS.md)
+  * [3. Persist and verify](doc/tutorial/watchlists/03-PERSISTENCE-AND-TESTS.md)
+  * [4. Extend alert behavior](doc/tutorial/watchlists/04-PROGRESSIVE-EXTENSIONS.md)
+  * [Review the proposed design](doc/tutorial/watchlists/MARKET-SENTINEL-ARCHITECTURAL-REVIEW.md)
 * [Lot Selection Strategies — DDD Hexagonal Exercise](doc/tutorial/DDD-Hexagonal-exercise.md)
 
 ## Technical Review
