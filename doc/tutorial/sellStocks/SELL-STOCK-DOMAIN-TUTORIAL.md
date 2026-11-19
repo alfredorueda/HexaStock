@@ -28,6 +28,8 @@ Read [Stage 3: follow the FIFO algorithm](SELL-STOCK-03-FIFO.md). Use the diagra
 
 ![Domain model: Portfolio contains holdings and purchase lots](../../../.gitbook/assets/sell-domain-model.png)
 
+[Open the full-size diagram (SVG)](https://raw.githubusercontent.com/alfredorueda/HexaStock/main/doc/tutorial/sellStocks/diagrams/Rendered/sell-domain-model.svg)
+
 Depleted lots are removed during the loop. The empty holding itself remains in the portfolio after a complete sale. Rehydration inserts lots by purchase time; equal timestamps do not have an explicit secondary ordering rule.
 
 **Stop here for a first lesson.** You can explain and test the business operation without studying HTTP or persistence. When ready, [Stage 4](SELL-STOCK-04-HTTP-AND-PORTS.md) connects this model to the rest of the application.

@@ -35,6 +35,8 @@ An application service loads the aggregate, invokes its behavior, and saves thro
 
 ![Proposed watchlist command flow](../../../.gitbook/assets/watchlist-command-flow.png)
 
+[Open the full-size diagram (SVG)](https://raw.githubusercontent.com/alfredorueda/HexaStock/main/doc/tutorial/watchlists/diagrams/Rendered/watchlist-command-flow.svg)
+
 **Checkpoint:** adding AAPL at 150 twice fails; adding it at 140 succeeds. Explain why using ticker alone as the uniqueness key would violate that contract.
 
 Next: [detect matches through ports](02-DETECTION-AND-PORTS.md).

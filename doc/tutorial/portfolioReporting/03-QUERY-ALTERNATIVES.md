@@ -8,6 +8,8 @@ Instead of hydrating every transaction, a query can return one row per historica
 
 ![Proposed database reporting path](../../../.gitbook/assets/approachB-sequence.png)
 
+[Open the full-size diagram (SVG)](https://raw.githubusercontent.com/alfredorueda/HexaStock/main/doc/tutorial/portfolioReporting/diagrams/Rendered/approachB-sequence.svg)
+
 A starting SQL sketch is:
 
 ```sql
@@ -31,6 +33,8 @@ A full query-side design must also supply remaining quantity and remaining cost 
 A hybrid query returns purchased quantity, purchased cost and realized gain. Java combines those values with remaining holdings and quotes, and performs defined division and rounding.
 
 ![Proposed hybrid reporting path](../../../.gitbook/assets/approachC-sequence.png)
+
+[Open the full-size diagram (SVG)](https://raw.githubusercontent.com/alfredorueda/HexaStock/main/doc/tutorial/portfolioReporting/diagrams/Rendered/approachC-sequence.svg)
 
 One possible new port contract is:
 

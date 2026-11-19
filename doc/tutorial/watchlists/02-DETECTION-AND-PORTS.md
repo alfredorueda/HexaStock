@@ -32,6 +32,8 @@ Place projection and signal transport records with application contracts. If `Bu
 
 ![Proposed detection cycle](../../../.gitbook/assets/market-sentinel-detection-flow.png)
 
+[Open the full-size diagram (SVG)](https://raw.githubusercontent.com/alfredorueda/HexaStock/main/doc/tutorial/watchlists/diagrams/Rendered/market-sentinel-detection-flow.svg)
+
 ## A deterministic service test
 
 Use active AAPL alerts at 150, 140, and 130 and an inactive watchlist containing GOOGL. Return AAPL at 145 from a fake provider. Assert that:

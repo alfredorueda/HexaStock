@@ -27,7 +27,7 @@ A missing portfolio is an **application exception**, not a domain exception. The
 
 ![Zero quantity is rejected in the controller before the use case; advice returns HTTP 400](../../../.gitbook/assets/sell-error-invalid-quantity.png)
 
-[Open the scalable diagram](https://github.com/alfredorueda/HexaStock/blob/main/doc/tutorial/sellStocks/diagrams/Rendered/sell-error-invalid-quantity.svg) · [PlantUML source](https://github.com/alfredorueda/HexaStock/blob/main/doc/tutorial/sellStocks/diagrams/sell-error-invalid-quantity.puml)
+[Open the scalable diagram](https://raw.githubusercontent.com/alfredorueda/HexaStock/main/doc/tutorial/sellStocks/diagrams/Rendered/sell-error-invalid-quantity.svg) · [PlantUML source](https://github.com/alfredorueda/HexaStock/blob/main/doc/tutorial/sellStocks/diagrams/sell-error-invalid-quantity.puml)
 
 ## Missing portfolio: stop before the provider
 
@@ -35,7 +35,7 @@ The lookup returns `Optional.empty()`, and the service throws `PortfolioNotFound
 
 ![An empty portfolio lookup raises an application exception; advice returns HTTP 404 before price retrieval](../../../.gitbook/assets/sell-error-portfolio-not-found.png)
 
-[Open the scalable diagram](https://github.com/alfredorueda/HexaStock/blob/main/doc/tutorial/sellStocks/diagrams/Rendered/sell-error-portfolio-not-found.svg) · [PlantUML source](https://github.com/alfredorueda/HexaStock/blob/main/doc/tutorial/sellStocks/diagrams/sell-error-portfolio-not-found.puml)
+[Open the scalable diagram](https://raw.githubusercontent.com/alfredorueda/HexaStock/main/doc/tutorial/sellStocks/diagrams/Rendered/sell-error-portfolio-not-found.svg) · [PlantUML source](https://github.com/alfredorueda/HexaStock/blob/main/doc/tutorial/sellStocks/diagrams/sell-error-portfolio-not-found.puml)
 
 ## Overselling: stop before mutation
 
@@ -51,7 +51,7 @@ For an independent error example, assume the portfolio owns **10 AAPL shares** a
 
 ![Holding rejects 100 requested shares when 10 are available; no mutation occurs and advice returns HTTP 409](../../../.gitbook/assets/sell-error-sell-more-than-owned.png)
 
-[Open the scalable diagram](https://github.com/alfredorueda/HexaStock/blob/main/doc/tutorial/sellStocks/diagrams/Rendered/sell-error-sell-more-than-owned.svg) · [PlantUML source](https://github.com/alfredorueda/HexaStock/blob/main/doc/tutorial/sellStocks/diagrams/sell-error-sell-more-than-owned.puml)
+[Open the scalable diagram](https://raw.githubusercontent.com/alfredorueda/HexaStock/main/doc/tutorial/sellStocks/diagrams/Rendered/sell-error-sell-more-than-owned.svg) · [PlantUML source](https://github.com/alfredorueda/HexaStock/blob/main/doc/tutorial/sellStocks/diagrams/sell-error-sell-more-than-owned.puml)
 
 The integration test `sellMoreThanOwned_returns409` in `PortfolioTradingRestIntegrationTest` uses its own smaller fixture: it buys 5 shares and requests 10. The numerical fixture differs, but the same exception and HTTP contract are exercised.
 

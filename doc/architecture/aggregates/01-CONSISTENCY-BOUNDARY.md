@@ -16,6 +16,8 @@ An aggregate groups the state needed to enforce such rules. Its root is the inte
 
 ![Portfolio, holdings and lots form the sale model](../../../.gitbook/assets/sell-domain-model.png)
 
+[Open the full-size diagram (SVG)](https://raw.githubusercontent.com/alfredorueda/HexaStock/main/doc/tutorial/sellStocks/diagrams/Rendered/sell-domain-model.svg)
+
 ## Separate business records from database transactions
 
 A financial transaction records an operation that happened. The domain uses four record types: `DepositTransaction`, `WithdrawalTransaction`, `PurchaseTransaction` and `SaleTransaction`. They implement the sealed `Transaction` interface and refer to the portfolio by ID.

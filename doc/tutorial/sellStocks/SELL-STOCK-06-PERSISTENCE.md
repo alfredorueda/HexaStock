@@ -21,7 +21,7 @@ The adapter maps the domain object into a separate JPA object graph. Domain clas
 
 ![JPA adapter maps Portfolio to PortfolioJpaEntity and saves through Spring Data; SQL reaches MySQL inside the surrounding transaction](../../../.gitbook/assets/sell-persistence-adapter.png)
 
-[Open the scalable diagram](https://github.com/alfredorueda/HexaStock/blob/main/doc/tutorial/sellStocks/diagrams/Rendered/sell-persistence-adapter.svg) · [PlantUML source](https://github.com/alfredorueda/HexaStock/blob/main/doc/tutorial/sellStocks/diagrams/sell-persistence-adapter.puml)
+[Open the scalable diagram](https://raw.githubusercontent.com/alfredorueda/HexaStock/main/doc/tutorial/sellStocks/diagrams/Rendered/sell-persistence-adapter.svg) · [PlantUML source](https://github.com/alfredorueda/HexaStock/blob/main/doc/tutorial/sellStocks/diagrams/sell-persistence-adapter.puml)
 
 ## Preserve meaning across the boundary
 

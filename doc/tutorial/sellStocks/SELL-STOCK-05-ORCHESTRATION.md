@@ -49,7 +49,7 @@ The service decides how to coordinate a use case, including what to do when a po
 
 ![Application service loads portfolio, obtains price, delegates the sale, saves portfolio and records the transaction](../../../.gitbook/assets/sell-application-service.png)
 
-[Open the scalable diagram](https://github.com/alfredorueda/HexaStock/blob/main/doc/tutorial/sellStocks/diagrams/Rendered/sell-application-service.svg) · [PlantUML source](https://github.com/alfredorueda/HexaStock/blob/main/doc/tutorial/sellStocks/diagrams/sell-application-service.puml)
+[Open the scalable diagram](https://raw.githubusercontent.com/alfredorueda/HexaStock/main/doc/tutorial/sellStocks/diagrams/Rendered/sell-application-service.svg) · [PlantUML source](https://github.com/alfredorueda/HexaStock/blob/main/doc/tutorial/sellStocks/diagrams/sell-application-service.puml)
 
 ## Keep orchestration out of the algorithm
 
@@ -59,7 +59,7 @@ The intended operation is the single call `portfolio.sell(ticker, quantity, pric
 
 ![Responsibility split: service coordinates ports; Portfolio credits cash; Holding chooses FIFO lots; Lot checks and reduces its quantity](../../../.gitbook/assets/sell-orchestrator-vs-aggregate.png)
 
-[Open the scalable diagram](https://github.com/alfredorueda/HexaStock/blob/main/doc/tutorial/sellStocks/diagrams/Rendered/sell-orchestrator-vs-aggregate.svg) · [PlantUML source](https://github.com/alfredorueda/HexaStock/blob/main/doc/tutorial/sellStocks/diagrams/sell-orchestrator-vs-aggregate.puml)
+[Open the scalable diagram](https://raw.githubusercontent.com/alfredorueda/HexaStock/main/doc/tutorial/sellStocks/diagrams/Rendered/sell-orchestrator-vs-aggregate.svg) · [PlantUML source](https://github.com/alfredorueda/HexaStock/blob/main/doc/tutorial/sellStocks/diagrams/sell-orchestrator-vs-aggregate.puml)
 
 ## Distinguish an outcome from a historical record
 
