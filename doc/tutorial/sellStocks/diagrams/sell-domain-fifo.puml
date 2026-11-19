@@ -1,109 +1,15 @@
 @startuml sell-domain-fifo
-!theme plain
-skinparam backgroundColor #FEFEFE
+!include sell-style.puml
+title <size:12><color:#087F8C>03 / DOMAIN</color></size>\nOne sale, two FIFO steps
 
-participant "Portfolio\n(Aggregate Root)" as Portfolio
-participant "Holding\n(Entity)" as Holding
-participant "Lot 1\n(Entity)\nPurchased: 2024-01-15\nRemaining: ShareQuantity(10)" as Lot1
-participant "Lot 2\n(Entity)\nPurchased: 2024-02-20\nRemaining: ShareQuantity(5)" as Lot2
-
-activate Portfolio
-Portfolio -> Portfolio: validate quantity.isPositive()
-Portfolio -> Portfolio: check holdings.containsKey(ticker)
-
-Portfolio -> Holding: sell(ShareQuantity(12), Price(130))
-activate Holding
-
-Holding -> Holding: check getTotalShares().value() >= 12
-note right
-  Total: ShareQuantity(10) + ShareQuantity(5) = 15 shares
-  Selling: ShareQuantity(12)
-  OK to proceed
-end note
-
-Holding -> Holding: remainingToSell = ShareQuantity(12)\ncostBasis = Money.ZERO
-
-note over Holding
-  **FIFO Algorithm**
-  Sell from oldest lot first
-end note
-
-== FIFO Step 1 — Lot 1 (oldest) ==
-
-Holding -> Holding: sharesSoldFromLot =\nlot1.getRemainingShares().min(remainingToSell)\n= ShareQuantity(10).min(ShareQuantity(12))\n= ShareQuantity(10)
-
-Holding -> Lot1: calculateCostBasis(ShareQuantity(10))
-activate Lot1
-Lot1 -> Lot1: unitPrice.multiply(ShareQuantity(10))\n= Price(100) × 10 = Money(1000)
-Lot1 --> Holding: Money(1000)
-deactivate Lot1
-
-Holding -> Holding: costBasis = Money.ZERO.add(Money(1000))\n= Money(1000)
-
-Holding -> Lot1: reduce(ShareQuantity(10))
-activate Lot1
-Lot1 -> Lot1: validate qty <= remainingShares
-Lot1 -> Lot1: remainingShares = remainingShares.subtract(ShareQuantity(10))\nShareQuantity(10) → ShareQuantity.ZERO
-Lot1 --> Holding: void
-deactivate Lot1
-
-Holding -> Holding: remainingToSell =\nShareQuantity(12).subtract(ShareQuantity(10))\n= ShareQuantity(2)
-
-note right of Holding
-  remainingToSell.isZero() → false
-  Continue to next lot.
-end note
-
-== FIFO Step 2 — Lot 2 (next oldest) ==
-
-Holding -> Holding: sharesSoldFromLot =\nlot2.getRemainingShares().min(remainingToSell)\n= ShareQuantity(5).min(ShareQuantity(2))\n= ShareQuantity(2)
-
-Holding -> Lot2: calculateCostBasis(ShareQuantity(2))
-activate Lot2
-Lot2 -> Lot2: unitPrice.multiply(ShareQuantity(2))\n= Price(120) × 2 = Money(240)
-Lot2 --> Holding: Money(240)
-deactivate Lot2
-
-Holding -> Holding: costBasis = Money(1000).add(Money(240))\n= Money(1240)
-
-Holding -> Lot2: reduce(ShareQuantity(2))
-activate Lot2
-Lot2 -> Lot2: validate qty <= remainingShares
-Lot2 -> Lot2: remainingShares = remainingShares.subtract(ShareQuantity(2))\nShareQuantity(5) → ShareQuantity(3)
-Lot2 --> Holding: void
-deactivate Lot2
-
-Holding -> Holding: remainingToSell =\nShareQuantity(2).subtract(ShareQuantity(2))\n= ShareQuantity.ZERO
-
-note right of Holding
-  remainingToSell.isZero() → true
-  All requested shares sold.
-end note
-
-Holding -> Holding: lots.removeIf(Lot::isEmpty)\n(Lot 1 removed — ShareQuantity.ZERO)
-
-Holding -> Holding: proceeds = Price(130).multiply(ShareQuantity(12))\n= Money(1560)
-
-Holding -> Holding: SellResult.of(Money(1560), Money(1240))\nprofit = proceeds - costBasis\n= Money(1560) - Money(1240) = Money(320)
-
-Holding --> Portfolio: SellResult(\nproceeds=Money(1560),\ncostBasis=Money(1240),\nprofit=Money(320))
-deactivate Holding
-
-Portfolio -> Portfolio: balance = balance.add(result.proceeds())\nbalance += Money(1560)
-
-Portfolio --> : SellResult
-deactivate Portfolio
-
-note over Portfolio, Lot2
-  **Key Invariants Protected:**
-  1. Cannot sell more than owned (ShareQuantity comparison)
-  2. FIFO order strictly enforced
-  3. Balance (Money) updated consistently
-  4. Lot ShareQuantity remains non-negative
-  5. Empty lots removed from aggregate
-  
-  **Matches Gherkin Scenario FIFO-01:**
-  Sell 12 shares at $130 → cost basis $1,240 (10×100 + 2×120),
-  proceeds $1,560, profit $320. Lot 1 depleted, Lot 2 has 3 remaining.
-end note
+top to bottom direction
+rectangle "<b>START · 15 shares</b>\nLot 1: 10 × 100.00   |   Lot 2: 5 × 120.00\nSell 12 at 150.00" as Start #EAF3F9
+rectangle "<b>1  Check availability</b>\n15 ≥ 12 · proceed before mutating lots\nProceeds = 12 × 150.00 = 1800.00" as Check
+rectangle "<b>2  Consume Lot 1</b>\nTake min(10, 12) = 10\nCost basis +1000.00 · still to sell: 2\nLot empty → iterator.remove()" as First #E6F3F1
+rectangle "<b>3  Consume Lot 2</b>\nTake min(5, 2) = 2\nCost basis +240.00 · still to sell: 0\nKeep Lot 2 with 3 shares" as Second #E6F3F1
+rectangle "<b>RESULT · US-07.FIFO-2</b>\nProceeds 1800.00 · cost basis 1240.00\nProfit 560.00 · shares remaining 3\nPortfolio credits cash by 1800.00" as Result #FFF5DF
+Start -down-> Check
+Check -down-> First
+First -down-> Second
+Second -down-> Result
 @enduml

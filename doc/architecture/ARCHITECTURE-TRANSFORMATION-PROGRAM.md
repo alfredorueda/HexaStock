@@ -255,7 +255,7 @@ All exercises follow:
 
 ## Exercise 1 – Architectural Boundary Tracing
 
-👉 https://github.com/alfredorueda/HexaStock/blob/main/doc/tutorial/sellStocks/SELL-STOCK-TUTORIAL.md#5-step-by-step-execution-trace-happy-path
+👉 https://github.com/alfredorueda/HexaStock/blob/main/doc/tutorial/sellStocks/SELL-STOCK-05-ORCHESTRATION.md
 
 ### Purpose
 
@@ -271,7 +271,7 @@ Make the architecture observable through execution flow.
 
 ## Exercise 2 – New Financial Data Provider – Outbound Adapter
 
-👉 https://github.com/alfredorueda/HexaStock/blob/main/doc/tutorial/sellStocks/SELL-STOCK-TUTORIAL.md#exercise-7-add-a-third-stock-price-provider-adapter-prove-the-hexagon-works
+👉 https://github.com/alfredorueda/HexaStock/blob/main/doc/tutorial/sellStocks/SELL-STOCK-EXERCISES.md#exercise-7-add-a-third-stock-price-provider-adapter-prove-the-hexagon-works
 
 ### Purpose
 

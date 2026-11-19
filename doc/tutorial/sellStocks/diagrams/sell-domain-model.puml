@@ -1,0 +1,19 @@
+@startuml sell-domain-model
+!include sell-style.puml
+title <size:12><color:#087F8C>02 / DOMAIN MODEL</color></size>\nCash and inventory share one boundary
+
+top to bottom direction
+package "Portfolio aggregate" {
+rectangle "<b>Portfolio</b>\nIdentity · owner · cash balance\nsell(ticker, quantity, price)\nContains 0..* holdings" as P #E6F3F1
+rectangle "<b>Holding</b>\nIdentity · one ticker\nFIFO lot consumption\nContains 0..* lots" as H #E6F3F1
+rectangle "<b>Lot</b>\nIdentity · purchase time and price\nInitial and remaining shares" as L #E6F3F1
+P *-down- H
+H *-down- L
+}
+rectangle "<b>Transaction</b>\nSeparate historical aggregate\nReferences the portfolio by ID" as T #FFF5DF
+L -[hidden]down- T
+note bottom of T
+  The application service saves both aggregates.
+  History is not a collection inside Portfolio.
+end note
+@enduml

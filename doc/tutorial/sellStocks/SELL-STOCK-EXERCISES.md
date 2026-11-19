@@ -4,7 +4,17 @@
 
 ---
 
-The following exercises form a progressive path designed to deepen understanding of Hexagonal Architecture and Domain-Driven Design through hands-on work with the HexaStock codebase. They are intended for self-directed practice — instructors may assign them selectively depending on context and level.
+Choose one exercise per practice session after the relevant stage. The first four are short reasoning tasks; the coding extensions take longer and are optional.
+
+| After stage | Exercise |
+| --- | --- |
+| 3 — FIFO | 2 — Aggregate boundaries; 6 — Entities and value objects |
+| 5 — Orchestration | 1 — Trace the buy flow |
+| 7 — Consistency | 4 — Transactions |
+| 8 — Errors | 3 — Exception mapping |
+| 9 — Verification | 5 — New sale invariant; 7 — New price provider |
+
+Exercises 5 and 7 are extensions, not descriptions of current behaviour. Work in a separate practice copy. In particular, Exercise 5 changes the specification: selling 12 of 15 shares would be rejected by its new percentage rule, so the original FIFO-2 acceptance example must be revised or retained in the baseline version.
 
 ---
 
@@ -14,7 +24,7 @@ The following exercises form a progressive path designed to deepen understanding
 **Goal:** Understand how the `buyStock` use case mirrors the `sellStock` flow.
 
 **What to deliver:**
-- A written document (similar to Section 9 of the [tutorial](SELL-STOCK-TUTORIAL.md)) that traces the complete execution path for buying stocks
+- A written document (following [Stages 4–6 of the learning path](SELL-STOCK-04-HTTP-AND-PORTS.md)) that traces the complete execution path for buying stocks
 - Include: REST endpoint → Controller → Inbound Port → Application Service → Domain Model → Persistence
 - Identify which classes validate business rules and where ACID guarantees are enforced
 - Note one key difference between buy and sell operations
@@ -206,9 +216,9 @@ Write at least some tests proving:
 **Type:** Coding + Architecture Validation (Driven Adapter / Outbound Port)
 **Goal:** Implement a **new outbound adapter** for market data that plugs into the existing port:
 
-* `cat/gencat/agaur/hexastock/application/port/out/StockPriceProviderPort.java`
+* `application/src/main/java/cat/gencat/agaur/hexastock/application/port/out/StockPriceProviderPort.java`
 
-…and demonstrate that the **core of the system (domain + application services + REST controllers)** remains unchanged.
+…and demonstrate that the **domain and application core, as well as the existing REST controllers** remain unchanged.
 
 ---
 
@@ -229,15 +239,9 @@ Note that `StockPriceProviderPort.fetchStockPrice(Ticker)` returns a `StockPrice
 
 ### Provider Options (examples)
 
-Pick **one** provider that offers a free tier or freemium plan. You may choose any provider you find online, but here are common options:
-* **https://site.financialmodelingprep.com/**
-* **Twelve Data**
-* **Marketstack**
-* **Financial Modeling Prep (FMP)**
-* **IEX Cloud** (often limited free tier)
-* **Alpaca Market Data**
+Choose a currently available provider and check its official documentation for authentication, quote semantics and limits. A live subscription is not necessary for this exercise: HTTP stubs can verify the adapter contract deterministically.
 
-You can also pick another provider not listed here, as long as:
+The selected provider must meet these criteria:
 * it exposes a "latest price" endpoint,
 * it authenticates via API key,
 * it returns data you can map to your domain `StockPrice` model (which contains `Price` and `Ticker` value objects).
@@ -248,7 +252,7 @@ You can also pick another provider not listed here, as long as:
 
 #### 1) Implement the new adapter class (and its package)
 
-Create a new package under `adapter.out`, for example:
+Create a package in `adapters-outbound-market/src/main/java`, under `adapter.out`, for example:
 
 * `cat.gencat.agaur.hexastock.adapter.out.twelvedata`
 * or `...adapter.out.marketstack`
@@ -260,9 +264,9 @@ Then implement the port:
 package cat.gencat.agaur.hexastock.adapter.out.twelvedata;
 
 import cat.gencat.agaur.hexastock.application.port.out.StockPriceProviderPort;
-import cat.gencat.agaur.hexastock.model.Ticker;
-import cat.gencat.agaur.hexastock.model.Price;
-import cat.gencat.agaur.hexastock.model.StockPrice;
+import cat.gencat.agaur.hexastock.model.market.Ticker;
+import cat.gencat.agaur.hexastock.model.money.Price;
+import cat.gencat.agaur.hexastock.model.market.StockPrice;
 import java.time.Instant;
 
 public class TwelveDataStockPriceProviderAdapter implements StockPriceProviderPort {
@@ -273,7 +277,7 @@ public class TwelveDataStockPriceProviderAdapter implements StockPriceProviderPo
         // 2) Parse JSON response
         // 3) Map to domain Value Objects:
         //    Price price = Price.of(parsedPrice);
-        //    return StockPrice.of(ticker, price, Instant.now());
+        //    return new StockPrice(ticker, price, Instant.now());
         // 4) Handle errors/rate limits in a consistent way
         throw new UnsupportedOperationException("TODO");
     }
@@ -297,13 +301,13 @@ Make it possible to switch providers without touching the core code. Use one of 
 
 **Option A: Spring Profiles (recommended for teaching)**
 
-* `application-finnhub.properties`
-* `application-alphavantage.properties`
+* `application-finhub.properties` (the existing profile is spelled `finhub`)
+* `application-alphaVantage.properties` (match the existing `alphaVantage` profile)
 * `application-twelvedata.properties`
 
 Then activate via:
 
-* `-Dspring.profiles.active=twelvedata`
+* `--spring.profiles.active=jpa,twelvedata` when launching the packaged application (keep a persistence profile active)
 
 **Option B: Property-based selection**
 
@@ -321,10 +325,7 @@ Your final result must allow:
 
 #### 3) API key management (free-tier ready)
 
-* Store the API key outside code:
-
-    * environment variable, or
-    * profile properties file.
+* Store the API key in an environment variable or an untracked local configuration file. Committed properties should contain placeholders, not credentials.
 * If the key is missing, fail fast with a clear error message.
 
 ---
@@ -354,11 +355,12 @@ Write one of these:
     * ticker is passed correctly,
     * response JSON is mapped correctly to `StockPrice` (containing `Price` and `Ticker` value objects).
 
-**Option B: Run the existing sell integration test with your adapter**
+**Option B: Add a dedicated full-stack test with a stubbed provider**
 
-* Run `PortfolioRestControllerIntegrationTest` (or equivalent)
-* Switch profile to your adapter
-* Show that the **same sell flow works** (controller → service → domain → port → adapter)
+* Reuse the REST helpers and MySQL setup from `AbstractPortfolioRestIntegrationTest` in `bootstrap`.
+* Activate your adapter and point it at a local HTTP stub with deterministic quotes.
+* Do not import the `@Primary` fixed-price configuration from `PortfolioTradingRestIntegrationTest`: it would bypass your adapter.
+* Verify the same sell flow and financial result through HTTP, including the external-provider mapping.
 
 ---
 
@@ -392,7 +394,7 @@ Add a small "provider comparison" markdown note:
 
 **End of Exercises**
 
-Work through these exercises in order. Each builds on concepts from earlier exercises. Discussing solutions with peers and colleagues deepens understanding of Hexagonal Architecture and Domain-Driven Design.
+Return to the stage map above to choose another task, or revisit the [learning path](SELL-STOCK-TUTORIAL.md). Discussing solutions with peers helps expose assumptions about boundaries and invariants.
 
 ---
 
@@ -401,6 +403,6 @@ Work through these exercises in order. Each builds on concepts from earlier exer
 - Cockburn, Alistair. \"Hexagonal Architecture.\" 2005. https://alistair.cockburn.us/hexagonal-architecture/
 - Evans, Eric. *Domain-Driven Design: Tackling Complexity in the Heart of Software.* Addison-Wesley, 2003.
 - Fowler, Martin. \"AnemicDomainModel.\" *martinfowler.com*, 2003. https://martinfowler.com/bliki/AnemicDomainModel.html
-- Haerder, Theo, and Andreas Reuter. \"Principles of Transaction-Oriented Database Recovery.\" *ACM Computing Surveys*, vol. 15, no. 4, 1983, pp. 287\u2013317.
+- Haerder, Theo, and Andreas Reuter. \"Principles of Transaction-Oriented Database Recovery.\" *ACM Computing Surveys*, vol. 15, no. 4, 1983, pp. 287–317.
 - Vernon, Vaughn. *Implementing Domain-Driven Design.* Addison-Wesley, 2013.
 

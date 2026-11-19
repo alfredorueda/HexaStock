@@ -12,7 +12,7 @@ Every chapter in this book is directly backed by a robust, working open-source p
 
 ## Start Here
 
-The primary entry point to this book is the sell-stock architectural study. It traces the full engineering workflow — specification, domain modelling, hexagonal structure, persistence, error handling, integration testing — applied to one use case from end to end.
+The primary entry point is the sell-stock learning path: nine short stages covering specification, domain modelling, HTTP, orchestration, persistence, consistency, errors and verification. Each stage has one goal, a practical checkpoint and a stopping place, so you can study the use case over several sessions.
 
 * [Sell Stock Deep Dive — Reference Use Case](tutorial/sellStocks/SELL-STOCK-TUTORIAL.md)
 * [HexaStock — Project Overview](tutorial/sellStocks/HEXASTOCK-PROJECT-OVERVIEW.md) — System overview, architectural identity, Maven module structure, and domain package organisation.
@@ -51,7 +51,7 @@ These chapters deepen specific themes introduced in the main study.
 ## API and Specifications
 
 * [Stock Portfolio API Specification](stock-portfolio-api-specification.md) — Complete REST API for all 10 use cases, RFC 7807 error contract, domain model, and exception mapping.
-* [Gherkin Feature Files](https://github.com/alfredorueda/HexaStock/blob/main/doc/features/sell-stocks.feature) — Fifteen executable behavioural specifications covering the full system.
+* [Gherkin Feature Files](https://github.com/alfredorueda/HexaStock/blob/main/doc/features/sell-stocks.feature) — Readable behavioural specifications linked to executable JUnit tests.
 
 ***
 
@@ -73,7 +73,7 @@ When the book uses the term **"production-grade"** without further qualification
 
 This project uses a dual-license model.
 
-* **Source code** is licensed under [Apache License 2.0](https://github.com/alfredorueda/HexaStock/blob/main/LICENSE/README.md).
+* **Source code** is licensed under [Apache License 2.0](legal/LICENSE.md).
 * **Book and editorial written content** are licensed under [CC BY-NC 4.0](https://creativecommons.org/licenses/by-nc/4.0/).
 
 [![License: CC BY-NC 4.0](https://licensebuttons.net/l/by-nc/4.0/88x31.png)](https://creativecommons.org/licenses/by-nc/4.0/)
