@@ -26,6 +26,7 @@
 
 * [Rich vs Anemic Domain Model](doc/tutorial/richVsAnemicDomainModel/RICH_VS_ANEMIC_DOMAIN_MODEL_TUTORIAL.md)
 * [Dependency Inversion in Stock Selling](doc/tutorial/DEPENDENCY-INVERSION-STOCK-SELLING.md)
+  * [Wiring and testing](doc/tutorial/dependencyInversion/WIRING-AND-TESTING.md)
 * [DDD Portfolio and Transactions](<doc/DDD Portfolio and Transactions.md>)
   * [1. Choose a consistency boundary](doc/architecture/aggregates/01-CONSISTENCY-BOUNDARY.md)
   * [2. Query history separately](doc/architecture/aggregates/02-HISTORY-AND-SCALE.md)
@@ -36,6 +37,9 @@
 
 * [Specification-Driven Development with AI](doc/tutorial/specificationDrivenAI/SPECIFICATION-DRIVEN-DEVELOPMENT-WITH-AI.md)
 * [Concurrency Control: Pessimistic Locking and Optimistic Concurrency](doc/tutorial/CONCURRENCY-PESSIMISTIC-LOCKING.md)
+  * [1. Coordinate JPA writers](doc/tutorial/concurrency/JPA-LOCKING.md)
+  * [2. Retry MongoDB conflicts](doc/tutorial/concurrency/MONGODB-RETRIES.md)
+  * [MongoDB adapter reference](doc/mongodb-adapter-optimistic-write-and-retry.md)
 * [Holdings Performance at Scale](doc/tutorial/portfolioReporting/HOLDINGS-PERFORMANCE-AT-SCALE.md)
 * [Watchlists and Market Sentinel](doc/tutorial/watchlists/WATCHLISTS-MARKET-SENTINEL.md)
 * [Lot Selection Strategies — DDD Hexagonal Exercise](doc/tutorial/DDD-Hexagonal-exercise.md)
