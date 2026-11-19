@@ -10,16 +10,16 @@ import java.util.*;
  * Portfolio represents an investment portfolio owned by an individual.
  * 
  * <p>In DDD terms, this is an <strong>Aggregate Root</strong> that encapsulates a collection of Holdings
- * and provides operations to manage investments. As an Aggregate Root, Portfolio
- * ensures that all changes to its contained Holdings happen through its methods, maintaining
- * consistency across the entire aggregate.</p>
+ * and provides operations coordinating cash and holdings. Callers should use these
+ * operations for business changes. Public child accessors still expose mutable
+ * objects, so this boundary is not enforced solely by visibility.</p>
  * 
  * <p>The Portfolio domain object represents a personal investment account where users can:</p>
  * <ul>
  *   <li>Deposit and withdraw money (cash management)</li>
  *   <li>Buy and sell stocks (investment management)</li>
  *   <li>Track holdings (stocks owned) and their performance</li>
- *   <li>View transaction history</li>
+ *   <li>Provide current state for reporting alongside separately stored history</li>
  * </ul>
  * 
  * <p>Portfolio enforces critical business rules including:</p>
@@ -97,7 +97,7 @@ public class Portfolio {
      * Deposits money into the portfolio's cash balance.
      * 
      * @param money The amount of money to deposit
-     * @throws InsufficientFundsException if the deposit amount is not positive
+     * @throws InvalidAmountException if the deposit amount is not positive
      */
     public void deposit(Money money) {
         if (!money.isPositive()) {
@@ -128,7 +128,7 @@ public class Portfolio {
      * 
      * <p>This method:</p>
      * <ol>
-     *   <li>Validates the quantity and price are positive</li>
+     *   <li>Validates positive quantity; price validation belongs to the Price type</li>
      *   <li>Checks if there are sufficient funds for the purchase</li>
      *   <li>Finds or creates a Holding for the ticker</li>
      *   <li>Adds the purchased shares to the Holding</li>
@@ -139,7 +139,6 @@ public class Portfolio {
      * @param quantity The number of shares to buy
      * @param price The price per share
      * @throws InvalidQuantityException if the quantity is not positive
-     * @throws InvalidAmountException if the price is not positive
      * @throws InsufficientFundsException if there are insufficient funds for the purchase
      */
     public void buy(Ticker ticker, ShareQuantity quantity, Price price) {
@@ -165,7 +164,7 @@ public class Portfolio {
      * 
      * <p>This method:</p>
      * <ol>
-     *   <li>Validates the quantity and price are positive</li>
+     *   <li>Validates positive quantity; price validation belongs to the Price type</li>
      *   <li>Verifies the ticker exists in the portfolio's holdings</li>
      *   <li>Executes the sale on the appropriate Holding</li>
      *   <li>Increases the cash balance by the sale proceeds</li>
@@ -180,7 +179,6 @@ public class Portfolio {
      * @param price The price per share
      * @return A SellResult containing proceeds, cost basis, and profit information
      * @throws InvalidQuantityException if the quantity is not positive
-     * @throws InvalidAmountException if the price is not positive
      * @throws DomainException if the ticker is not found in holdings
      */
     public SellResult sell(Ticker ticker, ShareQuantity quantity, Price price) {
