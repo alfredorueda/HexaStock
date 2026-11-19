@@ -14,31 +14,17 @@ For a hexagonal architecture project, keeping application services free of Sprin
 
 Wire all application services via explicit `@Bean` methods in `SpringAppConfig.java` (the composition root in the bootstrap module). Application service classes carry no Spring annotations (`@Service`, `@Component`, etc.).
 
+The configuration receives `PortfolioPort`, `TransactionPort` and `StockPriceProviderPort` through its constructor. One bean method illustrates the wiring:
+
 ```java
-@Configuration
-@EnableCaching
-public class SpringAppConfig {
-    @Autowired PortfolioPort portfolioPort;
-    @Autowired TransactionPort transactionPort;
-    @Autowired StockPriceProviderPort stockPricePort;
-
-    @Bean
-    PortfolioLifecycleUseCase getPortfolioLifecycleUseCase() {
-        return new PortfolioLifecycleService(portfolioPort);
-    }
-
-    @Bean
-    CashManagementUseCase getCashManagementUseCase() {
-        return new CashManagementService(portfolioPort, transactionPort);
-    }
-
-    @Bean
-    PortfolioStockOperationsUseCase getPortfolioStockOperationsUseCase() {
-        return new PortfolioStockOperationsService(portfolioPort, stockPricePort, transactionPort);
-    }
-    // ...
+@Bean
+PortfolioStockOperationsUseCase getPortfolioStockOperationsUseCase() {
+    return new PortfolioStockOperationsService(
+            portfolioPort, stockPriceProviderPort, transactionPort);
 }
 ```
+
+Six bean methods expose use cases; a seventh supplies `HoldingPerformanceCalculator`.
 
 ## Alternatives considered
 
@@ -49,7 +35,7 @@ public class SpringAppConfig {
 ## Consequences
 
 **Positive:**
-- Application service classes contain only `@Transactional` (from `jakarta.transaction-api`, the standard Jakarta Transactions annotation). They do not carry `@Service` or `@Component`.
+- Application services use Jakarta `@Transactional`; selected methods also carry the project’s `@RetryOnWriteConflict`. They do not carry Spring `@Service` or `@Component`.
 - The `application` module has zero Spring dependencies. Transactional demarcation uses the standard Jakarta annotation; Spring recognises it at runtime.
 - Wiring is visible in one place (`SpringAppConfig.java`), making the composition root explicit.
 - Application services can be unit-tested without a Spring context: just instantiate with mock ports.
@@ -64,7 +50,7 @@ public class SpringAppConfig {
 - `PortfolioLifecycleService.java`: annotated `@Transactional`, no `@Service` annotation
 - `CashManagementService.java`: annotated `@Transactional`, no `@Service` annotation
 - `PortfolioStockOperationsService.java`: annotated `@Transactional`, no `@Service` annotation
-- `application/pom.xml`: depends on standard `jakarta.transaction-api` only, not `spring-tx`, `spring-context` or `spring-beans`
+- `application/pom.xml`: production dependencies include `domain` and `jakarta.transaction-api`, not Spring context/transaction libraries. Test dependencies have a separate scope.
 - `CONTRIBUTING.md`: Documents the composition root pattern and warns against adding `@Service` to application services
 
 ## Relation to other specifications
