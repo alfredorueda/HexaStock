@@ -29,7 +29,11 @@
   * [2. Understand runtime guarantees](doc/architecture/RUNTIME-AND-VERIFICATION.md)
   * [Architecture decisions](doc/architecture/adr/README.md)
 
-* [Rich vs Anemic Domain Model](doc/tutorial/richVsAnemicDomainModel/RICH_VS_ANEMIC_DOMAIN_MODEL_TUTORIAL.md)
+* [Rich and anemic domain models](doc/tutorial/richVsAnemicDomainModel/RICH_VS_ANEMIC_DOMAIN_MODEL_TUTORIAL.md)
+  * [1. Inspect the current model](doc/tutorial/richVsAnemicDomainModel/01-CURRENT-MODEL.md)
+  * [2. Diagnose rule drift](doc/tutorial/richVsAnemicDomainModel/02-RULE-DRIFT.md)
+  * [3. Specify a settlement extension](doc/tutorial/richVsAnemicDomainModel/03-SETTLEMENT-EXERCISE.md)
+  * [4. Compare designs fairly](doc/tutorial/richVsAnemicDomainModel/04-VERIFICATION.md)
 * [Dependency Inversion in Stock Selling](doc/tutorial/DEPENDENCY-INVERSION-STOCK-SELLING.md)
   * [Wiring and testing](doc/tutorial/dependencyInversion/WIRING-AND-TESTING.md)
 * [DDD Portfolio and Transactions](<doc/DDD Portfolio and Transactions.md>)
