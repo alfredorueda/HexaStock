@@ -103,7 +103,7 @@ The API behaviour is specified in project documents; SpringDoc generates the run
 
 ## Acknowledgements
 
-Thank you to [Víctor García](https://www.linkedin.com/in/garcia-victor/) for his collaboration on the original hexagonal architecture diagram. The staged edition redraws the diagrams while preserving the architectural teaching purpose of that work.
+Thank you to [Víctor García](https://www.linkedin.com/in/garcia-victor/) for his collaboration on the original hexagonal architecture diagram. The staged edition retains the [original hexagonal overview in Stage 4](SELL-STOCK-04-HTTP-AND-PORTS.md#the-original-hexagonal-view) alongside the new diagrams.
 
 See the broader [project acknowledgements](../../ACKNOWLEDGEMENTS.md).
 
