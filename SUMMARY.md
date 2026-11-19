@@ -27,6 +27,9 @@
 * [Rich vs Anemic Domain Model](doc/tutorial/richVsAnemicDomainModel/RICH_VS_ANEMIC_DOMAIN_MODEL_TUTORIAL.md)
 * [Dependency Inversion in Stock Selling](doc/tutorial/DEPENDENCY-INVERSION-STOCK-SELLING.md)
 * [DDD Portfolio and Transactions](<doc/DDD Portfolio and Transactions.md>)
+  * [1. Choose a consistency boundary](doc/architecture/aggregates/01-CONSISTENCY-BOUNDARY.md)
+  * [2. Query history separately](doc/architecture/aggregates/02-HISTORY-AND-SCALE.md)
+  * [3. Compare alternatives](doc/architecture/aggregates/03-ALTERNATIVES.md)
 * [Remove Lots with Zero Remaining Quantity](<doc/Remove Lots with Zero Remaining Quantity from Portfolio Aggregate.md>)
 
 ## Supporting Chapters
