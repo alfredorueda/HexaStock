@@ -1,5 +1,8 @@
 # Diapositiva a diapositiva
 
+> **Esborrany històric.** La numeració, els temps i alguns textos corresponen a una versió anterior. Per preparar o modificar la defensa, utilitza el [guió canònic de 20 minuts](output/materials-orals-canonics-20-minuts.md) i el PowerPoint indicat al [mapa de materials](README.md).
+
+
 Versió simplificada per a exposició oral. Les diapositives han de ser suport visual, no document de lectura.
 
 ## 1. Portada

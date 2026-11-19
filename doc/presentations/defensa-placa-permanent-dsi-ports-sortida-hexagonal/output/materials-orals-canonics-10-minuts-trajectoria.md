@@ -501,7 +501,7 @@ No és una mostra probabilística de tot el mercat ni mesura hores de treball o 
 
 L'anàlisi es va dissenyar com un estudi observacional multifuente. La instantània és del 16 de juliol de 2026 i cobreix els noranta dies anteriors. Les fonts són The Muse, Himalayas, Arbeitnow, Jobicy, Remotive i Remote OK. La unitat d'anàlisi és una oferta única.
 
-Els criteris d'inclusió són deliberadament conservadors. El títol ha d'identificar desenvolupament de software —software, backend, frontend, full stack, web, mòbil o aplicacions— i ha d'expressar seniority. Quan el portal només aporta una etiqueta sènior, la descripció ha de mostrar almenys quatre anys d'experiència. S'exclouen direcció, product management, dades o IA purs, DevOps, SRE, QA, sistemes, vendes, suport, maquinari i altres enginyeries.
+Els criteris d'inclusió són deliberadament conservadors. El títol ha d'identificar desenvolupament de software —software, backend, frontend, full stack, web, mòbil o aplicacions— i ha d'expressar seniority. Quan el portal només aporta una etiqueta sènior, la descripció ha de mostrar almenys quatre anys d'experiència. S'exclouen direcció, product management, dades o IA purs, DevOps, SRE, QA, sistemes, vendes, suport, hardware i altres enginyeries.
 
 La codificació és multietiqueta i reconeix formulacions explícites en anglès, alemany i castellà o català. Les categories nuclears són comunicació, col·laboració, alineament amb stakeholders, mentoria, lideratge o influència, aprenentatge o adaptabilitat, negociació o conflicte, i empatia o escolta. El feedback i la revisió de codi es reporten, però s'exclouen de l'indicador principal perquè tenen també un component tècnic clar.
 

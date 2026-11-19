@@ -18,7 +18,7 @@
 - [ ] El cas AGAUR motiva el problema, però no desvia la classe cap a mèrits documentals.
 - [ ] El cas AGAUR s'explica primer funcionalment: sol·licitud, expedient, requisits econòmics, renda, patrimoni i proposta de resolució.
 - [ ] Les referències a PICA, AEAT i Cadastre apareixen després d'haver explicat per què el procediment necessita dades externes.
-- [ ] La presentació inclou demo controlada i tancament institucional d'agraïment.
+- [ ] La presentació tanca amb síntesi tècnica i agraïment; la demo és un annex opcional posterior al tancament.
 
 ## Rigor tècnic
 
@@ -47,7 +47,7 @@
 
 ## Llenguatge
 
-- [ ] Tot el material està en català.
+- [ ] El text docent està en català; les imatges estàtiques de codi o arquitectura poden conservar l'anglès.
 - [ ] S'utilitza terminologia tècnica: acoblament, dependència, frontera, infraestructura i adaptador.
 - [ ] Les frases clau apareixen de manera consistent.
 - [ ] Les diapositives tenen una idea principal cadascuna.

@@ -59,7 +59,7 @@ Una oferta havia de complir tots els criteris següents:
 2. rol de desenvolupament de software: software, backend, frontend, full stack, web, mòbil, iOS/Android o desenvolupament d'aplicacions;
 3. seniority explícita al títol —Senior, Sr., Staff, Principal o Lead— o etiqueta sènior del portal amb evidència d'almenys quatre anys d'experiència;
 4. descripció suficient per codificar requisits;
-5. exclusió de direcció, product management i perfils adjacents: dades, ML/IA purs, DevOps/SRE, QA, seguretat no software, sistemes, xarxes, suport, vendes, maquinari, firmware i enginyeries no informàtiques.
+5. exclusió de direcció, product management i perfils adjacents: dades, ML/IA purs, DevOps/SRE, QA, seguretat no software, sistemes, xarxes, suport, vendes, hardware, firmware i enginyeries no informàtiques.
 
 ## Flux de selecció
 
