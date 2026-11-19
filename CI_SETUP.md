@@ -1,132 +1,53 @@
-# CI/CD Setup Instructions
+# CI Configuration and Report Locations
 
-This document provides step-by-step instructions for completing the SonarCloud setup after the CI/CD workflow has been deployed.
+**Goal:** understand which checks the repository runs and where their evidence is produced.
 
-## Overview
+## The checked-in workflow
 
-The CI/CD pipeline has been configured with:
-- ✅ GitHub Actions workflow that triggers on push to `main` and PRs targeting `main`
-- ✅ Java 21 with Maven build and test execution
-- ✅ JaCoCo coverage report generation
-- ✅ SonarCloud integration (requires manual configuration)
-- ✅ Quality Gate enforcement
-- ✅ Test result artifacts upload
+[build.yml](https://github.com/alfredorueda/HexaStock/blob/main/.github/workflows/build.yml) defines one job, `build-and-test`. It runs for pushes to `main` and pull requests targeting `main`.
 
-## Required Manual Steps
+The job checks out the repository, installs Temurin JDK 21, prints Docker diagnostics and runs:
 
-### 1. SonarCloud Organization and Project Setup
-
-1. **Visit SonarCloud**: Go to https://sonarcloud.io
-2. **Sign in**: Use your GitHub account to sign in
-3. **Create Organization** (if you don't have one):
-   - Click the "+" icon → "Create new organization"
-   - Choose "Free plan" for public repositories
-   - Link it to your GitHub account
-   - Note the organization key (you'll need this)
-
-4. **Create Project**:
-   - Click "Analyze new project"
-   - Select "alfredorueda/HexaStock" from your repositories
-   - Choose "With GitHub Actions" as the analysis method
-   - Note the project key (usually in format `organization-key_repository-name`)
-
-### 2. Generate SonarCloud Token
-
-1. **In SonarCloud**: Click your avatar → "My Account"
-2. **Security tab**: Click "Security"
-3. **Generate token**: 
-   - Name: "HexaStock-CI" 
-   - Type: "Project Analysis Token"
-   - Select your project
-   - Click "Generate"
-   - **Copy the token immediately** (you won't see it again)
-
-### 3. Configure GitHub Repository Secrets and Variables
-
-**Go to**: GitHub → alfredorueda/HexaStock → Settings → Secrets and variables → Actions
-
-#### Add Repository Secret:
-- **Name**: `SONAR_TOKEN`
-- **Value**: The token you generated in step 2
-
-#### Add Repository Variables:
-- **Name**: `SONAR_ORGANIZATION`
-  - **Value**: Your SonarCloud organization key (e.g., `alfredorueda`)
-  
-- **Name**: `SONAR_PROJECT_KEY`  
-  - **Value**: Your SonarCloud project key (e.g., `alfredorueda_HexaStock`)
-  
-- **Name**: `SONAR_HOST_URL`
-  - **Value**: `https://sonarcloud.io`
-
-### 4. Update README Badge URLs
-
-Once you have your project key, update the badge URLs in README.md:
-
-Replace `${SONAR_PROJECT_KEY}` with your actual project key in these lines:
-```markdown
-[![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=YOUR_PROJECT_KEY&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=YOUR_PROJECT_KEY)
-[![Coverage](https://sonarcloud.io/api/project_badges/measure?project=YOUR_PROJECT_KEY&metric=coverage)](https://sonarcloud.io/summary/new_code?id=YOUR_PROJECT_KEY)
-[![Bugs](https://sonarcloud.io/api/project_badges/measure?project=YOUR_PROJECT_KEY&metric=bugs)](https://sonarcloud.io/summary/new_code?id=YOUR_PROJECT_KEY)
-[![Code Smells](https://sonarcloud.io/api/project_badges/measure?project=YOUR_PROJECT_KEY&metric=code_smells)](https://sonarcloud.io/summary/new_code?id=YOUR_PROJECT_KEY)
+```bash
+./mvnw -B -U -ntp clean verify
 ```
 
-### 5. Configure Branch Protection — done, via a ruleset
+Testcontainers supplies MySQL and MongoDB for database-backed tests. The workflow has a 20-minute timeout. A successful build is a test result, not a deployment: this file defines CI, not an application release pipeline.
 
-This step is complete. `main` is protected by a repository **ruleset**
-(`Settings → Rules → Rulesets`, not the classic `Settings → Branches` page
-this section originally pointed to — GitHub's newer mechanism for the same
-purpose). It requires the `build-and-test` check to pass, requires every
-change to arrive through a pull request, and applies with no exception for
-administrators.
+## Find reports in a multi-module build
 
-This was verified end to end — a pull request with a deliberately failing
-test was confirmed blocked from merging, and a passing pull request was
-confirmed mergeable. See
-[CI_DISCIPLINE_WALKTHROUGH.md](CI_DISCIPLINE_WALKTHROUGH.md) for the full
-explanation and the evidence, or
-[CI_DEMO_SCRIPT.md](CI_DEMO_SCRIPT.md) for a condensed run sheet to
-reproduce it.
+| Evidence | Generated location |
+|---|---|
+| Surefire results | Each module's `target/surefire-reports/` |
+| Failsafe results, when applicable | Each module's `target/failsafe-reports/` |
+| Aggregate coverage | `bootstrap/target/site/jacoco-aggregate/` |
 
-## Testing the Setup
+The current workflow's artifact-upload and failure-diagnostic paths still point to root-level `target` directories, including `target/site/jacoco-merged`. These do not match the module report locations. An upload step completing successfully therefore does not establish that the intended reports were found. Inspect its logs and available artifacts.
 
-1. **Push a change** to the `main` branch or create a PR
-2. **Check Actions tab**: Verify the workflow runs successfully
-3. **Check SonarCloud**: Visit your project dashboard to see analysis results
-4. **Verify badges**: Confirm badges in README.md display correctly
+The same obsolete merged-coverage path appears in `sonar-project.properties`. Any scanner-based coverage integration must point to the report actually produced by the Maven build.
 
-## Troubleshooting
+## Distinguish Sonar analysis from this workflow
 
-### Common Issues:
+SonarCloud checks and badges may be visible on pull requests through the connected service. The checked-in `build.yml` does not contain a Sonar scanner invocation or a quality-gate step. Do not infer from a badge that this workflow uploaded JaCoCo coverage or that the Sonar check is a required merge condition.
 
-1. **SonarCloud scan fails**: 
-   - Verify `SONAR_TOKEN` secret is correct
-   - Check that organization and project keys match exactly
+`sonar-project.properties` references `SONAR_ORGANIZATION`, `SONAR_PROJECT_KEY` and `SONAR_HOST_URL`. Those placeholders describe configuration inputs; declaring them does not run an analysis. For a future scanner integration, configure the project, supply credentials through secrets, select the correct compiled-class and coverage paths, and verify the analysis logs. Keep tokens out of source control.
 
-2. **Quality Gate not enforcing**:
-   - Ensure the quality gate action runs after the scan
-   - Check SonarCloud project settings for quality gate configuration
+## Inspect branch protection
 
-3. **Coverage not showing**:
-   - Verify JaCoCo reports are generated in `target/site/jacoco-merged/`
-   - Check `sonar-project.properties` paths
+The repository uses a ruleset for `main`, requiring a pull request and the `build-and-test` status check. Protection is hosted GitHub configuration, separate from the workflow YAML. Inspect the active rules when reproducing the setup in another repository:
 
-4. **Badges not displaying**:
-   - Confirm project key replacement in README.md
-   - Wait for first successful SonarCloud analysis
+```bash
+gh api repos/alfredorueda/HexaStock/rules/branches/main
+```
 
-## Example Project Keys
+Forking the source does not reproduce the upstream repository's protection settings. A visible check is only a merge gate if the active rules require it.
 
-If your SonarCloud organization is `alfredorueda`, your project key would typically be:
-- `alfredorueda_HexaStock`
+## Verify a setup change
 
-## Support
+1. Run the documented Maven command locally with JDK 21 and Docker.
+2. Open a focused pull request and inspect the check for its latest commit.
+3. Read failed-test output or module reports when the build fails.
+4. Confirm artifact contents rather than relying on the upload step's status.
+5. Confirm which checks the repository requires before merging.
 
-For issues with:
-- **GitHub Actions**: Check the Actions tab for detailed logs
-- **SonarCloud**: Visit SonarCloud documentation or community forum
-- **This setup**: Create an issue in the repository
-
----
-
-**Note**: This setup provides enterprise-grade CI/CD practices suitable for professional Java development with comprehensive quality checks and automated testing.
+Continue with the [CI explanation](CI_DISCIPLINE_WALKTHROUGH.md) or the [classroom demonstration](CI_DEMO_SCRIPT.md).
