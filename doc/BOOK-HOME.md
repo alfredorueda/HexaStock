@@ -1,21 +1,15 @@
-# BOOK-HOME
+# Welcome to HexaStock
 
-_A technical book on Domain-Driven Design, Hexagonal Architecture, and Specification-Driven Development in a financial domain._
+HexaStock is a Java application for learning how to organize and test software. It models a small stock portfolio: create an account, add cash, buy shares and sell them. The examples use this concrete problem to introduce Domain-Driven Design (DDD) and Hexagonal Architecture step by step.
 
-***
+## Choose Your Starting Point
 
-This documentation is organised as a book-style technical journey through a working financial portfolio system. HexaStock serves as a concrete architectural case study — built with Java 21, Spring Boot 3, and Maven — where every design decision is grounded in real code, executable specifications, and automated tests. The central narrative follows a single use case, **selling stocks**, through every architectural layer: from Gherkin specification to REST controller, through application service orchestration, into the aggregate root's FIFO lot-consumption algorithm, and back as a structured financial result. The goal is to show how Domain-Driven Design and Hexagonal Architecture function not as abstract principles but as engineering disciplines applied under realistic constraints.
+* **New to architecture or financial examples?** Begin with [Your First Steps](learning/START-HERE.md). It explains the vocabulary and gives a first exercise that needs no database.
+* **Ready to follow a complete use case?** Work through the [Sell Stock learning path](tutorial/sellStocks/SELL-STOCK-TUTORIAL.md), one stage at a time. Each stage has a goal, example and checkpoint.
+* **Looking for a particular decision?** Use the supporting chapters below or the [architecture decision records](https://github.com/alfredorueda/HexaStock/blob/main/doc/architecture/adr/README.md).
+* **Setting up the application?** Use the repository [README](https://github.com/alfredorueda/HexaStock/blob/main/README.md).
 
-Every chapter in this book is directly backed by a robust, working open-source project. The full source code is publicly available at [github.com/alfredorueda/HexaStock](https://github.com/alfredorueda/HexaStock). Readers are encouraged to clone the repository and explore the codebase alongside the text — the repository [README](https://github.com/alfredorueda/HexaStock#readme) provides the practical information needed to build and run the system locally.
-
-***
-
-## Start Here
-
-The primary entry point is the sell-stock learning path: nine short stages covering specification, domain modelling, HTTP, orchestration, persistence, consistency, errors and verification. Each stage has one goal, a practical checkpoint and a stopping place, so you can study the use case over several sessions.
-
-* [Sell Stock Deep Dive — Reference Use Case](tutorial/sellStocks/SELL-STOCK-TUTORIAL.md)
-* [HexaStock — Project Overview](tutorial/sellStocks/HEXASTOCK-PROJECT-OVERVIEW.md) — System overview, architectural identity, Maven module structure, and domain package organisation.
+The book and [source repository](https://github.com/alfredorueda/HexaStock) can be read together. You do not need to understand every module to begin: the first exercises work with ordinary Java objects and JUnit tests.
 
 ***
 
@@ -23,22 +17,22 @@ The primary entry point is the sell-stock learning path: nine short stages cover
 
 These chapters deepen specific themes introduced in the main study.
 
-* [Rich vs Anemic Domain Model](tutorial/richVsAnemicDomainModel/RICH_VS_ANEMIC_DOMAIN_MODEL_TUTORIAL.md) — Side-by-side architectural comparison using the sell flow, with failure mode demonstration.
+* [Rich vs Anemic Domain Model](tutorial/richVsAnemicDomainModel/RICH_VS_ANEMIC_DOMAIN_MODEL_TUTORIAL.md) — Compare where rules live; the settlement example extends the baseline.
 * [Dependency Inversion in Stock Selling](tutorial/DEPENDENCY-INVERSION-STOCK-SELLING.md) — Full execution flow through ports and adapters, with testability and extensibility analysis.
 * [Concurrency Control: Pessimistic Locking and Optimistic Concurrency](tutorial/CONCURRENCY-PESSIMISTIC-LOCKING.md) — Pessimistic locking (JPA/MySQL) and optimistic concurrency with retries (MongoDB), isolation levels, and race-condition tests.
 * [DDD Portfolio and Transactions](<DDD Portfolio and Transactions.md>) — Why Portfolio and Transaction are separate aggregates: consistency boundaries, invariants, and a decision matrix.
 * [Remove Lots with Zero Remaining Quantity](<Remove Lots with Zero Remaining Quantity from Portfolio Aggregate.md>) — Design decision on retaining or pruning fully consumed lots, with DDD-grounded analysis.
 * [Holdings Performance at Scale](tutorial/portfolioReporting/HOLDINGS-PERFORMANCE-AT-SCALE.md) — Four reporting strategies from in-memory aggregation to CQRS read models.
-* [Watchlists & Market Sentinel](tutorial/watchlists/WATCHLISTS-MARKET-SENTINEL.md) — Automated market monitoring with CQRS and progressive domain model evolution.
+* [Watchlists & Market Sentinel](tutorial/watchlists/WATCHLISTS-MARKET-SENTINEL.md) — A proposed extension for automated market monitoring.
 * [Lot Selection Strategies — DDD Hexagonal Exercise](tutorial/DDD-Hexagonal-exercise.md) — Extending beyond FIFO with Strategy pattern and hexagonal structure.
 
 ***
 
 ## Featured: Specification-Driven Development with AI
 
-> How structurally precise specifications — Gherkin, UML, OpenAPI, ADRs — enable high-quality AI-assisted implementation. This chapter analyses a real consulting case where the HexaStock codebase was built using specification-driven AI-assisted development, and examines the conditions under which this approach meets production engineering standards.
+This advanced chapter examines how specifications, tests and review can guide AI-assisted implementation. Read it after you can distinguish a requirement from a test and from implementation code.
 
-* [Specification-Driven Development with AI](https://alfredo-rueda-unsain.gitbook.io/alfredo-rueda-unsain-docs/supporting-chapters/specification-driven-development-with-ai)
+* [Specification-Driven Development with AI](tutorial/specificationDrivenAI/SPECIFICATION-DRIVEN-DEVELOPMENT-WITH-AI.md)
 
 ***
 
@@ -55,17 +49,13 @@ These chapters deepen specific themes introduced in the main study.
 
 ***
 
-## Reading Contract: Pedagogical Simplifications vs Production Refinements
+## How to Read the Technical Chapters
 
-HexaStock is intentionally designed to serve two audiences at once: it is a working, tested codebase, and it is a teaching artefact for engineers learning Domain-Driven Design and Hexagonal Architecture. To keep that dual purpose honest, this book classifies design choices in three explicit categories. Readers should keep this classification in mind whenever a chapter discusses a "simplification" or a "future refinement".
+A chapter may describe the current implementation, propose an extension, or compare alternatives. Check that scope before treating an example as a feature available in the application. Linked source files and tests provide implementation evidence; a recommendation is a design argument to evaluate.
 
-| Category                                                                                                           | Examples in HexaStock                                                                                                                                                                                                                                               | What it means in the book                                                                                                      |
-| ------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------ |
-| **Intentional pedagogical simplifications** — chosen to make the model legible; perfectly defensible at this scale | Loading the entire `Portfolio` aggregate on sell; recording transactions through application-service orchestration rather than domain events; single currency (USD); integer share quantities; no fees, taxes or margin                                             | The current code is the right answer **for teaching**. A production team operating at very different scale would refine these. |
-| **Deliberate architectural choices** — production-quality decisions that are not simplifications                   | Two interchangeable persistence adapters (JPA pessimistic vs MongoDB optimistic + retry); separating `Portfolio` (state) from `Transaction` (history) into two aggregates; value objects (`Money`, `Price`, `Ticker`) instead of primitives; ArchUnit fitness tests | The current code is the right answer **in general**. These should be preserved or carried over to any production derivative.   |
-| **Acknowledged future enhancements** — explicitly out of scope today, but discussed as roadmap                     | Domain events for transaction creation; CQRS read models for reporting at scale; promoting `Holding` to its own aggregate when sell invariants justify it; Flyway/Liquibase migrations replacing `ddl-auto`                                                         | Treated as legitimate next steps; the book explains the reasoning rather than implementing them today.                         |
+For example, the baseline sell flow has no settlement delay or fees. Reporting projections, domain events and alternative lot-selection policies are later design topics. You can finish the introductory path before studying them.
 
-When the book uses the term **"production-grade"** without further qualification, it refers to _production-quality code_ (typed, tested, layered, with enforced architectural boundaries) rather than to a _fully production-ready deployed system_ (which would additionally require schema migrations, observability, capacity planning and operational tooling that are out of scope for this study).
+The project is a teaching application. Its use of tests and architectural boundaries does not, by itself, establish suitability for every production workload or deployment.
 
 ***
 

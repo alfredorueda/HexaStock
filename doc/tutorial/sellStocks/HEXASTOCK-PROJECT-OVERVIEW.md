@@ -1,85 +1,81 @@
 # HexaStock Project Overview
 
-> This companion document provides the full project background for HexaStock — its purpose, architectural identity, module structure, domain organization, and the rationale behind key structural decisions. The [Sell Stock Deep Dive](SELL-STOCK-TUTORIAL.md) references this document for readers who want a deeper understanding of the system before (or alongside) tracing the sell use case through code.
+**Goal:** locate a business rule, a use case and an adapter in the repository.
 
-***
+**Prerequisite:** basic Java interfaces. **Reading time:** about 8 minutes.
 
-## What the System Does
+## Begin with a portfolio
 
-HexaStock is a stock portfolio management platform. The system enables investors to create and manage investment portfolios, deposit and withdraw funds, buy and sell stocks with automatic FIFO lot accounting, track holdings performance with real-time market prices, and view complete transaction history. The platform integrates with external stock price providers (Finnhub, AlphaVantage), persists data through two interchangeable adapters — JPA with MySQL or Spring Data with MongoDB — and exposes a RESTful API documented via OpenAPI 3.0.
+A portfolio has cash and shares. Buying shares reduces cash and creates a purchase lot. Selling shares increases cash and consumes lots in purchase order. This First In, First Out (FIFO) rule determines the cost basis used to calculate profit.
 
-***
+HexaStock implements portfolio creation and lookup, deposits, withdrawals, purchases, sales, transaction history and holdings reports. Quotes can come from external providers or a demonstration adapter. Cached quotes are not a guarantee of a live exchange price. Settlement, fees and watchlists are advanced extensions, not features of the current baseline.
 
-## Architectural Identity
+## Three questions organize the design
 
-HexaStock is structured according to two complementary architectural disciplines.
+1. **What must always be true?** The domain model enforces business rules, such as not selling more shares than are available.
+2. **What must happen to complete a request?** An application service obtains data, invokes the domain and coordinates persistence.
+3. **How does the application communicate with a technology?** Adapters translate HTTP, database and price-provider representations.
 
-**Domain-Driven Design** provides the modelling methodology \[Evans, 2003; Vernon, 2013]. The core concepts — `Portfolio`, `Holding`, `Lot`, and `Transaction` — are modelled as aggregates, entities, and value objects that encapsulate business rules and enforce invariants. Application services orchestrate use cases; controllers and adapters translate at the boundaries.
+Domain-Driven Design (DDD) helps name and model the business concepts. Hexagonal architecture separates the application from external technologies through interfaces called *ports*. They address different questions and can be studied separately.
 
-**Hexagonal Architecture** (Ports and Adapters) provides the structural organisation \[Cockburn, 2005]. The domain model has no dependencies on frameworks, databases, or HTTP. It communicates with the outside world exclusively through port interfaces, which are implemented by adapters in the infrastructure layer. All dependencies point inward toward the domain, in the sense of the dependency rule \[Martin, 2017, ch. 22].
+## The seven Maven modules
 
-***
+| Module | Responsibility | Start by locating |
+|---|---|---|
+| `domain` | Business objects and rules | `Portfolio`, `Holding`, `Lot` |
+| `application` | Use cases and ports | `PortfolioStockOperationsService`, `PortfolioPort` |
+| `adapters-inbound-rest` | HTTP translation | `PortfolioRestController` |
+| `adapters-outbound-persistence-jpa` | MySQL persistence | `JpaPortfolioRepository` |
+| `adapters-outbound-persistence-mongodb` | MongoDB persistence | The implementation of `PortfolioPort` |
+| `adapters-outbound-market` | Quote-provider integration | `FinhubStockPriceAdapter` |
+| `bootstrap` | Startup, wiring and cross-cutting configuration | `HexaStockApplication` |
 
-## Module Structure: A Deliberate Choice
+The domain's production code depends on the JDK, not on Spring or database APIs. Test libraries are inherited separately from the parent POM. Application services use Jakarta transaction annotations and application-owned ports. Bootstrap connects those interfaces to concrete adapters.
 
-HexaStock is built as a **Maven multi-module project**. Each module corresponds to a distinct architectural responsibility in the hexagonal model, so the boundaries that a developer reads in a diagram are the same boundaries enforced by the build system.
+Choose `jpa` or `mongodb` at startup. Both adapters implement the same persistence ports, but their concurrency mechanisms differ: JPA uses pessimistic write locking; MongoDB combines version checks, transactions and retries. Interchangeable interfaces do not make database behavior identical.
 
-```
-HexaStock (parent pom)
-├── domain/                                  → Pure business model — no framework dependencies
-├── application/                             → Use case orchestration, inbound and outbound ports
-├── adapters-inbound-rest/                   → Driving adapter: REST controllers, DTOs, error mapping
-├── adapters-outbound-persistence-jpa/       → Driven adapter: JPA entities, repositories, mappers (MySQL)
-├── adapters-outbound-persistence-mongodb/   → Driven adapter: documents, mappers, repositories (MongoDB)
-├── adapters-outbound-market/                → Driven adapter: external stock-price provider clients
-└── bootstrap/                               → Spring Boot entry point, composition root, runtime wiring
-```
+## Follow one request
 
-> **Note.** The workspace also contains the directories `adapters-inbound-telegram/` and `adapters-outbound-notification/`. They are reserved as placeholders for future inbound and outbound channels and currently contain no production source code; they are not part of the active build.
+For `POST /api/portfolios/{id}/sales`:
 
-**`domain`** contains the framework-independent core: aggregates, entities, value objects, domain exceptions, and business rules. It has no dependency on Spring, JPA, or any infrastructure library. All other modules may depend on `domain`; `domain` depends on nothing outside the JDK.
+1. The REST controller converts the request into domain value objects.
+2. The application service loads a portfolio and obtains a quote through outbound ports.
+3. `Portfolio.sell` checks the command and delegates lot consumption to `Holding.sell`.
+4. The service saves the updated portfolio and records a sale transaction.
+5. The REST adapter returns proceeds, cost basis and profit.
 
-**`application`** defines the use cases that the system supports. Inbound ports (e.g., `PortfolioStockOperationsUseCase`) declare what the outside world can ask the system to do; outbound ports (e.g., `PortfolioPort`, `StockPriceProviderPort`) declare what the application needs from infrastructure. Application services implement the inbound ports by orchestrating domain objects and outbound ports, without ever referencing a concrete adapter.
+An inbound port describes what a caller can ask the application to do. An outbound port describes a capability the application needs. The application calls an outbound interface at runtime, while the concrete adapter depends on that interface in source code. This distinction is the basis of dependency inversion.
 
-**`adapters-inbound-rest`** is the driving adapter layer. It translates HTTP requests into calls on inbound ports and maps domain results back to JSON responses. REST controllers, request/response DTOs, and the global exception-handling advice live here.
+See [Stage 4](SELL-STOCK-04-HTTP-AND-PORTS.md) for the original hexagonal diagram and [Stage 5](SELL-STOCK-05-ORCHESTRATION.md) for the service.
 
-**`adapters-outbound-persistence-jpa`** is one of the two driven persistence adapters. It implements the outbound `PortfolioPort` and `TransactionPort` using JPA entities, Spring Data repositories, and bidirectional mappers that convert between domain objects and their database representations. It is active under the `jpa` Spring profile and uses pessimistic write locking on MySQL.
+## Understand the aggregate boundary
 
-**`adapters-outbound-persistence-mongodb`** is an alternative driven persistence adapter implementing the same outbound ports (`PortfolioPort`, `TransactionPort`) on top of Spring Data MongoDB. It is active under the `mongodb` profile and uses optimistic locking with application-level retry (see [MongoDB Adapter: Optimistic Locking and Retry Strategy](https://github.com/alfredorueda/HexaStock/blob/main/doc/mongodb-adapter-optimistic-write-and-retry.md)). The coexistence of both adapters demonstrates a core hexagonal benefit: the domain and application layers are unaware of which persistence technology is active.
+`Portfolio` is the aggregate root: the intended entry point for business updates. `Holding` and `Lot` are child entities inside its consistency boundary, not independent aggregates. Transaction records are stored separately and associated by portfolio ID.
 
-**`adapters-outbound-market`** is the driven external-service adapter. It implements `StockPriceProviderPort` by integrating with third-party market APIs (Finnhub, AlphaVantage), including a mock adapter for offline development and testing.
+The domain packages group concepts by meaning:
 
-**`bootstrap`** is the composition root. It contains `HexaStockApplication`, the Spring Boot entry point that scans all modules and wires ports to their adapter implementations at startup. Configuration classes and runtime profiles live here. No business logic resides in this module — its sole purpose is assembly.
+| Package | Concepts |
+|---|---|
+| `model.portfolio` | Portfolio, holdings, lots and sale results |
+| `model.transaction` | Financial transaction records and identifiers |
+| `model.market` | Tickers and prices returned by the market provider |
+| `model.money` | Money, unit price and share quantity value objects |
 
-### Domain organization: business meaning over technical category
+The current API exposes some mutable children. An unmodifiable list prevents structural changes to the list; it does not make the objects inside it immutable. Treat root-only mutation as a design rule to preserve, not a fully enforced property of every public method.
 
-Inside the `domain` module, the model is not organized as a flat technical taxonomy (`entity/`, `valueobject/`, `exception/`). Instead, concepts are grouped by **business meaning**:
+## What the structure does and does not guarantee
 
-```
-cat.gencat.agaur.hexastock.model
-├── portfolio/    → Portfolio aggregate root, Holding, Lot, SellResult, and related exceptions
-├── transaction/  → Transaction sealed interface + record subtypes, TransactionId, TransactionType
-├── market/       → StockPrice, Ticker, and market-specific exceptions
-├── money/        → Money, Price, ShareQuantity, and monetary validation exceptions
-```
+Maven dependencies restrict which classes a module can compile against. Seven ArchUnit rules check selected package dependency directions. Neither mechanism proves business correctness or forbids every possible dependency between outbound adapters.
 
-`Portfolio` is the central aggregate. Its related concepts — `Holding`, `Lot`, `HoldingPerformance`, `SellResult` — live in the same `portfolio` package because they participate in the same consistency boundary. Shared value objects that cross aggregate boundaries (`Money`, `Price`, `ShareQuantity`) are grouped under `money`, and market-related concepts under `market`. This semantic grouping makes navigating the domain intuitive: the package name tells the reader _what business concept_ the code belongs to, not merely _what DDD building block_ it implements.
+The modules are parts of one application, not seven microservices or seven bounded contexts. A smaller project could express the same responsibilities using packages. This repository uses modules to make the boundaries visible for teaching.
 
-### Why a multi-module structure?
+## Check your understanding
 
-Hexagonal Architecture does not mandate a single filesystem layout. Organizing by feature, by bounded context, or by a combination of both would be equally valid — and often preferable in larger systems with multiple bounded contexts. HexaStock uses module-level separation because its primary audiences — engineers, architects, and teams adopting hexagonal design — benefit most from seeing architectural boundaries enforced physically.
+A new quote provider becomes available. Which code should change?
 
-Maven module declarations constrain the available production dependencies. ArchUnit adds explicit package-level checks, described in [Stage 9 — Verification](SELL-STOCK-09-VERIFICATION.md). These safeguards complement each other, but they are not absolute: changing dependencies can change what compiles, and the current ArchUnit rules do not prohibit every dependency between outbound adapters. The domain has no production framework imports; test dependencies are a separate concern.
+**Answer:** add or replace a market adapter and its bootstrap configuration. The FIFO rule in `Holding` should remain unchanged because selecting purchase lots does not depend on the provider's HTTP protocol.
 
-These Maven modules do not represent separate bounded contexts. They are architectural partitions inside the same bounded context, used to make the dependency rule explicit and enforceable at build time.
-
-***
-
-## Conventions
-
-Code listings throughout the HexaStock documentation are drawn from the repository source. Architecture and sequence diagrams are maintained as Mermaid (`.mmd`) or PlantUML (`.puml`) source files under `doc/tutorial/*/diagrams/` and rendered as SVG images. Gherkin scenarios are maintained as canonical `.feature` files under `doc/features/`. All monetary computations use `BigDecimal` with scale 2 and `RoundingMode.HALF_UP`.
-
-***
+Continue with the [domain vocabulary](UBIQUITOUS-LANGUAGE.md) or [the staged sale tutorial](SELL-STOCK-TUTORIAL.md).
 
 ## References
 

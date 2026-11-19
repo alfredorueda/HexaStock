@@ -8,11 +8,9 @@ This repository implements a **requirement traceability model** that creates an 
 Specification  →  Gherkin (.feature)  →  Tests (JUnit)  →  Code
 ```
 
-Every acceptance criterion in the [functional specification](../stock-portfolio-api-specification.md) is linked to a Gherkin scenario, which is in turn referenced by one or more Java tests via the `@SpecificationRef` annotation. This architecture ensures that:
+**Goal:** follow one requirement to the assertions that check it. Start with the [sale requirements](sellStocks/SELL-STOCK-01-BEHAVIOUR.md), then locate the corresponding test.
 
-- Every requirement is verifiable and verified.
-- Every test can be traced back to the business behaviour it validates.
-- Changes to requirements are immediately visible in the test layer.
+The [functional specification](../stock-portfolio-api-specification.md), feature files and `@SpecificationRef` annotations provide a traceability convention. They make intended relationships inspectable. They do not enforce complete requirement coverage or automatically detect every inconsistency; review the actual assertions and test results.
 
 ---
 
@@ -42,7 +40,7 @@ The [functional specification](../stock-portfolio-api-specification.md) defines 
 
 ### 2. Gherkin Feature Files
 
-The [`doc/features/`](../features/) directory contains 10 `.feature` files — one per use case:
+The [`doc/features/`](../features/) directory contains 15 `.feature` files. The following ten describe baseline use cases:
 
 | Feature File | Use Case | Scenarios |
 |---|---|---|
@@ -57,7 +55,9 @@ The [`doc/features/`](../features/) directory contains 10 `.feature` files — o
 | [`get-holdings-performance.feature`](../features/get-holdings-performance.feature) | US-09 | 3 |
 | [`get-stock-price.feature`](../features/get-stock-price.feature) | US-10 | 2 |
 
-Each feature file includes:
+The five additional files (`fifo-settlement-selling`, `reserved-lot-handling`, `rule-consistency`, `settlement-aware-selling` and `settlement-fees`) specify advanced extensions. Their presence does not mean that settlement is implemented on `main`.
+
+The baseline files include:
 - A standard header comment explaining the traceability chain
 - A `Feature:` line with the use case identifier (e.g., `US-01`)
 - A user-story narrative (`As an... / I want to... / So that...`)
@@ -97,7 +97,7 @@ Tests annotated with `@SpecificationRef` exercise the production code through ei
 
 ## Identifier Convention
 
-All identifiers follow a consistent scheme:
+Baseline acceptance-criterion identifiers use this scheme:
 
 ```
 US-{NN}.AC-{N}
@@ -122,16 +122,11 @@ This repository includes additional tutorials that complement the traceability a
 
 ---
 
-## Summary
+## Check one link in the chain
 
-This traceability architecture ensures that every functional requirement is:
+Choose `US-07.FIFO-1`. Find its feature scenario, then search the test sources for the same identifier. Check whether the assertions cover proceeds, cost basis, profit and the remaining lots. A reference without those assertions is incomplete evidence.
 
-1. **Specified** in the functional specification document.
-2. **Described** in Gherkin scenarios with stable identifiers [North, 2006].
-3. **Verified** at the appropriate level (domain and/or integration).
-4. **Linked** via `@SpecificationRef` annotations.
-
-The resulting chain is auditable: each acceptance criterion maps to one or more executable tests, and each test declares, through its annotation, which criterion it verifies. This makes requirements coverage inspectable by static analysis and makes the impact of a specification change visible in the test layer without any external tooling.
+`@SpecificationRef` is metadata. The tests execute Java code; the Gherkin is not executed by Cucumber. Keep this distinction when reporting requirement coverage.
 
 ## References
 

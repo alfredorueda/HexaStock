@@ -1,6 +1,7 @@
 # Table of contents
 
-* [BOOK-HOME](doc/BOOK-HOME.md)
+* [Welcome to HexaStock](doc/BOOK-HOME.md)
+* [Start Here: Your First Steps](doc/learning/START-HERE.md)
 
 ## Reference Use Case
 
