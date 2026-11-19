@@ -51,6 +51,9 @@
 * [Requirement traceability](doc/tutorial/README.md)
 
 * [Specification-Driven Development with AI](doc/tutorial/specificationDrivenAI/SPECIFICATION-DRIVEN-DEVELOPMENT-WITH-AI.md)
+  * [1. Specify a small change](doc/tutorial/specificationDrivenAI/01-SPECIFY-A-SMALL-CHANGE.md)
+  * [2. Reconcile specifications](doc/tutorial/specificationDrivenAI/02-RECONCILE-SPECIFICATIONS.md)
+  * [3. Evolve and evaluate](doc/tutorial/specificationDrivenAI/03-EVOLVE-AND-EVALUATE.md)
 * [Concurrency Control: Pessimistic Locking and Optimistic Concurrency](doc/tutorial/CONCURRENCY-PESSIMISTIC-LOCKING.md)
   * [1. Coordinate JPA writers](doc/tutorial/concurrency/JPA-LOCKING.md)
   * [2. Retry MongoDB conflicts](doc/tutorial/concurrency/MONGODB-RETRIES.md)
