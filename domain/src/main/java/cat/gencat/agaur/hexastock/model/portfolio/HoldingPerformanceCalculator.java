@@ -8,40 +8,26 @@ import java.math.RoundingMode;
 import java.util.*;
 
 /**
- * Domain service that computes per-ticker holding performance from a flat
- * list of transactions and live market prices.
+ * Computes per-ticker performance from historical transactions, remaining lots
+ * and a supplied quote map, without infrastructure access.
  *
- * <h2>Algorithm — single-pass aggregation, O(T)</h2>
- * <p>The calculator iterates the transaction list <strong>exactly once</strong>.
- * For every stock-related transaction it updates a {@link TickerAccumulator}
- * keyed by {@link Ticker} in a local {@code HashMap}.  After the loop each
- * accumulator already contains the totals needed to build a {@link HoldingPerformance},
- * so no second pass or per-ticker filtering is required.</p>
+ * <p>A single transaction pass builds a {@code LinkedHashMap} of accumulators.
+ * Result construction also visits historical tickers and their remaining lots.
+ * With T transactions, K historical tickers and L visited lots, approximate work
+ * is O(T + K + L), with O(K) additional accumulator/result space under ordinary
+ * map-access assumptions. Loaded inputs require separate memory.</p>
  *
- * <h2>Why sequential instead of parallel?</h2>
- * <ul>
- *   <li><strong>Common-pool contention</strong> — {@code parallelStream()} uses the
- *       shared {@code ForkJoinPool.commonPool()}.  In a web server every request
- *       that calls {@code parallelStream()} competes for the same threads, causing
- *       unpredictable latency spikes under load.</li>
- *   <li><strong>Overhead</strong> — splitting, thread hand-off, and merging cost more
- *       than the work itself for the typical dataset size (hundreds to low thousands
- *       of transactions).</li>
- *   <li><strong>Predictability</strong> — sequential execution gives deterministic
- *       throughput and is easier to reason about in profiling and testing.</li>
- * </ul>
- *
- * <h2>Rounding</h2>
- * <p>All intermediate and final {@link BigDecimal} arithmetic uses {@link #SCALE}
- * and {@link #ROUNDING} so that financial precision is explicit and centralized
- * in one place.</p>
+ * <p>Average historical purchase price uses division at scale 2 with HALF_UP.
+ * Historical purchased cost is distinct from the remaining lots' cost basis.
+ * A missing quote-map entry yields zero current price and unrealized gain;
+ * the application service does not catch provider exceptions to create this case.</p>
  */
 public class HoldingPerformanceCalculator {
 
     /** Decimal scale used for all monetary BigDecimal results. */
     static final int SCALE = 2;
 
-    /** Rounding mode — {@code HALF_UP} is the standard "banker's rounding". */
+    /** Rounding mode for ties away from zero; distinct from HALF_EVEN. */
     static final RoundingMode ROUNDING = RoundingMode.HALF_UP;
 
     // ──────────────────────────────────────────────────────────────────────
@@ -51,7 +37,7 @@ public class HoldingPerformanceCalculator {
     /**
      * Mutable accumulator that collects running totals for a single ticker
      * while we iterate the transaction list.  Kept intentionally simple:
-     * just four counters that map directly to the fields of {@link HoldingPerformance}.
+     * three counters that map directly to the fields of {@link HoldingPerformance}.
      */
     static final class TickerAccumulator {
         /** Total number of shares ever purchased (BUY side only). */
@@ -126,7 +112,7 @@ public class HoldingPerformanceCalculator {
             var holding = portfolio.getHolding(ticker);
             var remaining = BigDecimal.valueOf(holding.getTotalShares().value());
 
-            // Look up live price — may be absent if provider failed
+            // A caller may supply a map without this ticker; provider failures propagate upstream.
             var stockPrice = tickerPrices.get(ticker);
             var currentPrice = (stockPrice != null)
                     ? stockPrice.price().value()
